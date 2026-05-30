@@ -1,0 +1,52 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+service AdvisoryService {
+    rpc Lock(LockRequest) returns (LockResponse);
+    rpc Unlock(UnlockRequest) returns (UnlockResponse);
+    rpc TryLock(TryLockRequest) returns (TryLockResponse);
+    rpc WatchLocks(WatchLocksRequest) returns (stream LockEvent);
+}
+
+message LockRequest {
+    string resource = 1;
+    string holder = 2;
+    int64 ttl_seconds = 3;
+}
+
+message LockResponse {
+    bool acquired = 1;
+    string lock_id = 2;
+}
+
+message UnlockRequest {
+    string resource = 1;
+    string holder = 2;
+}
+
+message UnlockResponse {
+    bool released = 1;
+}
+
+message TryLockRequest {
+    string resource = 1;
+    string holder = 2;
+    int64 ttl_seconds = 3;
+}
+
+message TryLockResponse {
+    bool acquired = 1;
+    string lock_id = 2;
+}
+
+message WatchLocksRequest {
+    string resource_prefix = 1;
+}
+
+message LockEvent {
+    string resource = 1;
+    string holder = 2;
+    string event_type = 3;
+    int64 timestamp = 4;
+}

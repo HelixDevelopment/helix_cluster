@@ -1,0 +1,52 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+service BuildService {
+    rpc SubmitBuild(SubmitBuildRequest) returns (SubmitBuildResponse);
+    rpc GetBuildStatus(GetBuildStatusRequest) returns (BuildStatus);
+    rpc StreamBuildLogs(StreamBuildLogsRequest) returns (stream BuildLogLine);
+    rpc CancelBuild(CancelBuildRequest) returns (CancelBuildResponse);
+}
+
+message SubmitBuildRequest {
+    string repo_url = 1;
+    string ref = 2;
+    string dockerfile_path = 3;
+    map<string, string> build_args = 4;
+}
+
+message SubmitBuildResponse {
+    string build_id = 1;
+    bool queued = 2;
+}
+
+message GetBuildStatusRequest {
+    string build_id = 1;
+}
+
+message BuildStatus {
+    string build_id = 1;
+    string state = 2;
+    int64 started_at = 3;
+    int64 completed_at = 4;
+    string image_tag = 5;
+}
+
+message StreamBuildLogsRequest {
+    string build_id = 1;
+}
+
+message BuildLogLine {
+    string build_id = 1;
+    string line = 2;
+    int64 timestamp = 3;
+}
+
+message CancelBuildRequest {
+    string build_id = 1;
+}
+
+message CancelBuildResponse {
+    bool cancelled = 1;
+}

@@ -1,0 +1,54 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+service SecurityService {
+    rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);
+    rpc Authorize(AuthorizeRequest) returns (AuthorizeResponse);
+    rpc IssueToken(IssueTokenRequest) returns (IssueTokenResponse);
+    rpc ValidateToken(ValidateTokenRequest) returns (ValidateTokenResponse);
+}
+
+message AuthenticateRequest {
+    string identity = 1;
+    bytes proof = 2;
+    string method = 3;
+}
+
+message AuthenticateResponse {
+    bool success = 1;
+    string token = 2;
+    string spiffe_id = 3;
+}
+
+message AuthorizeRequest {
+    string token = 1;
+    string resource = 2;
+    string action = 3;
+}
+
+message AuthorizeResponse {
+    bool allowed = 1;
+    string reason = 2;
+}
+
+message IssueTokenRequest {
+    string identity = 1;
+    repeated string scopes = 2;
+    int64 ttl_seconds = 3;
+}
+
+message IssueTokenResponse {
+    string token = 1;
+    int64 expires_at = 2;
+}
+
+message ValidateTokenRequest {
+    string token = 1;
+}
+
+message ValidateTokenResponse {
+    bool valid = 1;
+    string identity = 2;
+    repeated string scopes = 3;
+}

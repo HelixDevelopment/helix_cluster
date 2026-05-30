@@ -1,0 +1,41 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+import "api/v1/types.proto";
+
+service HealthService {
+    rpc Check(CheckRequest) returns (CheckResponse);
+    rpc Watch(WatchRequest) returns (stream HealthEvent);
+    rpc ReportHealth(ReportHealthRequest) returns (ReportHealthResponse);
+}
+
+message CheckRequest {
+    string service = 1;
+}
+
+message CheckResponse {
+    string status = 1;
+    map<string, string> details = 2;
+}
+
+message WatchRequest {
+    string node_id = 1;
+}
+
+message HealthEvent {
+    string node_id = 1;
+    string status = 2;
+    HealthScore score = 3;
+    int64 timestamp = 4;
+}
+
+message ReportHealthRequest {
+    string node_id = 1;
+    HealthScore score = 2;
+    map<string, string> metrics = 3;
+}
+
+message ReportHealthResponse {
+    bool accepted = 1;
+}
