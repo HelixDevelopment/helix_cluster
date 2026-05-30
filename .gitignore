@@ -61,3 +61,5 @@ Thumbs.db
 # Local stack / docker volumes
 volumes/
 data/
+web/node_modules/
+web/package-lock.json
