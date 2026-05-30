@@ -8,9 +8,9 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "helix-infra",
+	Use:   "helix_infra",
 	Short: "Helix Cluster Infrastructure Manager",
-	Long: `helix-infra manages the Helix Cluster infrastructure stack:
+	Long: `helix_infra manages the Helix Cluster infrastructure stack:
 - PostgreSQL, Redis, etcd clusters
 - NATS, Kafka, RabbitMQ messaging
 - Prometheus, Grafana, Jaeger observability

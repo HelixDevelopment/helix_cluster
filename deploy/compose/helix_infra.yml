@@ -1,4 +1,4 @@
-name: helix-infra
+name: helix_infra
 
 services:
   postgres-primary:

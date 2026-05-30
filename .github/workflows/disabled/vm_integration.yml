@@ -46,7 +46,7 @@ jobs:
         env:
           HELIX_VM_TESTS: "1"
           HELIX_VM_IMAGE: "$HOME/.helix/vm-images/alpine-test.qcow2"
-        run: go test -tags=vm -v -timeout 30m ./tests/vm-nodes/...
+        run: go test -tags=vm -v -timeout 30m ./tests/vm_nodes/...
 
       - name: Run VM tests (TCG fallback)
         if: steps.kvm.outputs.available != 'true'
@@ -54,7 +54,7 @@ jobs:
           HELIX_VM_TESTS: "1"
           HELIX_VM_IMAGE: "$HOME/.helix/vm-images/alpine-test.qcow2"
           HELIX_VM_NO_KVM: "1"
-        run: go test -tags=vm -v -timeout 45m ./tests/vm-nodes/...
+        run: go test -tags=vm -v -timeout 45m ./tests/vm_nodes/...
 
       - name: Upload test artifacts
         if: failure()

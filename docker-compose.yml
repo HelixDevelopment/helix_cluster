@@ -1,6 +1,0 @@
-name: helix
-
-include:
-  - path: deploy/compose/helix-infra.yml
-  - path: deploy/compose/helix-core.yml
-  - path: deploy/compose/override.dev.yml

@@ -7,34 +7,34 @@ help: ## List all targets
 # Infrastructure management
 dev: ## Start Helix infrastructure
 	@echo "Starting Helix infrastructure..."
-	@go run ./cmd/helix-infra up --wait --timeout 300s
+	@go run ./cmd/helix_infra up --wait --timeout 300s
 
 dev-down: ## Stop Helix infrastructure
 	@echo "Stopping Helix infrastructure..."
-	@go run ./cmd/helix-infra down
+	@go run ./cmd/helix_infra down
 
 dev-status: ## Show Helix infrastructure status
-	@go run ./cmd/helix-infra status
+	@go run ./cmd/helix_infra status
 
 dev-logs: ## Show logs for a service (use: make dev-logs service=helixd)
-	@go run ./cmd/helix-infra logs $(service)
+	@go run ./cmd/helix_infra logs $(service)
 
 # Legacy direct compose (fallback)
 dev-compose: ## Start Docker Compose environment directly
-	docker compose -f docker-compose.yml up -d --wait
+	docker compose -f docker_compose.yml up -d --wait
 
 dev-compose-down: ## Stop Docker Compose environment directly
-	docker compose -f docker-compose.yml down -v
+	docker compose -f docker_compose.yml down -v
 
 # Build Docker images
 build-images: ## Build all Docker images
-	docker build -f deploy/docker/helixd.Dockerfile -t helixd:latest .
-	docker build -f deploy/docker/helix-gateway.Dockerfile -t helix-gateway:latest .
-	docker build -f deploy/docker/helix-agent.Dockerfile -t helix-agent:latest .
+	docker build -f deploy/docker/helixd.dockerfile -t helixd:latest .
+	docker build -f deploy/docker/helix_gateway.dockerfile -t helix_gateway:latest .
+	docker build -f deploy/docker/helix_agent.dockerfile -t helix_agent:latest .
 
 # VM testing
 vm-test: ## Run VM node tests
-	@go test -tags=vm ./tests/vm-nodes/...
+	@go test -tags=vm ./tests/vm_nodes/...
 
 test: ## Run all tests
 	go test -race -coverprofile=coverage.out ./...

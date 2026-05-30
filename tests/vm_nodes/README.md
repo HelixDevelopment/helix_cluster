@@ -30,10 +30,10 @@ curl -L -o ~/.helix/vm-images/alpine-test.qcow2 \
   https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/nocloud_alpine-3.20.0-x86_64-bios-r0.qcow2
 
 # Run VM tests with KVM
-HELIX_VM_TESTS=1 go test -tags=vm -v -timeout 30m ./tests/vm-nodes/...
+HELIX_VM_TESTS=1 go test -tags=vm -v -timeout 30m ./tests/vm_nodes/...
 
 # Run VM tests with TCG fallback (slower, no KVM required)
-HELIX_VM_TESTS=1 HELIX_VM_NO_KVM=1 go test -tags=vm -v -timeout 45m ./tests/vm-nodes/...
+HELIX_VM_TESTS=1 HELIX_VM_NO_KVM=1 go test -tags=vm -v -timeout 45m ./tests/vm_nodes/...
 ```
 
 ## Test Scenarios
@@ -49,7 +49,7 @@ HELIX_VM_TESTS=1 HELIX_VM_NO_KVM=1 go test -tags=vm -v -timeout 45m ./tests/vm-n
 
 - **`suite_test.go`** — Test cases using `testing` + `testify/require`
 - **`helpers.go`** — `NodeSimulator` interface, `simNode` implementation, and helper functions (`spawnNodes`, `waitForClusterStable`, KVM/VM-image skips)
-- **`.github/workflows/vm-integration.yml`** — GitHub Actions workflow that installs QEMU, downloads the VM image, and runs tests with KVM or TCG fallback
+- **`.github/workflows/vm_integration.yml`** — GitHub Actions workflow that installs QEMU, downloads the VM image, and runs tests with KVM or TCG fallback
 
 ## Important Notes
 
