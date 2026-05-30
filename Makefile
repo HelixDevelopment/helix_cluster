@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build clean migrate-up migrate-down seed codegraph-index
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update
 
 help: ## List all targets
 	@echo "Available targets:"
