@@ -1,0 +1,88 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+message Node {
+    string id = 1;
+    string hostname = 2;
+    repeated string ip_addresses = 3;
+    string wg_pubkey = 4;
+    string spiffe_id = 5;
+    string status = 6;
+    string role = 7;
+    NodeResources resources = 8;
+    map<string, string> labels = 9;
+    string region = 10;
+    string version = 11;
+}
+
+message NodeResources {
+    CPUResources cpu = 1;
+    MemoryResources memory = 2;
+    repeated GPUResource gpus = 3;
+    StorageResources storage = 4;
+    NetworkResources network = 5;
+}
+
+message CPUResources {
+    string arch = 1;
+    int32 cores = 2;
+    int32 threads = 3;
+    string model = 4;
+}
+
+message MemoryResources {
+    int64 total_bytes = 1;
+    int64 available_bytes = 2;
+}
+
+message GPUResource {
+    string id = 1;
+    string vendor = 2;
+    string model = 3;
+    string driver_version = 4;
+    string api = 5;
+    int64 total_memory = 6;
+    int32 compute_units = 7;
+}
+
+message StorageResources {
+    int64 total_bytes = 1;
+    int64 available_bytes = 2;
+}
+
+message NetworkResources {
+    repeated string interfaces = 1;
+    int64 bandwidth_bps = 2;
+}
+
+message Session {
+    string id = 1;
+    string name = 2;
+    string owner = 3;
+    string status = 4;
+    string mode = 5;
+    string backend = 6;
+    string node_id = 7;
+    ResourceAllocation resources = 8;
+}
+
+message ResourceAllocation {
+    int32 cpu_millicores = 1;
+    int64 memory_bytes = 2;
+    repeated string gpu_ids = 3;
+}
+
+message HealthScore {
+    string node_id = 1;
+    int32 overall = 2;
+    map<string, int32> components = 3;
+}
+
+message Capability {
+    string name = 1;
+    string type = 2;
+    string version = 3;
+    int32 quantity = 4;
+    map<string, string> attributes = 5;
+}

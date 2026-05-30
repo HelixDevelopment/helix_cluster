@@ -45,22 +45,22 @@ VALUES
 INSERT INTO gpu_devices (id, node_id, vendor, model, driver_version, api, api_version,
     total_memory, compute_units, features, attributes, status)
 VALUES
-    ('gpu-1111-2222-3333-4444-555555555555', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    ('11112222-3333-4444-5555-555555555555', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
      'NVIDIA', 'GeForce RTX 4080', '545.23.06', 'CUDA', '12.3',
      17179869184, 76, ARRAY['ray_tracing', 'dlss', 'tensor_cores'],
      '{"pcie": "gen4", "power_limit_w": 320}'::JSONB, 'AVAILABLE'),
 
-    ('gpu-2222-3333-4444-5555-666666666666', 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+    ('22223333-4444-5555-6666-666666666666', 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
      'AMD', 'Radeon RX 7900 XTX', '23.30.13', 'ROCm', '5.7',
      25769803776, 96, ARRAY['ray_tracing', 'fsr'],
      '{"pcie": "gen4", "power_limit_w": 355}'::JSONB, 'ALLOCATED'),
 
-    ('gpu-3333-4444-5555-6666-777777777777', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    ('33334444-5555-6666-7777-777777777777', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
      'Apple', 'M3 Pro 18-Core GPU', 'macOS 14.2', 'Metal', '3.1',
      12884901888, 18, ARRAY['metal_performance_shaders', 'neural_engine'],
      '{"unified_memory": true, "power_limit_w": 40}'::JSONB, 'AVAILABLE'),
 
-    ('gpu-4444-5555-6666-7777-888888888888', 'd4e5f6a7-b8c9-0123-defa-234567890123',
+    ('44445555-6666-7777-8888-888888888888', 'd4e5f6a7-b8c9-0123-defa-234567890123',
      'Intel', 'Arc A770', '31.0.101.5122', 'oneAPI', '2024.0',
      17179869184, 32, ARRAY['ray_tracing', 'xess'],
      '{"pcie": "gen4", "power_limit_w": 225}'::JSONB, 'AVAILABLE');
@@ -115,7 +115,7 @@ VALUES
 
 -- Update GPU allocated_to references
 UPDATE gpu_devices SET allocated_to = 'sess-2222-aaaa-bbbb-cccc-222222222222'
-WHERE id = 'gpu-2222-3333-4444-5555-666666666666';
+WHERE id = '22223333-4444-5555-6666-666666666666';
 
 -- ----------------------------------------------------------
 -- Session Windows
@@ -178,7 +178,7 @@ VALUES
 
     ('alloc-2222-aaaa-bbbb-cccc-222222222222', 'sess-2222-aaaa-bbbb-cccc-222222222222',
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 16000, 68719476736,
-     ARRAY['gpu-2222-3333-4444-5555-666666666666']::UUID[], 'ACTIVE', NOW() + INTERVAL '48 hours'),
+     ARRAY['22223333-4444-5555-6666-666666666666']::UUID[], 'ACTIVE', NOW() + INTERVAL '48 hours'),
 
     ('alloc-3333-aaaa-bbbb-cccc-333333333333', 'sess-3333-aaaa-bbbb-cccc-333333333333',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 8000, 34359738368,
@@ -186,7 +186,7 @@ VALUES
 
     ('alloc-4444-aaaa-bbbb-cccc-444444444444', 'sess-4444-aaaa-bbbb-cccc-444444444444',
      'c3d4e5f6-a7b8-9012-cdef-123456789012', 4000, 8589934592,
-     ARRAY['gpu-3333-4444-5555-6666-777777777777']::UUID[], 'PENDING', NOW() + INTERVAL '24 hours');
+     ARRAY['33334444-5555-6666-7777-777777777777']::UUID[], 'PENDING', NOW() + INTERVAL '24 hours');
 
 -- ----------------------------------------------------------
 -- Scheduling Queue

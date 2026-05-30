@@ -1,0 +1,50 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+import "api/v1/types.proto";
+
+service NodeService {
+    rpc RegisterNode(RegisterNodeRequest) returns (RegisterNodeResponse);
+    rpc GetNode(GetNodeRequest) returns (Node);
+    rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
+    rpc UpdateNodeStatus(UpdateNodeStatusRequest) returns (Node);
+    rpc DeregisterNode(DeregisterNodeRequest) returns (DeregisterNodeResponse);
+}
+
+message RegisterNodeRequest {
+    Node node = 1;
+}
+
+message RegisterNodeResponse {
+    string node_id = 1;
+    bool accepted = 2;
+}
+
+message GetNodeRequest {
+    string node_id = 1;
+}
+
+message ListNodesRequest {
+    map<string, string> filters = 1;
+    string region = 2;
+}
+
+message ListNodesResponse {
+    repeated Node nodes = 1;
+}
+
+message UpdateNodeStatusRequest {
+    string node_id = 1;
+    string status = 2;
+    HealthScore health = 3;
+}
+
+message DeregisterNodeRequest {
+    string node_id = 1;
+    string reason = 2;
+}
+
+message DeregisterNodeResponse {
+    bool success = 1;
+}

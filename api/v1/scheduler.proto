@@ -1,0 +1,67 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+import "api/v1/types.proto";
+
+service SchedulerService {
+    rpc ScheduleJob(ScheduleJobRequest) returns (ScheduleJobResponse);
+    rpc CancelJob(CancelJobRequest) returns (CancelJobResponse);
+    rpc GetJobStatus(GetJobStatusRequest) returns (JobStatus);
+    rpc ListJobs(ListJobsRequest) returns (ListJobsResponse);
+    rpc StreamJobEvents(StreamJobEventsRequest) returns (stream JobEvent);
+}
+
+message ScheduleJobRequest {
+    string job_id = 1;
+    string session_id = 2;
+    ResourceAllocation requirements = 3;
+    map<string, string> constraints = 4;
+}
+
+message ScheduleJobResponse {
+    string job_id = 1;
+    string node_id = 2;
+    bool scheduled = 3;
+}
+
+message CancelJobRequest {
+    string job_id = 1;
+    string reason = 2;
+}
+
+message CancelJobResponse {
+    bool cancelled = 1;
+}
+
+message GetJobStatusRequest {
+    string job_id = 1;
+}
+
+message JobStatus {
+    string job_id = 1;
+    string state = 2;
+    string node_id = 3;
+    int64 started_at = 4;
+    int64 completed_at = 5;
+}
+
+message ListJobsRequest {
+    string node_id = 1;
+    string state = 2;
+}
+
+message ListJobsResponse {
+    repeated JobStatus jobs = 1;
+}
+
+message StreamJobEventsRequest {
+    string job_id = 1;
+}
+
+message JobEvent {
+    string job_id = 1;
+    string event_type = 2;
+    string message = 3;
+    int64 timestamp = 4;
+}
