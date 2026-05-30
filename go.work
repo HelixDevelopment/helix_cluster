@@ -15,6 +15,7 @@ use (
 	./auth
 	./cache
 	./challenges
+	./cmd/hxc-registry
 	./concurrency
 	./config
 	./containers
@@ -25,6 +26,7 @@ use (
 	./mdns
 	./middleware
 	./observability
+	./pkg/hxcregistry
 	./ratelimiter
 	./recovery
 	./security

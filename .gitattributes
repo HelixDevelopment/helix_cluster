@@ -24,3 +24,4 @@
 *.tar binary
 *.gz binary
 *.br binary
+data/hxc_registry.db binary
