@@ -1,0 +1,89 @@
+# DocProcessor Integration Workflow
+# DISABLED per manual CI/CD mandate — kept as template for future re-enablement.
+# To activate, move this file to ../docs.yml and ensure DocProcessor submodule is initialized.
+
+name: Docs
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'DocProcessor/**'
+      - 'scripts/docs/**'
+  pull_request:
+    branches: [main, master]
+    paths:
+      - 'docs/**'
+      - '*.md'
+      - 'DocProcessor/**'
+      - 'scripts/docs/**'
+
+jobs:
+  docs-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended
+
+      - name: Build DocProcessor
+        working-directory: DocProcessor
+        run: go build -o docprocessor ./cmd/docprocessor
+
+      - name: Verify documentation sync
+        run: bash scripts/docs/verify.sh
+
+  docs-generate:
+    runs-on: ubuntu-latest
+    needs: docs-verify
+    if: github.event_name == 'push'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y pandoc texlive-latex-base texlive-fonts-recommended
+
+      - name: Build DocProcessor
+        working-directory: DocProcessor
+        run: go build -o docprocessor ./cmd/docprocessor
+
+      - name: Generate all documentation exports
+        run: bash scripts/docs/generate.sh all
+
+      - name: Update CONTINUATION.md
+        run: bash scripts/docs/update_continuation.sh
+
+      - name: Commit generated docs (if changed)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No documentation changes to commit."
+          else
+            git commit -m "[docs] Auto-generate exports and update CONTINUATION.md"
+            git push
+          fi

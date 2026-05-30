@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>HXC_REGISTRY</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">HXC_REGISTRY</h1>
+</header>
+<!-- Revision: 2026-05-30T19:30:19Z -->
+<h1 id="hxc-ticket-registry">HXC Ticket Registry</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-05-30T19:24:03Z <strong>Description:</strong> Master registry of
+all HXC workable items <strong>Authority:</strong> Constitution §11.4.15
+<strong>Maintainer:</strong> Operator + AI loop</p>
+<hr />
+<h2 id="phase-legend">Phase Legend</h2>
+<table>
+<thead>
+<tr>
+<th>Range</th>
+<th>Phase</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HXC-001 – HXC-099</td>
+<td>Phase 0 (Foundation)</td>
+</tr>
+<tr>
+<td>HXC-100 – HXC-199</td>
+<td>Phase 1 (Core Infrastructure)</td>
+</tr>
+<tr>
+<td>HXC-200 – HXC-299</td>
+<td>Phase 2 (Resource Management)</td>
+</tr>
+<tr>
+<td>HXC-300 – HXC-399</td>
+<td>Phase 3 (Session Manager)</td>
+</tr>
+<tr>
+<td>HXC-400 – HXC-499</td>
+<td>Phase 4 (Build Service)</td>
+</tr>
+<tr>
+<td>HXC-500 – HXC-599</td>
+<td>Phase 5 (LLM Brain)</td>
+</tr>
+<tr>
+<td>HXC-600 – HXC-699</td>
+<td>Phase 6 (Security)</td>
+</tr>
+<tr>
+<td>HXC-700 – HXC-799</td>
+<td>Phase 7 (QA &amp; Testing)</td>
+</tr>
+<tr>
+<td>HXC-800 – HXC-899</td>
+<td>Phase 8 (Polish &amp; Release)</td>
+</tr>
+<tr>
+<td>HXC-900+</td>
+<td>Cross-cutting / ongoing</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="status-definitions">Status Definitions</h2>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Queued</td>
+<td>Ticket accepted, not yet started</td>
+</tr>
+<tr>
+<td>In progress</td>
+<td>Actively being worked</td>
+</tr>
+<tr>
+<td>Ready for testing</td>
+<td>Implementation complete, awaiting test</td>
+</tr>
+<tr>
+<td>In testing</td>
+<td>Under active test / QA</td>
+</tr>
+<tr>
+<td>Fixed</td>
+<td>Completed and verified</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="active-tickets">Active Tickets</h2>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>HXC-ID</th>
+<th>Phase</th>
+<th>Type</th>
+<th>Status</th>
+<th>Title</th>
+<th>Commit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HXC-400</td>
+<td>Phase 4</td>
+<td>Feature</td>
+<td>Queued</td>
+<td>Build Service — Bazel RBE protocol</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-500</td>
+<td>Phase 5</td>
+<td>Feature</td>
+<td>Queued</td>
+<td>LLM Brain — inference engine</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-600</td>
+<td>Phase 6</td>
+<td>Feature</td>
+<td>Queued</td>
+<td>Security Hardening — mTLS everywhere</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-700</td>
+<td>Phase 7</td>
+<td>Feature</td>
+<td>In progress</td>
+<td>QA &amp; Testing — integration test suite</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-800</td>
+<td>Phase 8</td>
+<td>Feature</td>
+<td>Queued</td>
+<td>Polish &amp; Release — v1.0.0-dev-mvp tag</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-902</td>
+<td>Cross-cutting</td>
+<td>Task</td>
+<td>In progress</td>
+<td>Documentation chain setup</td>
+<td>—</td>
+</tr>
+<tr>
+<td>HXC-903</td>
+<td>Cross-cutting</td>
+<td>Task</td>
+<td>In progress</td>
+<td>Continuation document maintenance</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="completed-tickets">Completed Tickets</h2>
+<table>
+<colgroup>
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 13%" />
+<col style="width: 18%" />
+<col style="width: 15%" />
+<col style="width: 18%" />
+</colgroup>
+<thead>
+<tr>
+<th>HXC-ID</th>
+<th>Phase</th>
+<th>Type</th>
+<th>Status</th>
+<th>Title</th>
+<th>Commit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HXC-001</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>Repository structure + go.work</td>
+<td>75bffec</td>
+</tr>
+<tr>
+<td>HXC-002</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>Docker Compose 20-service stack</td>
+<td>75bffec</td>
+</tr>
+<tr>
+<td>HXC-003</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>30 pkg/ package stubs with tests</td>
+<td>f1162a7</td>
+</tr>
+<tr>
+<td>HXC-004</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>Proto definitions + buf pipeline</td>
+<td>6035284</td>
+</tr>
+<tr>
+<td>HXC-005</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>web/ React+Vite scaffold</td>
+<td>84a1616</td>
+</tr>
+<tr>
+<td>HXC-006</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>Constitution + CodeGraph setup</td>
+<td>75bffec</td>
+</tr>
+<tr>
+<td>HXC-007</td>
+<td>Phase 0</td>
+<td>Foundation</td>
+<td>Fixed</td>
+<td>CI/CD scaffolding</td>
+<td>75bffec</td>
+</tr>
+<tr>
+<td>HXC-100</td>
+<td>Phase 1</td>
+<td>Infrastructure</td>
+<td>Fixed</td>
+<td>Containers submodule extensions</td>
+<td>623cab8</td>
+</tr>
+<tr>
+<td>HXC-101</td>
+<td>Phase 1</td>
+<td>Infrastructure</td>
+<td>Fixed</td>
+<td>Infrastructure orchestrator</td>
+<td>623cab8</td>
+</tr>
+<tr>
+<td>HXC-102</td>
+<td>Phase 1</td>
+<td>Infrastructure</td>
+<td>Fixed</td>
+<td>helix_infra CLI</td>
+<td>623cab8</td>
+</tr>
+<tr>
+<td>HXC-103</td>
+<td>Phase 1</td>
+<td>Infrastructure</td>
+<td>Fixed</td>
+<td>VM testing framework</td>
+<td>623cab8</td>
+</tr>
+<tr>
+<td>HXC-104</td>
+<td>Phase 1</td>
+<td>Chore</td>
+<td>Fixed</td>
+<td>snake_case compliance rename</td>
+<td>8185d0a</td>
+</tr>
+<tr>
+<td>HXC-105</td>
+<td>Phase 1</td>
+<td>Chore</td>
+<td>Fixed</td>
+<td>Manual CI/CD disable</td>
+<td>335f4f7</td>
+</tr>
+<tr>
+<td>HXC-200</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>SWIM gossip protocol</td>
+<td>2632b1c</td>
+</tr>
+<tr>
+<td>HXC-201</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>WireGuard mesh networking</td>
+<td>2632b1c</td>
+</tr>
+<tr>
+<td>HXC-202</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>Session manager with CRDT</td>
+<td>2632b1c</td>
+</tr>
+<tr>
+<td>HXC-203</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>Service discovery with TTL</td>
+<td>2632b1c</td>
+</tr>
+<tr>
+<td>HXC-204</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>Scheduler (Omega model)</td>
+<td>9982c59</td>
+</tr>
+<tr>
+<td>HXC-205</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>Resource aggregator</td>
+<td>9982c59</td>
+</tr>
+<tr>
+<td>HXC-206</td>
+<td>Phase 2</td>
+<td>Feature</td>
+<td>Fixed</td>
+<td>Session backends (tmux, PTY)</td>
+<td>9982c59</td>
+</tr>
+<tr>
+<td>HXC-300</td>
+<td>Phase 3</td>
+<td>Guarantee</td>
+<td>Fixed</td>
+<td>Constitution PCS-6 guarantee</td>
+<td>8898518</td>
+</tr>
+<tr>
+<td>HXC-301</td>
+<td>Phase 3</td>
+<td>Verification</td>
+<td>Fixed</td>
+<td>Inheritance verification gate</td>
+<td>e20c3ef</td>
+</tr>
+<tr>
+<td>HXC-302</td>
+<td>Phase 3</td>
+<td>Test</td>
+<td>Fixed</td>
+<td>Paired mutation test</td>
+<td>e20c3ef</td>
+</tr>
+<tr>
+<td>HXC-303</td>
+<td>Phase 3</td>
+<td>Audit</td>
+<td>Fixed</td>
+<td>Anti-bluff audit</td>
+<td>9aaeb9f</td>
+</tr>
+<tr>
+<td>HXC-304</td>
+<td>Phase 3</td>
+<td>Fix</td>
+<td>Fixed</td>
+<td>Stub fixes (8 packages)</td>
+<td>35de8ef</td>
+</tr>
+<tr>
+<td>HXC-305</td>
+<td>Phase 3</td>
+<td>Test</td>
+<td>Fixed</td>
+<td>Mutation tests (15 packages)</td>
+<td>35de8ef</td>
+</tr>
+<tr>
+<td>HXC-900</td>
+<td>Cross-cutting</td>
+<td>Governance</td>
+<td>Fixed</td>
+<td>Constitution cascade to submodules</td>
+<td>2e861d1</td>
+</tr>
+<tr>
+<td>HXC-901</td>
+<td>Cross-cutting</td>
+<td>Tracking</td>
+<td>Fixed</td>
+<td>MVP Progress tracker</td>
+<td>f7dd99e</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="commit-to-ticket-mapping">Commit-to-Ticket Mapping</h2>
+<table>
+<colgroup>
+<col style="width: 32%" />
+<col style="width: 36%" />
+<col style="width: 32%" />
+</colgroup>
+<thead>
+<tr>
+<th>Commit</th>
+<th>Message</th>
+<th>Ticket</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>5f2d121</td>
+<td>Initial commit</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>7f02555</td>
+<td>Auto-commit</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>3336278</td>
+<td>Research material.</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>75bffec</td>
+<td>Phase 0: Foundation — submodules, Constitution, CodeGraph, CI/CD,
+migrations, dev environment, project structure</td>
+<td>HXC-001, HXC-002, HXC-006, HXC-007</td>
+</tr>
+<tr>
+<td>5cf8e89</td>
+<td>Phase 0: Incremental — build.sh, lint.sh, format.sh, benchmark.sh,
+codegraph_setup.sh scripts</td>
+<td>HXC-007</td>
+</tr>
+<tr>
+<td>7e6a718</td>
+<td>Phase 0: Incremental — .gitignore, README update,
+codegraph_update.sh, script improvements</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>78f2c47</td>
+<td>Phase 0: Incremental — VERSION, CHANGELOG.md, .gitattributes,
+go.work updates</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>b308456</td>
+<td>Phase 0: Incremental — go.sum, go.work.sum, grpcutil and workerpool
+test fixes, seed data updates</td>
+<td>HXC-003</td>
+</tr>
+<tr>
+<td>f6d925c</td>
+<td>Phase 0: Incremental — Phase 0 completion research docs</td>
+<td>HXC-001</td>
+</tr>
+<tr>
+<td>40e425c</td>
+<td>Phase 0: Incremental — additional pkg/ stubs, classads, grpcutil,
+jwt, middleware, pubsub, serde, validator, websocket</td>
+<td>HXC-003</td>
+</tr>
+<tr>
+<td>f1162a7</td>
+<td>Phase 0: Incremental — all pkg/ stubs complete, API proto
+definitions, events, lru, ratelimit, semaphore, workerpool, leader,
+discovery</td>
+<td>HXC-003</td>
+</tr>
+<tr>
+<td>6035284</td>
+<td>Phase 0: Incremental — advisory, health, security proto
+definitions</td>
+<td>HXC-004</td>
+</tr>
+<tr>
+<td>84a1616</td>
+<td>Phase 0: Incremental — Web UI scaffolding (React+Vite+TS),
+buf.gen.yaml</td>
+<td>HXC-005</td>
+</tr>
+<tr>
+<td>396fe86</td>
+<td>Phase 2 Research.</td>
+<td>HXC-200</td>
+</tr>
+<tr>
+<td>623cab8</td>
+<td>Phase 1: Core Infrastructure — container-native execution,
+helix-infra CLI, compose migration, VM testing</td>
+<td>HXC-100, HXC-101, HXC-102, HXC-103</td>
+</tr>
+<tr>
+<td>335f4f7</td>
+<td>Phase 1: Disable all GitHub Actions workflows — manual CI/CD
+only</td>
+<td>HXC-105</td>
+</tr>
+<tr>
+<td>8185d0a</td>
+<td>Phase 1: §11.4.29 snake_case compliance — rename kebab-case files
+and references</td>
+<td>HXC-104</td>
+</tr>
+<tr>
+<td>8898518</td>
+<td>Constitution: PCS-6 End-User Usability Guarantee — §7.1 + §11.4.39
+reinforcement</td>
+<td>HXC-300</td>
+</tr>
+<tr>
+<td>9bb47e2</td>
+<td>Phase 3 Research.</td>
+<td>HXC-300</td>
+</tr>
+<tr>
+<td>2632b1c</td>
+<td>Phase 2: Core Infrastructure - SWIM protocol, WireGuard mesh,
+session manager, discovery race fixes, infra mutex</td>
+<td>HXC-200, HXC-201, HXC-202, HXC-203</td>
+</tr>
+<tr>
+<td>2e861d1</td>
+<td>chore: cascade Helix Constitution inheritance pointers to all
+submodules</td>
+<td>HXC-900</td>
+</tr>
+<tr>
+<td>e20c3ef</td>
+<td>Constitution §7 + §11.4.102: Add inheritance verification gate +
+paired mutation test + anti-bluff audit</td>
+<td>HXC-301, HXC-302</td>
+</tr>
+<tr>
+<td>9aaeb9f</td>
+<td>Anti-bluff audit follow-up: Real JWT implementation + mutation tests
+for 6 packages</td>
+<td>HXC-303</td>
+</tr>
+<tr>
+<td>35de8ef</td>
+<td>Anti-bluff follow-up: Fix 8 stub packages + mutation tests for 15
+packages</td>
+<td>HXC-304, HXC-305</td>
+</tr>
+<tr>
+<td>f7dd99e</td>
+<td>docs: MVP implementation progress tracker</td>
+<td>HXC-901</td>
+</tr>
+<tr>
+<td>9982c59</td>
+<td>MVP Phase 2-3: Scheduler, Resource Aggregator, Session Backends</td>
+<td>HXC-204, HXC-205, HXC-206</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="rules">Rules</h2>
+<ol type="1">
+<li><strong>HXC numbers are permanent.</strong> Never reuse a number,
+even if a ticket is abandoned.</li>
+<li><strong>Status transitions:</strong> Queued → In progress → Ready
+for testing → In testing → Fixed.</li>
+<li><strong>Every commit to main MUST reference an HXC ticket</strong>
+in the message body: <code>Refs: HXC-XXX</code>.</li>
+<li><strong>This registry is the single source of truth.</strong> All
+other trackers must sync from here.</li>
+<li><strong>New tickets</strong> must be created via
+<code>scripts/hxc.sh create</code> to ensure numbering integrity.</li>
+</ol>
+</body>
+</html>

@@ -27,19 +27,34 @@ echo "Project root: ${PROJECT_ROOT}"
 echo ""
 
 # 1. Pre-commit validation (skip if tools not available)
-echo "[1/6] Running pre-commit validations..."
+echo "[1/8] Running pre-commit validations..."
 if command -v golangci-lint &>/dev/null; then
     make lint || { echo "Lint failed. Fix before committing."; exit 1; }
 else
     echo "  golangci-lint not available — skipping lint"
 fi
 
+# 1b. Documentation verification and update (Constitution §11.4.44)
+echo "[1b/8] Running documentation verification..."
+if [ -f "${PROJECT_ROOT}/scripts/docs/verify.sh" ]; then
+    bash "${PROJECT_ROOT}/scripts/docs/verify.sh" || { echo "Docs verification failed. Run 'make docs' to regenerate."; exit 1; }
+else
+    echo "  docs/verify.sh not found — skipping docs verification"
+fi
+
+echo "[1c/8] Updating CONTINUATION.md..."
+if [ -f "${PROJECT_ROOT}/scripts/docs/update_continuation.sh" ]; then
+    bash "${PROJECT_ROOT}/scripts/docs/update_continuation.sh"
+else
+    echo "  docs/update_continuation.sh not found — skipping continuation update"
+fi
+
 # 2. Stage all changes
-echo "[2/6] Staging changes..."
+echo "[2/8] Staging changes..."
 git add -A
 
 # 3. Check for submodule changes and commit them first (Constitution §3)
-echo "[3/6] Checking submodule changes..."
+echo "[3/8] Checking submodule changes..."
 git submodule foreach '
     if [ -n "$(git status --porcelain)" ]; then
         echo "Submodule $name has changes — committing inside submodule first..."
@@ -52,7 +67,7 @@ git submodule foreach '
 '
 
 # 4. Commit main project
-echo "[4/6] Committing main project..."
+echo "[4/8] Committing main project..."
 if [ -z "$(git status --porcelain)" ]; then
     echo "Nothing to commit."
     exit 0
@@ -62,14 +77,14 @@ COMMIT_MSG="${1:-"Auto-commit: $(date -u +%Y-%m-%dT%H:%M:%SZ)"}"
 git commit -m "${COMMIT_MSG}"
 
 # 5. Push to all upstreams (Constitution §2.1)
-echo "[5/6] Pushing to all upstreams..."
+echo "[5/8] Pushing to all upstreams..."
 for remote in $(git remote); do
     echo "  Pushing to ${remote}..."
     git push "${remote}" "$(git rev-parse --abbrev-ref HEAD)" || echo "  WARNING: Push to ${remote} failed"
 done
 
 # 6. Mirror tags on submodules (Constitution §4)
-echo "[6/6] Checking for tag mirroring..."
+echo "[6/8] Checking for tag mirroring..."
 CURRENT_TAG=$(git describe --tags --exact-match 2>/dev/null || true)
 if [ -n "${CURRENT_TAG}" ]; then
     echo "Tag ${CURRENT_TAG} detected — mirroring on owned submodules..."
