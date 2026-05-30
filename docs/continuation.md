@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 10
-**Last modified:** 2026-05-30T20:06:22Z
+**Revision:** 11
+**Last modified:** 2026-05-30T20:07:00Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `bdfca40` | fix: NULL column handling in HXC registry |
 | `64785b5` | fix: Handle NULL columns in SQLite HXC registry scan |
 | `494669c` | feat: Push HXC registry + PHASE_2_ROADMAP to all upstreams |
 | `07dcd6b` | feat: SQLite HXC registry + PHASE_2_ROADMAP — git-versioned source of truth |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `08b4f32` | noop |
 | `a5425cf` | docs: Log HXC-902 and HXC-903 as completed in fixed.md |
 | `41734c5` | noop |
-| `861c179` | docs: Documentation chain infrastructure — §11.4.44 compliant revision headers, HTML/PDF exports, verify gate |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `64785b5` |
-| **Timestamp** | 2026-05-30T20:06:22Z |
+| **Commit** | `bdfca40` |
+| **Timestamp** | 2026-05-30T20:07:00Z |
 
 ## §3: Active Work
 
