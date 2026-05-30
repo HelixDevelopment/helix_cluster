@@ -1,0 +1,8 @@
+﻿Section,Words,Key Content
+Executive Summary,"1,565","14 key metrics, 6-subsystem overview, strategic impact"
+Ch1: Virtualization Technologies,"4,187","QEMU/KVM, Firecracker, containers, 5 comparison tables"
+Ch2: Platform-Specific Virtualization,"3,862","Android, iOS, Console, SBC simulation, gap analysis"
+Ch3: DST & Chaos Engineering,"5,288","FoundationDB DST, turmoil, Chaos Mesh, TLA+, Jepsen, Antithesis"
+Ch4: Programming Languages,"3,161","Elixir/BEAM, Rust, WebAssembly, eBPF, polyglot mapping"
+Ch5: Architecture,"7,306","6 subsystems, tier mapping, fault taxonomy, deployment"
+Ch6: Implementation Roadmap,"2,692","24-week plan, 6 phases, risk mitigation"
