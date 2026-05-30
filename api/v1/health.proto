@@ -2,7 +2,7 @@ syntax = "proto3";
 package helix.v1;
 option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
 
-import "api/v1/types.proto";
+import "types.proto";
 
 service HealthService {
     rpc Check(CheckRequest) returns (CheckResponse);

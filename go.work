@@ -12,9 +12,11 @@ use (
 	./Panoptic
 	./Storage
 	./VisionEngine
+	./api/v1
 	./auth
 	./cache
 	./challenges
+	./cmd/helix-build
 	./cmd/hxc-registry
 	./concurrency
 	./config
@@ -26,6 +28,7 @@ use (
 	./mdns
 	./middleware
 	./observability
+	./pkg/build
 	./pkg/hxcregistry
 	./ratelimiter
 	./recovery
