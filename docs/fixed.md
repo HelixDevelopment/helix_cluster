@@ -1,7 +1,7 @@
 # Fixed
 
-**Revision:** 2
-**Last modified:** 2026-05-30T19:32:04Z
+**Revision:** 3
+**Last modified:** 2026-05-30T19:33:37Z
 **Description:** Completed work log for Helix Cluster OS — canonical closed-item registry
 **Authority:** Constitution §11.4 covenant
 **Maintainer:** Operator + AI loop
@@ -31,3 +31,6 @@
 ---
 
 *For active work, see `docs/issues.md`.*
+
+| HXC-902 | Documentation chain setup | 2026-05-30 | Complete | docs/continuation.md, issues.md, fixed.md, HXC_REGISTRY.md with §11.4.44 revision headers; HTML/PDF exports; verify.sh gate | 861c179 |
+| HXC-903 | Continuation document maintenance | 2026-05-30 | Complete | Automated revision header updates via generate.sh, freshness checks in verify.sh, weasyprint PDF generation | 861c179 |
