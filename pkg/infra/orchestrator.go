@@ -3,6 +3,7 @@ package infra
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -64,6 +65,7 @@ func DefaultServices() []string {
 
 // InfraOrchestrator manages the lifecycle of infrastructure services.
 type InfraOrchestrator struct {
+	mu       sync.RWMutex
 	config   *InfraConfig
 	services map[string]*ServiceStatus
 	vmNodes  map[string]*VMNode
@@ -80,6 +82,8 @@ func NewOrchestrator(cfg *InfraConfig) *InfraOrchestrator {
 
 // Boot starts the specified services. If no services are specified, all are started.
 func (o *InfraOrchestrator) Boot(ctx context.Context, services []string) ([]ServiceStatus, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if len(services) == 0 {
 		services = o.config.Services
 	}
@@ -100,6 +104,8 @@ func (o *InfraOrchestrator) Boot(ctx context.Context, services []string) ([]Serv
 
 // Stop stops the specified services. If no services are specified, all are stopped.
 func (o *InfraOrchestrator) Stop(ctx context.Context, services []string, removeVolumes bool) ([]ServiceStatus, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if len(services) == 0 {
 		for name := range o.services {
 			services = append(services, name)
@@ -124,6 +130,8 @@ func (o *InfraOrchestrator) Stop(ctx context.Context, services []string, removeV
 
 // Status returns the status of the specified services, or all if none specified.
 func (o *InfraOrchestrator) Status(ctx context.Context, services []string) ([]ServiceStatus, error) {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 	if len(services) == 0 {
 		for name := range o.services {
 			services = append(services, name)
@@ -150,6 +158,8 @@ func (o *InfraOrchestrator) Status(ctx context.Context, services []string) ([]Se
 
 // Health runs health checks for the specified services, or all if none specified.
 func (o *InfraOrchestrator) Health(ctx context.Context, services []string) ([]ServiceStatus, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if len(services) == 0 {
 		for name := range o.services {
 			services = append(services, name)
@@ -177,6 +187,8 @@ func (o *InfraOrchestrator) Health(ctx context.Context, services []string) ([]Se
 
 // Logs streams logs from a service.
 func (o *InfraOrchestrator) Logs(ctx context.Context, service string, follow bool, tail int, since string, timestamps bool) error {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 	if _, ok := o.services[service]; !ok {
 		return fmt.Errorf("service %s not found", service)
 	}
@@ -185,6 +197,8 @@ func (o *InfraOrchestrator) Logs(ctx context.Context, service string, follow boo
 
 // Scale scales a service to N replicas.
 func (o *InfraOrchestrator) Scale(ctx context.Context, service string, replicas int) (ServiceStatus, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if s, ok := o.services[service]; ok {
 		s.Replicas = replicas
 		s.Message = fmt.Sprintf("scaled to %d replicas", replicas)
@@ -203,6 +217,8 @@ func (o *InfraOrchestrator) Scale(ctx context.Context, service string, replicas 
 
 // VMSpawn spawns N VM nodes.
 func (o *InfraOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, error) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	nodes := make([]VMNode, 0, count)
 	for i := 0; i < count; i++ {
 		id := fmt.Sprintf("vm-%d", len(o.vmNodes)+i+1)
@@ -224,6 +240,8 @@ func (o *InfraOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, e
 
 // VMDestroy destroys a VM node by ID.
 func (o *InfraOrchestrator) VMDestroy(ctx context.Context, nodeID string) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	if _, ok := o.vmNodes[nodeID]; !ok {
 		return fmt.Errorf("vm node %s not found", nodeID)
 	}
@@ -233,6 +251,8 @@ func (o *InfraOrchestrator) VMDestroy(ctx context.Context, nodeID string) error 
 
 // VMList lists all VM nodes.
 func (o *InfraOrchestrator) VMList(ctx context.Context) ([]VMNode, error) {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 	nodes := make([]VMNode, 0, len(o.vmNodes))
 	for _, node := range o.vmNodes {
 		nodes = append(nodes, *node)
@@ -242,6 +262,8 @@ func (o *InfraOrchestrator) VMList(ctx context.Context) ([]VMNode, error) {
 
 // VMStatus returns the status of a specific VM node.
 func (o *InfraOrchestrator) VMStatus(ctx context.Context, nodeID string) (VMNode, error) {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 	if node, ok := o.vmNodes[nodeID]; ok {
 		return *node, nil
 	}
@@ -250,6 +272,8 @@ func (o *InfraOrchestrator) VMStatus(ctx context.Context, nodeID string) (VMNode
 
 // VMSSH returns the SSH command/connection string for a VM node.
 func (o *InfraOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, error) {
+	o.mu.RLock()
+	defer o.mu.RUnlock()
 	node, ok := o.vmNodes[nodeID]
 	if !ok {
 		return "", fmt.Errorf("vm node %s not found", nodeID)
@@ -259,6 +283,8 @@ func (o *InfraOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, e
 
 // VMSimulateFailure simulates a failure on a VM node.
 func (o *InfraOrchestrator) VMSimulateFailure(ctx context.Context, nodeID string) error {
+	o.mu.Lock()
+	defer o.mu.Unlock()
 	node, ok := o.vmNodes[nodeID]
 	if !ok {
 		return fmt.Errorf("vm node %s not found", nodeID)
@@ -269,15 +295,20 @@ func (o *InfraOrchestrator) VMSimulateFailure(ctx context.Context, nodeID string
 
 // VMSimulatePartition simulates a network partition on a VM node for a given duration.
 func (o *InfraOrchestrator) VMSimulatePartition(ctx context.Context, nodeID string, duration time.Duration) error {
+	o.mu.Lock()
 	node, ok := o.vmNodes[nodeID]
 	if !ok {
+		o.mu.Unlock()
 		return fmt.Errorf("vm node %s not found", nodeID)
 	}
 	node.Status = "partitioned"
+	o.mu.Unlock()
 	go func() {
 		select {
 		case <-time.After(duration):
+			o.mu.Lock()
 			node.Status = "running"
+			o.mu.Unlock()
 		case <-ctx.Done():
 		}
 	}()

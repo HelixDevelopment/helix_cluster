@@ -1,29 +1,333 @@
 // Package discovery provides service discovery for Helix Cluster OS.
 package discovery
 
-import "sync"
+import (
+	"context"
+	"fmt"
+	"sync"
+	"time"
+)
 
-// Registry is a simple in-memory service registry.
-type Registry struct {
+// Instance represents a service instance.
+type Instance struct {
+	ID        string
+	Service   string
+	Address   string
+	Port      int
+	Metadata  map[string]string
+	Healthy   bool
+	LastSeen  time.Time
+	TTL       time.Duration
+}
+
+// EventType describes a registry change event.
+type EventType int
+
+const (
+	EventRegister EventType = iota
+	EventDeregister
+	EventHealthChange
+)
+
+// Event is a registry change notification.
+type Event struct {
+	Type     EventType
+	Service  string
+	Instance *Instance
+}
+
+// Registry is the service registry interface.
+type Registry interface {
+	Register(ctx context.Context, inst *Instance) error
+	Deregister(ctx context.Context, service, id string) error
+	Lookup(ctx context.Context, service string) ([]*Instance, error)
+	Watch(ctx context.Context, service string) (<-chan Event, error)
+}
+
+// Backend is the storage backend for the registry.
+type Backend interface {
+	Put(ctx context.Context, key string, inst *Instance) error
+	Delete(ctx context.Context, key string) error
+	List(ctx context.Context, prefix string) ([]*Instance, error)
+	Watch(ctx context.Context, prefix string) (<-chan BackendEvent, error)
+}
+
+// BackendEvent is a low-level backend change.
+type BackendEvent struct {
+	Type    EventType
+	Key     string
+	Instance *Instance
+}
+
+// InMemoryBackend is a non-persistent backend for testing and static setups.
+type InMemoryBackend struct {
 	mu       sync.RWMutex
-	services map[string][]string
+	data     map[string]*Instance
+	watchers map[string][]chan BackendEvent
 }
 
-// NewRegistry creates a new Registry.
-func NewRegistry() *Registry {
-	return &Registry{services: make(map[string][]string)}
+// NewInMemoryBackend creates a new in-memory backend.
+func NewInMemoryBackend() *InMemoryBackend {
+	return &InMemoryBackend{
+		data:     make(map[string]*Instance),
+		watchers: make(map[string][]chan BackendEvent),
+	}
 }
 
-// Register registers an instance for a service.
-func (r *Registry) Register(service, instance string) {
+func instanceKey(service, id string) string {
+	return fmt.Sprintf("%s/%s", service, id)
+}
+
+// Put stores an instance.
+func (b *InMemoryBackend) Put(ctx context.Context, key string, inst *Instance) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	copyInst := *inst
+	b.data[key] = &copyInst
+	b.notify(key, BackendEvent{Type: EventRegister, Key: key, Instance: &copyInst})
+	return nil
+}
+
+// Delete removes an instance.
+func (b *InMemoryBackend) Delete(ctx context.Context, key string) error {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	inst, ok := b.data[key]
+	if !ok {
+		return fmt.Errorf("instance not found: %s", key)
+	}
+	delete(b.data, key)
+	b.notify(key, BackendEvent{Type: EventDeregister, Key: key, Instance: inst})
+	return nil
+}
+
+// List returns all instances matching the prefix.
+func (b *InMemoryBackend) List(ctx context.Context, prefix string) ([]*Instance, error) {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	var out []*Instance
+	for k, v := range b.data {
+		if len(prefix) == 0 || len(k) >= len(prefix) && k[:len(prefix)] == prefix {
+			copyInst := *v
+			out = append(out, &copyInst)
+		}
+	}
+	return out, nil
+}
+
+// Watch returns a channel of backend events for keys matching the prefix.
+func (b *InMemoryBackend) Watch(ctx context.Context, prefix string) (<-chan BackendEvent, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	ch := make(chan BackendEvent, 10)
+	b.watchers[prefix] = append(b.watchers[prefix], ch)
+	go func() {
+		<-ctx.Done()
+		b.mu.Lock()
+		defer b.mu.Unlock()
+		for i, c := range b.watchers[prefix] {
+			if c == ch {
+				b.watchers[prefix] = append(b.watchers[prefix][:i], b.watchers[prefix][i+1:]...)
+				break
+			}
+		}
+		close(ch)
+	}()
+	return ch, nil
+}
+
+func (b *InMemoryBackend) notify(key string, evt BackendEvent) {
+	for prefix, chs := range b.watchers {
+		if len(prefix) == 0 || (len(key) >= len(prefix) && key[:len(prefix)] == prefix) {
+			for _, ch := range chs {
+				select {
+				case ch <- evt:
+				default:
+				}
+			}
+		}
+	}
+}
+
+// ServiceRegistry is a high-level registry with TTL health and watch support.
+type ServiceRegistry struct {
+	mu         sync.RWMutex
+	backend    Backend
+	instances  map[string]*Instance // local cache
+	ttlChecker *time.Ticker
+	stopCh     chan struct{}
+}
+
+// NewServiceRegistry creates a registry backed by the given backend.
+func NewServiceRegistry(backend Backend) *ServiceRegistry {
+	return &ServiceRegistry{
+		backend:   backend,
+		instances: make(map[string]*Instance),
+		stopCh:    make(chan struct{}),
+	}
+}
+
+// NewStaticRegistry creates a registry with an in-memory backend.
+func NewStaticRegistry() *ServiceRegistry {
+	return NewServiceRegistry(NewInMemoryBackend())
+}
+
+// Start begins the TTL health checker.
+func (r *ServiceRegistry) Start(interval time.Duration) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	r.services[service] = append(r.services[service], instance)
+	if r.ttlChecker != nil {
+		return
+	}
+	r.ttlChecker = time.NewTicker(interval)
+	go r.runTTLChecker()
 }
 
-// Lookup returns instances for a service.
-func (r *Registry) Lookup(service string) []string {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	return r.services[service]
+// Stop halts the TTL health checker.
+func (r *ServiceRegistry) Stop() {
+	r.mu.Lock()
+	if r.ttlChecker != nil {
+		r.ttlChecker.Stop()
+		r.ttlChecker = nil
+	}
+	select {
+	case <-r.stopCh:
+		// already closed
+	default:
+		close(r.stopCh)
+	}
+	r.mu.Unlock()
+}
+
+func (r *ServiceRegistry) runTTLChecker() {
+	for {
+		r.mu.Lock()
+		ticker := r.ttlChecker
+		r.mu.Unlock()
+		if ticker == nil {
+			return
+		}
+		select {
+		case <-ticker.C:
+			r.checkTTLs()
+		case <-r.stopCh:
+			return
+		}
+	}
+}
+
+func (r *ServiceRegistry) checkTTLs() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	now := time.Now()
+	for key, inst := range r.instances {
+		if inst.TTL > 0 && now.Sub(inst.LastSeen) > inst.TTL {
+			inst.Healthy = false
+			// Notify watchers via backend delete so they get deregister event
+			_ = r.backend.Delete(context.Background(), key)
+			delete(r.instances, key)
+		}
+	}
+}
+
+// Register registers an instance with optional TTL.
+func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
+	if inst == nil {
+		return fmt.Errorf("instance is nil")
+	}
+	if inst.ID == "" || inst.Service == "" {
+		return fmt.Errorf("instance id and service are required")
+	}
+	if inst.LastSeen.IsZero() {
+		inst.LastSeen = time.Now()
+	}
+	if inst.TTL == 0 {
+		inst.TTL = 30 * time.Second
+	}
+	key := instanceKey(inst.Service, inst.ID)
+
+	r.mu.Lock()
+	cacheInst := &Instance{
+		ID:        inst.ID,
+		Service:   inst.Service,
+		Address:   inst.Address,
+		Port:      inst.Port,
+		Metadata:  inst.Metadata,
+		Healthy:   true,
+		LastSeen:  inst.LastSeen,
+		TTL:       inst.TTL,
+	}
+	r.instances[key] = cacheInst
+	backendInst := *cacheInst
+	r.mu.Unlock()
+
+	return r.backend.Put(ctx, key, &backendInst)
+}
+
+// Deregister removes an instance.
+func (r *ServiceRegistry) Deregister(ctx context.Context, service, id string) error {
+	key := instanceKey(service, id)
+	r.mu.Lock()
+	delete(r.instances, key)
+	r.mu.Unlock()
+	return r.backend.Delete(ctx, key)
+}
+
+// Lookup returns healthy instances for a service.
+func (r *ServiceRegistry) Lookup(ctx context.Context, service string) ([]*Instance, error) {
+	prefix := service + "/"
+	all, err := r.backend.List(ctx, prefix)
+	if err != nil {
+		return nil, err
+	}
+	var out []*Instance
+	for _, inst := range all {
+		copyInst := *inst
+		if copyInst.Healthy {
+			out = append(out, &copyInst)
+		}
+	}
+	return out, nil
+}
+
+// Watch returns a channel of registry events for a service.
+func (r *ServiceRegistry) Watch(ctx context.Context, service string) (<-chan Event, error) {
+	prefix := service + "/"
+	backendCh, err := r.backend.Watch(ctx, prefix)
+	if err != nil {
+		return nil, err
+	}
+	outCh := make(chan Event, 10)
+	go func() {
+		defer close(outCh)
+		for be := range backendCh {
+			outCh <- Event{
+				Type:     be.Type,
+				Service:  service,
+				Instance: be.Instance,
+			}
+		}
+	}()
+	return outCh, nil
+}
+
+// Renew updates the LastSeen timestamp for an instance (heartbeat).
+func (r *ServiceRegistry) Renew(ctx context.Context, service, id string) error {
+	key := instanceKey(service, id)
+	r.mu.Lock()
+	inst, ok := r.instances[key]
+	if !ok {
+		r.mu.Unlock()
+		return fmt.Errorf("instance not found: %s", key)
+	}
+	inst.LastSeen = time.Now()
+	inst.Healthy = true
+	copyInst := *inst
+	r.mu.Unlock()
+	return r.backend.Put(ctx, key, &copyInst)
+}
+
+// HealthyInstances returns only healthy instances for a service.
+func (r *ServiceRegistry) HealthyInstances(ctx context.Context, service string) ([]*Instance, error) {
+	return r.Lookup(ctx, service)
 }
