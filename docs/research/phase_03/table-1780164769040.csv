@@ -1,0 +1,8 @@
+﻿#,Insight,Impact
+**1**,**DreamLab proved 100K phones = 30 supercomputers** — overnight compute model works at scale,Validates entire phone integration approach
+**2**,"**Orange Pi 5 Max = \$125 ""poor man's PS5""** — 16GB RAM, 6 TOPS NPU, 2.5GbE",Best price/performance SBC on the market
+**3**,**Termux foreground service = universal Android agent** — works on ALL Android devices without root,3 billion potential Android nodes
+**4**,"**iOS = ""compute donor"" not ""compute node""** — 3-min background limit, but 35 TOPS NPU",Valuable for short intense inference tasks
+**5**,**Folding\@Home pattern is universal** — install → idle-detect → compute → verify → repeat,Proven model for all consumer device compute
+**6**,**Armbian on TV boxes eliminates Android limits** — \$50 TV box → full Linux server,Best price/performance headless compute
+**7**,"**MLC LLM + ONNX Runtime = universal AI inference** — one codebase, all platforms, all NPUs",Unified AI across every device tier

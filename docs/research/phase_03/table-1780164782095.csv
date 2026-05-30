@@ -1,0 +1,8 @@
+﻿Gap,How Phase 3 Fills It,Quantified Impact
+**NPU Compute**,Dedicated AI accelerators on every device,**100+ TOPS aggregate**
+**Ultra-Low-Cost Scaling**,\$50-130 per TV box/SBC,**10x nodes per dollar**
+**Idle Phone Compute**,Charging-gated overnight model,**Billions of device-hours**
+**Power-Efficient AI**,NPUs at 1-5W vs GPUs at 100W+,**20-50x better perf/watt**
+**Geographic Distribution**,Phones everywhere,**Edge compute at the edge**
+**Community Elastic Scaling**,Users opt in/out dynamically,**Unlimited scaling potential**
+**ARM64 Ecosystem**,Benefits Apple Silicon too,**Better Phase 1 performance**

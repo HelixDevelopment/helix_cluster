@@ -1,0 +1,7 @@
+﻿Tier,Devices,Trust,Role,Protocol
+**T3**,"Orange Pi 5 Max, RK3588 SBCs",STANDARD,Full worker + NPU,MQTT + gRPC
+**T4**,"Raspberry Pi 5, basic SBCs",STANDARD,Standard worker,MQTT + gRPC
+**T5**,Android TV Box (Armbian Linux),STANDARD,Headless worker,MQTT
+**T6**,Android Phone/Tablet,SEMI,Charging-gated compute,QUIC + MQTT
+**T7**,"iPhone, iPad",EDGE\_DONOR,Opportunistic inference,HTTP/2 + MQTT
+**T8**,Huawei MatePad (HarmonyOS),SEMI,NPU inference + distributed,WebSocket + MQTT
