@@ -39,10 +39,7 @@ func (p *Pool) worker() {
 
 // Submit submits work to the pool.
 func (p *Pool) Submit(fn func()) {
-	select {
-	case p.work <- fn:
-	default:
-	}
+	p.work <- fn
 }
 
 // Stop stops the pool.

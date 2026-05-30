@@ -159,7 +159,7 @@ VALUES
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'python train.py --config config.yaml',
      '/home/alice/lora-finetune',
      '{"CUDA_VISIBLE_DEVICES": "0", "PYTHONPATH": "/home/alice/lora-finetune"}'::JSONB,
-     8000, 34359738368, 'b6260aeb-7d7e-5853-ba86-ed6a6d0dd2ce', 'RUNNING', NULL),
+     8000, 34359738368, '32139113-856e-5a08-8a05-1127fed75674', 'RUNNING', NULL),
 
     ('890e98a3-98e1-53cd-b4d6-daf08a8557b0', '71964d2b-1288-5db3-bb58-da7d3aef59e0',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'm', '/home/bob/aosp',
