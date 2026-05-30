@@ -45,22 +45,22 @@ VALUES
 INSERT INTO gpu_devices (id, node_id, vendor, model, driver_version, api, api_version,
     total_memory, compute_units, features, attributes, status)
 VALUES
-    ('11112222-3333-4444-5555-555555555555', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+    ('1eb576ad-8b69-5f4d-908a-06807e23ca7b', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
      'NVIDIA', 'GeForce RTX 4080', '545.23.06', 'CUDA', '12.3',
      17179869184, 76, ARRAY['ray_tracing', 'dlss', 'tensor_cores'],
      '{"pcie": "gen4", "power_limit_w": 320}'::JSONB, 'AVAILABLE'),
 
-    ('22223333-4444-5555-6666-666666666666', 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
+    ('32139113-856e-5a08-8a05-1127fed75674', 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
      'AMD', 'Radeon RX 7900 XTX', '23.30.13', 'ROCm', '5.7',
      25769803776, 96, ARRAY['ray_tracing', 'fsr'],
      '{"pcie": "gen4", "power_limit_w": 355}'::JSONB, 'ALLOCATED'),
 
-    ('33334444-5555-6666-7777-777777777777', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
+    ('4dccef7e-5055-5389-bb10-9611164174e0', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
      'Apple', 'M3 Pro 18-Core GPU', 'macOS 14.2', 'Metal', '3.1',
      12884901888, 18, ARRAY['metal_performance_shaders', 'neural_engine'],
      '{"unified_memory": true, "power_limit_w": 40}'::JSONB, 'AVAILABLE'),
 
-    ('44445555-6666-7777-8888-888888888888', 'd4e5f6a7-b8c9-0123-defa-234567890123',
+    ('df62b03d-07a3-5d28-a45e-6a4f407bf4e1', 'd4e5f6a7-b8c9-0123-defa-234567890123',
      'Intel', 'Arc A770', '31.0.101.5122', 'oneAPI', '2024.0',
      17179869184, 32, ARRAY['ray_tracing', 'xess'],
      '{"pcie": "gen4", "power_limit_w": 225}'::JSONB, 'AVAILABLE');
@@ -70,15 +70,15 @@ VALUES
 -- ----------------------------------------------------------
 INSERT INTO users (id, spiffe_id, email, name, role, quota_cpu, quota_memory, quota_gpu, labels)
 VALUES
-    ('1111aaaa-bbbb-4ccc-addd-dddddddd0000', 'spiffe://helix.cluster/users/admin',
+    ('6fa960c4-2f8f-5a8d-802d-925f9d27aa4a', 'spiffe://helix.cluster/users/admin',
      'admin@helix.cluster', 'Cluster Admin', 'ADMIN', 32000, 68719476736, 4,
      '{"team": "platform", "department": "engineering"}'::JSONB),
 
-    ('2222aaaa-bbbb-4ccc-addd-dddddddd0000', 'spiffe://helix.cluster/users/alice',
+    ('a08a2476-aa29-51a4-adc4-e8d35e729c6d', 'spiffe://helix.cluster/users/alice',
      'alice@helix.cluster', 'Alice Chen', 'USER', 16000, 34359738368, 2,
      '{"team": "ml", "department": "research"}'::JSONB),
 
-    ('3333aaaa-bbbb-4ccc-addd-dddddddd0000', 'spiffe://helix.cluster/users/bob',
+    ('b99c269e-000d-5b30-8178-201e8a1ca22e', 'spiffe://helix.cluster/users/bob',
      'bob@helix.cluster', 'Bob Smith', 'USER', 8000, 17179869184, 0,
      '{"team": "build", "department": "engineering"}'::JSONB);
 
@@ -89,49 +89,49 @@ INSERT INTO sessions (id, name, owner, status, mode, backend, node_id,
     cpu_request, memory_request, gpu_request, priority, labels,
     started_at, updated_at)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', 'dev-shell', 'spiffe://helix.cluster/users/alice',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', 'dev-shell', 'spiffe://helix.cluster/users/alice',
      'RUNNING', 'INTERACTIVE', 'TMUX', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
      2000, 4294967296, NULL, 80,
      '{"project": "helix-api", "env": "development"}'::JSONB,
      NOW() - INTERVAL '2 hours', NOW()),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', 'ml-training', 'spiffe://helix.cluster/users/alice',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', 'ml-training', 'spiffe://helix.cluster/users/alice',
      'RUNNING', 'BATCH', 'ZELLIJ', 'b2c3d4e5-f6a7-8901-bcde-f12345678901',
      16000, 68719476736, '{"gpu_count": 1, "gpu_memory_min": 17179869184}'::JSONB, 95,
      '{"project": "lora-finetune", "framework": "pytorch"}'::JSONB,
      NOW() - INTERVAL '6 hours', NOW()),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', 'aosp-build', 'spiffe://helix.cluster/users/bob',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', 'aosp-build', 'spiffe://helix.cluster/users/bob',
      'RUNNING', 'BATCH', 'TMUX', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
      8000, 34359738368, NULL, 70,
      '{"project": "android-15", "target": "aosp_cf_x86_64_phone"}'::JSONB,
      NOW() - INTERVAL '30 minutes', NOW()),
 
-    ('4444aaaa-bbbb-4ccc-a444-444444440000', 'ios-dev', 'spiffe://helix.cluster/users/alice',
+    ('71964d2b-1288-5db3-bb58-da7d3aef59e0', 'ios-dev', 'spiffe://helix.cluster/users/alice',
      'CREATING', 'INTERACTIVE', 'TMUX', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
      4000, 8589934592, '{"gpu_count": 1, "gpu_vendor": "apple"}'::JSONB, 60,
      '{"project": "swift-app", "env": "development"}'::JSONB,
      NULL, NOW());
 
 -- Update GPU allocated_to references
-UPDATE gpu_devices SET allocated_to = '2222aaaa-bbbb-4ccc-a222-222222220000'
-WHERE id = '22223333-4444-5555-6666-666666666666';
+UPDATE gpu_devices SET allocated_to = '650b5266-9658-52de-b4fb-e3e35529c5b7'
+WHERE id = '32139113-856e-5a08-8a05-1127fed75674';
 
 -- ----------------------------------------------------------
 -- Session Windows
 -- ----------------------------------------------------------
 INSERT INTO session_windows (id, session_id, name, layout, active, crdt_state)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'editor', 'tiled', TRUE, '{"layout": "main-vertical", "splits": [0.6, 0.4]}'::JSONB),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'logs', 'tiled', FALSE, '{"layout": "even-horizontal", "splits": [0.5, 0.5]}'::JSONB),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', '2222aaaa-bbbb-4ccc-a222-222222220000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', '650b5266-9658-52de-b4fb-e3e35529c5b7',
      'training', 'fullscreen', TRUE, NULL),
 
-    ('4444aaaa-bbbb-4ccc-a444-444444440000', '3333aaaa-bbbb-4ccc-a333-333333330000',
+    ('71964d2b-1288-5db3-bb58-da7d3aef59e0', '3c27fd5f-43c0-54bd-bac5-acb101855219',
      'build', 'tiled', TRUE, '{"layout": "main-horizontal", "splits": [0.7, 0.3]}'::JSONB);
 
 -- ----------------------------------------------------------
@@ -140,28 +140,28 @@ VALUES
 INSERT INTO session_panes (id, window_id, node_id, command, working_dir, environment,
     cpu_limit, memory_limit, gpu_id, status, crdt_state)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'nvim', '/home/alice/helix-api',
      '{"EDITOR": "nvim", "SHELL": "/bin/zsh"}'::JSONB,
      1000, 2147483648, NULL, 'RUNNING', NULL),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'cargo watch -x run', '/home/alice/helix-api',
      '{"RUST_LOG": "debug", "SHELL": "/bin/zsh"}'::JSONB,
      1000, 2147483648, NULL, 'RUNNING', NULL),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', '2222aaaa-bbbb-4ccc-a222-222222220000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', '650b5266-9658-52de-b4fb-e3e35529c5b7',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'tail -f /var/log/helix/*.log', '/var/log/helix',
      '{"SHELL": "/bin/zsh"}'::JSONB,
      500, 1073741824, NULL, 'RUNNING', NULL),
 
-    ('4444aaaa-bbbb-4ccc-a444-444444440000', '3333aaaa-bbbb-4ccc-a333-333333330000',
+    ('71964d2b-1288-5db3-bb58-da7d3aef59e0', '3c27fd5f-43c0-54bd-bac5-acb101855219',
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'python train.py --config config.yaml',
      '/home/alice/lora-finetune',
      '{"CUDA_VISIBLE_DEVICES": "0", "PYTHONPATH": "/home/alice/lora-finetune"}'::JSONB,
-     8000, 34359738368, '22223333-4444-4555-a666-666666660000', 'RUNNING', NULL),
+     8000, 34359738368, 'b6260aeb-7d7e-5853-ba86-ed6a6d0dd2ce', 'RUNNING', NULL),
 
-    ('5555aaaa-bbbb-4ccc-a555-555555550000', '4444aaaa-bbbb-4ccc-a444-444444440000',
+    ('890e98a3-98e1-53cd-b4d6-daf08a8557b0', '71964d2b-1288-5db3-bb58-da7d3aef59e0',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'm', '/home/bob/aosp',
      '{"ANDROID_HOME": "/opt/android-sdk", "SHELL": "/bin/bash"}'::JSONB,
      4000, 17179869184, NULL, 'RUNNING', NULL);
@@ -172,36 +172,36 @@ VALUES
 INSERT INTO resource_allocations (id, session_id, node_id, cpu_millicores, memory_bytes,
     gpu_ids, status, expires_at)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 2000, 4294967296,
      NULL, 'ACTIVE', NOW() + INTERVAL '24 hours'),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', '2222aaaa-bbbb-4ccc-a222-222222220000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', '650b5266-9658-52de-b4fb-e3e35529c5b7',
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 16000, 68719476736,
-     ARRAY['22223333-4444-5555-6666-666666666666']::UUID[], 'ACTIVE', NOW() + INTERVAL '48 hours'),
+     ARRAY['32139113-856e-5a08-8a05-1127fed75674']::UUID[], 'ACTIVE', NOW() + INTERVAL '48 hours'),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', '3333aaaa-bbbb-4ccc-a333-333333330000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', '3c27fd5f-43c0-54bd-bac5-acb101855219',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 8000, 34359738368,
      NULL, 'ACTIVE', NOW() + INTERVAL '12 hours'),
 
-    ('4444aaaa-bbbb-4ccc-a444-444444440000', '4444aaaa-bbbb-4ccc-a444-444444440000',
+    ('71964d2b-1288-5db3-bb58-da7d3aef59e0', '71964d2b-1288-5db3-bb58-da7d3aef59e0',
      'c3d4e5f6-a7b8-9012-cdef-123456789012', 4000, 8589934592,
-     ARRAY['33334444-5555-6666-7777-777777777777']::UUID[], 'PENDING', NOW() + INTERVAL '24 hours');
+     ARRAY['4dccef7e-5055-5389-bb10-9611164174e0']::UUID[], 'PENDING', NOW() + INTERVAL '24 hours');
 
 -- ----------------------------------------------------------
 -- Scheduling Queue
 -- ----------------------------------------------------------
 INSERT INTO scheduling_queue (id, request, priority, status, scheduled_at, started_at, completed_at)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446',
      '{"type": "session", "session_id": "sess-4444-aaaa-bbbb-cccc-444444444444", "requirements": {"cpu": 4000, "memory": 8589934592, "gpu": 1}}'::JSONB,
      60, 'SCHEDULED', NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '4 minutes', NULL),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7',
      '{"type": "build", "job_id": "build-5555-aaaa-bbbb-cccc-555555555555", "requirements": {"cpu": 16000, "memory": 68719476736, "gpu": 0}}'::JSONB,
      75, 'PENDING', NULL, NULL, NULL),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219',
      '{"type": "session", "session_id": "sess-5555-aaaa-bbbb-cccc-555555555555", "requirements": {"cpu": 2000, "memory": 4294967296}}'::JSONB,
      50, 'COMPLETED', NOW() - INTERVAL '1 hour', NOW() - INTERVAL '59 minutes', NOW() - INTERVAL '30 minutes');
 
@@ -233,20 +233,20 @@ VALUES
 INSERT INTO advisories (id, type, description, rationale, proposed_action, confidence,
     risk_level, auto_approve, status, applied_by, applied_at, result)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', 'RESOURCE_REBALANCE',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', 'RESOURCE_REBALANCE',
      'Move session sess-2222 from node-beta to node-alpha to free GPU on beta for higher-priority job.',
      'Node-beta GPU memory at 95%% forecast. Node-alpha GPU is idle. Migration would reduce contention.',
      '{"action": "migrate_session", "session_id": "sess-2222-aaaa-bbbb-cccc-222222222222", "target_node": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"}'::JSONB,
      0.87, 'LOW', TRUE, 'APPLIED', 'system', NOW() - INTERVAL '10 minutes',
      '{"success": true, "duration_ms": 4200}'::JSONB),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', 'SCALE_UP',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', 'SCALE_UP',
      'Cluster CPU utilization trending above 80%%. Recommend adding node-delta to active pool.',
      '7-day CPU trend shows 12%% weekly growth. Current pool will saturate in ~3 days.',
      '{"action": "promote_node", "node_id": "d4e5f6a7-b8c9-0123-defa-234567890123", "role": "WORKER"}'::JSONB,
      0.74, 'MEDIUM', FALSE, 'PENDING', NULL, NULL, NULL),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', 'HEALTH_ALERT',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', 'HEALTH_ALERT',
      'Node-delta disk space critically low (15%% remaining). Clean build artifacts or expand storage.',
      'Disk score dropped from 85 to 70 over 24h. Build artifacts consuming 1.2TB.',
      '{"action": "cleanup_artifacts", "node_id": "d4e5f6a7-b8c9-0123-defa-234567890123", "retention": "7d"}'::JSONB,
@@ -258,26 +258,26 @@ VALUES
 INSERT INTO build_jobs (id, name, status, mode, cpu_request, memory_request, gpu_request,
     node_id, priority, labels, started_at, completed_at)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', 'aosp-main-userdebug',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', 'aosp-main-userdebug',
      'COMPLETED', 'BATCH', 8000, 34359738368, NULL,
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 70,
      '{"target": "aosp_cf_x86_64_phone", "branch": "main"}'::JSONB,
      NOW() - INTERVAL '8 hours', NOW() - INTERVAL '6 hours'),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', 'kernel-gs201',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', 'kernel-gs201',
      'RUNNING', 'BATCH', 4000, 17179869184, NULL,
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 65,
      '{"target": "kernel", "device": "pixel7"}'::JSONB,
      NOW() - INTERVAL '1 hour', NULL),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', 'llama-cpp-cuda',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', 'llama-cpp-cuda',
      'PENDING', 'BATCH', 16000, 68719476736,
      '{"gpu_count": 1, "gpu_memory_min": 17179869184}'::JSONB,
      NULL, 90,
      '{"framework": "llama.cpp", "variant": "cuda"}'::JSONB,
      NULL, NULL),
 
-    ('4444aaaa-bbbb-4ccc-a444-444444440000', 'helix-agent-darwin',
+    ('71964d2b-1288-5db3-bb58-da7d3aef59e0', 'helix-agent-darwin',
      'FAILED', 'BATCH', 4000, 8589934592, NULL,
      'c3d4e5f6-a7b8-9012-cdef-123456789012', 50,
      '{"target": "darwin-arm64", "branch": "feature/wireguard-mesh"}'::JSONB,
@@ -288,17 +288,17 @@ VALUES
 -- ----------------------------------------------------------
 INSERT INTO build_artifacts (id, job_id, artifact_hash, size_bytes, storage_path, metadata)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'sha256:a1b2c3d4e5f67890abcdef1234567890abcdef1234567890abcdef1234567890', 2147483648,
      'ceph://builds/aosp/main/2026-05-30/aosp-main-userdebug.zip',
      '{"compression": "zip", "signed": true}'::JSONB),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'sha256:b2c3d4e5f6a78901bcdef1234567890abcdef1234567890abcdef1234567890a', 1073741824,
      'ceph://builds/aosp/main/2026-05-30/boot.img',
      '{"type": "boot_image", "signed": true}'::JSONB),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'sha256:c3d4e5f6a7b89012cdef1234567890abcdef1234567890abcdef1234567890ab', 536870912,
      'ceph://builds/aosp/main/2026-05-30/system.img',
      '{"type": "system_image", "sparse": true}'::JSONB);
@@ -309,15 +309,15 @@ VALUES
 INSERT INTO migration_history (id, session_id, source_node, target_node, method,
     duration_ms, data_size_bytes, success, error_message)
 VALUES
-    ('1111aaaa-bbbb-4ccc-a111-111111110000', '2222aaaa-bbbb-4ccc-a222-222222220000',
+    ('95f7cdab-40e0-5004-964a-ca159b26e446', '650b5266-9658-52de-b4fb-e3e35529c5b7',
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
      'CRIU', 4200, 268435456, TRUE, NULL),
 
-    ('2222aaaa-bbbb-4ccc-a222-222222220000', '1111aaaa-bbbb-4ccc-a111-111111110000',
+    ('650b5266-9658-52de-b4fb-e3e35529c5b7', '95f7cdab-40e0-5004-964a-ca159b26e446',
      'a1b2c3d4-e5f6-7890-abcd-ef1234567890', 'c3d4e5f6-a7b8-9012-cdef-123456789012',
      'RESTART', 850, 0, TRUE, NULL),
 
-    ('3333aaaa-bbbb-4ccc-a333-333333330000', '3333aaaa-bbbb-4ccc-a333-333333330000',
+    ('3c27fd5f-43c0-54bd-bac5-acb101855219', '3c27fd5f-43c0-54bd-bac5-acb101855219',
      'b2c3d4e5-f6a7-8901-bcde-f12345678901', 'd4e5f6a7-b8c9-0123-defa-234567890123',
      'DMTCP', 15600, 1073741824, FALSE,
      'DMTCP checkpoint failed: GPU context not serializable on Intel Arc');

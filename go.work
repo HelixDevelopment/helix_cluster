@@ -1,7 +1,17 @@
-go 1.23
+go 1.26
 
 use (
 	.
+	./DocProcessor
+	./EventBus
+	./Filesystem
+	./LLMOrchestrator
+	./LLMProvider
+	./LLMsVerifier
+	./Messaging
+	./Panoptic
+	./Storage
+	./VisionEngine
 	./auth
 	./cache
 	./challenges
@@ -10,23 +20,13 @@ use (
 	./containers
 	./database
 	./discovery
-	./DocProcessor
-	./EventBus
-	./Filesystem
 	./helixqa
 	./http3
-	./LLMOrchestrator
-	./LLMProvider
-	./LLMsVerifier
 	./mdns
-	./Messaging
 	./middleware
 	./observability
-	./Panoptic
 	./ratelimiter
 	./recovery
 	./security
-	./Storage
 	./tmux
-	./VisionEngine
 )
