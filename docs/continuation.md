@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 13
-**Last modified:** 2026-05-30T20:10:41Z
+**Revision:** 14
+**Last modified:** 2026-05-30T21:06:13Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `f4f5735` | feat: HXC-904 Phase 4 Build Service — pkg/build + helix-build gRPC server |
+| `4d25f94` | docs: PHASE_4_ROADMAP — push to all upstreams |
 | `7a51f4d` | docs: PHASE_4_ROADMAP.md — Virtual Testing Matrix roadmap |
 | `00fec3e` | fix: NULL column handling in HXC registry (clean) |
 | `8bb6e9f` | fix: NULL column handling in HXC registry |
@@ -24,16 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `07dcd6b` | feat: SQLite HXC registry + PHASE_2_ROADMAP — git-versioned source of truth |
 | `6f8fb82` | Phase 4 Research. |
 | `5e63c98` | docs: Finalize documentation chain — all verify gates passing |
-| `be3ed89` | docs: Fix continuation.md updater — Python-based §11.4.44 preservation |
-| `08b4f32` | noop |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `7a51f4d` |
-| **Timestamp** | 2026-05-30T20:10:41Z |
+| **Commit** | `f4f5735` |
+| **Timestamp** | 2026-05-30T21:06:13Z |
 
 ## §3: Active Work
 
