@@ -1,0 +1,83 @@
+services:
+  helixd:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/helixd.Dockerfile
+    container_name: helixd
+    networks: [helix]
+    depends_on:
+      postgres-primary: { condition: service_healthy }
+      etcd-1: { condition: service_healthy }
+      nats: { condition: service_healthy }
+    environment:
+      HELIX_NODE_ID: helixd-1
+      HELIX_ETCD_ENDPOINTS: etcd-1:2379,etcd-2:2379,etcd-3:2379
+      HELIX_POSTGRES_DSN: postgres://helix:helix@postgres-primary:5432/helix?sslmode=disable
+      HELIX_NATS_URL: nats://nats:4222
+      HELIX_LOG_LEVEL: info
+    ports:
+      - "8080:8080"   # HTTP API
+      - "50051:50051" # gRPC
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+
+  helix-gateway:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/helix-gateway.Dockerfile
+    container_name: helix-gateway
+    networks: [helix]
+    depends_on:
+      helixd: { condition: service_healthy }
+    environment:
+      HELIX_GATEWAY_UPSTREAM: helixd:8080
+      HELIX_GRPC_UPSTREAM: helixd:50051
+      HELIX_LOG_LEVEL: info
+    ports:
+      - "80:80"
+      - "443:443"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:80/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  helix-agent:
+    build:
+      context: ../..
+      dockerfile: deploy/docker/helix-agent.Dockerfile
+    container_name: helix-agent-1
+    networks: [helix]
+    depends_on:
+      helixd: { condition: service_healthy }
+    environment:
+      HELIX_AGENT_NODE_ID: agent-1
+      HELIX_AGENT_CLUSTER_ENDPOINT: helixd:50051
+      HELIX_AGENT_WG_ENDPOINT: helixd:51820
+      HELIX_LOG_LEVEL: info
+    privileged: true  # For WireGuard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    volumes:
+      - /lib/modules:/lib/modules:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      replicas: 1
+
+networks:
+  helix:
+    name: helix
+    driver: bridge

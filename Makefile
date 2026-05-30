@@ -1,14 +1,40 @@
-.PHONY: help dev dev-down test test-unit test-integration benchmark lint format build clean migrate-up migrate-down seed codegraph-index
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build clean migrate-up migrate-down seed codegraph-index
 
 help: ## List all targets
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-dev: ## Start Docker Compose environment
-	docker compose up -d --wait
+# Infrastructure management
+dev: ## Start Helix infrastructure
+	@echo "Starting Helix infrastructure..."
+	@go run ./cmd/helix-infra up --wait --timeout 300s
 
-dev-down: ## Stop Docker Compose environment
-	docker compose down -v
+dev-down: ## Stop Helix infrastructure
+	@echo "Stopping Helix infrastructure..."
+	@go run ./cmd/helix-infra down
+
+dev-status: ## Show Helix infrastructure status
+	@go run ./cmd/helix-infra status
+
+dev-logs: ## Show logs for a service (use: make dev-logs service=helixd)
+	@go run ./cmd/helix-infra logs $(service)
+
+# Legacy direct compose (fallback)
+dev-compose: ## Start Docker Compose environment directly
+	docker compose -f docker-compose.yml up -d --wait
+
+dev-compose-down: ## Stop Docker Compose environment directly
+	docker compose -f docker-compose.yml down -v
+
+# Build Docker images
+build-images: ## Build all Docker images
+	docker build -f deploy/docker/helixd.Dockerfile -t helixd:latest .
+	docker build -f deploy/docker/helix-gateway.Dockerfile -t helix-gateway:latest .
+	docker build -f deploy/docker/helix-agent.Dockerfile -t helix-agent:latest .
+
+# VM testing
+vm-test: ## Run VM node tests
+	@go test -tags=vm ./tests/vm-nodes/...
 
 test: ## Run all tests
 	go test -race -coverprofile=coverage.out ./...

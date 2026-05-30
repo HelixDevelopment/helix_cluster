@@ -1,0 +1,66 @@
+name: VM Integration Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  vm-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Install QEMU
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 qemu-utils
+
+      - name: Check KVM availability
+        id: kvm
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download VM test image
+        run: |
+          mkdir -p "$HOME/.helix/vm-images"
+          curl -L -o "$HOME/.helix/vm-images/alpine-test.qcow2" \
+            https://dl-cdn.alpinelinux.org/alpine/v3.20/releases/cloud/nocloud_alpine-3.20.0-x86_64-bios-r0.qcow2
+
+      - name: Run VM tests (with KVM)
+        if: steps.kvm.outputs.available == 'true'
+        env:
+          HELIX_VM_TESTS: "1"
+          HELIX_VM_IMAGE: "$HOME/.helix/vm-images/alpine-test.qcow2"
+        run: go test -tags=vm -v -timeout 30m ./tests/vm-nodes/...
+
+      - name: Run VM tests (TCG fallback)
+        if: steps.kvm.outputs.available != 'true'
+        env:
+          HELIX_VM_TESTS: "1"
+          HELIX_VM_IMAGE: "$HOME/.helix/vm-images/alpine-test.qcow2"
+          HELIX_VM_NO_KVM: "1"
+        run: go test -tags=vm -v -timeout 45m ./tests/vm-nodes/...
+
+      - name: Upload test artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vm-test-artifacts
+          path: |
+            /tmp/helix-vm-*/
+            "$HOME/.helix/vm-logs/"

@@ -44,6 +44,16 @@ done
 # 4. Set up Go workspace
 echo "[4/8] Setting up Go workspace..."
 cd "${PROJECT_ROOT}"
+
+# Check containers submodule
+echo "Checking containers module..."
+if [ ! -f "containers/go.mod" ]; then
+    echo "ERROR: containers submodule not found. Run: git submodule update --init"
+    exit 1
+fi
+cd containers && go build ./... || { echo "ERROR: containers module failed to build"; exit 1; }
+cd "${PROJECT_ROOT}"
+
 go work sync || true
 for mod_dir in auth cache challenges concurrency config containers database discovery EventBus Filesystem helixqa Herald http3 LLMOrchestrator LLMProvider LLMsVerifier mdns Messaging middleware observability Panoptic ratelimiter recovery security Storage tmux VisionEngine; do
     if [ -d "${PROJECT_ROOT}/${mod_dir}" ] && [ -f "${PROJECT_ROOT}/${mod_dir}/go.mod" ]; then
