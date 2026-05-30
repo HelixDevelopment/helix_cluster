@@ -1,7 +1,7 @@
 # Issues
 
-**Revision:** 5
-**Last modified:** 2026-05-30T20:03:35Z
+**Revision:** 6
+**Last modified:** 2026-05-30T20:09:59Z
 **Description:** Workable item tracker for Helix Cluster OS — canonical issue registry
 **Authority:** Constitution §11.4 covenant
 **Maintainer:** Operator + AI loop

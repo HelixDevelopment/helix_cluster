@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 11
-**Last modified:** 2026-05-30T20:07:00Z
+**Revision:** 12
+**Last modified:** 2026-05-30T20:09:59Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
