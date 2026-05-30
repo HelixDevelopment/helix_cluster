@@ -63,3 +63,4 @@ volumes/
 web/node_modules/
 web/package-lock.json
 !.gitattributes
+helix-build

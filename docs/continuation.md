@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 14
-**Last modified:** 2026-05-30T21:06:13Z
+**Revision:** 15
+**Last modified:** 2026-05-30T22:33:35Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `6f7f5f6` | fix: WireGuard NoOp mode for cross-platform testing (HXC-904) |
 | `f4f5735` | feat: HXC-904 Phase 4 Build Service — pkg/build + helix-build gRPC server |
 | `4d25f94` | docs: PHASE_4_ROADMAP — push to all upstreams |
 | `7a51f4d` | docs: PHASE_4_ROADMAP.md — Virtual Testing Matrix roadmap |
@@ -25,25 +26,26 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `494669c` | feat: Push HXC registry + PHASE_2_ROADMAP to all upstreams |
 | `07dcd6b` | feat: SQLite HXC registry + PHASE_2_ROADMAP — git-versioned source of truth |
 | `6f8fb82` | Phase 4 Research. |
-| `5e63c98` | docs: Finalize documentation chain — all verify gates passing |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `f4f5735` |
-| **Timestamp** | 2026-05-30T21:06:13Z |
+| **Commit** | `6f7f5f6` |
+| **Timestamp** | 2026-05-30T22:33:35Z |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
-| HXC-016 | Phase 4 Build Service | Queued |
+| HXC-904 | Phase 4 Build Service Core | In Progress |
 
 ## §4: Next Planned Work
 
-1. Phase 4 Build Service
+1. Phase 4 artifact cache (pkg/build/cache)
+2. Registry integration for build artifacts
+3. Multi-arch build support
 
 ## §5: Known Issues / Blockers
 
@@ -52,5 +54,5 @@ Any CLI agent resuming work on this project MUST read this file first.
 ## §6: Quick Commands
 
 ```bash
-go test ./pkg/... -race -count=1
+go test ./... -race -count=1
 ```

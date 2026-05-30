@@ -44,6 +44,10 @@ func (m *Manager) Start() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	if m.config.NoOp {
+		return nil
+	}
+
 	privKey, err := ParseKey(m.config.PrivateKey)
 	if err != nil {
 		return fmt.Errorf("invalid private key: %w", err)
@@ -67,6 +71,13 @@ func (m *Manager) Stop() error {
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
+
+	if m.config.NoOp {
+		if m.client != nil {
+			_ = m.client.Close()
+		}
+		return nil
+	}
 
 	zeroKey := wgtypes.Key{}
 	zeroPort := 0
@@ -134,10 +145,12 @@ func (m *Manager) AddPeer(peer *PeerConfig) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-		Peers: []wgtypes.PeerConfig{wgPeer},
-	}); err != nil {
-		return fmt.Errorf("failed to add peer: %w", err)
+	if !m.config.NoOp {
+		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
+			Peers: []wgtypes.PeerConfig{wgPeer},
+		}); err != nil {
+			return fmt.Errorf("failed to add peer: %w", err)
+		}
 	}
 
 	m.peers[peer.PublicKey] = peer
@@ -154,15 +167,17 @@ func (m *Manager) RemovePeer(publicKey string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-		Peers: []wgtypes.PeerConfig{
-			{
-				PublicKey: pubKey,
-				Remove:    true,
+	if !m.config.NoOp {
+		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
+			Peers: []wgtypes.PeerConfig{
+				{
+					PublicKey: pubKey,
+					Remove:    true,
+				},
 			},
-		},
-	}); err != nil {
-		return fmt.Errorf("failed to remove peer: %w", err)
+		}); err != nil {
+			return fmt.Errorf("failed to remove peer: %w", err)
+		}
 	}
 
 	delete(m.peers, publicKey)
@@ -195,6 +210,10 @@ func (m *Manager) GetPeer(publicKey string) (*PeerConfig, error) {
 
 // PeerHandshakeTime returns time since last handshake.
 func (m *Manager) PeerHandshakeTime(publicKey string) (time.Duration, error) {
+	if m.config.NoOp {
+		return 0, fmt.Errorf("no-op mode: no handshake recorded")
+	}
+
 	pubKey, err := ParseKey(publicKey)
 	if err != nil {
 		return 0, fmt.Errorf("invalid public key: %w", err)
@@ -221,6 +240,10 @@ func (m *Manager) PeerHandshakeTime(publicKey string) (time.Duration, error) {
 
 // PeerRxTx returns bytes received/transmitted for a peer.
 func (m *Manager) PeerRxTx(publicKey string) (rx, tx int64, err error) {
+	if m.config.NoOp {
+		return 0, 0, fmt.Errorf("no-op mode: no stats available")
+	}
+
 	pubKey, err := ParseKey(publicKey)
 	if err != nil {
 		return 0, 0, fmt.Errorf("invalid public key: %w", err)
@@ -257,10 +280,12 @@ func (m *Manager) RotateKeys() (newPublicKey string, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-		PrivateKey: &privKey,
-	}); err != nil {
-		return "", fmt.Errorf("failed to rotate keys: %w", err)
+	if !m.config.NoOp {
+		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
+			PrivateKey: &privKey,
+		}); err != nil {
+			return "", fmt.Errorf("failed to rotate keys: %w", err)
+		}
 	}
 
 	m.config.PrivateKey = privKeyStr
@@ -307,6 +332,15 @@ func (m *Manager) DisableKeyRotation() {
 func (m *Manager) InterfaceStats() (*InterfaceStats, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
+
+	if m.config.NoOp {
+		return &InterfaceStats{
+			Name:    m.config.InterfaceName,
+			Address: m.config.Address,
+			Port:    m.config.ListenPort,
+			Peers:   len(m.peers),
+		}, nil
+	}
 
 	dev, err := m.client.Device(m.config.InterfaceName)
 	if err != nil {

@@ -18,6 +18,10 @@ type Config struct {
 	// NAT traversal
 	EnableUPnP        bool
 	EnableNATPMapping bool
+
+	// NoOp disables real WireGuard interface operations.
+	// Useful for testing on platforms without WireGuard kernel support.
+	NoOp bool
 }
 
 // PeerConfig holds configuration for a single peer.
