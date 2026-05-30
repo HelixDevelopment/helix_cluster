@@ -240,30 +240,78 @@
 <header id="title-block-header">
 <h1 class="title">continuation</h1>
 </header>
-<!-- Revision: 2026-05-30T19:30:19Z -->
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 2 <strong>Last modified:</strong>
-2026-05-31T00:25:00Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 5 <strong>Last modified:</strong>
+2026-05-30T19:36:43Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
 <h2 id="how-to-use-this-document">§0: How to use this document</h2>
 <p>Any CLI agent resuming work on this project MUST read this file
-first. It contains the canonical project state, recent history, active
-work, and known blockers. Do not assume state from external sources —
-this document is the single source of truth for session resumption.</p>
-<p>To resume: 1. Read this file in full. 2. Check
-<code>docs/issues.md</code> for active workable items. 3. Check
-<code>docs/fixed.md</code> for recently completed work and resolution
-patterns. 4. Verify git state with <code>git status</code> and
-<code>git log --oneline -10</code>. 5. Proceed to the highest-priority
-active item from §3 below.</p>
-<h2 id="project-state-summary">§1: Project State Summary</h2>
+first.</p>
+<h2 id="recently-completed-work-last-10-commits">§1: Recently Completed
+Work (last 10 commits)</h2>
 <table>
 <colgroup>
-<col style="width: 58%" />
-<col style="width: 41%" />
+<col style="width: 47%" />
+<col style="width: 52%" />
 </colgroup>
+<thead>
+<tr>
+<th>Commit</th>
+<th>Message</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>08b4f32</code></td>
+<td>noop</td>
+</tr>
+<tr>
+<td><code>a5425cf</code></td>
+<td>docs: Log HXC-902 and HXC-903 as completed in fixed.md</td>
+</tr>
+<tr>
+<td><code>41734c5</code></td>
+<td>noop</td>
+</tr>
+<tr>
+<td><code>861c179</code></td>
+<td>docs: Documentation chain infrastructure — §11.4.44 compliant
+revision headers, HTML/PDF exports, verify gate</td>
+</tr>
+<tr>
+<td><code>9982c59</code></td>
+<td>MVP Phase 2-3: Scheduler, Resource Aggregator, Session Backends</td>
+</tr>
+<tr>
+<td><code>f7dd99e</code></td>
+<td>docs: MVP implementation progress tracker</td>
+</tr>
+<tr>
+<td><code>35de8ef</code></td>
+<td>Anti-bluff follow-up: Fix 8 stub packages + mutation tests for 15
+packages</td>
+</tr>
+<tr>
+<td><code>9aaeb9f</code></td>
+<td>Anti-bluff audit follow-up: Real JWT implementation + mutation tests
+for 6 packages</td>
+</tr>
+<tr>
+<td><code>e20c3ef</code></td>
+<td>Constitution §7 + §11.4.102: Add inheritance verification gate +
+paired mutation test + anti-bluff audit</td>
+</tr>
+<tr>
+<td><code>2e861d1</code></td>
+<td>chore: cascade Helix Constitution inheritance pointers to all
+submodules</td>
+</tr>
+</tbody>
+</table>
+<h2 id="environment-snapshot">§2: Environment Snapshot</h2>
+<table>
 <thead>
 <tr>
 <th>Property</th>
@@ -272,258 +320,46 @@ active item from §3 below.</p>
 </thead>
 <tbody>
 <tr>
-<td><strong>Project</strong></td>
-<td>Helix Cluster OS</td>
-</tr>
-<tr>
-<td><strong>Current Phase</strong></td>
-<td>Phase 3 (Session Manager) — extending into Phase 2 gaps</td>
-</tr>
-<tr>
-<td><strong>Overall Completion</strong></td>
-<td>~65% of MVP</td>
-</tr>
-<tr>
-<td><strong>Last Commit</strong></td>
-<td><code>9982c59</code> — MVP Phase 2-3: Scheduler, Resource
-Aggregator, Session Backends</td>
-</tr>
-<tr>
 <td><strong>Branch</strong></td>
 <td><code>main</code></td>
 </tr>
 <tr>
-<td><strong>Packages</strong></td>
-<td>33 Go packages, all tests pass with <code>-race</code></td>
+<td><strong>Commit</strong></td>
+<td><code>08b4f32</code></td>
 </tr>
 <tr>
-<td><strong>Lines of Code</strong></td>
-<td>~14,040 in <code>pkg/</code></td>
-</tr>
-<tr>
-<td><strong>Test Files</strong></td>
-<td>33 (100% package coverage)</td>
-</tr>
-<tr>
-<td><strong>Commits on main</strong></td>
-<td>16</td>
-</tr>
-</tbody>
-</table>
-<h2 id="recently-completed-work-last-10-commits">§2: Recently Completed
-Work (last 10 commits)</h2>
-<table>
-<colgroup>
-<col style="width: 36%" />
-<col style="width: 40%" />
-<col style="width: 22%" />
-</colgroup>
-<thead>
-<tr>
-<th>Commit</th>
-<th>Message</th>
-<th>HXC</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><code>9982c59</code></td>
-<td>MVP Phase 2-3: Scheduler, Resource Aggregator, Session Backends</td>
-<td>HXC-204, HXC-205, HXC-206</td>
-</tr>
-<tr>
-<td><code>f7dd99e</code></td>
-<td>docs: MVP implementation progress tracker</td>
-<td>HXC-901</td>
-</tr>
-<tr>
-<td><code>35de8ef</code></td>
-<td>Anti-bluff follow-up: Fix 8 stub packages + mutation tests for 15
-packages</td>
-<td>HXC-304, HXC-305</td>
-</tr>
-<tr>
-<td><code>9aaeb9f</code></td>
-<td>Anti-bluff audit follow-up: Real JWT implementation + mutation tests
-for 6 packages</td>
-<td>HXC-303</td>
-</tr>
-<tr>
-<td><code>e20c3ef</code></td>
-<td>Constitution §7 + §11.4.102: Add inheritance verification gate +
-paired mutation test + anti-bluff audit</td>
-<td>HXC-301, HXC-302</td>
-</tr>
-<tr>
-<td><code>2e861d1</code></td>
-<td>chore: cascade Helix Constitution inheritance pointers to all
-submodules</td>
-<td>HXC-900</td>
-</tr>
-<tr>
-<td><code>2632b1c</code></td>
-<td>Phase 2: Core Infrastructure - SWIM protocol, WireGuard mesh,
-session manager, discovery race fixes, infra mutex</td>
-<td>HXC-200, HXC-201, HXC-202, HXC-203</td>
-</tr>
-<tr>
-<td><code>9bb47e2</code></td>
-<td>Phase 3 Research.</td>
-<td>HXC-300</td>
-</tr>
-<tr>
-<td><code>8898518</code></td>
-<td>Constitution: PCS-6 End-User Usability Guarantee</td>
-<td>HXC-003</td>
-</tr>
-<tr>
-<td><code>8185d0a</code></td>
-<td>Phase 1: §11.4.29 snake_case compliance — rename kebab-case files
-and references</td>
-<td>HXC-104</td>
+<td><strong>Timestamp</strong></td>
+<td>2026-05-30T19:35:52Z</td>
 </tr>
 </tbody>
 </table>
 <h2 id="active-work">§3: Active Work</h2>
 <table>
-<colgroup>
-<col style="width: 12%" />
-<col style="width: 17%" />
-<col style="width: 20%" />
-<col style="width: 25%" />
-<col style="width: 23%" />
-</colgroup>
 <thead>
 <tr>
 <th>HXC</th>
 <th>Title</th>
 <th>Status</th>
-<th>Priority</th>
-<th>Details</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>HXC-019</td>
-<td>Phase 7 QA &amp; Testing</td>
-<td>In progress</td>
-<td>P0</td>
-<td>Mutation test coverage expansion, integration test harness. All 33
-packages pass <code>-race</code>. Need integration tests.</td>
-</tr>
-<tr>
-<td>HXC-902</td>
-<td>Documentation chain setup</td>
-<td>In progress</td>
-<td>P1</td>
-<td>docs_chain infrastructure, CONTINUATION.md, Issues/Fixed tracking,
-HTML/PDF exports. Nearly complete.</td>
-</tr>
-<tr>
-<td>HXC-903</td>
-<td>Continuation document maintenance</td>
-<td>In progress</td>
-<td>P1</td>
-<td>Automated updates, revision headers, freshness checks. In
-progress.</td>
-</tr>
-<tr>
 <td>HXC-016</td>
 <td>Phase 4 Build Service</td>
 <td>Queued</td>
-<td>P0</td>
-<td>Bazel RBE protocol, artifact caching, multi-arch builds. Next major
-deliverable.</td>
-</tr>
-<tr>
-<td>HXC-017</td>
-<td>Phase 5 LLM Brain</td>
-<td>Queued</td>
-<td>P1</td>
-<td>Agent orchestration, inference scheduling. Deferred until Build
-Service complete.</td>
-</tr>
-<tr>
-<td>HXC-018</td>
-<td>Phase 6 Security Hardening</td>
-<td>Queued</td>
-<td>P1</td>
-<td>mTLS everywhere, RBAC expansion, secret rotation. Can proceed in
-parallel.</td>
-</tr>
-<tr>
-<td>HXC-020</td>
-<td>Phase 8 Polish &amp; Release</td>
-<td>Queued</td>
-<td>P2</td>
-<td>v1.0.0-dev-mvp tag, release notes, final docs. Final milestone.</td>
 </tr>
 </tbody>
 </table>
 <h2 id="next-planned-work">§4: Next Planned Work</h2>
 <ol type="1">
-<li><strong>Commit current doc infrastructure</strong> (HXC-902,
-HXC-903)</li>
-<li><strong>Phase 4 Build Service</strong> — Start Bazel RBE protocol
-implementation (HXC-016)</li>
-<li><strong>Phase 6 Security</strong> — mTLS config, certificate
-management (HXC-018)</li>
-<li><strong>Integration tests</strong> — Cross-package integration test
-suite (HXC-019)</li>
-<li><strong>Phase 5 LLM Brain</strong> — After Build Service reaches MVP
-(HXC-017)</li>
+<li>Phase 4 Build Service</li>
 </ol>
-<h2 id="environment-notes">§5: Environment Notes</h2>
+<h2 id="known-issues-blockers">§5: Known Issues / Blockers</h2>
 <ul>
-<li><strong>Project root:</strong>
-<code>/Users/milosvasic/Projects/HelixCluster</code></li>
-<li><strong>Go workspace:</strong> <code>go.work</code> with 25
-modules</li>
-<li><strong>Test command:</strong>
-<code>go test ./pkg/... -race -count=1</code></li>
-<li><strong>Build command:</strong> <code>go build ./...</code></li>
-<li><strong>Commit wrapper:</strong>
-<code>bash scripts/commit_all.sh "message"</code></li>
-<li><strong>Doc generation:</strong>
-<code>bash scripts/docs/generate.sh</code></li>
-<li><strong>Doc verification:</strong>
-<code>bash scripts/docs/verify.sh</code></li>
-<li><strong>HXC tickets:</strong>
-<code>bash scripts/hxc.sh [next|list|show|create]</code></li>
-<li><strong>Docker:</strong> Not available in build environment</li>
-<li><strong>golangci-lint:</strong> Not available (skipped in
-pre-commit)</li>
-<li><strong>All GitHub Actions:</strong> Disabled (manual CI/CD
-only)</li>
+<li>None</li>
 </ul>
-<h2 id="known-issues-blockers">§6: Known Issues / Blockers</h2>
-<ul>
-<li><strong>None currently.</strong> All 33 packages pass tests with
-race detector.</li>
-<li><strong>Docker unavailable</strong> — Compose validation is
-structural only.</li>
-<li><strong>Third-party submodule pushes fail</strong> — Expected (no
-write access to upstream repos).</li>
-</ul>
-<h2 id="quick-commands-for-resumption">§7: Quick Commands for
-Resumption</h2>
+<h2 id="quick-commands">§6: Quick Commands</h2>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify state</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> /Users/milosvasic/Projects/HelixCluster</span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> status</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> log <span class="at">--oneline</span> <span class="at">-10</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test ./pkg/... <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Check active work</span></span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/hxc.sh list active</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span> docs/issues.md</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Generate docs</span></span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/docs/generate.sh</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/docs/verify.sh</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="co"># Constitution gate</span></span>
-<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> tests/constitution/test_inheritance.sh</span>
-<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="fu">bash</span> scripts/testing/meta_test_inheritance.sh</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test ./pkg/... <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1</span></code></pre></div>
 </body>
 </html>

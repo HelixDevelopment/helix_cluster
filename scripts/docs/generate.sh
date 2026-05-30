@@ -223,8 +223,10 @@ for f in "${ALL_MD_FILES[@]}"; do
     update_revision_header "${f}"
 done
 
-# Run DocProcessor for feature map / coverage
-run_docprocessor
+# Run DocProcessor for feature map / coverage (skip in tracked mode for speed)
+if [ "${FORMAT}" != "tracked" ]; then
+    run_docprocessor
+fi
 
 # Generate exports per format
 FAILED=0
