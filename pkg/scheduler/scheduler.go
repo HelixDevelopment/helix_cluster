@@ -1,0 +1,227 @@
+package scheduler
+
+import (
+	"fmt"
+	"sync"
+)
+
+// Scheduler implements the Omega-model two-level scheduler with
+// optimistic concurrency control.
+type Scheduler struct {
+	mu      sync.RWMutex
+	queue   *Queue
+	plugins []Plugin
+	nodes   map[string]*Node
+	// version increments on every successful state mutation.
+	// Used for optimistic concurrency checks.
+	version uint64
+}
+
+// NewScheduler creates a new in-memory scheduler.
+func NewScheduler() *Scheduler {
+	return &Scheduler{
+		queue:   NewQueue(),
+		plugins: make([]Plugin, 0),
+		nodes:   make(map[string]*Node),
+		version: 1,
+	}
+}
+
+// AddPlugin registers a scheduling plugin.
+func (s *Scheduler) AddPlugin(p Plugin) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.plugins = append(s.plugins, p)
+}
+
+// RegisterNode adds a node to the scheduler state.
+func (s *Scheduler) RegisterNode(n *Node) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.nodes[n.ID] = n
+}
+
+// UnregisterNode removes a node from the scheduler state.
+func (s *Scheduler) UnregisterNode(id string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.nodes, id)
+}
+
+// GetNode returns a copy of the node with the given ID.
+func (s *Scheduler) GetNode(id string) (*Node, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	n, ok := s.nodes[id]
+	if !ok {
+		return nil, false
+	}
+	return copyNode(n), true
+}
+
+// NodeCount returns the number of registered nodes.
+func (s *Scheduler) NodeCount() int {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return len(s.nodes)
+}
+
+// Version returns the current state version.
+func (s *Scheduler) Version() uint64 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.version
+}
+
+// Schedule evaluates all nodes through the plugin pipeline and
+// binds the job to the best-scoring node.
+func (s *Scheduler) Schedule(job *Job) (*ScheduleResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	candidates := make([]*Node, 0, len(s.nodes))
+	for _, n := range s.nodes {
+		candidates = append(candidates, n)
+	}
+
+	var bestNode *Node
+	bestScore := -1
+
+	for _, node := range candidates {
+		if !s.runFilters(job, node) {
+			continue
+		}
+		score := s.runScorers(job, node)
+		if score > bestScore {
+			bestScore = score
+			bestNode = node
+		}
+	}
+
+	if bestNode == nil {
+		return nil, ErrNoNodeAvailable
+	}
+
+	if !s.runBind(job, bestNode) {
+		return nil, fmt.Errorf("binding failed on node %s", bestNode.ID)
+	}
+
+	s.version++
+	job.Status = JobStatusScheduled
+
+	return &ScheduleResult{
+		AssignedNode: bestNode.ID,
+		Status:       JobStatusScheduled,
+	}, nil
+}
+
+// ScheduleOptimistic attempts to schedule with a version check.
+// If expectedVersion does not match the current version, it returns
+// a conflict error so the caller can retry.
+func (s *Scheduler) ScheduleOptimistic(job *Job, expectedVersion uint64) (*ScheduleResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.version != expectedVersion {
+		return nil, fmt.Errorf("optimistic concurrency conflict: expected version %d, got %d", expectedVersion, s.version)
+	}
+
+	// Reuse core logic inline to keep version locked.
+	var bestNode *Node
+	bestScore := -1
+
+	for _, node := range s.nodes {
+		if !s.runFiltersLocked(job, node) {
+			continue
+		}
+		score := s.runScorersLocked(job, node)
+		if score > bestScore {
+			bestScore = score
+			bestNode = node
+		}
+	}
+
+	if bestNode == nil {
+		return nil, ErrNoNodeAvailable
+	}
+
+	if !s.runBindLocked(job, bestNode) {
+		return nil, fmt.Errorf("binding failed on node %s", bestNode.ID)
+	}
+
+	s.version++
+	job.Status = JobStatusScheduled
+
+	return &ScheduleResult{
+		AssignedNode: bestNode.ID,
+		Status:       JobStatusScheduled,
+	}, nil
+}
+
+func (s *Scheduler) runFilters(job *Job, node *Node) bool {
+	for _, p := range s.plugins {
+		if !p.Filter(job, node) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Scheduler) runFiltersLocked(job *Job, node *Node) bool {
+	for _, p := range s.plugins {
+		if !p.Filter(job, node) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Scheduler) runScorers(job *Job, node *Node) int {
+	score := 0
+	for _, p := range s.plugins {
+		score += p.Score(job, node)
+	}
+	return score
+}
+
+func (s *Scheduler) runScorersLocked(job *Job, node *Node) int {
+	score := 0
+	for _, p := range s.plugins {
+		score += p.Score(job, node)
+	}
+	return score
+}
+
+func (s *Scheduler) runBind(job *Job, node *Node) bool {
+	for _, p := range s.plugins {
+		if !p.Bind(job, node) {
+			return false
+		}
+	}
+	return true
+}
+
+func (s *Scheduler) runBindLocked(job *Job, node *Node) bool {
+	for _, p := range s.plugins {
+		if !p.Bind(job, node) {
+			return false
+		}
+	}
+	return true
+}
+
+func copyNode(n *Node) *Node {
+	labels := make(map[string]string, len(n.Labels))
+	for k, v := range n.Labels {
+		labels[k] = v
+	}
+	return &Node{
+		ID: n.ID,
+		AvailableResources: Resources{
+			CPU:    n.AvailableResources.CPU,
+			Memory: n.AvailableResources.Memory,
+			GPU:    n.AvailableResources.GPU,
+		},
+		Labels: labels,
+	}
+}
