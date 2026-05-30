@@ -60,6 +60,7 @@ Thumbs.db
 
 # Local stack / docker volumes
 volumes/
-data/
+!data/hxc_registry.db
 web/node_modules/
 web/package-lock.json
+!.gitattributes

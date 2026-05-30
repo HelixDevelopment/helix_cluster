@@ -1,7 +1,7 @@
 # Issues Summary
 
-**Revision:** 4
-**Last modified:** 2026-05-30T19:36:43Z
+**Revision:** 5
+**Last modified:** 2026-05-30T20:03:35Z
 **Description:** Grouped issue summary by status for Helix Cluster OS
 **Authority:** Constitution §11.4 covenant
 **Maintainer:** Operator + AI loop

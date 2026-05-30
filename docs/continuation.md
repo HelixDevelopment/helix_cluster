@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 7
-**Last modified:** 2026-05-30T19:37:12Z
+**Revision:** 9
+**Last modified:** 2026-05-30T20:04:18Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,9 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `07dcd6b` | feat: SQLite HXC registry + PHASE_2_ROADMAP — git-versioned source of truth |
+| `6f8fb82` | Phase 4 Research. |
+| `5e63c98` | docs: Finalize documentation chain — all verify gates passing |
 | `be3ed89` | docs: Fix continuation.md updater — Python-based §11.4.44 preservation |
 | `08b4f32` | noop |
 | `a5425cf` | docs: Log HXC-902 and HXC-903 as completed in fixed.md |
@@ -23,17 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `861c179` | docs: Documentation chain infrastructure — §11.4.44 compliant revision headers, HTML/PDF exports, verify gate |
 | `9982c59` | MVP Phase 2-3: Scheduler, Resource Aggregator, Session Backends |
 | `f7dd99e` | docs: MVP implementation progress tracker |
-| `35de8ef` | Anti-bluff follow-up: Fix 8 stub packages + mutation tests for 15 packages |
-| `9aaeb9f` | Anti-bluff audit follow-up: Real JWT implementation + mutation tests for 6 packages |
-| `e20c3ef` | Constitution §7 + §11.4.102: Add inheritance verification gate + paired mutation test + anti-bluff audit |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `be3ed89` |
-| **Timestamp** | 2026-05-30T19:37:12Z |
+| **Commit** | `07dcd6b` |
+| **Timestamp** | 2026-05-30T20:04:18Z |
 
 ## §3: Active Work
 
