@@ -1,7 +1,7 @@
 # HXC Ticket Registry
 
-**Revision:** 2
-**Last modified:** 2026-05-30T19:32:04Z
+**Revision:** 3
+**Last modified:** 2026-05-30T19:33:37Z
 **Description:** Master registry of all HXC workable items
 **Authority:** Constitution §11.4.15
 **Maintainer:** Operator + AI loop

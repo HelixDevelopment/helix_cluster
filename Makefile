@@ -82,3 +82,13 @@ seed: ## Seed development data
 codegraph-index: ## Re-index CodeGraph
 	@echo "Re-indexing CodeGraph..."
 	# Placeholder: invoke codegraph indexer
+
+## Documentation targets
+docs: ## Generate all documentation exports
+	bash scripts/docs/generate.sh all
+
+docs-verify: ## Verify documentation sync
+	bash scripts/docs/verify.sh
+
+docs-update: ## Update CONTINUATION.md
+	bash scripts/docs/update_continuation.sh
