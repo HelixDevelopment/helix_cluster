@@ -139,12 +139,19 @@ func (r *Registry) GetItem(id string) (*HXCItem, error) {
 
 	item := &HXCItem{}
 	var created, modified string
+	var commitSHA, forensic, closure, composes sql.NullString
 	err := row.Scan(
 		&item.HXCID, &item.Type, &item.Status, &item.Priority, &item.Phase,
-		&item.Title, &item.Description, &item.CommitSHA, &item.ForensicAnchor,
-		&item.ClosureCriteria, &item.ComposesWith, &item.CurrentLocation,
+		&item.Title, &item.Description, &commitSHA, &forensic,
+		&closure, &composes, &item.CurrentLocation,
 		&item.HeadingHash, &created, &modified,
 	)
+	if err == nil {
+		item.CommitSHA = commitSHA.String
+		item.ForensicAnchor = forensic.String
+		item.ClosureCriteria = closure.String
+		item.ComposesWith = composes.String
+	}
 	if err == sql.ErrNoRows {
 		return nil, fmt.Errorf("item %s not found", id)
 	}
@@ -212,14 +219,19 @@ func (r *Registry) ListItems(status string) ([]*HXCItem, error) {
 	for rows.Next() {
 		item := &HXCItem{}
 		var created, modified string
+		var commitSHA, forensic, closure, composes sql.NullString
 		if err := rows.Scan(
 			&item.HXCID, &item.Type, &item.Status, &item.Priority, &item.Phase,
-			&item.Title, &item.Description, &item.CommitSHA, &item.ForensicAnchor,
-			&item.ClosureCriteria, &item.ComposesWith, &item.CurrentLocation,
+			&item.Title, &item.Description, &commitSHA, &forensic,
+			&closure, &composes, &item.CurrentLocation,
 			&item.HeadingHash, &created, &modified,
 		); err != nil {
 			return nil, fmt.Errorf("scan row: %w", err)
 		}
+		item.CommitSHA = commitSHA.String
+		item.ForensicAnchor = forensic.String
+		item.ClosureCriteria = closure.String
+		item.ComposesWith = composes.String
 		item.CreatedAt, _ = time.Parse(time.RFC3339, created)
 		item.LastModified, _ = time.Parse(time.RFC3339, modified)
 		items = append(items, item)
