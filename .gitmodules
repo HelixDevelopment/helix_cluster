@@ -1,0 +1,87 @@
+[submodule "HelixConstitution"]
+	path = HelixConstitution
+	url = git@github.com:HelixDevelopment/HelixConstitution.git
+[submodule "containers"]
+	path = containers
+	url = git@github.com:vasic-digital/containers.git
+[submodule "tmux"]
+	path = tmux
+	url = git@github.com:vasic-digital/tmux.git
+[submodule "LLMsVerifier"]
+	path = LLMsVerifier
+	url = git@github.com:vasic-digital/LLMsVerifier.git
+[submodule "helixqa"]
+	path = helixqa
+	url = git@github.com:HelixDevelopment/helixqa.git
+[submodule "security"]
+	path = security
+	url = git@github.com:vasic-digital/security.git
+[submodule "config"]
+	path = config
+	url = git@github.com:vasic-digital/config.git
+[submodule "database"]
+	path = database
+	url = git@github.com:vasic-digital/database.git
+[submodule "cache"]
+	path = cache
+	url = git@github.com:vasic-digital/cache.git
+[submodule "concurrency"]
+	path = concurrency
+	url = git@github.com:vasic-digital/concurrency.git
+[submodule "observability"]
+	path = observability
+	url = git@github.com:vasic-digital/observability.git
+[submodule "recovery"]
+	path = recovery
+	url = git@github.com:vasic-digital/recovery.git
+[submodule "auth"]
+	path = auth
+	url = git@github.com:vasic-digital/auth.git
+[submodule "middleware"]
+	path = middleware
+	url = git@github.com:vasic-digital/middleware.git
+[submodule "ratelimiter"]
+	path = ratelimiter
+	url = git@github.com:vasic-digital/ratelimiter.git
+[submodule "EventBus"]
+	path = EventBus
+	url = git@github.com:vasic-digital/EventBus.git
+[submodule "Messaging"]
+	path = Messaging
+	url = git@github.com:vasic-digital/Messaging.git
+[submodule "Storage"]
+	path = Storage
+	url = git@github.com:vasic-digital/Storage.git
+[submodule "Filesystem"]
+	path = Filesystem
+	url = git@github.com:vasic-digital/Filesystem.git
+[submodule "discovery"]
+	path = discovery
+	url = git@github.com:vasic-digital/discovery.git
+[submodule "mdns"]
+	path = mdns
+	url = git@github.com:vasic-digital/mdns.git
+[submodule "http3"]
+	path = http3
+	url = git@github.com:vasic-digital/http3.git
+[submodule "challenges"]
+	path = challenges
+	url = git@github.com:vasic-digital/challenges.git
+[submodule "Herald"]
+	path = Herald
+	url = git@github.com:vasic-digital/Herald.git
+[submodule "Panoptic"]
+	path = Panoptic
+	url = git@github.com:vasic-digital/Panoptic.git
+[submodule "DocProcessor"]
+	path = DocProcessor
+	url = git@github.com:HelixDevelopment/DocProcessor.git
+[submodule "LLMProvider"]
+	path = LLMProvider
+	url = git@github.com:HelixDevelopment/LLMProvider.git
+[submodule "VisionEngine"]
+	path = VisionEngine
+	url = git@github.com:HelixDevelopment/VisionEngine.git
+[submodule "LLMOrchestrator"]
+	path = LLMOrchestrator
+	url = git@github.com:HelixDevelopment/LLMOrchestrator.git

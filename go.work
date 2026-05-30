@@ -1,0 +1,33 @@
+go 1.24
+
+use (
+	.
+	./auth
+	./cache
+	./challenges
+	./concurrency
+	./config
+	./containers
+	./database
+	./discovery
+	./DocProcessor
+	./EventBus
+	./Filesystem
+	./helixqa
+	./Herald
+	./http3
+	./LLMOrchestrator
+	./LLMProvider
+	./LLMsVerifier
+	./mdns
+	./Messaging
+	./middleware
+	./observability
+	./Panoptic
+	./ratelimiter
+	./recovery
+	./security
+	./Storage
+	./tmux
+	./VisionEngine
+)

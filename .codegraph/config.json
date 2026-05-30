@@ -1,0 +1,62 @@
+{
+  "include": [
+    "**/*"
+  ],
+  "exclude": [
+    "node_modules/**",
+    "vendor/**",
+    "third_party/**",
+    "*.min.js",
+    "*.min.css",
+    ".env",
+    ".env.*",
+    "*.env",
+    "secrets/**",
+    "scripts/testing/secrets/**",
+    "*.pem",
+    "*.key",
+    "*.crt",
+    "id_rsa*",
+    "id_ed25519*",
+    ".netrc",
+    "api_keys.sh",
+    "build/**",
+    "dist/**",
+    "out/**",
+    "target/**",
+    "bin/**",
+    "__pycache__/**",
+    ".pytest_cache/**",
+    ".mypy_cache/**",
+    ".ruff_cache/**",
+    ".next/**",
+    ".nuxt/**",
+    ".cache/**",
+    ".gradle/**",
+    ".terraform/**",
+    "*.tmp",
+    "*.swp",
+    "*~",
+    ".DS_Store",
+    "Thumbs.db",
+    "*.orig",
+    "*.rej",
+    ".idea/**",
+    ".vscode/**",
+    ".history/**",
+    "*.log",
+    "coverage.out",
+    "htmlcov/**",
+    "qa-results/**",
+    ".git-backup*/**",
+    "RKTools/**"
+  ],
+  "submodules": {
+    "include_own_org": true,
+    "own_orgs": [
+      "vasic-digital",
+      "HelixDevelopment"
+    ],
+    "exclude_third_party": true
+  }
+}

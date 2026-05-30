@@ -1,0 +1,23 @@
+{
+  "name": "Helix Cluster Dev",
+  "image": "mcr.microsoft.com/devcontainers/go:1.24",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {}
+  },
+  "postCreateCommand": "go install mvdan.cc/gofumpt@latest && go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.Go",
+        "ziglang.vscode-zig",
+        "ms-vscode.cpptools",
+        "ms-azuretools.vscode-docker",
+        "redhat.vscode-yaml"
+      ]
+    }
+  },
+  "forwardPorts": [5432, 6379, 6380, 6381, 2379, 4222, 5672, 15672, 9090, 3000, 16686, 8200],
+  "remoteUser": "vscode"
+}
