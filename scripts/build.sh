@@ -5,6 +5,14 @@ cd "$(dirname "$0")/.."
 
 echo "=== Helix Cluster OS: Build ==="
 
+# Constitution inheritance verification gate (§7 + §11.4.102)
+echo "[pre-build] Running constitution inheritance verification..."
+if [ -f tests/constitution/test_inheritance.sh ]; then
+    bash tests/constitution/test_inheritance.sh
+else
+    echo "WARNING: Constitution inheritance gate not found"
+fi
+
 echo "Building Go modules..."
 go build ./...
 

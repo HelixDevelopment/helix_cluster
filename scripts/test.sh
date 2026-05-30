@@ -15,6 +15,11 @@ cd "${PROJECT_ROOT}"
 case "${MODE}" in
     unit)
         echo "=== Running unit tests ==="
+        # Constitution inheritance gate (§7 + §11.4.102)
+        if [ -f tests/constitution/test_inheritance.sh ]; then
+            echo "[pre-test] Constitution inheritance verification..."
+            bash tests/constitution/test_inheritance.sh
+        fi
         go test -short -race -coverprofile=coverage.out ./...
         ;;
     integration)
@@ -23,7 +28,11 @@ case "${MODE}" in
         ;;
     mutation)
         echo "=== Running mutation tests ==="
-        # Mutation testing requires dedicated tooling
+        # Constitution inheritance paired mutation (§1.1)
+        if [ -f scripts/testing/meta_test_inheritance.sh ]; then
+            echo "[mutation] Constitution inheritance paired mutation..."
+            bash scripts/testing/meta_test_inheritance.sh
+        fi
         echo "Mutation tests: Placeholder — integrate mutation testing framework"
         ;;
     chaos)
