@@ -1,6 +1,6 @@
 # Continuation Document
 
-**Revision:** 19
+**Revision:** 20
 **Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
@@ -16,7 +16,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
-| `TBD` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
+| `TBD` | feat: htmux, messaging, GPU, WASM, storage, build manifest (HXC-919) |
+| `23f86b8` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
 | `c85c2ff` | feat: LLM service, policy engine, setup CLI, distributed lock (HXC-914) |
 | `3f46b40` | feat: Expand stub packages + build artifact cache (HXC-916) |
 | `9b4687f` | docs: Update continuation.md — all HXC-910/911/912/913 complete |
@@ -25,7 +26,6 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `32e043a` | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
 | `aa16e50` | feat: HXC-911 Scheduler and Session gRPC service wrappers |
 | `bb4404c` | fix: etcd nil-safe Close + lightweight tests (HXC-910) |
-| `74448f2` | feat: Phase 4 testing infrastructure (DST, chaos, device, snapshot) |
 
 ## §2: Environment Snapshot
 
@@ -34,14 +34,15 @@ Any CLI agent resuming work on this project MUST read this file first.
 | **Branch** | `main` |
 | **Commit** | `TBD` |
 | **Timestamp** | 2026-05-31T20:43:17+05:00 |
-| **Go packages** | 62 packages pass `go test -race` |
-| **cmd binaries** | 13 implemented (only htmux empty) |
-| **Total Go files** | ~210+ files across pkg/, internal/, cmd/ |
+| **Go packages** | 67 packages pass `go test -race` |
+| **cmd binaries** | 14 implemented (htmux now complete) |
+| **Total Go files** | ~230+ files across pkg/, internal/, cmd/ |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-919 | htmux, messaging, GPU, WASM, storage, build manifest | ✅ Done |
 | HXC-918 | Wire scheduler/session gRPC to real backends, etcd discovery | ✅ Done |
 | HXC-916 | Stub expansion (config, retry, ratelimit, validator, build cache) | ✅ Done |
 | HXC-914 | LLM, policy, setup, distributed lock | ✅ Done |
@@ -52,14 +53,12 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 ## §4: Next Planned Work
 
-1. **htmux CLI** — Distributed tmux terminal multiplexer
-2. **internal/messaging** — NATS/Kafka/RabbitMQ integration
-3. **internal/gpu** — GPU scheduling integration
-4. **internal/health** — Health check aggregation service
-5. **internal/security** — Security orchestration internals
-6. **internal/wireguard** — WireGuard mesh coordination
-7. **internal/build** — Build orchestration internals
-8. **pkg/storage** — Unified storage abstraction
+1. **internal/health** — Health check aggregation service
+2. **internal/security** — Security orchestration internals
+3. **internal/wireguard** — WireGuard mesh coordination
+4. **internal/build** — Build orchestration internals
+5. **pkg/observability** — Metrics and tracing integration
+6. **BUGGIFY integration** — Deterministic fault injection hooks
 
 ## §5: Known Issues / Blockers
 
@@ -68,5 +67,9 @@ Any CLI agent resuming work on this project MUST read this file first.
 ## §6: Quick Commands
 
 ```bash
-go test ./... -race -count=1
+# Run all tests (requires GOWORK due to workspace modules)
+GOWORK=$(pwd)/go.work go test ./... -race -count=1
+
+# Build all binaries
+GOWORK=$(pwd)/go.work go build ./cmd/...
 ```
