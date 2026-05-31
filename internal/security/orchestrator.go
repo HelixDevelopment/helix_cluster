@@ -70,6 +70,11 @@ type Orchestrator struct {
 	revokedSerials map[string]bool
 	vault         *security.VaultWrapper
 	spiffeTrustDomain string
+	// identityScopes is the policy-driven identity->scopes binding store. When an
+	// identity has an entry here, IssueCertificate clamps requested scopes to it
+	// (anti-escalation); unbound identities keep the legacy ["read","write"]
+	// default. See identity_bindings.go.
+	identityScopes map[string][]string
 }
 
 // NewOrchestrator creates a new security Orchestrator.
@@ -79,6 +84,7 @@ func NewOrchestrator(vault *security.VaultWrapper) *Orchestrator {
 		revokedSerials: make(map[string]bool),
 		vault:          vault,
 		spiffeTrustDomain: "helix.local",
+		identityScopes: make(map[string][]string),
 	}
 }
 
@@ -109,7 +115,7 @@ func (o *Orchestrator) IssueCertificate(ctx context.Context, req IssueCertificat
 				Serial:    pkiCert.Serial,
 				IssuedAt:  time.Now(),
 				ExpiresAt: time.Now().Add(pkiCert.LeaseDuration),
-				Scopes:    resolveScopes(req.Scopes),
+				Scopes:    o.resolveScopesForIdentity(req.NodeID, req.Scopes),
 			}
 			o.certs[cert.ID] = cert
 			return cert, nil
@@ -165,7 +171,7 @@ func (o *Orchestrator) issueLocal(req IssueCertificateRequest) (*Certificate, er
 		Serial:    template.SerialNumber.String(),
 		IssuedAt:  time.Now(),
 		ExpiresAt: template.NotAfter,
-		Scopes:    resolveScopes(req.Scopes),
+		Scopes:    o.resolveScopesForIdentity(req.NodeID, req.Scopes),
 	}
 	return cert, nil
 }
