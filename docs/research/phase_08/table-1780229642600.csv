@@ -1,0 +1,7 @@
+﻿Scenario,Implementation
+**HelixCluster → Chutes Miner**,"`MinerController` (Go) — K3s deployment, GPU discovery, GraVal verification"
+**Chutes → AI Inference Layer**,"`ChutesClient` (Go) — OpenAI-compatible, streaming, model routing"
+**Multi-Marketplace Orchestrator**,"`MarketplaceManager` (Go) — adapters for Chutes, io.net, Akash, Salad"
+**Quantum-Safe Communication**,`E2EEProxy` (Go) — ML-KEM-768 + ChaCha20-Poly1305
+**GPU Trust Verification**,`GraValVerifier` (Go) — 3-phase GPU attestation
+**Multi-Token Rewards**,"`RewardDistributor` (Go) — TAO, IO, AKT, RENDER"
