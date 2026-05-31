@@ -63,9 +63,9 @@ volumes/
 web/node_modules/
 web/package-lock.json
 !.gitattributes
-helix-build
 
 # root-level built cmd binaries (from `go build ./cmd/...` in repo root)
+# (anchored with leading slash so they never match cmd/* source dirs)
 /helix-*
 /helixd
 /htmux
