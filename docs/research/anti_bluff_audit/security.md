@@ -1,0 +1,28 @@
+# pkg/security — Anti-Bluff Audit
+
+- **Test result:** PASS — 11 top-level test functions (TestParseSPIFFEID has 8 subtests), all green; `go test ./pkg/security/... -count=1` → `ok ... 0.338s`.
+- **Risk:** MEDIUM
+
+## Real-behavior coverage (what is genuinely proven)
+
+- **SPIFFE parsing (spiffe.go) — strong.** `TestParseSPIFFEID` is table-driven with real inputs and genuine sink-side assertions: it checks `TrustDomain`, `Path`, AND round-trips through `String()` (`id.String() == tt.raw`). It exercises real failure paths (missing scheme, wrong scheme, missing trust domain, userinfo, query, fragment). This is honest, mutation-paired coverage: removing any reject branch would flip a `wantErr` case to fail.
+- **Trust-domain / Validate logic — adequate.** `TestIsValidTrustDomain` and `TestSPIFFEID_Validate` cover valid, empty, space, NUL, missing-path, non-leading-slash, and nil-receiver cases. Each negative case would fail if the corresponding guard were deleted.
+- **TLS config construction (tls.go) — partial.** `TestServerTLS` asserts real, load-bearing security fields: `ClientAuth == RequireAndVerifyClientCert` and `MinVersion == TLS13`. `TestServerTLS_BadCert` / `TestClientTLS_BadCA` exercise real failure paths against malformed PEM. The test helper `generateTestCert` produces genuine ECDSA/x509 material (no stubs).
+
+## PASS-bluff findings
+
+- **tls_test.go:75-114 — no real handshake; the headline feature (mTLS) is never exercised end-to-end.** The package's doc comment claims it "provides TLS, SPIFFE, and Vault security primitives" and `ServerTLS` promises a config "that requires mutual authentication." The tests only inspect struct *fields* of the returned `*tls.Config`; they never stand up a `tls.Listener`/`tls.Dial` pair to prove that (a) a client with a valid cert actually completes the handshake, and (b) a client WITHOUT a valid client cert is actually *rejected*. A config that compiles and has the right field values can still fail to authenticate in practice (e.g. wrong cert chain, SAN/EKU mismatch). Per CLAUDE-1, asserting `ClientAuth == RequireAndVerifyClientCert` is checking "code executes," not "mutual auth works for end users." This is the central pass-bluff risk in the package.
+- **tls_test.go:67-73 — `TestNewTLSConfigBuilder` is near-tautological.** It only asserts the constructor returns non-nil. The constructor cannot return nil (it always returns `&TLSConfigBuilder{...}`), so this test can never fail and proves nothing.
+- **tls_test.go:108-113 — `TestClientTLS` under-asserts.** It checks `len(Certificates)==1` and `RootCAs != nil` but does NOT assert `MinVersion == TLS13` (unlike the server test). If someone dropped the TLS 1.3 floor on the client path, no test would catch it — a missing mutation pair for a security-relevant field.
+- **vault_test.go (whole file) — mock-only; the real Vault integration is unproven and absent.** Every Vault test drives `MockVaultClient`, whose `*Fn` closures are defined inline in the test itself. E.g. `TestVaultWrapper_IssueCertificate` (vault_test.go:80-107) asserts `cert.Serial == "1234"` and `cert.LeaseDuration == params.TTL` — but those values were hand-fed by the test's own `IssueFn`; the assertion confirms the literal the test just set flows through the pass-through wrapper. This proves the `VaultWrapper` plumbing (nil-guard + delegate) but proves NOTHING about real Vault KVv2/PKI operation. Note vault.go ships only an interface + wrapper + mock — there is no production `VaultClient` implementation in this package at all, so "issue a certificate from Vault" as an end-user feature is entirely untested here. Per CLAUDE-1 rule 5 ("no mock-only validation for features that claim real-world operation"), this is acceptable ONLY if the real client + an integration test live elsewhere; that must be confirmed, otherwise the Vault feature is a pass-bluff at the system level.
+- **vault_test.go:51-71 — `TestVaultWrapper_WriteSecret` happy-path only on the success branch.** It verifies the mock captured the data, but the "key"=="value" check again reads back a literal the test injected. Combined with the absence of any real backend, the write path's end-user effect (a secret actually persisted/retrievable) is unverified.
+
+## Recommended hardening
+
+1. **Add a real mTLS handshake test (highest priority).** Using `generateTestCert`, start an `httptest`/`net` TLS server with `ServerTLS()` and:
+   - assert a client built from `ClientTLS()` (valid cert from the same CA) completes the handshake and exchanges a byte;
+   - assert a client presenting NO cert, or a cert from a *different* CA, is REJECTED with a handshake error. This is the sink-side proof that `RequireAndVerifyClientCert` actually enforces mutual auth.
+2. **Add `cfg.MinVersion == tls.VersionTLS13` assertion to `TestClientTLS`** so the client TLS-1.3 floor has a mutation pair.
+3. **Strengthen or drop `TestNewTLSConfigBuilder`** — replace the non-nil check with an assertion that the stored PEM bytes are actually used (already covered transitively by the handshake test).
+4. **Vault: confirm/locate the production `VaultClient` implementation and add an integration test against a real Vault** (dev-mode container or `vault` test server) exercising KVv2 read/write round-trip and PKI issue→renew with a parsable returned certificate (assert the returned `Certificate` PEM actually parses via `x509.ParseCertificate`). If no real implementation exists yet, the Vault "feature" must be marked incomplete rather than implied complete by green mock tests.
+5. **Add an IssueCertificate test that parses the returned cert** rather than only string-comparing `Serial`, so the test proves a usable certificate, not just a struct field echo.

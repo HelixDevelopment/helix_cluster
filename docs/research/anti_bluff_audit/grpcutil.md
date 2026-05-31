@@ -1,0 +1,23 @@
+# pkg/grpcutil — Anti-Bluff Audit
+
+- **Test result:** PASS — 12/12 tests pass (`go test ./pkg/grpcutil/... -count=1 -v`, ok in 2.164s)
+- **Risk:** MEDIUM
+
+- **Real-behavior coverage:** Genuinely proven behavior is moderate and mostly honest for the auth/chaining surface:
+  - `UnaryInterceptor` / `StreamInterceptor`: handler invocation on the happy path is verified via a `called` flag (sink-side proof the wrapped handler actually ran), and the `"invalid"` token rejection path is verified by asserting the gRPC status code is exactly `codes.Unauthenticated` (not just `err != nil`). These are real assertions, not tautologies.
+  - `AuthUnaryInterceptor`: valid-key pass-through, wrong-key rejection (status code checked), missing-metadata rejection, and empty-key bypass are all covered — a reasonable matrix including failure paths.
+  - `ChainUnaryInterceptors`: the onion ordering (`ic1-before, ic2-before, handler, ic2-after, ic1-after`) is asserted element-by-element. This is the strongest test in the file and would fail if chaining order were broken.
+  - Mutation-paired tests exist (lines 196-239) covering boundary semantics: empty token is NOT rejected, missing metadata is NOT rejected by the default interceptor, and API-key comparison is case-sensitive. These would fail if the corresponding behavior were removed/loosened.
+
+- **PASS-bluff findings:**
+  - **`LoggingStreamInterceptor` + `wrappedStream` are entirely untested (package.go:66-89).** This is the only function in the package that produces real sink-side state — the `recvCount`/`sendCount` increment logic in `RecvMsg`/`SendMsg` (lines 73-81) and the resulting `recv=%d send=%d` log line. There is NO test that drives a stream through `RecvMsg`/`SendMsg` and asserts the counts. The feature "detailed message logging" is therefore unproven; the counting could be a no-op or always zero and every existing test would still pass. This is the package's clearest PASS-bluff gap (key behavior unproven), and is why risk is not LOW.
+  - **Weak/tautological log assertions (package_test.go:46-48 and 83-86).** `TestUnaryInterceptorCallsHandler` only asserts the log output `Contains("unary")` and the stream test asserts `Contains("stream")`. The format strings `"[gRPC] unary %s ..."` and `"[gRPC] stream %s ..."` are hardcoded literals that always contain those substrings regardless of which branch executed, so the assertion proves nothing about behavior — it would pass even if auth, duration, and code extraction were all deleted. The interesting logged fields (`code=`, `duration=`, `err=`) are never asserted.
+  - **`status.FromError` code-extraction logging path is never verified (package.go:33-37, 58-62).** No test exercises the case where the handler returns a non-`OK` error and then checks that the interceptor logs/propagates the correct code; the rejection tests short-circuit on auth before reaching the handler, so the `code = st.Code()` extraction branch is dead from the tests' perspective.
+  - **Happy-path-only for `StreamInterceptor` handler errors.** There is no test where the stream handler itself returns an error (e.g. a non-auth failure) to confirm the interceptor surfaces it unchanged. Only the auth-rejection and nil-return paths are covered.
+  - Note: use of `mockServerStream` and stub handlers is acceptable here per Constitution §11.4.27 (these are unit tests of pure interceptor logic, not a feature claiming real network operation), so the mock usage itself is NOT counted as a bluff.
+
+- **Recommended hardening:**
+  1. Add a `TestLoggingStreamInterceptorCounts` test: pass a `wrappedStream`-backed mock whose `RecvMsg`/`SendMsg` are invoked N and M times inside the handler, then assert the emitted log line contains `recv=N send=M` (capture via `log.SetOutput(&buf)`) AND assert `ws.recvCount`/`ws.sendCount` directly. This closes the only real sink-side gap.
+  2. Strengthen the log assertions in `TestUnaryInterceptorCallsHandler`/`TestStreamInterceptorCallsHandler` to assert the dynamic, behavior-dependent fields — e.g. `Contains("/test/Method")`, `Contains("code=OK")`, and `Contains("err=<nil>")` — so the assertion actually fails if the wrong branch runs.
+  3. Add a test where the handler returns `status.Error(codes.Internal, ...)` and assert the interceptor (a) returns that exact code and (b) logs `code=Internal`, exercising the `status.FromError` extraction branch for both unary and stream.
+  4. Add a `TestAuthUnaryInterceptorEmptyTokenSlice` case (metadata key present but value list empty) to pin the `len(tokens) == 0` branch at package.go:102, distinct from the wrong-key case.

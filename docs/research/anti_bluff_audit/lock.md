@@ -1,0 +1,24 @@
+# pkg/lock — Anti-Bluff Audit
+
+- **Test result:** PASS — 4/4 tests pass (`TestMemoryLocker`, `TestMemoryLockerDifferentKeys`, `TestMemoryLockerConcurrent`, `TestMemoryLockerContextCancellation`). Also PASS under `-race`.
+
+- **Risk:** HIGH
+
+- **Real-behavior coverage (what is genuinely proven):**
+  - `MemoryLocker` re-lock after unlock works (`TestMemoryLocker`): a lock can be acquired, released, and re-acquired. This is real sink-side behavior.
+  - Per-key isolation (`TestMemoryLockerDifferentKeys`): locking `key-a` does not block `key-b`. Genuinely exercises the `map[string]*sync.Mutex` keying logic; would fail if all keys shared one mutex.
+  - Context-cancellation path (`TestMemoryLockerContextCancellation`): a pre-cancelled context returns `context.Canceled` when the key is already held. This is a real mutation-paired test — it would fail if the `ctx.Done()` select arm in `Lock` were removed. This is the strongest test in the file.
+
+- **PASS-bluff findings:**
+  - **`EtcdLocker` has ZERO test coverage — the package's entire reason for existing is untested.** `lock.go:60-82` declares the package as "distributed locking primitives for Helix Cluster OS" and ships `EtcdLocker` as the production/distributed backend (`MemoryLocker` is explicitly labeled "for testing and single-node use", `lock.go:22`, and the source even says "For production, use EtcdLocker instead", `lock.go:55`). No test constructs an `EtcdLocker`, calls `NewEtcdLocker`, or exercises `EtcdLocker.Lock`. The real-world feature the package claims to provide is completely unproven. Per CLAUDE-1, distributed locking against a REAL etcd is required (no mock-only validation); here there is not even a mock. This alone forces HIGH risk.
+  - **`TestMemoryLockerConcurrent` (lock_test.go:48-72) does NOT prove mutual exclusion and is a mutation-survivor under the CI command.** The assertion is `counter == 10` (lock_test.go:69), which only proves all 10 goroutines ran their increment — it proves nothing about serialization. I verified by simulation that replacing `Lock` with a no-op (`return func() error { return nil }, nil`, no mutex acquired at all) still yields `counter == 10` and PASSES. The data race that exposes the broken lock is ONLY caught when `-race` is enabled; the task/CI command `go test ./pkg/lock/... -count=1` runs WITHOUT `-race`, so a non-functional lock would pass-bluff through. The test has no assertion that would fail on a broken lock in the default run.
+  - **No failure-path / contention coverage for the happy path.** `TestMemoryLocker` and `...DifferentKeys` are happy-path only. There is no test that a second `Lock` on an already-held key actually BLOCKS until the first unlocks (the core promise of a lock). The cancellation test indirectly touches held state but only via the cancel arm; the blocking-then-acquire behavior is never asserted.
+  - **Swallowed unlock return values.** `unlock2()` (lock_test.go:27), `unlock2()` (lock_test.go:45), and `unlock()` (lock_test.go:64) discard the returned error. Minor, but inconsistent with the explicit `unlock()` error check at lock_test.go:19.
+  - **Known leak in `MemoryLocker.Lock` is untested and undocumented by any test.** `lock.go:44-57`: on context cancellation a goroutine is left blocked on `lm.Lock()` and will acquire the mutex later with no owner to release it (comment at lock.go:54 admits this). No test characterizes this leak/behavior, so a regression making it worse would go unnoticed.
+
+- **Recommended hardening:**
+  1. Add `EtcdLocker` integration tests against a REAL etcd (e.g. embedded etcd or a containerized instance per CLAUDE-1 "integration tests against REAL services"): acquire a lock from client A, assert client B blocks, release A, assert B acquires. Assert sink-side state (the etcd key/lease actually exists while held and is gone after unlock). Add an error-path test where the etcd client returns an error and assert the `"etcd lock: %w"` / `"etcd unlock: %w"` wrapping (lock.go:74,78).
+  2. Make `TestMemoryLockerConcurrent` prove mutual exclusion in a way that fails WITHOUT `-race`: have each goroutine, while holding the lock, set a shared `inCritical` flag, sleep briefly, and assert no other goroutine observed `inCritical == true` (record a violation count and assert it is 0). This would fail on a no-op lock even in the default `go test` run. Additionally run the package with `-race` in CI.
+  3. Add an explicit blocking test: acquire `key`, start a goroutine that locks the same `key` and records a timestamp, sleep, unlock, and assert the second acquisition happened AFTER the unlock (proves the lock actually serializes, not just returns).
+  4. Check all `unlock()` return values in tests (they are part of the `UnlockFunc` contract).
+  5. Add a documented test for the context-cancellation goroutine-leak behavior in `MemoryLocker.Lock`, or fix the implementation to not leak and assert the fix.

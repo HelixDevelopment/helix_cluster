@@ -1,0 +1,22 @@
+# pkg/semaphore — Anti-Bluff Audit
+
+- **Test result:** PASS — 4 tests pass (`TestSemaphore`, `TestSemaphore_CapacityRespected_Mutation`, `TestSemaphore_AcquireBlocks_Mutation`, `TestSemaphore_ReleaseTooMany_Mutation`), `go test ./pkg/semaphore/... -count=1` → `ok ... 0.505s`.
+- **Risk:** MEDIUM
+
+- **Real-behavior coverage:**
+  - The tests exercise the real `Semaphore` implementation directly (a buffered `chan struct{}`). There are no mocks, stubs, or `t.Skip` calls.
+  - **Capacity bound is genuinely proven.** `TestSemaphore_CapacityRespected_Mutation` (package_test.go:22–34) acquires `N=2` slots, asserts the 3rd `TryAcquire()` returns `false`, then releases one and asserts `TryAcquire()` returns `true`. This is a real sink-side check on observable behavior and would fail if the channel buffer size were wrong. Mutation-paired correctly.
+  - **Blocking semantics of `Acquire()` are genuinely proven.** `TestSemaphore_AcquireBlocks_Mutation` (package_test.go:36–58) fills the semaphore, launches a goroutine that calls `Acquire()`, and asserts it does NOT complete within 50ms (proves it blocks), then asserts it DOES complete within 200ms after `Release()` (proves it unblocks). This is strong: it would fail if `Acquire` were silently swapped for non-blocking `TryAcquire`. Mutation-paired correctly.
+  - `TestSemaphore` (package_test.go:8–18) checks the core full/not-full transition (TryAcquire fails when full, succeeds after release) against the real type.
+
+- **PASS-bluff findings:**
+  - `TestSemaphore_ReleaseTooMany_Mutation` (package_test.go:60–82) is a **PASS-bluff / self-defeating test**. Its stated intent (comment line 61) is "Release does not validate underflow → extra releases corrupt capacity." But the implementation's `Release()` does `<-s.ch` (a receive on an empty channel), which **blocks forever** rather than panicking or corrupting state. The test wraps the extra `Release()` in a goroutine and then accepts BOTH outcomes as passing: if it returns immediately it checks `TryAcquire()` (lines 76–78), and if it blocks/times out at 100ms (lines 79–81) it treats that as "correct behavior" and asserts nothing. Because the real code always takes the timeout branch, the test passes without ever evaluating any assertion. It cannot fail for any behavior of `Release()` short of an outright panic — so it does NOT prove the claimed "underflow is safe" property and is not a real mutation-paired test for that property. It is effectively a no-op assertion on the happy timeout path.
+  - **Leaked goroutine masked as success.** The same test (lines 67–71) spawns a goroutine that permanently blocks on `<-s.ch` (empty channel). The test "passes" by timing out and leaking that goroutine. There is no failure-path coverage of the actual over-release semantics, and the leak is invisible because the test never inspects goroutine state.
+  - **No concurrency / race coverage.** The semaphore's entire purpose is correctness under concurrent goroutines, yet no test runs many concurrent Acquire/Release pairs nor is the suite documented/run under `-race`. The capacity test acquires serially from a single goroutine, so a data-race or counting bug under real concurrency would not be caught.
+  - **Minor:** `New(0)` (zero-capacity / barrier) and the documented behavior that `Acquire` on a 0-capacity semaphore blocks indefinitely are untested; `TryAcquire` always returning false for `N=0` is unverified.
+
+- **Recommended hardening:**
+  - Replace `TestSemaphore_ReleaseTooMany_Mutation` with a test that actually asserts something on both branches. The honest contract here is "`Release()` on an unheld semaphore blocks" — assert the timeout branch is taken (e.g. fail if `done` closes early), and explicitly document/clean up the leaked goroutine (or change the API to make over-release detectable and test that detection).
+  - Add a concurrency invariant test: launch `M >> N` goroutines that each `Acquire()`, increment a counter, assert the counter never exceeds `N` (using atomic load + a peak tracker), then `Release()`. Run the whole package with `go test -race`.
+  - Add capacity-boundary cases: `New(0)` → `TryAcquire()` returns `false` and `Acquire()` blocks; verify `TryAcquire` count exactly equals `N` before it starts returning `false`.
+  - Add a throughput/round-trip test asserting that after `K` matched Acquire/Release pairs the semaphore returns to empty state (`TryAcquire` succeeds exactly `N` times).
