@@ -19,17 +19,34 @@ type WasmPlugin struct {
 	initFn   string
 	execFn   string
 	shutdown string
+	caps     *Capabilities
 }
 
-// NewWasmPlugin creates a plugin backed by a WASM module at path.
+// NewWasmPlugin creates a plugin backed by a WASM module at path. By default
+// the plugin grants NO host capabilities (deny-by-default), which preserves the
+// behavior of modules that only use WASI and their own memory. Grant access
+// with WithCapabilities before calling Init.
 func NewWasmPlugin(path string) *WasmPlugin {
 	return &WasmPlugin{
 		path:     path,
 		initFn:   "init",
 		execFn:   "execute",
 		shutdown: "shutdown",
+		caps:     NewCapabilities(),
 	}
 }
+
+// WithCapabilities sets the capability allow-list applied at Init time and
+// returns the receiver for chaining. A module attempting a capability not in
+// this set is denied at Execute time with ErrCapabilityDenied.
+func (p *WasmPlugin) WithCapabilities(caps *Capabilities) *WasmPlugin {
+	p.caps = caps
+	return p
+}
+
+// Host returns the underlying host after Init, or nil before. It exposes
+// sink-side observations such as Logs() captured through granted host funcs.
+func (p *WasmPlugin) Host() *Host { return p.host }
 
 // Init loads and instantiates the WASM module, then calls its init export.
 func (p *WasmPlugin) Init() error {
@@ -38,6 +55,7 @@ func (p *WasmPlugin) Init() error {
 		return fmt.Errorf("create host: %w", err)
 	}
 	p.host = h
+	h.SetCapabilities(p.caps)
 	if err := h.LoadModule(p.path); err != nil {
 		return err
 	}

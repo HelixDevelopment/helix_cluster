@@ -8,6 +8,36 @@ import (
 	"github.com/bytecodealliance/wasmtime-go/v29"
 )
 
+// capabilityDeniedError is the error surfaced from Call when a guest invoked a
+// gated host function whose capability was not granted. It carries BOTH the
+// ErrCapabilityDenied sentinel and the original Wasmtime error (which holds the
+// wasm backtrace and the "Caused by: capability denied …" trap text). Its Unwrap
+// returns a two-element slice so errors.Is matches the sentinel AND any concrete
+// type in the original error chain remains reachable via errors.Is/errors.As.
+//
+// Note: when a host function returns a *wasmtime.Trap, wasmtime collapses it
+// into a *wasmtime.Error whose message embeds the trap text under a "Caused by:"
+// line — there is no recoverable *wasmtime.Trap object at the Go level, so we
+// retain the original *wasmtime.Error instead.
+type capabilityDeniedError struct {
+	funcName string
+	cap      Capability
+	orig     error // the original *wasmtime.Error (backtrace + caused-by text)
+}
+
+func (e *capabilityDeniedError) Error() string {
+	return fmt.Sprintf("call %q: %s: %s", e.funcName, capDeniedMessage(e.cap), e.orig.Error())
+}
+
+// Unwrap exposes both the sentinel (for errors.Is(err, ErrCapabilityDenied)) and
+// the original error (so its chain stays reachable).
+func (e *capabilityDeniedError) Unwrap() []error {
+	return []error{ErrCapabilityDenied, e.orig}
+}
+
+// Capability reports which capability was denied.
+func (e *capabilityDeniedError) Capability() Capability { return e.cap }
+
 var (
 	ErrNotLoaded        = errors.New("no module loaded")
 	ErrNotInstantiated  = errors.New("module not instantiated")
@@ -17,18 +47,52 @@ var (
 
 // Host wraps a Wasmtime engine and provides lifecycle helpers for loading and
 // instantiating WASM modules with WASI support.
+//
+// A Host is NOT goroutine-safe: a single Host's Call/Execute (and the gated
+// host functions they drive, which share a *rand.Rand and a log slice) must not
+// be invoked concurrently from multiple goroutines. The default randomness
+// source is internally mutex-guarded to prevent a data race on the RNG itself,
+// but Wasmtime's store and the captured log records are not — use a separate
+// Host per goroutine for concurrent execution.
 type Host struct {
-	engine *wasmtime.Engine
-	store  *wasmtime.Store
-	module *wasmtime.Module
-	inst   *wasmtime.Instance
+	engine  *wasmtime.Engine
+	store   *wasmtime.Store
+	module  *wasmtime.Module
+	inst    *wasmtime.Instance
+	sandbox *sandbox
 }
 
-// NewHost creates a new Wasmtime host with default configuration.
+// NewHost creates a new Wasmtime host with default configuration. The host
+// starts with a deny-everything capability sandbox, preserving the historical
+// behavior in which modules only touched WASI and their own linear memory. Use
+// SetCapabilities to grant gated host capabilities before Instantiate.
 func NewHost() (*Host, error) {
 	engine := wasmtime.NewEngine()
 	store := wasmtime.NewStore(engine)
-	return &Host{engine: engine, store: store}, nil
+	return &Host{engine: engine, store: store, sandbox: defaultSandbox()}, nil
+}
+
+// SetCapabilities replaces the host's capability grant set. It must be called
+// before Instantiate to take effect (the grant set is bound into the gated
+// host functions at instantiation time). A nil caps argument is treated as an
+// empty (deny-everything) grant. Returns the receiver for chaining.
+func (h *Host) SetCapabilities(caps *Capabilities) *Host {
+	if h.sandbox == nil {
+		h.sandbox = defaultSandbox()
+	}
+	if caps == nil {
+		caps = NewCapabilities()
+	}
+	h.sandbox.caps = caps
+	return h
+}
+
+// Capabilities returns the host's current capability grant set.
+func (h *Host) Capabilities() *Capabilities {
+	if h.sandbox == nil {
+		return NewCapabilities()
+	}
+	return h.sandbox.caps
 }
 
 // LoadModule compiles a WASM module from the given file path.
@@ -52,6 +116,17 @@ func (h *Host) Instantiate() error {
 	linker := wasmtime.NewLinker(h.engine)
 	if err := linker.DefineWasi(); err != nil {
 		return fmt.Errorf("define wasi: %w", err)
+	}
+
+	// Register the capability-gated "helix" host functions. They are always
+	// defined, but each denies (traps) unless its capability is granted in the
+	// sandbox, so an empty grant set preserves prior behavior for modules that
+	// never import them.
+	if h.sandbox == nil {
+		h.sandbox = defaultSandbox()
+	}
+	if err := h.sandbox.defineHostFuncs(linker); err != nil {
+		return fmt.Errorf("define host funcs: %w", err)
 	}
 
 	inst, err := linker.Instantiate(h.store, h.module)
@@ -78,6 +153,19 @@ func (h *Host) Call(funcName string, args ...int64) (int64, error) {
 	}
 	results, err := fn.Func().Call(h.store, wasmArgs...)
 	if err != nil {
+		// A capability-gated host function denies by returning a Wasmtime trap
+		// carrying the EXACT capDeniedMessage(cap) string. Wasmtime collapses
+		// that trap into an error whose text embeds it under a "Caused by:" line.
+		// matchDeniedCapability looks for the precise, per-capability message
+		// (e.g. `capability denied: capability "log" not granted`) under that
+		// caused-by framing — NOT a bare "capability denied" substring. Only our
+		// own host-function trap produces that exact framing, so a guest that
+		// merely emits the words "capability denied" elsewhere cannot trigger a
+		// false positive. Returning the typed error keeps the original wasmtime
+		// error (backtrace included) reachable via the Unwrap chain.
+		if cap, ok := matchDeniedCapability(err); ok {
+			return 0, &capabilityDeniedError{funcName: funcName, cap: cap, orig: err}
+		}
 		return 0, fmt.Errorf("call %q: %w", funcName, err)
 	}
 	if results == nil {

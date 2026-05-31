@@ -15,14 +15,16 @@ import (
 // handleAck) so it does not need to alter the transport's handler registration
 // or the wire format — preserving backward compatibility.
 type transportProber struct {
-	transport    *Transport
+	transport    MessageTransport
 	localID      string
 	probeTimeout time.Duration
 	wait         func(time.Duration) // injectable sleep; defaults to time.Sleep
 }
 
-// newTransportProber builds a Prober bound to a transport.
-func newTransportProber(t *Transport, localID string, probeTimeout time.Duration) *transportProber {
+// newTransportProber builds a Prober bound to a transport. transport is the
+// MessageTransport seam, so this prober works over both the real UDP *Transport
+// and the in-memory *SimTransport used in deterministic-simulation tests.
+func newTransportProber(t MessageTransport, localID string, probeTimeout time.Duration) *transportProber {
 	if probeTimeout <= 0 {
 		probeTimeout = 500 * time.Millisecond
 	}

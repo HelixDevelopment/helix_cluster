@@ -72,6 +72,45 @@ func TestHostInstantiateAndCall(t *testing.T) {
 	}
 }
 
+// TestInstantiateNonHelixModuleAfterSandboxWiring is the named backward-compat
+// guarantee for Host.Instantiate: a module that does NOT import the "helix"
+// namespace must still instantiate and run correctly even though Instantiate now
+// unconditionally registers the gated helix host functions via
+// sandbox.defineHostFuncs. simpleAddWasm imports nothing from "helix".
+//
+// Mutation that kills this: change defineHostFuncs to register helix functions
+// as REQUIRED imports (or have Instantiate return an error when the module does
+// not import them); then this currently-passing add(10,32)==42 path would fail
+// at Instantiate or Call for a non-helix module.
+func TestInstantiateNonHelixModuleAfterSandboxWiring(t *testing.T) {
+	h, err := NewHost()
+	if err != nil {
+		t.Fatalf("new host: %v", err)
+	}
+	defer h.Close()
+
+	path := writeTempWasm(t, simpleAddWasm)
+	if err := h.LoadModule(path); err != nil {
+		t.Fatalf("load module: %v", err)
+	}
+	// Grant a capability the module never imports; wiring must remain inert.
+	h.SetCapabilities(NewCapabilities(CapClock, CapRandom, CapLog))
+	if err := h.Instantiate(); err != nil {
+		t.Fatalf("instantiate non-helix module after sandbox wiring: %v", err)
+	}
+	result, err := h.Call("add", 10, 32)
+	if err != nil {
+		t.Fatalf("call add on non-helix module: %v", err)
+	}
+	if result != 42 {
+		t.Fatalf("add(10,32) = %d, want 42 (sandbox wiring altered non-helix module)", result)
+	}
+	// No log capability was exercised by the guest, so nothing must be captured.
+	if logs := h.Logs(); len(logs) != 0 {
+		t.Fatalf("non-helix module produced log records %v; sandbox leaked", logs)
+	}
+}
+
 func TestHostCallMissingFunction(t *testing.T) {
 	h, err := NewHost()
 	if err != nil {
