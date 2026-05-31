@@ -12,6 +12,7 @@ type SessionID string
 // Session represents a distributed terminal session.
 type Session struct {
 	ID        SessionID
+	Name      string
 	Owner     string
 	Status    SessionStatus
 	Backend   SessionBackend
@@ -42,6 +43,50 @@ const (
 	StatusTerminated
 	StatusFailed
 )
+
+// String returns the human-readable name of the status.
+func (s SessionStatus) String() string {
+	switch s {
+	case StatusPending:
+		return "pending"
+	case StatusCreating:
+		return "creating"
+	case StatusRunning:
+		return "running"
+	case StatusMigrating:
+		return "migrating"
+	case StatusPaused:
+		return "paused"
+	case StatusTerminated:
+		return "terminated"
+	case StatusFailed:
+		return "failed"
+	default:
+		return "unknown"
+	}
+}
+
+// StatusFromString parses a SessionStatus from its string representation.
+func StatusFromString(s string) SessionStatus {
+	switch s {
+	case "pending":
+		return StatusPending
+	case "creating":
+		return StatusCreating
+	case "running":
+		return StatusRunning
+	case "migrating":
+		return StatusMigrating
+	case "paused":
+		return StatusPaused
+	case "terminated":
+		return StatusTerminated
+	case "failed":
+		return StatusFailed
+	default:
+		return StatusPending
+	}
+}
 
 // SessionBackend identifies the terminal backend.
 type SessionBackend string

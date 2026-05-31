@@ -8,6 +8,7 @@ import (
 	"time"
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	"github.com/HelixDevelopment/helix_cluster/pkg/discovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -16,6 +17,20 @@ func startTestServer(t *testing.T) (helixv1.SchedulerServiceClient, func()) {
 	t.Helper()
 
 	srv := NewServer()
+	// Seed a node so scheduling has a target.
+	ctx := context.Background()
+	_ = srv.registry.Register(ctx, &discovery.Instance{
+		ID:      "node-test",
+		Service: "helix-node",
+		Address: "127.0.0.1",
+		Port:    8080,
+		Healthy: true,
+		Metadata: map[string]string{
+			"cpu":       "8",
+			"memory_mb": "16384",
+		},
+	})
+
 	gs := grpc.NewServer()
 	helixv1.RegisterSchedulerServiceServer(gs, srv)
 
@@ -59,6 +74,9 @@ func TestServerScheduleJob(t *testing.T) {
 	if resp.JobId != "job-1" {
 		t.Errorf("job id = %s, want job-1", resp.JobId)
 	}
+	if resp.NodeId == "" {
+		t.Error("expected assigned node")
+	}
 }
 
 func TestServerGetJobStatus(t *testing.T) {
@@ -78,6 +96,9 @@ func TestServerGetJobStatus(t *testing.T) {
 	}
 	if status.JobId != "job-2" {
 		t.Errorf("job id = %s, want job-2", status.JobId)
+	}
+	if status.NodeId == "" {
+		t.Error("expected assigned node in status")
 	}
 }
 

@@ -17,6 +17,13 @@ type Scheduler struct {
 	version uint64
 }
 
+// Queue returns the scheduler's internal job queue.
+func (s *Scheduler) Queue() *Queue {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.queue
+}
+
 // NewScheduler creates a new in-memory scheduler.
 func NewScheduler() *Scheduler {
 	return &Scheduler{

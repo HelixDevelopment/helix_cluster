@@ -53,6 +53,7 @@ func copySession(s *Session) *Session {
 	}
 	cs := &Session{
 		ID:            s.ID,
+		Name:          s.Name,
 		Owner:         s.Owner,
 		Status:        s.Status,
 		Backend:       s.Backend,
@@ -83,6 +84,7 @@ func copySession(s *Session) *Session {
 
 // CreateRequest holds parameters for session creation.
 type CreateRequest struct {
+	Name          string
 	Owner         string
 	Backend       SessionBackend
 	CPURequest    int64
@@ -101,6 +103,7 @@ func (m *Manager) Create(ctx context.Context, req *CreateRequest) (*Session, err
 
 	s := &Session{
 		ID:            id,
+		Name:          req.Name,
 		Owner:         req.Owner,
 		Status:        StatusCreating,
 		Backend:       req.Backend,
@@ -318,6 +321,21 @@ func (m *Manager) SendInput(ctx context.Context, id SessionID, paneID string, in
 	}
 
 	return nil
+}
+
+// Update modifies an existing session's mutable fields.
+func (m *Manager) Update(id SessionID, fn func(*Session)) (*Session, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	s, ok := m.sessions[id]
+	if !ok {
+		return nil, fmt.Errorf("session %q not found", id)
+	}
+
+	fn(s)
+	s.UpdatedAt = time.Now()
+	return copySession(s), nil
 }
 
 // GetResourceUsage returns current resource usage for a session.

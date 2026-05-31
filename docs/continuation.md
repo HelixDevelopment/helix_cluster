@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 18
-**Last modified:** 2026-05-31T04:58:58Z
+**Revision:** 19
+**Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `TBD` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
 | `c85c2ff` | feat: LLM service, policy engine, setup CLI, distributed lock (HXC-914) |
 | `3f46b40` | feat: Expand stub packages + build artifact cache (HXC-916) |
 | `9b4687f` | docs: Update continuation.md — all HXC-910/911/912/913 complete |
@@ -25,23 +26,23 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `aa16e50` | feat: HXC-911 Scheduler and Session gRPC service wrappers |
 | `bb4404c` | fix: etcd nil-safe Close + lightweight tests (HXC-910) |
 | `74448f2` | feat: Phase 4 testing infrastructure (DST, chaos, device, snapshot) |
-| `f874cc5` | feat: Phase 3 security package (mTLS, SPIFFE, Vault wrapper) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `c85c2ff` |
-| **Timestamp** | 2026-05-31T04:58:58Z |
-| **Go packages** | 59 packages pass `go test -race` |
+| **Commit** | `TBD` |
+| **Timestamp** | 2026-05-31T20:43:17+05:00 |
+| **Go packages** | 62 packages pass `go test -race` |
 | **cmd binaries** | 13 implemented (only htmux empty) |
-| **Total Go files** | ~200+ files across pkg/, internal/, cmd/ |
+| **Total Go files** | ~210+ files across pkg/, internal/, cmd/ |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-918 | Wire scheduler/session gRPC to real backends, etcd discovery | ✅ Done |
 | HXC-916 | Stub expansion (config, retry, ratelimit, validator, build cache) | ✅ Done |
 | HXC-914 | LLM, policy, setup, distributed lock | ✅ Done |
 | HXC-913 | Health, security, ClassAds parser | ✅ Done |
@@ -58,9 +59,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 5. **internal/security** — Security orchestration internals
 6. **internal/wireguard** — WireGuard mesh coordination
 7. **internal/build** — Build orchestration internals
-8. **Wire services to real backends** — scheduler→pkg/scheduler, session→pkg/session
-9. **pkg/discovery etcd backend** — Persistent service discovery
-10. **pkg/storage** — Unified storage abstraction
+8. **pkg/storage** — Unified storage abstraction
 
 ## §5: Known Issues / Blockers
 
