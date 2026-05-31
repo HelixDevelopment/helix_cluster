@@ -25,6 +25,8 @@ type Instance struct {
 	Healthy   bool
 	LastSeen  time.Time
 	TTL       time.Duration
+	// Weight biases health-aware load balancing. A value <= 0 is treated as 1.
+	Weight int
 }
 
 // EventType describes a registry change event.
@@ -156,6 +158,31 @@ func (b *InMemoryBackend) notify(key string, evt BackendEvent) {
 	}
 }
 
+// Clock abstracts time so TTL expiry can be tested deterministically without
+// real sleeps. The zero value (nil) defaults to systemClock (time.Now).
+type Clock interface {
+	Now() time.Time
+}
+
+// systemClock is the default real-time Clock.
+type systemClock struct{}
+
+func (systemClock) Now() time.Time { return time.Now() }
+
+// Option configures a ServiceRegistry. Options are applied additively and do
+// not alter the existing default behavior unless explicitly set.
+type Option func(*ServiceRegistry)
+
+// WithClock injects a custom Clock for deterministic TTL expiry/sweep. Passing
+// a nil clock is a no-op (the default systemClock is retained).
+func WithClock(clk Clock) Option {
+	return func(r *ServiceRegistry) {
+		if clk != nil {
+			r.clock = clk
+		}
+	}
+}
+
 // ServiceRegistry is a high-level registry with TTL health and watch support.
 type ServiceRegistry struct {
 	mu         sync.RWMutex
@@ -163,20 +190,36 @@ type ServiceRegistry struct {
 	instances  map[string]*Instance // local cache
 	ttlChecker *time.Ticker
 	stopCh     chan struct{}
+	clock      Clock
+	selector   *WeightedSelector
 }
 
 // NewServiceRegistry creates a registry backed by the given backend.
-func NewServiceRegistry(backend Backend) *ServiceRegistry {
-	return &ServiceRegistry{
+func NewServiceRegistry(backend Backend, opts ...Option) *ServiceRegistry {
+	r := &ServiceRegistry{
 		backend:   backend,
 		instances: make(map[string]*Instance),
 		stopCh:    make(chan struct{}),
+		clock:     systemClock{},
+		selector:  NewWeightedSelector(),
 	}
+	for _, opt := range opts {
+		opt(r)
+	}
+	return r
 }
 
 // NewStaticRegistry creates a registry with an in-memory backend.
-func NewStaticRegistry() *ServiceRegistry {
-	return NewServiceRegistry(NewInMemoryBackend())
+func NewStaticRegistry(opts ...Option) *ServiceRegistry {
+	return NewServiceRegistry(NewInMemoryBackend(), opts...)
+}
+
+// now returns the registry's current time via its injected Clock.
+func (r *ServiceRegistry) now() time.Time {
+	if r.clock == nil {
+		return time.Now()
+	}
+	return r.clock.Now()
 }
 
 // Start begins the TTL health checker.
@@ -226,7 +269,22 @@ func (r *ServiceRegistry) runTTLChecker() {
 func (r *ServiceRegistry) checkTTLs() {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	now := time.Now()
+	r.sweepExpiredLocked()
+}
+
+// SweepExpired performs a single deterministic TTL sweep using the registry's
+// injected Clock, evicting any expired instances from the local cache and the
+// backend. It is safe to call directly (e.g. in tests) without starting the
+// background ticker, enabling expiry validation without real sleeps.
+func (r *ServiceRegistry) SweepExpired() {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.sweepExpiredLocked()
+}
+
+// sweepExpiredLocked evicts expired instances. Caller must hold r.mu.
+func (r *ServiceRegistry) sweepExpiredLocked() {
+	now := r.now()
 	for key, inst := range r.instances {
 		if inst.TTL > 0 && now.Sub(inst.LastSeen) > inst.TTL {
 			inst.Healthy = false
@@ -248,7 +306,7 @@ func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
 		return fmt.Errorf("instance id and service are required: %w", ErrMissingFields)
 	}
 	if inst.LastSeen.IsZero() {
-		inst.LastSeen = time.Now()
+		inst.LastSeen = r.now()
 	}
 	if inst.TTL == 0 {
 		inst.TTL = 30 * time.Second
@@ -265,6 +323,7 @@ func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
 		Healthy:   true,
 		LastSeen:  inst.LastSeen,
 		TTL:       inst.TTL,
+		Weight:    inst.Weight,
 	}
 	r.instances[key] = cacheInst
 	backendInst := *cacheInst
@@ -329,7 +388,7 @@ func (r *ServiceRegistry) Renew(ctx context.Context, service, id string) error {
 		r.mu.Unlock()
 		return fmt.Errorf("instance not found: %s: %w", key, ErrInstanceNotFound)
 	}
-	inst.LastSeen = time.Now()
+	inst.LastSeen = r.now()
 	inst.Healthy = true
 	copyInst := *inst
 	r.mu.Unlock()

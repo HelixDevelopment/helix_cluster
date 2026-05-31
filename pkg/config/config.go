@@ -30,6 +30,7 @@ type Config struct {
 	ReadTimeout  time.Duration `yaml:"read_timeout" json:"read_timeout"`
 	WriteTimeout time.Duration `yaml:"write_timeout" json:"write_timeout"`
 	MaxConns     int           `yaml:"max_conns" json:"max_conns"`
+	MaxBodyBytes int64         `yaml:"max_body_bytes" json:"max_body_bytes"`
 	Labels       map[string]string `yaml:"labels" json:"labels"`
 }
 

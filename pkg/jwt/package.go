@@ -29,6 +29,9 @@ var (
 type Header struct {
 	Alg string `json:"alg"`
 	Typ string `json:"typ"`
+	// Kid is the optional key id used to select a verification key from a
+	// KeySet. It is omitted when empty to preserve existing token output.
+	Kid string `json:"kid,omitempty"`
 }
 
 // Token is a parsed JWT representation.
@@ -125,7 +128,12 @@ func (t *Token) VerifyRSA(publicKeyPEM []byte) error {
 	if !ok {
 		return ErrInvalidKey
 	}
+	return t.verifyRSAWithKey(rsaPub)
+}
 
+// verifyRSAWithKey verifies the token signature against an already-parsed RSA
+// public key, dispatching on the header algorithm.
+func (t *Token) verifyRSAWithKey(rsaPub *rsa.PublicKey) error {
 	switch t.Header.Alg {
 	case "RS256":
 		return t.verifyRSA(rsaPub, sha256.New, cryptoSHA256)

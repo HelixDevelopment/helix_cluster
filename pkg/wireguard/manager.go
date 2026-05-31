@@ -21,6 +21,17 @@ type Manager struct {
 	// Key rotation
 	keyRotationInterval time.Duration
 	keyRotationCancel   context.CancelFunc
+
+	// Tracked key-rotation state. keyGeneration starts at 0 (the key the
+	// manager was constructed with) and increments on every tracked rotation.
+	keyGeneration uint64
+	keyRotatedAt  time.Time
+}
+
+// deviceKeyOnly builds a wgtypes.Config that updates only the interface
+// private key. Kept in this file because it depends on wgtypes.
+func deviceKeyOnly(privKey wgtypes.Key) wgtypes.Config {
+	return wgtypes.Config{PrivateKey: &privKey}
 }
 
 // NewManager creates a WireGuard manager.
