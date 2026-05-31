@@ -32,6 +32,10 @@ type GPUDevice struct {
 	DeviceID string
 	// VRAMBytes is the total VRAM in bytes from mem_info_vram_total.
 	VRAMBytes int64
+	// UUID is a stable per-GPU hardware identifier from the DRM "unique_id"
+	// node, when present. It is empty for devices that do not expose one (many
+	// consumer/integrated GPUs); absence is not an error.
+	UUID string
 }
 
 // cardDirRe-free matcher: a DRM "card" device is a directory named "cardN" where
@@ -103,6 +107,21 @@ func readVRAMBytes(path string) (bytes int64, present bool, err error) {
 	return v, true, nil
 }
 
+// readUniqueID reads the DRM "unique_id" node, a stable per-GPU hardware
+// identifier. It is optional: a missing file yields ("", nil) since many GPUs do
+// not expose one and that is not an error. A present-but-empty file also yields
+// "" (no identity), never a fabricated value.
+func readUniqueID(path string) (string, error) {
+	b, err := os.ReadFile(path)
+	if err != nil {
+		if errors.Is(err, fs.ErrNotExist) {
+			return "", nil
+		}
+		return "", err
+	}
+	return strings.TrimSpace(string(b)), nil
+}
+
 // ParseDRMTree enumerates GPUs from a DRM sysfs tree rooted at base.
 //
 // base is the sysfs base path (e.g. "/sys"); cards are looked up under
@@ -153,12 +172,19 @@ func ParseDRMTree(base string) ([]GPUDevice, error) {
 		if err != nil {
 			return nil, fmt.Errorf("card %s: %w", name, err)
 		}
+		// unique_id is optional; a read error other than not-exist is fatal so a
+		// genuinely unreadable identity is never silently dropped.
+		uuid, err := readUniqueID(filepath.Join(deviceDir, "unique_id"))
+		if err != nil {
+			return nil, fmt.Errorf("card %s: unique_id: %w", name, err)
+		}
 
 		gpus = append(gpus, GPUDevice{
 			Card:      name,
 			VendorID:  vendor,
 			DeviceID:  device,
 			VRAMBytes: vram,
+			UUID:      uuid,
 		})
 	}
 	return gpus, nil
@@ -191,6 +217,11 @@ func GPUInfoFromDevices(devs []GPUDevice) GPUInfo {
 	if sameIdentity {
 		if len(devs) == 1 {
 			info.Model = first
+			// A single card can carry its hardware UUID up to the aggregate so
+			// Fingerprint can distinguish two nodes with the same model but
+			// different physical GPUs. Multi-card aggregates have per-card UUIDs
+			// that cannot be collapsed into one, so UUID is left empty there.
+			info.UUID = devs[0].UUID
 		} else {
 			info.Model = fmt.Sprintf("%s x %d", first, len(devs))
 		}

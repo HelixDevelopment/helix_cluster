@@ -7,10 +7,10 @@ import (
 
 // CPUInfo holds CPU resource details.
 type CPUInfo struct {
-	Cores      int     `json:"cores"`
-	UsedCores  float64 `json:"used_cores"`
-	Model      string  `json:"model"`
-	Frequency  float64 `json:"frequency_mhz"`
+	Cores     int     `json:"cores"`
+	UsedCores float64 `json:"used_cores"`
+	Model     string  `json:"model"`
+	Frequency float64 `json:"frequency_mhz"`
 }
 
 // MemoryInfo holds memory resource details.
@@ -21,10 +21,26 @@ type MemoryInfo struct {
 }
 
 // GPUInfo holds GPU resource details.
+//
+// Count/Model/Memory are the original aggregate fields populated from the DRM
+// sysfs enumeration. The remaining fields are ADDITIVE scheduler-facing signals
+// (see gpuclass.go): UUID carries a stable hardware identifier when the kernel
+// exposes one (used to make Fingerprint distinct between otherwise-identical
+// cards); Attested records that the GPU passed remote attestation; and
+// ThermalThrottling records that the GPU is currently running with reduced
+// sustained clocks. All three default to their zero value, preserving backward
+// compatibility for every existing GPUInfo literal.
 type GPUInfo struct {
 	Count  int    `json:"count"`
 	Model  string `json:"model"`
 	Memory int64  `json:"memory_mb"`
+	// UUID is a stable per-GPU hardware identifier (e.g. the DRM unique_id),
+	// empty when the platform does not expose one.
+	UUID string `json:"uuid,omitempty"`
+	// Attested is true when the GPU has passed remote attestation.
+	Attested bool `json:"attested,omitempty"`
+	// ThermalThrottling is true when the GPU is currently thermally throttling.
+	ThermalThrottling bool `json:"thermal_throttling,omitempty"`
 }
 
 // DiskInfo holds disk resource details.
@@ -74,9 +90,9 @@ type Aggregator interface {
 
 // nodeState holds the latest snapshot and metadata for a single node.
 type nodeState struct {
-	snap  ResourceSnapshot
-	ttl   time.Duration
-	mu    sync.RWMutex
+	snap ResourceSnapshot
+	ttl  time.Duration
+	mu   sync.RWMutex
 }
 
 // isExpired reports whether the node's snapshot is older than its TTL.
