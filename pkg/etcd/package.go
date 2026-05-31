@@ -115,8 +115,13 @@ func (c *Client) Watch(ctx context.Context, key string) <-chan WatchEvent {
 				continue
 			}
 			for _, ev := range wresp.Events {
+				// ev.Type is an mvccpb.Event_EventType enum (PUT=0, DELETE=1).
+				// Use String() so the field carries the human-readable token
+				// ("PUT"/"DELETE"); a plain string(ev.Type) conversion would
+				// emit the rune for the integer value (e.g. "\x00" for PUT),
+				// which is unusable to any consumer matching on the type name.
 				we := WatchEvent{
-					Type:  string(ev.Type),
+					Type:  ev.Type.String(),
 					Key:   string(ev.Kv.Key),
 					Value: string(ev.Kv.Value),
 				}
