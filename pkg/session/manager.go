@@ -197,8 +197,10 @@ func (m *Manager) Attach(ctx context.Context, id SessionID, user string) error {
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
 	}
-	if s.Status != StatusRunning {
-		return fmt.Errorf("session %q is not running", id)
+	// FSM guard: attach is only legal from Running. Reject (not silently
+	// succeed) any illegal transition.
+	if err := validateTransition(s.Status, actionAttach); err != nil {
+		return err
 	}
 
 	if m.tmuxBackend != nil {
@@ -220,6 +222,10 @@ func (m *Manager) Detach(ctx context.Context, id SessionID, user string) error {
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
 	}
+	// FSM guard: detach is legal only from Running or Paused.
+	if err := validateTransition(s.Status, actionDetach); err != nil {
+		return err
+	}
 
 	if m.tmuxBackend != nil {
 		if err := m.tmuxBackend.DetachSession(string(id)); err != nil {
@@ -239,6 +245,11 @@ func (m *Manager) Terminate(ctx context.Context, id SessionID) error {
 	s, ok := m.sessions[id]
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
+	}
+	// FSM guard: terminate is legal from any non-terminal state but NOT from
+	// Terminated (double-terminate must be rejected, not silently succeed).
+	if err := validateTransition(s.Status, actionTerminate); err != nil {
+		return err
 	}
 
 	if m.tmuxBackend != nil {
@@ -265,6 +276,12 @@ func (m *Manager) Migrate(ctx context.Context, id SessionID, targetNode string) 
 	s, ok := m.sessions[id]
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
+	}
+	// FSM guard: migrate is legal only from Running. A session that is already
+	// Migrating, Terminated, Creating, Paused or Failed must be rejected WITHOUT
+	// mutating its status or NodeID.
+	if err := validateTransition(s.Status, actionMigrate); err != nil {
+		return err
 	}
 
 	fromNode := s.NodeID

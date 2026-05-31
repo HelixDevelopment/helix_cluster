@@ -15,6 +15,21 @@ type Scheduler struct {
 	// version increments on every successful state mutation.
 	// Used for optimistic concurrency checks.
 	version uint64
+	// placements tracks every currently RUNNING placement (jobID -> placement).
+	// It records which node a job consumed resources on, enabling priority
+	// preemption to identify and evict victims and restore their resources.
+	placements map[string]*Placement
+}
+
+// Placement is an immutable-ish record of a running job's binding to a node.
+// It captures the exact resources consumed so they can be restored on eviction,
+// and retains the *Job pointer so its Status can be flipped on preemption.
+type Placement struct {
+	JobID     string
+	NodeID    string
+	Priority  int
+	Resources Resources
+	job       *Job
 }
 
 // Queue returns the scheduler's internal job queue.
@@ -27,10 +42,11 @@ func (s *Scheduler) Queue() *Queue {
 // NewScheduler creates a new in-memory scheduler.
 func NewScheduler() *Scheduler {
 	return &Scheduler{
-		queue:   NewQueue(),
-		plugins: make([]Plugin, 0),
-		nodes:   make(map[string]*Node),
-		version: 1,
+		queue:      NewQueue(),
+		plugins:    make([]Plugin, 0),
+		nodes:      make(map[string]*Node),
+		version:    1,
+		placements: make(map[string]*Placement),
 	}
 }
 
@@ -115,11 +131,24 @@ func (s *Scheduler) Schedule(job *Job) (*ScheduleResult, error) {
 
 	s.version++
 	job.Status = JobStatusScheduled
+	s.recordPlacementLocked(job, bestNode)
 
 	return &ScheduleResult{
 		AssignedNode: bestNode.ID,
 		Status:       JobStatusScheduled,
 	}, nil
+}
+
+// recordPlacementLocked stores a running placement for the job on the node.
+// Caller must hold s.mu.
+func (s *Scheduler) recordPlacementLocked(job *Job, node *Node) {
+	s.placements[job.ID] = &Placement{
+		JobID:     job.ID,
+		NodeID:    node.ID,
+		Priority:  job.Priority,
+		Resources: job.Resources,
+		job:       job,
+	}
 }
 
 // ScheduleOptimistic attempts to schedule with a version check.
@@ -158,6 +187,7 @@ func (s *Scheduler) ScheduleOptimistic(job *Job, expectedVersion uint64) (*Sched
 
 	s.version++
 	job.Status = JobStatusScheduled
+	s.recordPlacementLocked(job, bestNode)
 
 	return &ScheduleResult{
 		AssignedNode: bestNode.ID,

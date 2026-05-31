@@ -32,6 +32,20 @@ type Election struct {
 	lastElected time.Time
 	ttl        time.Duration
 
+	// clock is an injectable time source. Defaults to a real-time clock.
+	// It exists so failover/expiry can be tested deterministically with a fake
+	// clock, with NO wall-clock dependence.
+	clock Clock
+
+	// Fencing / lease state (additive hardening; see fencing.go).
+	// epoch is a monotonically increasing fencing token issued on each lease
+	// acquisition. leaseExpiry is the clock time at which the current lease
+	// becomes invalid. registry, when set, provides the cross-node split-brain
+	// guard.
+	epoch       uint64
+	leaseExpiry time.Time
+	registry    *LeaseRegistry
+
 	// swimProtocol provides cluster membership awareness
 	swimProtocol *swim.Protocol
 
@@ -46,8 +60,26 @@ type Config struct {
 	TTL     time.Duration // default 5s
 }
 
-// NewElection creates a new distributed Election.
-func NewElection(cfg *Config) (*Election, error) {
+// Option configures an Election at construction time. Options are additive and
+// optional, preserving the original single-argument NewElection call sites.
+type Option func(*Election)
+
+// WithClock injects a custom time source (see Clock). This is the seam that makes
+// failover and TTL/lease expiry testable deterministically with a fake clock,
+// without any real time.Sleep or wall-clock dependence. If not supplied, the
+// Election uses a real-time clock.
+func WithClock(c Clock) Option {
+	return func(e *Election) {
+		if c != nil {
+			e.clock = c
+		}
+	}
+}
+
+// NewElection creates a new distributed Election. Additional behavior may be
+// supplied via Options (e.g. WithClock); with no options the construction is
+// identical to the original API.
+func NewElection(cfg *Config, opts ...Option) (*Election, error) {
 	if cfg.LocalID == "" {
 		return nil, errors.New("local_id is required")
 	}
@@ -55,11 +87,16 @@ func NewElection(cfg *Config) (*Election, error) {
 	if ttl <= 0 {
 		ttl = 5 * time.Second
 	}
-	return &Election{
+	e := &Election{
 		localID: cfg.LocalID,
 		ttl:     ttl,
+		clock:   realClock{},
 		stopCh:  make(chan struct{}),
-	}, nil
+	}
+	for _, opt := range opts {
+		opt(e)
+	}
+	return e, nil
 }
 
 // SetSWIMProtocol attaches a SWIM protocol for cluster membership awareness.
@@ -73,7 +110,7 @@ func (e *Election) SetSWIMProtocol(p *swim.Protocol) {
 func (e *Election) IsLeader() bool {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
-	return e.isLeader && time.Since(e.lastElected) < e.ttl*2
+	return e.isLeader && e.clock.Now().Sub(e.lastElected) < e.ttl*2
 }
 
 // LeaderID returns the current leader's ID (may be empty if unknown).
@@ -101,7 +138,7 @@ func (e *Election) BecomeLeader() error {
 
 	e.isLeader = true
 	e.leaderID = e.localID
-	e.lastElected = time.Now()
+	e.lastElected = e.clock.Now()
 	e.term++
 	return nil
 }
@@ -134,7 +171,7 @@ func (e *Election) Run(ctx context.Context) {
 				if e.IsLeader() {
 					// Renew leadership
 					e.mu.Lock()
-					e.lastElected = time.Now()
+					e.lastElected = e.clock.Now()
 					e.mu.Unlock()
 				} else {
 					// Try to acquire leadership
