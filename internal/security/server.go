@@ -63,17 +63,20 @@ func (s *GRPCServer) Authorize(ctx context.Context, req *helixv1.AuthorizeReques
 		return nil, status.Error(codes.InvalidArgument, "token is required")
 	}
 
-	// Validate token first
-	valid, identity, _, err := s.orch.ValidateToken(ctx, req.Token)
+	// Validate token first, capturing the scopes/roles it actually carries.
+	valid, identity, scopes, err := s.orch.ValidateToken(ctx, req.Token)
 	if err != nil || !valid {
 		return &helixv1.AuthorizeResponse{Allowed: false, Reason: "invalid token"}, nil
 	}
 
-	// Check policy via enforcer
+	// Check policy via enforcer using the caller's REAL roles, not a hard-coded
+	// "admin" grant. Hard-coding admin here was a privilege-escalation defect:
+	// every authenticated identity would match an "admin" role if one were ever
+	// loaded into the enforcer.
 	policy := &Policy{
 		Name:    identity,
 		Subject: identity,
-		Roles:   []string{"admin"},
+		Roles:   scopes,
 	}
 	err = s.enforcer.EnforcePolicy(ctx, policy, req.Resource, req.Action)
 	if err != nil {

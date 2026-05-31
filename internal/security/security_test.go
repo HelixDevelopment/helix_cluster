@@ -253,6 +253,10 @@ func TestGRPCServer_CheckPolicy(t *testing.T) {
 	orch := NewOrchestrator(nil)
 	enforcer := NewPolicyEnforcer()
 
+	// "write" is a scope every valid token carries (see Orchestrator.ValidateToken),
+	// so a permission attached to the "write" role is reachable by an ordinary token.
+	// An "admin" role is also present but MUST NOT be auto-granted to ordinary tokens.
+	require.NoError(t, enforcer.LoadRole(ctx, &Role{Name: "write", Permissions: []Permission{{Action: "*", Resource: "*"}}}))
 	role := &Role{Name: "admin", Permissions: []Permission{{Action: "*", Resource: "*"}}}
 	require.NoError(t, enforcer.LoadRole(ctx, role))
 	policy := &Policy{Name: "admin-policy", Subject: "alice", Roles: []string{"admin"}}
@@ -279,7 +283,7 @@ func TestGRPCServer_CheckPolicy(t *testing.T) {
 	assert.True(t, valResp.Valid)
 	assert.Equal(t, "node-x", valResp.Identity)
 
-	// Test Authorize (allow - admin role allows everything).
+	// Test Authorize (allow - the token's "write" scope grants the action).
 	checkResp, err := server.Authorize(ctx, &helixv1.AuthorizeRequest{
 		Token:    authResp.Token,
 		Resource: "secrets",
