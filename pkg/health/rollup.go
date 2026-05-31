@@ -86,6 +86,9 @@ type DependencyRollup struct {
 	mu    sync.RWMutex
 	deps  map[string]Dependency
 	clock clock
+	// gate latches per-component startup completion. See startup.go. It is
+	// always non-nil after construction so the 2-tier path needs no nil checks.
+	gate *StartupGate
 }
 
 // NewRollup creates a DependencyRollup backed by the real system clock.
@@ -103,6 +106,7 @@ func NewRollupWithClock(c clock) *DependencyRollup {
 	return &DependencyRollup{
 		deps:  make(map[string]Dependency),
 		clock: c,
+		gate:  NewStartupGate(),
 	}
 }
 
@@ -144,7 +148,13 @@ func (r *DependencyRollup) CheckAll(ctx context.Context) Rollup {
 func (r *DependencyRollup) check(ctx context.Context, include func(Dependency) bool) Rollup {
 	r.mu.RLock()
 	selected := make([]Dependency, 0, len(r.deps))
-	for _, d := range r.deps {
+	for key, d := range r.deps {
+		// Startup probes live in the same map under a namespaced key; they are
+		// addressed only via the startup tier and must never be selected by
+		// liveness/readiness/all.
+		if _, isStartup := startupName(key); isStartup {
+			continue
+		}
 		if include(d) {
 			selected = append(selected, d)
 		}
@@ -157,17 +167,40 @@ func (r *DependencyRollup) check(ctx context.Context, include func(Dependency) b
 	for i, d := range selected {
 		go func(i int, d Dependency) {
 			defer wg.Done()
+			// A component still inside its startup grace window (Startup probe
+			// failing, not yet latched) is NOT evaluated for liveness/readiness
+			// failure: its result is reported Starting so a not-yet-ready
+			// component is never marked Unhealthy for being un-ready.
+			isStarting, _, _ := r.evaluateStartup(ctx, d.Name)
+			if isStarting {
+				results[i] = DependencyResult{
+					Name:     d.Name,
+					Kind:     d.Kind,
+					Critical: d.Critical,
+					Status:   Starting,
+				}
+				return
+			}
 			results[i] = r.runOne(ctx, d)
 		}(i, d)
 	}
 	wg.Wait()
 
 	// Deterministic ordering for stable output/JSON regardless of map iteration.
-	sort.Slice(results, func(i, j int) bool { return results[i].Name < results[j].Name })
+	sortResults(results)
 
 	overall := Healthy
 	for _, res := range results {
 		if res.Status == Healthy {
+			continue
+		}
+		// A component still starting up cannot make the rollup Unhealthy or
+		// Degraded — it only raises Healthy to Starting. This is the gate: a
+		// slow starter gets its grace window instead of a restart/eviction.
+		if res.Status == Starting {
+			if overall == Healthy {
+				overall = Starting
+			}
 			continue
 		}
 		// A failing critical dependency makes the whole rollup Unhealthy.
@@ -247,6 +280,12 @@ func (r *DependencyRollup) runOne(ctx context.Context, d Dependency) DependencyR
 		res.Error = ctx.Err().Error()
 	}
 	return res
+}
+
+// sortResults orders dependency results by name for stable output/JSON
+// regardless of map iteration order.
+func sortResults(results []DependencyResult) {
+	sort.Slice(results, func(i, j int) bool { return results[i].Name < results[j].Name })
 }
 
 // statusCode maps an overall Status to an HTTP status code. Healthy and
