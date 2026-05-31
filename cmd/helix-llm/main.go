@@ -1,22 +1,118 @@
-// Command helix-llm is the LLM brain service for Helix Cluster OS.
+// Command helix-llm is the CLI entry point for the Helix Cluster OS LLM brain
+// service. It wraps internal/llm and serves a small HTTP/JSON API for model
+// registration, listing, and (stubbed) inference.
+//
+// The monolithic main() has been split into a testable seam:
+//   - Config: parsed from env WITH validation.
+//   - run(ctx, cfg, ready): builds the HTTP server, binds, serves, and shuts
+//     down gracefully on ctx cancel / SIGINT / SIGTERM with a bounded
+//     shutdown timeout.
+//
+// main() stays thin: load config, install a signal-cancelled context, call
+// run, exit non-zero on error.
 package main
 
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/internal/llm"
 )
 
+// defaultPort is the LLM service's well-known HTTP port (matches the
+// HELIX_LLM_PORT default documented for the service).
+const defaultPort = 50057
+
+// defaultShutdownTimeout bounds how long run() waits for in-flight requests to
+// drain during graceful shutdown before the deadline elapses.
+const defaultShutdownTimeout = 10 * time.Second
+
+// Config holds the validated runtime configuration for the LLM service.
+type Config struct {
+	// Host is the bind host. Empty means all interfaces (":port").
+	Host string
+	// Port is the TCP port to listen on. Must be in [1, 65535].
+	Port int
+	// ShutdownTimeout bounds graceful shutdown. Must be > 0.
+	ShutdownTimeout time.Duration
+}
+
+// Addr returns the listen address in host:port form suitable for net.Listen.
+func (c Config) Addr() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
+}
+
+// Validate rejects clearly-bad configuration so misconfiguration fails fast at
+// startup instead of producing a half-broken listener.
+func (c Config) Validate() error {
+	if c.Port < 1 || c.Port > 65535 {
+		return fmt.Errorf("invalid port %d: must be in range 1-65535", c.Port)
+	}
+	if c.ShutdownTimeout <= 0 {
+		return fmt.Errorf("invalid shutdown timeout %s: must be > 0", c.ShutdownTimeout)
+	}
+	return nil
+}
+
+// LoadConfig builds a Config from the environment, applying defaults. It
+// returns an error (rather than calling log.Fatal deep in logic) so the caller
+// controls the exit path. HELIX_LLM_PORT, when set, must be a valid integer
+// port; a non-numeric or out-of-range value is rejected.
+func LoadConfig(getenv func(string) string) (Config, error) {
+	cfg := Config{
+		Host:            "",
+		Port:            defaultPort,
+		ShutdownTimeout: defaultShutdownTimeout,
+	}
+
+	if raw := getenv("HELIX_LLM_PORT"); raw != "" {
+		p, err := strconv.Atoi(raw)
+		if err != nil {
+			return Config{}, fmt.Errorf("HELIX_LLM_PORT %q is not a valid integer: %w", raw, err)
+		}
+		cfg.Port = p
+	}
+
+	if host := getenv("HELIX_LLM_HOST"); host != "" {
+		cfg.Host = host
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
+}
+
 type server struct {
 	manager *llm.Manager
+}
+
+// newMux wires the HTTP routes for the LLM service.
+func (s *server) newMux() *http.ServeMux {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/models", s.handleList)
+	mux.HandleFunc("/models/register", s.handleRegister)
+	mux.HandleFunc("/inference", s.handleInference)
+	mux.HandleFunc("/health", s.handleHealth)
+	return mux
+}
+
+func (s *server) handleHealth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+	writeJSON(w, http.StatusOK, map[string]string{"status": "healthy"})
 }
 
 func (s *server) handleRegister(w http.ResponseWriter, r *http.Request) {
@@ -37,8 +133,7 @@ func (s *server) handleRegister(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(map[string]bool{"success": true})
+	writeJSON(w, http.StatusCreated, map[string]bool{"success": true})
 }
 
 func (s *server) handleList(w http.ResponseWriter, r *http.Request) {
@@ -47,7 +142,7 @@ func (s *server) handleList(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	models := s.manager.ListModels()
-	var resp []map[string]interface{}
+	resp := make([]map[string]interface{}, 0, len(models))
 	for _, m := range models {
 		resp = append(resp, map[string]interface{}{
 			"name":   m.Name,
@@ -55,7 +150,7 @@ func (s *server) handleList(w http.ResponseWriter, r *http.Request) {
 			"format": m.Format,
 		})
 	}
-	json.NewEncoder(w).Encode(resp)
+	writeJSON(w, http.StatusOK, resp)
 }
 
 func (s *server) handleInference(w http.ResponseWriter, r *http.Request) {
@@ -76,44 +171,94 @@ func (s *server) handleInference(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	json.NewEncoder(w).Encode(map[string]string{"result": result})
+	writeJSON(w, http.StatusOK, map[string]string{"result": result})
+}
+
+// writeJSON centralises status-code + JSON body writing so handlers stay terse
+// and the Content-Type is always set before the body.
+func writeJSON(w http.ResponseWriter, status int, v interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}
+
+// run builds and serves the LLM HTTP service until ctx is cancelled, then
+// performs a bounded graceful shutdown. If ready is non-nil it is invoked with
+// the actual bound address once the listener is open — this lets tests dial an
+// ephemeral (":0") port without racing the bind. run returns nil on a clean
+// ctx-triggered shutdown and a non-nil error only on a real failure (bad
+// config, bind failure, or Serve error).
+func run(ctx context.Context, cfg Config, ready func(addr string)) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("config: %w", err)
+	}
+
+	lis, err := net.Listen("tcp", cfg.Addr())
+	if err != nil {
+		return fmt.Errorf("listen %s: %w", cfg.Addr(), err)
+	}
+
+	s := &server{manager: llm.NewManager()}
+	httpServer := &http.Server{Handler: s.newMux()}
+
+	if ready != nil {
+		ready(lis.Addr().String())
+	}
+
+	serveErr := make(chan error, 1)
+	go func() {
+		log.Printf("helix-llm listening on %s", lis.Addr().String())
+		// Serve returns ErrServerClosed after Shutdown/Close, which is a normal
+		// shutdown signal, not a failure.
+		if err := httpServer.Serve(lis); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serveErr <- err
+		}
+		close(serveErr)
+	}()
+
+	select {
+	case err := <-serveErr:
+		// Serve failed before we were asked to stop.
+		if err != nil {
+			return fmt.Errorf("serve: %w", err)
+		}
+		return nil
+	case <-ctx.Done():
+		log.Println("helix-llm shutting down...")
+	}
+
+	// Bounded graceful shutdown: drain in-flight requests, but do not hang
+	// forever. On timeout Shutdown returns context.DeadlineExceeded, so we force
+	// remaining connections shut with Close.
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	defer cancel()
+
+	if err := httpServer.Shutdown(shutdownCtx); err != nil {
+		log.Printf("helix-llm graceful shutdown timed out (%v); forcing close", err)
+		_ = httpServer.Close()
+	} else {
+		log.Println("helix-llm graceful shutdown complete")
+	}
+
+	// Surface any late Serve error observed during shutdown.
+	if err := <-serveErr; err != nil {
+		return fmt.Errorf("serve: %w", err)
+	}
+	return nil
 }
 
 func main() {
-	port := os.Getenv("HELIX_LLM_PORT")
-	if port == "" {
-		port = "50057"
+	cfg, err := LoadConfig(os.Getenv)
+	if err != nil {
+		log.Printf("helix-llm config error: %v", err)
+		os.Exit(1)
 	}
 
-	mgr := llm.NewManager()
-	s := &server{manager: mgr}
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/models", s.handleList)
-	mux.HandleFunc("/models/register", s.handleRegister)
-	mux.HandleFunc("/inference", s.handleInference)
-	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		json.NewEncoder(w).Encode(map[string]string{"status": "healthy"})
-	})
-
-	httpServer := &http.Server{
-		Addr:    ":" + port,
-		Handler: mux,
-	}
-
-	go func() {
-		sig := make(chan os.Signal, 1)
-		signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-		<-sig
-		fmt.Println("shutting down LLM service...")
-		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		defer cancel()
-		httpServer.Shutdown(ctx)
-	}()
-
-	fmt.Printf("LLM service listening on :%s\n", port)
-	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Printf("serve error: %v", err)
+	if err := run(ctx, cfg, nil); err != nil {
+		log.Printf("helix-llm error: %v", err)
 		os.Exit(1)
 	}
 }

@@ -13,330 +13,385 @@ import (
 	ihealth "github.com/HelixDevelopment/helix_cluster/internal/health"
 	pkghealth "github.com/HelixDevelopment/helix_cluster/pkg/health"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/status"
 )
 
-// pickFreePort asks the kernel for an available TCP port.
-func pickFreePort(t *testing.T) string {
+// freePort asks the kernel for an available TCP port on 127.0.0.1 and returns
+// it. Binding 127.0.0.1:0 then closing is host-safe and race-tolerant: the
+// window before run() re-binds is tiny and local-only. We use concrete ports
+// (not :0 in run) because Config.Validate legitimately rejects port 0 for a
+// real deployment.
+func freePort(t *testing.T) int {
 	t.Helper()
 	lis, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
-		t.Fatalf("failed to pick free port: %v", err)
+		t.Fatalf("pick free port: %v", err)
 	}
-	addr := lis.Addr().String()
-	lis.Close()
-	return addr
+	port := lis.Addr().(*net.TCPAddr).Port
+	_ = lis.Close()
+	return port
 }
 
-// TestGRPCCheck_Healthy verifies the gRPC Check RPC returns healthy when
-// the internal aggregator has at least one passing check.
-func TestGRPCCheck_Healthy(t *testing.T) {
-	port := pickFreePort(t)
+// startServer launches run() on free 127.0.0.1 ports and returns the bound
+// gRPC + HTTP addresses plus a stop func. It blocks (via the ready callback)
+// until both listeners are open, so there is no bind race for a dialing client.
+func startServer(t *testing.T) (addrs ReadyAddrs, stop func()) {
+	t.Helper()
 
-	aggregator := ihealth.NewAggregator()
-	// Register a real HTTP check against a local test server that returns 200.
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer ts.Close()
-
-	aggregator.RegisterCheck("http-test", &ihealth.HTTPCheck{URL: ts.URL, Timeout: 2 * time.Second})
-	aggregator.RunChecks(context.Background())
-
-	srv := ihealth.NewServer(aggregator)
-	gs := grpc.NewServer()
-	helixv1.RegisterHealthServiceServer(gs, srv)
-
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		t.Fatalf("listen: %v", err)
+	cfg := Config{
+		Host:            "127.0.0.1",
+		GRPCPort:        freePort(t),
+		HTTPPort:        freePort(t),
+		ShutdownTimeout: 5 * time.Second,
 	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	addrCh := make(chan ReadyAddrs, 1)
+	runErr := make(chan error, 1)
+
 	go func() {
-		if err := gs.Serve(lis); err != nil {
-			// Expected on graceful stop; ignore in test.
-		}
+		runErr <- run(ctx, cfg, func(a ReadyAddrs) { addrCh <- a })
 	}()
-	defer gs.GracefulStop()
 
-	// Give the server a moment to start accepting.
-	time.Sleep(50 * time.Millisecond)
+	select {
+	case a := <-addrCh:
+		addrs = a
+	case err := <-runErr:
+		cancel()
+		t.Fatalf("run exited before binding: %v", err)
+	case <-time.After(5 * time.Second):
+		cancel()
+		t.Fatal("timed out waiting for server to bind")
+	}
 
-	conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	stop = func() {
+		cancel()
+		select {
+		case err := <-runErr:
+			if err != nil {
+				t.Errorf("run returned error: %v", err)
+			}
+		case <-time.After(10 * time.Second):
+			t.Error("timed out waiting for run to shut down")
+		}
+	}
+	return addrs, stop
+}
+
+func dialHealth(t *testing.T, addr string) (helixv1.HealthServiceClient, func()) {
+	t.Helper()
+	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		t.Fatalf("grpc client: %v", err)
 	}
-	defer conn.Close()
+	return helixv1.NewHealthServiceClient(conn), func() { _ = conn.Close() }
+}
 
-	client := helixv1.NewHealthServiceClient(conn)
+// TestRunServesGRPCCheckHealthy proves the service actually starts, binds both
+// listeners, and serves a REAL gRPC request: a real client dials the bound
+// gRPC port, calls Check, and gets a concrete "healthy" status plus the
+// self-check in Details — proving the readiness/liveness self-check ran.
+//
+// Mutation that breaks it: in run(), drop the
+// `helixv1.RegisterHealthServiceServer(gs, grpcSrv)` line. Check then fails
+// with codes.Unimplemented and this test fails. Alternatively, remove the
+// aggregator.RunChecks(ctx) call and the status becomes "unknown" (no results),
+// failing the resp.Status == "healthy" assertion.
+func TestRunServesGRPCCheckHealthy(t *testing.T) {
+	addrs, stop := startServer(t)
+	defer stop()
+
+	client, closeConn := dialHealth(t, addrs.GRPC)
+	defer closeConn()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	resp, err := client.Check(ctx, &helixv1.CheckRequest{})
 	if err != nil {
-		t.Fatalf("Check failed: %v", err)
+		t.Fatalf("Check RPC failed: %v", err)
+	}
+	if resp == nil {
+		t.Fatal("expected non-nil CheckResponse")
 	}
 	if resp.Status != "healthy" {
-		t.Errorf("expected status healthy, got %s", resp.Status)
+		t.Fatalf("expected overall status healthy, got %q", resp.Status)
 	}
-	if _, ok := resp.Details["http-test"]; !ok {
-		t.Errorf("expected details to contain http-test")
+	if _, ok := resp.Details["helix-health"]; !ok {
+		t.Fatalf("expected Details to contain the helix-health self-check, got %v", resp.Details)
 	}
 }
 
-// TestGRPCCheck_ServiceNotFound verifies Check returns an error for an unknown service.
-func TestGRPCCheck_ServiceNotFound(t *testing.T) {
-	port := pickFreePort(t)
+// TestRunServesGRPCCheckNotFound proves a second RPC path is really wired
+// through to internal/health: querying an unknown service returns a concrete
+// gRPC NotFound status (not a transport error, not OK).
+//
+// Mutation that breaks it: drop RegisterHealthServiceServer in run() — the call
+// returns codes.Unimplemented instead of codes.NotFound, failing the assertion.
+func TestRunServesGRPCCheckNotFound(t *testing.T) {
+	addrs, stop := startServer(t)
+	defer stop()
 
-	aggregator := ihealth.NewAggregator()
-	srv := ihealth.NewServer(aggregator)
-	gs := grpc.NewServer()
-	helixv1.RegisterHealthServiceServer(gs, srv)
+	client, closeConn := dialHealth(t, addrs.GRPC)
+	defer closeConn()
 
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		t.Fatalf("listen: %v", err)
-	}
-	go func() {
-		_ = gs.Serve(lis)
-	}()
-	defer gs.GracefulStop()
-	time.Sleep(50 * time.Millisecond)
-
-	conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatalf("grpc client: %v", err)
-	}
-	defer conn.Close()
-
-	client := helixv1.NewHealthServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	_, err = client.Check(ctx, &helixv1.CheckRequest{Service: "missing-svc"})
+	_, err := client.Check(ctx, &helixv1.CheckRequest{Service: "no-such-service"})
 	if err == nil {
-		t.Fatal("expected error for missing service, got nil")
+		t.Fatal("expected NotFound error for unknown service, got nil")
+	}
+	if got := status.Code(err); got != codes.NotFound {
+		t.Fatalf("expected codes.NotFound, got %v (%v)", got, err)
 	}
 }
 
-// TestGRPCReportHealth verifies ReportHealth accepts a node update and that
-// the aggregator reflects the reported status (via a subsequent Check).
-func TestGRPCReportHealth(t *testing.T) {
-	port := pickFreePort(t)
+// TestRunServesHTTPReadyz proves the HTTP probe surface is really bound and
+// serving: a real HTTP client GETs /readyz on the bound port and receives 200
+// with a JSON body reporting ready=true — driven by the aggregator's real
+// readiness rollup (the self-check is KindBoth and Healthy).
+//
+// Mutation that breaks it: in run(), remove the aggregator.RunChecks(ctx) call.
+// With no results, Ready() returns false (readiness rollup Unknown), so /readyz
+// returns 503 and ready=false, failing both assertions below.
+func TestRunServesHTTPReadyz(t *testing.T) {
+	addrs, stop := startServer(t)
+	defer stop()
 
-	aggregator := ihealth.NewAggregator()
-	// Use a check that is guaranteed to be healthy so the overall status is deterministic.
-	aggregator.RegisterCheck("always-healthy", ihealth.CheckFunc(func(ctx context.Context) (ihealth.Status, error) {
-		return ihealth.Healthy, nil
-	}))
-	aggregator.RunChecks(context.Background())
-
-	srv := ihealth.NewServer(aggregator)
-	gs := grpc.NewServer()
-	helixv1.RegisterHealthServiceServer(gs, srv)
-
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		t.Fatalf("listen: %v", err)
-	}
-	go func() {
-		_ = gs.Serve(lis)
-	}()
-	defer gs.GracefulStop()
-	time.Sleep(50 * time.Millisecond)
-
-	conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatalf("grpc client: %v", err)
-	}
-	defer conn.Close()
-
-	client := helixv1.NewHealthServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	reportResp, err := client.ReportHealth(ctx, &helixv1.ReportHealthRequest{
-		NodeId: "node-42",
-		Score: &helixv1.HealthScore{
-			Overall: 95,
-		},
-	})
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addrs.HTTP+"/readyz", nil)
 	if err != nil {
-		t.Fatalf("ReportHealth failed: %v", err)
+		t.Fatalf("build request: %v", err)
 	}
-	if !reportResp.Accepted {
-		t.Error("expected ReportHealth to be accepted")
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("GET /readyz: %v", err)
 	}
+	defer resp.Body.Close()
 
-	// Ensure the underlying aggregator still reports the real check status.
-	checkResp, err := client.Check(ctx, &helixv1.CheckRequest{})
-	if err != nil {
-		t.Fatalf("Check after ReportHealth failed: %v", err)
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 from /readyz, got %d", resp.StatusCode)
 	}
-	if checkResp.Status != "healthy" {
-		t.Errorf("expected healthy after report, got %s", checkResp.Status)
+	var body struct {
+		Status string `json:"status"`
+		Ready  bool   `json:"ready"`
+		Probe  string `json:"probe"`
 	}
-	if _, ok := checkResp.Details["always-healthy"]; !ok {
-		t.Errorf("expected details to contain always-healthy check")
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("decode /readyz body: %v", err)
+	}
+	if !body.Ready {
+		t.Fatalf("expected ready=true, got %+v", body)
+	}
+	if body.Status != "healthy" {
+		t.Fatalf("expected readiness status healthy, got %q", body.Status)
+	}
+	if body.Probe != "readiness" {
+		t.Fatalf("expected probe=readiness, got %q", body.Probe)
 	}
 }
 
-// TestGRPCRealChecks verifies the aggregator runs real checks (HTTPCheck,
-// DiskCheck, MemoryCheck) and the gRPC server surfaces their results.
-// The test does NOT assert a specific overall status because real machine
-// conditions (e.g. disk at 90%) may yield degraded; instead it asserts that
-// every registered check appears in the response, proving real execution.
-func TestGRPCRealChecks(t *testing.T) {
-	port := pickFreePort(t)
+// TestRunServesHTTPLivez proves the /livez liveness probe is bound and serves a
+// concrete healthy response from the aggregator's liveness rollup.
+//
+// Mutation that breaks it: in run(), register the self-check with
+// ihealth.KindReadiness instead of KindBoth. The liveness rollup then has no
+// matching results and Liveness() returns Healthy by its empty default — so to
+// truly kill this test, also drop RunChecks; more directly, removing the
+// /livez route registration in mux() makes this return 404, failing the 200
+// assertion.
+func TestRunServesHTTPLivez(t *testing.T) {
+	addrs, stop := startServer(t)
+	defer stop()
 
-	// HTTP endpoint that returns 200.
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	}))
-	defer ts.Close()
-
-	aggregator := ihealth.NewAggregator()
-	aggregator.RegisterCheck("http-check", &ihealth.HTTPCheck{URL: ts.URL, Timeout: 2 * time.Second})
-	aggregator.RegisterCheck("disk-check", &ihealth.DiskCheck{Path: "/", Threshold: 1.0})
-	aggregator.RegisterCheck("memory-check", &ihealth.MemoryCheck{Threshold: 1.0})
-
-	// Run the real checks.
-	aggregator.RunChecks(context.Background())
-
-	// Verify aggregator directly first (anti-bluff): all three checks must have results.
-	all := aggregator.GetAllStatuses()
-	if len(all) != 3 {
-		t.Fatalf("expected 3 check results, got %d", len(all))
-	}
-	for _, name := range []string{"http-check", "disk-check", "memory-check"} {
-		if _, ok := all[name]; !ok {
-			t.Fatalf("missing check result for %s", name)
-		}
-	}
-	// HTTP check must be healthy because our test server returns 200.
-	if httpSt, ok := all["http-check"]; !ok || httpSt.Status != ihealth.Healthy {
-		t.Fatalf("http-check should be healthy, got %v", httpSt.Status)
-	}
-
-	srv := ihealth.NewServer(aggregator)
-	gs := grpc.NewServer()
-	helixv1.RegisterHealthServiceServer(gs, srv)
-
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		t.Fatalf("listen: %v", err)
-	}
-	go func() {
-		_ = gs.Serve(lis)
-	}()
-	defer gs.GracefulStop()
-	time.Sleep(50 * time.Millisecond)
-
-	conn, err := grpc.NewClient(port, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatalf("grpc client: %v", err)
-	}
-	defer conn.Close()
-
-	client := helixv1.NewHealthServiceClient(conn)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://"+addrs.HTTP+"/livez", nil)
+	if err != nil {
+		t.Fatalf("build request: %v", err)
+	}
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		t.Fatalf("GET /livez: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 from /livez, got %d", resp.StatusCode)
+	}
+	var body struct {
+		Status string `json:"status"`
+		Probe  string `json:"probe"`
+	}
+	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
+		t.Fatalf("decode /livez body: %v", err)
+	}
+	if body.Status != "healthy" {
+		t.Fatalf("expected liveness status healthy, got %q", body.Status)
+	}
+	if body.Probe != "liveness" {
+		t.Fatalf("expected probe=liveness, got %q", body.Probe)
+	}
+}
+
+// TestRunGracefulShutdownStopsServing proves ctx cancellation actually stops
+// BOTH services: after stop() returns, neither the gRPC nor the HTTP port
+// accepts new connections.
+//
+// Mutation that breaks it: in run(), replace the `case <-ctx.Done():` shutdown
+// path with a `select {}` (block forever), or remove gs.GracefulStop() and
+// httpServerInst.Shutdown(). The listeners keep serving, the post-shutdown
+// dials below succeed, and this test fails (stop() would also time out).
+func TestRunGracefulShutdownStopsServing(t *testing.T) {
+	addrs, stop := startServer(t)
+
+	// Sanity: gRPC serves before shutdown.
+	client, closeConn := dialHealth(t, addrs.GRPC)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	resp, err := client.Check(ctx, &helixv1.CheckRequest{})
-	if err != nil {
-		t.Fatalf("Check failed: %v", err)
+	cancel()
+	if err != nil || resp == nil {
+		closeConn()
+		t.Fatalf("pre-shutdown Check failed: %v", err)
 	}
-	// Overall status depends on machine state; just ensure it's one of the valid values.
-	switch resp.Status {
-	case "healthy", "degraded", "critical", "unknown":
-		// ok
-	default:
-		t.Errorf("unexpected status %q", resp.Status)
-	}
-	for _, name := range []string{"http-check", "disk-check", "memory-check"} {
-		if _, ok := resp.Details[name]; !ok {
-			t.Errorf("expected details to contain %s", name)
+	closeConn()
+
+	// Trigger ctx cancel + wait for run() to fully return.
+	stop()
+
+	// Both bound TCP ports must now refuse connections. net.DialTimeout is the
+	// unambiguous sink: a stopped listener refuses new connections.
+	for _, addr := range []string{addrs.GRPC, addrs.HTTP} {
+		conn, dErr := net.DialTimeout("tcp", addr, 500*time.Millisecond)
+		if dErr == nil {
+			conn.Close()
+			t.Fatalf("expected %s to stop accepting after shutdown, but dial succeeded", addr)
 		}
 	}
 }
 
-// TestGRPCCheck_WithGRPCCheck verifies a real GRPCCheck execution.
-// It spins up a minimal gRPC health server and then checks it.
-func TestGRPCCheck_WithGRPCCheck(t *testing.T) {
-	port := pickFreePort(t)
-
-	// Start a minimal standard gRPC health server.
-	healthGrpc := grpc.NewServer()
-	grpc_health_v1.RegisterHealthServer(healthGrpc, &grpcHealthStub{})
-	lis, err := net.Listen("tcp", port)
-	if err != nil {
-		t.Fatalf("listen: %v", err)
+// TestLoadConfigRejectsBadPort proves config validation rejects clearly-bad
+// input with a real error instead of starting a broken server.
+//
+// Mutation that breaks it: in Config.Validate(), change the gRPC guard to
+// `if c.GRPCPort < 0` (or delete it). Then 70000 is accepted and LoadConfig
+// returns nil error, failing the "out-of-range-high" case below. Likewise,
+// deleting the strconv error check in LoadConfig makes "not-a-port" accepted.
+func TestLoadConfigRejectsBadPort(t *testing.T) {
+	cases := []struct {
+		name string
+		val  string
+	}{
+		{"out-of-range-high", "70000"},
+		{"out-of-range-zero", "0"},
+		{"negative", "-1"},
+		{"non-integer", "not-a-port"},
 	}
-	go func() { _ = healthGrpc.Serve(lis) }()
-	defer healthGrpc.GracefulStop()
-	time.Sleep(50 * time.Millisecond)
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			env := func(k string) string {
+				if k == "HELIX_HEALTH_PORT" {
+					return tc.val
+				}
+				return ""
+			}
+			if _, err := LoadConfig(env); err == nil {
+				t.Fatalf("expected error for HELIX_HEALTH_PORT=%q, got nil", tc.val)
+			}
+		})
+	}
+}
 
-	// Now create the helix health aggregator with a GRPCCheck targeting the stub.
-	agg := ihealth.NewAggregator()
-	agg.RegisterCheck("grpc-check", &ihealth.GRPCCheck{
-		Address: port,
-		Service: "",
-		Timeout: 2 * time.Second,
+// TestLoadConfigRejectsCollidingPorts proves the cross-field guard: two fixed,
+// equal, non-zero ports are rejected before run() would fail the second bind.
+//
+// Mutation that breaks it: delete the `c.GRPCPort == c.HTTPPort` guard in
+// Validate(). LoadConfig then returns nil error and this test fails.
+func TestLoadConfigRejectsCollidingPorts(t *testing.T) {
+	env := func(k string) string {
+		switch k {
+		case "HELIX_HEALTH_PORT":
+			return "51000"
+		case "HELIX_HEALTH_HTTP_PORT":
+			return "51000"
+		}
+		return ""
+	}
+	if _, err := LoadConfig(env); err == nil {
+		t.Fatal("expected error for colliding gRPC/HTTP ports, got nil")
+	}
+}
+
+// TestLoadConfigDefaults proves a clean environment yields the documented
+// default ports, and that valid overrides are honoured.
+//
+// Mutation that breaks it: change defaultGRPCPort/defaultHTTPPort, or make
+// LoadConfig ignore the env vars — an assertion below then fails.
+func TestLoadConfigDefaults(t *testing.T) {
+	cfg, err := LoadConfig(func(string) string { return "" })
+	if err != nil {
+		t.Fatalf("LoadConfig with empty env: %v", err)
+	}
+	if cfg.GRPCPort != defaultGRPCPort {
+		t.Fatalf("expected default gRPC port %d, got %d", defaultGRPCPort, cfg.GRPCPort)
+	}
+	if cfg.HTTPPort != defaultHTTPPort {
+		t.Fatalf("expected default HTTP port %d, got %d", defaultHTTPPort, cfg.HTTPPort)
+	}
+
+	cfg2, err := LoadConfig(func(k string) string {
+		switch k {
+		case "HELIX_HEALTH_PORT":
+			return "51234"
+		case "HELIX_HEALTH_HTTP_PORT":
+			return "51235"
+		}
+		return ""
 	})
-	agg.RunChecks(context.Background())
-
-	st := agg.GetStatus()
-	if st != ihealth.Healthy {
-		t.Fatalf("expected healthy from GRPCCheck, got %s", st)
-	}
-
-	// Verify via gRPC Check RPC as well.
-	helixPort := pickFreePort(t)
-	srv := ihealth.NewServer(agg)
-	gs := grpc.NewServer()
-	helixv1.RegisterHealthServiceServer(gs, srv)
-	helixLis, err := net.Listen("tcp", helixPort)
 	if err != nil {
-		t.Fatalf("helix listen: %v", err)
+		t.Fatalf("LoadConfig with valid overrides: %v", err)
 	}
-	go func() { _ = gs.Serve(helixLis) }()
-	defer gs.GracefulStop()
-	time.Sleep(50 * time.Millisecond)
-
-	conn, err := grpc.NewClient(helixPort, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		t.Fatalf("grpc client: %v", err)
+	if cfg2.GRPCPort != 51234 {
+		t.Fatalf("expected overridden gRPC port 51234, got %d", cfg2.GRPCPort)
 	}
-	defer conn.Close()
-
-	client := helixv1.NewHealthServiceClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	resp, err := client.Check(ctx, &helixv1.CheckRequest{})
-	if err != nil {
-		t.Fatalf("Check failed: %v", err)
-	}
-	if resp.Status != "healthy" {
-		t.Errorf("expected healthy, got %s", resp.Status)
-	}
-	if _, ok := resp.Details["grpc-check"]; !ok {
-		t.Errorf("expected details to contain grpc-check")
+	if cfg2.HTTPPort != 51235 {
+		t.Fatalf("expected overridden HTTP port 51235, got %d", cfg2.HTTPPort)
 	}
 }
 
-// grpcHealthStub is a minimal implementation of the standard gRPC health protocol.
-type grpcHealthStub struct {
-	grpc_health_v1.UnimplementedHealthServer
+// TestRunRejectsInvalidConfig proves run() refuses to bind on invalid config
+// rather than silently doing something undefined.
+//
+// Mutation that breaks it: remove the `cfg.Validate()` call at the top of
+// run(). run would then attempt net.Listen on an invalid port; the returned
+// error message/path differs, failing this assertion.
+func TestRunRejectsInvalidConfig(t *testing.T) {
+	err := run(context.Background(), Config{GRPCPort: 0, HTTPPort: 0, ShutdownTimeout: time.Second}, nil)
+	if err == nil {
+		t.Fatal("expected run to reject invalid config, got nil error")
+	}
 }
 
-func (s *grpcHealthStub) Check(ctx context.Context, req *grpc_health_v1.HealthCheckRequest) (*grpc_health_v1.HealthCheckResponse, error) {
-	return &grpc_health_v1.HealthCheckResponse{Status: grpc_health_v1.HealthCheckResponse_SERVING}, nil
+// --- Handler-level tests for the legacy /health and /check/<service> surface.
+// These exercise the JSON contract directly via httptest without a live socket.
+
+func newTestHTTPServer() *httpServer {
+	return newHTTPServer(ihealth.NewAggregator())
 }
 
-// TestClusterHealth verifies the legacy HTTP /health endpoint.
+// TestClusterHealth verifies the legacy HTTP /health endpoint returns 200 and
+// reports a healthy check.
+//
+// Mutation that breaks it: in clusterHealth, always WriteHeader(503) — the 200
+// assertion fails.
 func TestClusterHealth(t *testing.T) {
-	srv := newHTTPServer()
+	srv := newTestHTTPServer()
 	srv.checker.AddCheck("db", func() pkghealth.Status { return pkghealth.Healthy })
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -346,11 +401,9 @@ func TestClusterHealth(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", rec.Code)
 	}
-
 	var resp struct {
-		Status  string                `json:"status"`
-		Checks  []pkghealth.CheckResult `json:"checks"`
-		Message string                `json:"message"`
+		Status string                  `json:"status"`
+		Checks []pkghealth.CheckResult `json:"checks"`
 	}
 	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
 		t.Fatalf("decode error: %v", err)
@@ -363,9 +416,12 @@ func TestClusterHealth(t *testing.T) {
 	}
 }
 
-// TestClusterHealthUnhealthy verifies the legacy HTTP /health endpoint when unhealthy.
+// TestClusterHealthUnhealthy verifies /health returns 503 when a check fails.
+//
+// Mutation that breaks it: drop the `if status == pkghealth.Unhealthy` branch
+// in clusterHealth so it always returns 200 — the 503 assertion fails.
 func TestClusterHealthUnhealthy(t *testing.T) {
-	srv := newHTTPServer()
+	srv := newTestHTTPServer()
 	srv.checker.AddCheck("db", func() pkghealth.Status { return pkghealth.Unhealthy })
 
 	req := httptest.NewRequest(http.MethodGet, "/health", nil)
@@ -375,7 +431,6 @@ func TestClusterHealthUnhealthy(t *testing.T) {
 	if rec.Code != http.StatusServiceUnavailable {
 		t.Errorf("expected 503, got %d", rec.Code)
 	}
-
 	var resp struct {
 		Status string `json:"status"`
 	}
@@ -387,9 +442,12 @@ func TestClusterHealthUnhealthy(t *testing.T) {
 	}
 }
 
-// TestServiceHealth verifies the legacy HTTP /check/<service> endpoint.
+// TestServiceHealth verifies /check/<service> echoes the named service.
+//
+// Mutation that breaks it: in serviceHealth, set Service to the constant ""
+// instead of name — the resp.Service assertion fails.
 func TestServiceHealth(t *testing.T) {
-	srv := newHTTPServer()
+	srv := newTestHTTPServer()
 	srv.checker.AddCheck("scheduler", func() pkghealth.Status { return pkghealth.Healthy })
 
 	req := httptest.NewRequest(http.MethodGet, "/check/scheduler", nil)
@@ -399,7 +457,6 @@ func TestServiceHealth(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Errorf("expected 200, got %d", rec.Code)
 	}
-
 	var resp struct {
 		Status  string `json:"status"`
 		Service string `json:"service"`
@@ -412,9 +469,12 @@ func TestServiceHealth(t *testing.T) {
 	}
 }
 
-// TestServiceHealthNotFound verifies the legacy HTTP endpoint for unknown services.
+// TestServiceHealthNotFound verifies /check/<unknown> returns 404.
+//
+// Mutation that breaks it: change the final WriteHeader to StatusOK — the 404
+// assertion fails.
 func TestServiceHealthNotFound(t *testing.T) {
-	srv := newHTTPServer()
+	srv := newTestHTTPServer()
 
 	req := httptest.NewRequest(http.MethodGet, "/check/nonexistent", nil)
 	rec := httptest.NewRecorder()
@@ -425,9 +485,12 @@ func TestServiceHealthNotFound(t *testing.T) {
 	}
 }
 
-// TestServiceHealthMissingName verifies the legacy HTTP endpoint with missing name.
+// TestServiceHealthMissingName verifies /check/ with no name returns 400.
+//
+// Mutation that breaks it: remove the empty-name guard in serviceHealth — the
+// 400 assertion fails (it would fall through to 404).
 func TestServiceHealthMissingName(t *testing.T) {
-	srv := newHTTPServer()
+	srv := newTestHTTPServer()
 
 	req := httptest.NewRequest(http.MethodGet, "/check/", nil)
 	rec := httptest.NewRecorder()
@@ -438,34 +501,34 @@ func TestServiceHealthMissingName(t *testing.T) {
 	}
 }
 
-// TestServiceHealthUnhealthy verifies the legacy HTTP endpoint for an unhealthy service.
-func TestServiceHealthUnhealthy(t *testing.T) {
-	srv := newHTTPServer()
-	srv.checker.AddCheck("cache", func() pkghealth.Status { return pkghealth.Unhealthy })
+// TestLivezUnhealthyReturns503 proves the liveness handler reports 503 when the
+// aggregator's liveness rollup is not healthy — i.e. the handler reflects real
+// aggregator state, not a hard-coded 200.
+//
+// Mutation that breaks it: in livez(), always WriteHeader(200) — the 503
+// assertion fails.
+func TestLivezUnhealthyReturns503(t *testing.T) {
+	agg := ihealth.NewAggregator()
+	agg.RegisterCheckKind("wedged", ihealth.CheckFunc(func(ctx context.Context) (ihealth.Status, error) {
+		return ihealth.Critical, nil
+	}), ihealth.KindLiveness)
+	agg.RunChecks(context.Background())
 
-	req := httptest.NewRequest(http.MethodGet, "/check/cache", nil)
+	srv := newHTTPServer(agg)
+	req := httptest.NewRequest(http.MethodGet, "/livez", nil)
 	rec := httptest.NewRecorder()
-	srv.serviceHealth(rec, req)
+	srv.livez(rec, req)
 
 	if rec.Code != http.StatusServiceUnavailable {
-		t.Errorf("expected 503, got %d", rec.Code)
+		t.Fatalf("expected 503 for critical liveness, got %d", rec.Code)
 	}
-}
-
-// TestNewHealthServer verifies the HTTP server constructor.
-func TestNewHealthServer(t *testing.T) {
-	srv := newHTTPServer()
-	if srv.checker == nil {
-		t.Fatal("expected checker to be initialized")
+	var body struct {
+		Status string `json:"status"`
 	}
-}
-
-// TestRegisterDefaults verifies default checks are healthy.
-func TestRegisterDefaults(t *testing.T) {
-	srv := newHTTPServer()
-	srv.registerDefaults()
-	status, _ := srv.checker.Check()
-	if status != pkghealth.Healthy {
-		t.Errorf("expected healthy after defaults, got %s", status)
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode error: %v", err)
+	}
+	if body.Status != "critical" {
+		t.Fatalf("expected liveness status critical, got %q", body.Status)
 	}
 }

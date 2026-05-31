@@ -1,118 +1,202 @@
-// Command helix-security is the security manager daemon for Helix Cluster OS.
+// Command helix-security is the CLI entry point for the Helix Cluster OS
+// security manager gRPC service. It wraps internal/security and serves the
+// helixv1.SecurityService API (Authenticate / Authorize / IssueToken /
+// ValidateToken).
+//
+// The monolithic main() has been split into a testable seam:
+//   - Config: parsed from env WITH validation.
+//   - run(ctx, cfg, ready): builds the real internal/security gRPC server
+//     (Orchestrator + PolicyEnforcer), binds, serves, and shuts down
+//     gracefully on ctx cancel / SIGINT / SIGTERM with a bounded GracefulStop
+//     timeout.
+//
+// main() stays thin: load config, install a signal-cancelled context, call
+// run, exit non-zero on error.
+//
+// Anti-bluff note (CLAUDE-1): the previous revision of this command shipped an
+// inline *stub* SecurityService that issued fabricated "stub-token-..." strings
+// and authorized any token with that prefix — i.e. a PASS-bluff that "worked"
+// in tests but did not run the real security logic. This revision wires the
+// genuine internal/security implementation (real self-signed cert issuance,
+// SPIFFE validation, and RBAC policy enforcement) so tests prove the feature
+// works for end users, not that a placeholder returns a constant.
 package main
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"net"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	"github.com/HelixDevelopment/helix_cluster/internal/security"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
-// server implements helixv1.SecurityService.
-type server struct {
-	helixv1.UnimplementedSecurityServiceServer
+// defaultPort is the security manager's well-known gRPC port (matches the
+// HELIX_SECURITY_PORT default documented for the service).
+const defaultPort = 50056
+
+// defaultShutdownTimeout bounds how long run() waits for in-flight RPCs to
+// drain during graceful shutdown before forcing a hard stop.
+const defaultShutdownTimeout = 10 * time.Second
+
+// Config holds the validated runtime configuration for the security service.
+type Config struct {
+	// Host is the bind host. Empty means all interfaces (":port").
+	Host string
+	// Port is the TCP port to listen on. Must be in [1, 65535].
+	Port int
+	// ShutdownTimeout bounds graceful shutdown. Must be > 0.
+	ShutdownTimeout time.Duration
 }
 
-// Authenticate performs identity verification and returns a token on success.
-func (s *server) Authenticate(ctx context.Context, req *helixv1.AuthenticateRequest) (*helixv1.AuthenticateResponse, error) {
-	if req.Identity == "" {
-		return nil, status.Error(codes.InvalidArgument, "identity is required")
-	}
-	// Stub: always succeed for known demo identity
-	if string(req.Proof) == "invalid" {
-		return &helixv1.AuthenticateResponse{Success: false}, nil
-	}
-	return &helixv1.AuthenticateResponse{
-		Success:  true,
-		Token:    fmt.Sprintf("stub-token-%s-%d", req.Identity, time.Now().Unix()),
-		SpiffeId: fmt.Sprintf("spiffe://helix.local/%s", req.Identity),
-	}, nil
+// Addr returns the listen address in host:port form suitable for net.Listen.
+func (c Config) Addr() string {
+	return net.JoinHostPort(c.Host, strconv.Itoa(c.Port))
 }
 
-// Authorize checks whether the provided token may perform action on resource.
-func (s *server) Authorize(ctx context.Context, req *helixv1.AuthorizeRequest) (*helixv1.AuthorizeResponse, error) {
-	if req.Token == "" {
-		return nil, status.Error(codes.InvalidArgument, "token is required")
+// Validate rejects clearly-bad configuration so misconfiguration fails fast at
+// startup instead of producing a half-broken listener.
+func (c Config) Validate() error {
+	if c.Port < 1 || c.Port > 65535 {
+		return fmt.Errorf("invalid port %d: must be in range 1-65535", c.Port)
 	}
-	// Stub: allow everything for tokens starting with "stub-token-"
-	allowed := len(req.Token) > 10 && req.Token[:10] == "stub-token"
-	reason := ""
-	if !allowed {
-		reason = "token not recognized"
+	if c.ShutdownTimeout <= 0 {
+		return fmt.Errorf("invalid shutdown timeout %s: must be > 0", c.ShutdownTimeout)
 	}
-	return &helixv1.AuthorizeResponse{Allowed: allowed, Reason: reason}, nil
+	return nil
 }
 
-// IssueToken generates a new token for the given identity and scopes.
-func (s *server) IssueToken(ctx context.Context, req *helixv1.IssueTokenRequest) (*helixv1.IssueTokenResponse, error) {
-	if req.Identity == "" {
-		return nil, status.Error(codes.InvalidArgument, "identity is required")
+// LoadConfig builds a Config from the environment, applying defaults. It
+// returns an error (rather than calling log.Fatal deep in logic) so the caller
+// controls the exit path. HELIX_SECURITY_PORT, when set, must be a valid
+// integer port; a non-numeric or out-of-range value is rejected.
+func LoadConfig(getenv func(string) string) (Config, error) {
+	cfg := Config{
+		Host:            "",
+		Port:            defaultPort,
+		ShutdownTimeout: defaultShutdownTimeout,
 	}
-	ttl := req.TtlSeconds
-	if ttl == 0 {
-		ttl = 3600
+
+	if raw := getenv("HELIX_SECURITY_PORT"); raw != "" {
+		p, err := strconv.Atoi(raw)
+		if err != nil {
+			return Config{}, fmt.Errorf("HELIX_SECURITY_PORT %q is not a valid integer: %w", raw, err)
+		}
+		cfg.Port = p
 	}
-	return &helixv1.IssueTokenResponse{
-		Token:     fmt.Sprintf("stub-token-%s-%d", req.Identity, time.Now().Unix()),
-		ExpiresAt: time.Now().Unix() + ttl,
-	}, nil
+
+	if host := getenv("HELIX_SECURITY_HOST"); host != "" {
+		cfg.Host = host
+	}
+
+	if err := cfg.Validate(); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
 }
 
-// ValidateToken checks token validity and returns decoded claims.
-func (s *server) ValidateToken(ctx context.Context, req *helixv1.ValidateTokenRequest) (*helixv1.ValidateTokenResponse, error) {
-	if req.Token == "" {
-		return nil, status.Error(codes.InvalidArgument, "token is required")
+// newSecurityServer constructs the real internal/security gRPC service. The
+// Orchestrator is created without a Vault client (nil), in which case it issues
+// genuine self-signed certificates locally — real cert crypto, not stubs. The
+// PolicyEnforcer starts empty: authorization is deny-by-default until roles are
+// loaded, which is the correct safe posture for a fresh process.
+func newSecurityServer() *security.GRPCServer {
+	orch := security.NewOrchestrator(nil)
+	enforcer := security.NewPolicyEnforcer()
+	return security.NewGRPCServer(orch, enforcer)
+}
+
+// run builds and serves the security gRPC service until ctx is cancelled, then
+// performs a bounded graceful shutdown. If ready is non-nil it is invoked with
+// the actual bound address once the listener is open — this lets tests dial an
+// ephemeral (":0") port without racing the bind. run returns nil on a clean
+// ctx-triggered shutdown and a non-nil error only on a real failure (bad
+// config, bind failure, or Serve error).
+func run(ctx context.Context, cfg Config, ready func(addr string)) error {
+	if err := cfg.Validate(); err != nil {
+		return fmt.Errorf("config: %w", err)
 	}
-	valid := len(req.Token) > 10 && req.Token[:10] == "stub-token"
-	if !valid {
-		return &helixv1.ValidateTokenResponse{Valid: false}, nil
+
+	lis, err := net.Listen("tcp", cfg.Addr())
+	if err != nil {
+		return fmt.Errorf("listen %s: %w", cfg.Addr(), err)
 	}
-	return &helixv1.ValidateTokenResponse{
-		Valid:    true,
-		Identity: "unknown",
-		Scopes:   []string{"read", "write"},
-	}, nil
+
+	gs := grpc.NewServer()
+	helixv1.RegisterSecurityServiceServer(gs, newSecurityServer())
+
+	if ready != nil {
+		ready(lis.Addr().String())
+	}
+
+	serveErr := make(chan error, 1)
+	go func() {
+		log.Printf("helix-security listening on %s", lis.Addr().String())
+		// Serve returns ErrServerStopped after GracefulStop/Stop, which is a
+		// normal shutdown signal, not a failure.
+		if err := gs.Serve(lis); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			serveErr <- err
+		}
+		close(serveErr)
+	}()
+
+	select {
+	case err := <-serveErr:
+		// Serve failed before we were asked to stop.
+		if err != nil {
+			return fmt.Errorf("serve: %w", err)
+		}
+		return nil
+	case <-ctx.Done():
+		log.Println("helix-security shutting down...")
+	}
+
+	// Bounded graceful shutdown: drain in-flight RPCs, but do not hang forever.
+	stopped := make(chan struct{})
+	go func() {
+		gs.GracefulStop()
+		close(stopped)
+	}()
+
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
+	defer cancel()
+
+	select {
+	case <-stopped:
+		log.Println("helix-security graceful shutdown complete")
+	case <-shutdownCtx.Done():
+		log.Println("helix-security graceful shutdown timed out; forcing stop")
+		gs.Stop()
+		<-stopped
+	}
+
+	// Surface any late Serve error observed during shutdown.
+	if err := <-serveErr; err != nil {
+		return fmt.Errorf("serve: %w", err)
+	}
+	return nil
 }
 
 func main() {
-	port := os.Getenv("HELIX_SECURITY_PORT")
-	if port == "" {
-		port = "50056"
-	}
-
-	s := grpc.NewServer()
-	helixv1.RegisterSecurityServiceServer(s, &server{})
-
-	lis, err := net.Listen("tcp", ":"+port)
+	cfg, err := LoadConfig(os.Getenv)
 	if err != nil {
-		log.Fatalf("listen: %v", err)
+		log.Printf("helix-security config error: %v", err)
+		os.Exit(1)
 	}
 
-	srvErr := make(chan error, 1)
-	go func() {
-		log.Printf("helix-security listening on :%s", port)
-		if err := s.Serve(lis); err != nil {
-			srvErr <- err
-		}
-	}()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	sig := make(chan os.Signal, 1)
-	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	select {
-	case <-sig:
-	case err := <-srvErr:
-		log.Printf("serve error: %v", err)
+	if err := run(ctx, cfg, nil); err != nil {
+		log.Printf("helix-security error: %v", err)
+		os.Exit(1)
 	}
-
-	log.Println("shutting down...")
-	s.GracefulStop()
 }
