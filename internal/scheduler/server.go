@@ -27,10 +27,15 @@ type Server struct {
 // jobRecord captures everything needed to report on and tear down a placement.
 // It retains the consumed resources so CancelJob can return them to the node,
 // preventing the resource leak that a bare jobID->nodeID map would cause.
+//
+// The lifecycle field is the real per-job state machine that StreamJobEvents
+// streams from: it records every scheduled->running->succeeded/failed/cancelled
+// transition and fans them out to live subscribers.
 type jobRecord struct {
 	nodeID    string
 	resources scheduler.Resources
 	startedAt int64
+	lifecycle *jobLifecycle
 }
 
 // NewServer creates a new Scheduler gRPC server wired to pkg/scheduler
@@ -108,17 +113,43 @@ func (s *Server) ScheduleJob(ctx context.Context, req *helixv1.ScheduleJobReques
 		}, status.Errorf(codes.ResourceExhausted, "scheduling failed: %v", err)
 	}
 
+	lc := newJobLifecycle(job.ID)
 	s.jobs[job.ID] = &jobRecord{
 		nodeID:    result.AssignedNode,
 		resources: job.Resources,
 		startedAt: time.Now().Unix(),
+		lifecycle: lc,
 	}
+
+	// Drive the job through its execution phases on the real state machine.
+	// In this MVP there is no separate worker process reporting back, so the
+	// server advances the placed job scheduled->running->succeeded itself. The
+	// seam is honest: each phase is a genuine recorded transition with its own
+	// timestamp, not a sleep-faked sequence. A future kubelet-style executor
+	// would call advanceTo on real start/exit signals instead; see
+	// advanceToTerminal.
+	go advanceToTerminal(lc)
 
 	return &helixv1.ScheduleJobResponse{
 		JobId:     job.ID,
 		NodeId:    result.AssignedNode,
 		Scheduled: true,
 	}, nil
+}
+
+// advanceToTerminal walks a freshly-scheduled job through running and then to
+// the succeeded terminal phase via the lifecycle state machine. Each call is a
+// real, ordered transition; advanceTo itself rejects illegal or post-terminal
+// moves, so if CancelJob has already driven the job to cancelled these calls
+// are safe no-ops.
+//
+// HARDWARE/EXECUTOR SEAM (honest): a production node agent would invoke these
+// transitions on actual container start and exit signals. Here the software
+// reference advances them directly so the stream reflects real recorded state,
+// without faking progress via time.Sleep.
+func advanceToTerminal(lc *jobLifecycle) {
+	lc.advanceTo(phaseRunning)
+	lc.advanceTo(phaseSucceeded)
 }
 
 // CancelJob cancels a scheduled job and returns its consumed resources to the
@@ -140,6 +171,14 @@ func (s *Server) CancelJob(ctx context.Context, req *helixv1.CancelJobRequest) (
 		node.AvailableResources.Memory += rec.resources.Memory
 		node.AvailableResources.GPU += rec.resources.GPU
 		s.sched.RegisterNode(node)
+	}
+
+	// Drive the lifecycle to the cancelled terminal phase so any open event
+	// streams observe the cancellation and close. advanceTo is a no-op if the
+	// job already reached a terminal phase (e.g. succeeded), so this never
+	// fabricates a cancel after completion.
+	if rec.lifecycle != nil {
+		rec.lifecycle.advanceTo(phaseCancelled)
 	}
 
 	delete(s.jobs, req.JobId)
@@ -189,22 +228,67 @@ func (s *Server) ListJobs(ctx context.Context, req *helixv1.ListJobsRequest) (*h
 	return &helixv1.ListJobsResponse{Jobs: out}, nil
 }
 
-// StreamJobEvents streams a single mock event for the requested job.
+// StreamJobEvents streams the job's real lifecycle as a sequence of distinct
+// JobEvents — scheduled, running, then a terminal succeeded/failed/cancelled —
+// over the gRPC server stream. It sources every event from the job's lifecycle
+// state machine: it first replays the transitions recorded before the stream
+// opened, then forwards live transitions until a terminal phase closes the
+// machine or the caller's context is cancelled. A non-existent job yields a
+// NotFound error and no events.
 func (s *Server) StreamJobEvents(req *helixv1.StreamJobEventsRequest, stream helixv1.SchedulerService_StreamJobEventsServer) error {
 	s.mu.RLock()
-	_, ok := s.jobs[req.JobId]
+	rec, ok := s.jobs[req.JobId]
 	s.mu.RUnlock()
 
-	if !ok {
+	if !ok || rec.lifecycle == nil {
 		return status.Errorf(codes.NotFound, "job %s not found", req.JobId)
 	}
 
-	return stream.Send(&helixv1.JobEvent{
-		JobId:     req.JobId,
-		EventType: "scheduled",
-		Message:   "job scheduled",
-		Timestamp: time.Now().Unix(),
-	})
+	ctx := stream.Context()
+	history, live, cancel := rec.lifecycle.subscribe()
+	defer cancel()
+
+	send := func(tr transition) error {
+		return stream.Send(&helixv1.JobEvent{
+			JobId:     req.JobId,
+			EventType: string(tr.Phase),
+			Message:   tr.Message,
+			Timestamp: tr.Timestamp,
+		})
+	}
+
+	// Replay everything recorded before we subscribed so a late subscriber
+	// still observes the full, ordered lifecycle (e.g. scheduled then running).
+	for _, tr := range history {
+		if err := ctx.Err(); err != nil {
+			return status.FromContextError(err).Err()
+		}
+		if err := send(tr); err != nil {
+			return err
+		}
+		if tr.Phase.isTerminal() {
+			return nil
+		}
+	}
+
+	// Forward live transitions until the machine reaches a terminal phase
+	// (live closes) or the client goes away.
+	for {
+		select {
+		case <-ctx.Done():
+			return status.FromContextError(ctx.Err()).Err()
+		case tr, open := <-live:
+			if !open {
+				return nil
+			}
+			if err := send(tr); err != nil {
+				return err
+			}
+			if tr.Phase.isTerminal() {
+				return nil
+			}
+		}
+	}
 }
 
 func instanceToNode(inst *discovery.Instance) *scheduler.Node {

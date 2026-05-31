@@ -38,10 +38,18 @@ type Gateway struct {
 	mu      sync.RWMutex
 	proxies map[string]*httputil.ReverseProxy
 	routes  []route
+
+	// auth, when non-nil, enables JWT/RBAC enforcement in ServeHTTP. It is set
+	// only via the WithAuth option so the zero/default gateway stays open.
+	auth *AuthPolicy
 }
 
 // NewGateway creates a new Gateway with the default route table.
-func NewGateway() (*Gateway, error) {
+//
+// Optional Options (e.g. WithAuth) tune behavior. With no options the gateway
+// keeps its historical open, unauthenticated behavior, so existing callers and
+// tests are unaffected.
+func NewGateway(opts ...Option) (*Gateway, error) {
 	g := &Gateway{
 		proxies: make(map[string]*httputil.ReverseProxy),
 		routes:  routes,
@@ -53,6 +61,10 @@ func NewGateway() (*Gateway, error) {
 			return nil, fmt.Errorf("invalid backend URL %q: %w", r.backend, err)
 		}
 		g.proxies[r.prefix] = newReverseProxy(target)
+	}
+
+	for _, opt := range opts {
+		opt(g)
 	}
 
 	return g, nil
@@ -89,6 +101,12 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, route := range g.routes {
 		if strings.HasPrefix(r.URL.Path, route.prefix) {
+			// Enforce JWT/RBAC BEFORE proxying so unauthorized requests never
+			// reach the upstream. No-op when auth is disabled.
+			if e := g.authorize(r); e != nil {
+				writeAuthError(w, e)
+				return
+			}
 			g.mu.RLock()
 			proxy, ok := g.proxies[route.prefix]
 			g.mu.RUnlock()
