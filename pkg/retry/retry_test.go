@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"testing"
 	"time"
 )
@@ -269,5 +270,226 @@ func TestMutation_JitterReducesDeterminism(t *testing.T) {
 	}
 	if allSame {
 		t.Error("mutation: jitter should introduce variability")
+	}
+}
+
+// --- DoWithResult parity tests (bring generic variant to parity with Do) ---
+
+// TestDoWithResult_MaxAttemptsRespected_Mutation proves the generic variant
+// invokes fn exactly MaxAttempts times on persistent failure (sink-side count),
+// not merely that an error is returned.
+func TestDoWithResult_MaxAttemptsRespected_Mutation(t *testing.T) {
+	callCount := 0
+	r := &Retry{MaxAttempts: 3, Delay: 5 * time.Millisecond, BackoffStrategy: Fixed}
+	_, _ = DoWithResult(context.Background(), r, func() (int, error) {
+		callCount++
+		return 0, errors.New("fail")
+	})
+	if callCount != 3 {
+		t.Errorf("expected exactly 3 attempts, got %d", callCount)
+	}
+}
+
+// TestDoWithResult_ReturnsLastError_Mutation proves the final error wraps the
+// last underlying error (errors.Is), matching Do's wrapping contract.
+func TestDoWithResult_ReturnsLastError_Mutation(t *testing.T) {
+	expectedErr := errors.New("specific failure")
+	r := &Retry{MaxAttempts: 2, Delay: 5 * time.Millisecond, BackoffStrategy: Fixed}
+	_, err := DoWithResult(context.Background(), r, func() (string, error) {
+		return "", expectedErr
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if !errors.Is(err, expectedErr) {
+		t.Errorf("expected wrapped specific error, got %v", err)
+	}
+}
+
+// TestDoWithResult_ZeroValueOnFailure proves the returned value is the type's
+// zero value when all attempts fail (no leak of a partial/last fn value).
+func TestDoWithResult_ZeroValueOnFailure(t *testing.T) {
+	r := &Retry{MaxAttempts: 3, Delay: 5 * time.Millisecond, BackoffStrategy: Fixed}
+	val, err := DoWithResult(context.Background(), r, func() (string, error) {
+		// fn returns a non-zero value alongside the error to prove it is discarded.
+		return "leaked-partial", errors.New("fail")
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if val != "" {
+		t.Errorf("expected zero value on failure, got %q", val)
+	}
+
+	// Same assertion for a non-string type to pin the generic zero value.
+	iv, ierr := DoWithResult(context.Background(), r, func() (int, error) {
+		return 42, errors.New("fail")
+	})
+	if ierr == nil {
+		t.Fatal("expected error")
+	}
+	if iv != 0 {
+		t.Errorf("expected zero int on failure, got %d", iv)
+	}
+}
+
+// TestDoWithResult_NonRetryable_Mutation proves the generic variant short-circuits
+// on a non-retryable error after exactly one call and returns the zero value.
+func TestDoWithResult_NonRetryable_Mutation(t *testing.T) {
+	r := DefaultRetry()
+	callCount := 0
+	val, err := DoWithResult(context.Background(), r, func() (int, error) {
+		callCount++
+		return 7, fmt.Errorf("wrapped: %w", ErrNonRetryable)
+	})
+	if err == nil {
+		t.Fatal("expected error")
+	}
+	if callCount != 1 {
+		t.Errorf("expected 1 call for non-retryable error, got %d", callCount)
+	}
+	if val != 0 {
+		t.Errorf("expected zero value on non-retryable failure, got %d", val)
+	}
+	if !errors.Is(err, ErrNonRetryable) {
+		t.Errorf("expected error to wrap ErrNonRetryable, got %v", err)
+	}
+}
+
+// TestDoWithResult_ContextCancellation_Mutation proves the generic variant
+// aborts early on ctx cancellation rather than running to exhaustion.
+func TestDoWithResult_ContextCancellation_Mutation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	callCount := 0
+	r := &Retry{MaxAttempts: 10, Delay: 50 * time.Millisecond, BackoffStrategy: Fixed}
+	go func() {
+		time.Sleep(30 * time.Millisecond)
+		cancel()
+	}()
+	_, err := DoWithResult(ctx, r, func() (int, error) {
+		callCount++
+		return 0, errors.New("fail")
+	})
+	if err == nil {
+		t.Fatal("expected error after context cancellation")
+	}
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("expected context.Canceled, got %v", err)
+	}
+	if ctx.Err() == nil {
+		t.Fatal("context should have been cancelled")
+	}
+	if callCount >= 10 {
+		t.Error("retry should have stopped early because of context cancellation")
+	}
+}
+
+// TestDoWithResult_ExponentialTiming_Mutation proves the generic variant applies
+// the exponential backoff schedule between attempts (real wall-clock lower bound).
+func TestDoWithResult_ExponentialTiming_Mutation(t *testing.T) {
+	r := &Retry{MaxAttempts: 4, Delay: 10 * time.Millisecond, MaxDelay: 1 * time.Second, BackoffStrategy: Exponential}
+	start := time.Now()
+	_, _ = DoWithResult(context.Background(), r, func() (int, error) {
+		return 0, errors.New("fail")
+	})
+	elapsed := time.Since(start)
+	// 10 + 20 + 40 = 70ms minimum between the 4 attempts.
+	if elapsed < 60*time.Millisecond {
+		t.Errorf("expected exponential delays in DoWithResult, elapsed: %v", elapsed)
+	}
+}
+
+// --- Transient-recovery tests (the actual point of a retry library) ---
+
+// TestDo_TransientRecovery proves Do recovers after K transient failures and
+// asserts the call count is exactly K+1.
+func TestDo_TransientRecovery(t *testing.T) {
+	const failuresBeforeSuccess = 2
+	r := &Retry{MaxAttempts: 5, Delay: 2 * time.Millisecond, BackoffStrategy: Fixed}
+	callCount := 0
+	err := r.Do(context.Background(), func() error {
+		callCount++
+		if callCount <= failuresBeforeSuccess {
+			return errors.New("transient")
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("expected eventual success, got %v", err)
+	}
+	if callCount != failuresBeforeSuccess+1 {
+		t.Errorf("expected %d calls (K failures + 1 success), got %d", failuresBeforeSuccess+1, callCount)
+	}
+}
+
+// TestDoWithResult_TransientRecovery proves DoWithResult recovers after K
+// transient failures, returns the eventual value, and calls fn exactly K+1 times.
+func TestDoWithResult_TransientRecovery(t *testing.T) {
+	const failuresBeforeSuccess = 3
+	r := &Retry{MaxAttempts: 5, Delay: 2 * time.Millisecond, BackoffStrategy: Fixed}
+	callCount := 0
+	val, err := DoWithResult(context.Background(), r, func() (string, error) {
+		callCount++
+		if callCount <= failuresBeforeSuccess {
+			return "", errors.New("transient")
+		}
+		return "recovered", nil
+	})
+	if err != nil {
+		t.Fatalf("expected eventual success, got %v", err)
+	}
+	if val != "recovered" {
+		t.Errorf("expected recovered value, got %q", val)
+	}
+	if callCount != failuresBeforeSuccess+1 {
+		t.Errorf("expected %d calls (K failures + 1 success), got %d", failuresBeforeSuccess+1, callCount)
+	}
+}
+
+// --- Jitter upper-bound assertion ---
+
+// TestJitter_UpperBound asserts that with jitter enabled the computed delay never
+// exceeds base*factor^n * (1 + maxJitter). Per computeDelay, maxJitter is 25%, so
+// every observed delay must lie in [base, base*1.25). Driven directly through
+// computeDelay (jitter on, Fixed strategy) so the bound is proven deterministically
+// without wall-clock flakiness, across many random draws.
+func TestJitter_UpperBound(t *testing.T) {
+	base := 80 * time.Millisecond
+	r := &Retry{MaxAttempts: 3, Delay: base, Jitter: true, BackoffStrategy: Fixed}
+	upper := base + base/4 // base * 1.25
+	for i := 0; i < 1000; i++ {
+		d := r.computeDelay(0)
+		if d < base {
+			t.Fatalf("jitter lowered delay below base: got %v, base %v", d, base)
+		}
+		if d >= upper {
+			t.Fatalf("jitter exceeded upper bound: got %v, must be < %v (base*1.25)", d, upper)
+		}
+	}
+}
+
+// TestJitter_UpperBound_Exponential asserts the [d, d*1.25) jitter envelope holds
+// for each step of an exponential schedule (post-cap), i.e.
+// delay <= base*factor^n * (1+maxJitter) at every attempt.
+func TestJitter_UpperBound_Exponential(t *testing.T) {
+	base := 10 * time.Millisecond
+	maxDelay := 1 * time.Second
+	r := &Retry{MaxAttempts: 6, Delay: base, MaxDelay: maxDelay, Jitter: true, BackoffStrategy: Exponential}
+	for attempt := 0; attempt < 6; attempt++ {
+		// Reconstruct the deterministic pre-jitter delay (base * 2^attempt, capped).
+		want := time.Duration(float64(base) * math.Pow(2, float64(attempt)))
+		if want > maxDelay {
+			want = maxDelay
+		}
+		upper := want + want/4
+		for i := 0; i < 200; i++ {
+			d := r.computeDelay(attempt)
+			if d < want {
+				t.Fatalf("attempt %d: delay %v below pre-jitter base %v", attempt, d, want)
+			}
+			if d >= upper {
+				t.Fatalf("attempt %d: delay %v exceeded upper bound %v (base*1.25)", attempt, d, upper)
+			}
+		}
 	}
 }
