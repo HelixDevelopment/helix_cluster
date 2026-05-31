@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 16
-**Last modified:** 2026-05-31T02:01:26Z
+**Revision:** 17
+**Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `HXC-916` | feat: Expand stub packages + build artifact cache (HXC-916) |
 | `fdab788` | feat: ClassAds expression evaluator tests (HXC-913) |
 | `01a040e` | feat: HXC-913 Health monitor, security stub, ClassAds parser |
 | `32e043a` | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
@@ -32,9 +33,9 @@ Any CLI agent resuming work on this project MUST read this file first.
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `fdab788` |
-| **Timestamp** | 2026-05-31T02:01:26Z |
-| **Go packages** | 53 packages pass `go test -race` |
+| **Commit** | `HXC-916` |
+| **Timestamp** | 2026-05-31T20:43:17+05:00 |
+| **Go packages** | 54 packages pass `go test -race` |
 | **cmd binaries** | 8 implemented (helix_infra, helix-build, helix-agent, helix-gateway, helix-health, helix-security, helix-scheduler, helix-session, helixd, hxc-registry) |
 
 ## §3: Active Work
@@ -45,6 +46,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 | HXC-912 | Gateway, helixd, and helix-agent service binaries | ✅ Done |
 | HXC-911 | Scheduler and Session gRPC service wrappers | ✅ Done |
 | HXC-910 | Phase 2/3/4 Console, Security, Testing Infra | ✅ Done |
+| HXC-916 | Expand stub packages + build artifact cache | ✅ Done |
 | HXC-904 | Phase 4 Build Service Core | ✅ Done |
 
 ## §4: Next Planned Work
@@ -53,9 +55,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 2. Connect session service to persistent store
 3. Wire gateway reverse proxy to real gRPC backends (gRPC-Web or HTTP transcoding)
 4. Integrate ClassAds parser into scheduler matchmaking
-5. Phase 4 artifact cache (pkg/build/cache)
-6. Registry integration for build artifacts
-7. Multi-arch build support
+5. Registry integration for build artifacts
+6. Multi-arch build support
 
 ## §5: Known Issues / Blockers
 
