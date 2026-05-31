@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
+	"strings"
 	"sync"
 )
 
@@ -126,6 +127,12 @@ func (p *PolicyEnforcer) GetPolicy(name string) (*Policy, bool) {
 func matchResource(pattern, resource string) bool {
 	if pattern == "*" {
 		return true
+	}
+	// Hierarchical prefix wildcard: "secrets/*" matches "secrets/db" and
+	// "secrets/db/creds" but not "secrets" itself nor "secretsX/...".
+	if strings.HasSuffix(pattern, "/*") {
+		prefix := pattern[:len(pattern)-1] // keep trailing slash, e.g. "secrets/"
+		return strings.HasPrefix(resource, prefix)
 	}
 	return pattern == resource
 }

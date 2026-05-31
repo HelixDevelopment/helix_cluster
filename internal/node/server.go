@@ -5,21 +5,30 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/api/v1"
 )
 
+// nowFunc is the clock used for heartbeat/last-seen tracking. It is a package
+// variable so tests can install a deterministic clock.
+var nowFunc = time.Now
+
 // Server implements helixv1.NodeServiceServer.
 type Server struct {
 	helixv1.UnimplementedNodeServiceServer
-	nodes map[string]*helixv1.Node
-	mu    sync.RWMutex
+	nodes    map[string]*helixv1.Node
+	health   map[string]*helixv1.HealthScore
+	lastSeen map[string]time.Time
+	mu       sync.RWMutex
 }
 
 // NewServer creates a new NodeService server.
 func NewServer() *Server {
 	return &Server{
-		nodes: make(map[string]*helixv1.Node),
+		nodes:    make(map[string]*helixv1.Node),
+		health:   make(map[string]*helixv1.HealthScore),
+		lastSeen: make(map[string]time.Time),
 	}
 }
 
@@ -34,6 +43,7 @@ func (s *Server) RegisterNode(ctx context.Context, req *helixv1.RegisterNodeRequ
 
 	req.Node.Status = "active"
 	s.nodes[req.Node.Id] = req.Node
+	s.lastSeen[req.Node.Id] = nowFunc()
 
 	return &helixv1.RegisterNodeResponse{
 		NodeId:   req.Node.Id,
@@ -71,8 +81,13 @@ func (s *Server) ListNodes(ctx context.Context, req *helixv1.ListNodesRequest) (
 	return &helixv1.ListNodesResponse{Nodes: out}, nil
 }
 
-// UpdateNodeStatus updates a node's status and health score.
+// UpdateNodeStatus updates a node's status and health score. It also doubles as
+// the node heartbeat: each call refreshes the node's last-seen timestamp.
 func (s *Server) UpdateNodeStatus(ctx context.Context, req *helixv1.UpdateNodeStatusRequest) (*helixv1.Node, error) {
+	if req.NodeId == "" {
+		return nil, fmt.Errorf("node ID is required")
+	}
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
@@ -81,10 +96,13 @@ func (s *Server) UpdateNodeStatus(ctx context.Context, req *helixv1.UpdateNodeSt
 		return nil, fmt.Errorf("node %s not found", req.NodeId)
 	}
 
-	node.Status = req.Status
-	if req.Health != nil && node.Resources == nil {
-		node.Resources = &helixv1.NodeResources{}
+	if req.Status != "" {
+		node.Status = req.Status
 	}
+	if req.Health != nil {
+		s.health[req.NodeId] = req.Health
+	}
+	s.lastSeen[req.NodeId] = nowFunc()
 	return node, nil
 }
 
@@ -97,7 +115,43 @@ func (s *Server) DeregisterNode(ctx context.Context, req *helixv1.DeregisterNode
 		return &helixv1.DeregisterNodeResponse{Success: false}, nil
 	}
 	delete(s.nodes, req.NodeId)
+	delete(s.health, req.NodeId)
+	delete(s.lastSeen, req.NodeId)
 	return &helixv1.DeregisterNodeResponse{Success: true}, nil
+}
+
+// HealthScore returns the most recently reported health score for a node, along
+// with whether one has ever been recorded.
+func (s *Server) HealthScore(nodeID string) (*helixv1.HealthScore, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	h, ok := s.health[nodeID]
+	return h, ok
+}
+
+// LastSeen returns the timestamp of the node's most recent registration or
+// status update, and whether the node is currently tracked.
+func (s *Server) LastSeen(nodeID string) (time.Time, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	t, ok := s.lastSeen[nodeID]
+	return t, ok
+}
+
+// StaleNodes returns the IDs of tracked nodes whose last heartbeat is older than
+// the supplied threshold relative to now. The result is unordered.
+func (s *Server) StaleNodes(threshold time.Duration) []string {
+	now := nowFunc()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var stale []string
+	for id, seen := range s.lastSeen {
+		if now.Sub(seen) > threshold {
+			stale = append(stale, id)
+		}
+	}
+	return stale
 }
 
 // matchLabels returns true if nodeLabels contains all required labels.

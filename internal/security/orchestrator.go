@@ -184,19 +184,32 @@ func (o *Orchestrator) ValidateIdentity(_ context.Context, spiffeID string) erro
 	return nil
 }
 
-// RotateCredentials triggers a credential rotation cycle.
-// It marks all current certificates for rotation and returns the count affected.
+// RotateCredentials triggers a credential rotation cycle. Any certificate
+// whose validity window has elapsed is revoked (its serial added to the
+// revocation set) so that expired material can no longer be presented as a
+// valid token. It returns the count of certificates that remain active
+// (issued, not revoked, and not yet expired) after the sweep.
 func (o *Orchestrator) RotateCredentials(_ context.Context) (int, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 
-	count := 0
+	now := time.Now()
+	active := 0
 	for _, cert := range o.certs {
-		if !cert.Revoked {
-			count++
+		if cert.Revoked {
+			continue
 		}
+		if now.After(cert.ExpiresAt) {
+			// Expired credential: revoke it as part of rotation.
+			revokedAt := now
+			cert.Revoked = true
+			cert.RevokedAt = &revokedAt
+			o.revokedSerials[cert.Serial] = true
+			continue
+		}
+		active++
 	}
-	return count, nil
+	return active, nil
 }
 
 // GetCertificate retrieves a certificate by ID (for testing).

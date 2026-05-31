@@ -19,10 +19,11 @@ type Agent struct {
 	Labels   map[string]string
 	Capacity *resources.NodeResources
 
-	protocol   *swim.Protocol
-	wg         *wireguard.Manager
-	registry   *discovery.ServiceRegistry
-	aggregator *resources.NodeAggregator
+	protocol     *swim.Protocol
+	wg           *wireguard.Manager
+	registry     *discovery.ServiceRegistry
+	aggregator   *resources.NodeAggregator
+	pollInterval time.Duration
 
 	mu      sync.RWMutex
 	status  Status
@@ -106,6 +107,13 @@ func NewAgent(cfg *Config) (*Agent, error) {
 
 	// Initialize resource aggregator
 	a.aggregator = resources.NewNodeAggregator(cfg.ResourcePollInterval)
+
+	// Resource poll interval drives the background poller. Fall back to a safe
+	// default when the operator leaves it unset so the poller never spins.
+	a.pollInterval = cfg.ResourcePollInterval
+	if a.pollInterval <= 0 {
+		a.pollInterval = 30 * time.Second
+	}
 
 	return a, nil
 }
@@ -192,7 +200,7 @@ func (a *Agent) CollectResources() error {
 // resourcePoller periodically collects resource metrics.
 func (a *Agent) resourcePoller() {
 	defer a.wgProc.Done()
-	ticker := time.NewTicker(30 * time.Second)
+	ticker := time.NewTicker(a.pollInterval)
 	defer ticker.Stop()
 
 	for {

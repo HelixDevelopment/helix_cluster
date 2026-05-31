@@ -10,10 +10,10 @@ import (
 
 // MeshCoordinator manages WireGuard peer configurations across the cluster.
 type MeshCoordinator struct {
-	mu       sync.RWMutex
-	peers    map[string]*Peer          // keyed by peer ID
-	manager  *pkgwg.Manager            // underlying pkg wireguard manager
-	configs  map[string]*pkgwg.PeerConfig // cached peer configs keyed by peer ID
+	mu      sync.RWMutex
+	peers   map[string]*Peer             // keyed by peer ID
+	manager *pkgwg.Manager               // underlying pkg wireguard manager
+	configs map[string]*pkgwg.PeerConfig // cached peer configs keyed by peer ID
 }
 
 // NewMeshCoordinator creates a new mesh coordinator.
@@ -27,17 +27,12 @@ func NewMeshCoordinator(manager *pkgwg.Manager) *MeshCoordinator {
 
 // AddPeer adds a peer to the mesh.
 func (mc *MeshCoordinator) AddPeer(ctx context.Context, peer *Peer) error {
-	if peer == nil {
-		return fmt.Errorf("peer is nil")
+	// Validate up front so the manager==nil (no-device) path is held to the
+	// same standard as the real path: an unusable peer must never enter the
+	// coordinator's view of the mesh.
+	if err := peer.Validate(); err != nil {
+		return err
 	}
-	if peer.ID == "" {
-		return fmt.Errorf("peer ID is empty")
-	}
-
-	mc.mu.Lock()
-	defer mc.mu.Unlock()
-
-	mc.peers[peer.ID] = peer
 
 	pkgPeer := &pkgwg.PeerConfig{
 		PublicKey:           peer.PublicKey,
@@ -45,13 +40,43 @@ func (mc *MeshCoordinator) AddPeer(ctx context.Context, peer *Peer) error {
 		Endpoint:            peer.Endpoint,
 		PersistentKeepalive: peer.PersistentKeepalive,
 	}
-	mc.configs[peer.ID] = pkgPeer
 
+	mc.mu.Lock()
+	defer mc.mu.Unlock()
+
+	// If this ID already exists under a different public key, the old key must
+	// be evicted from the manager, otherwise the stale peer lingers in the
+	// WireGuard device (orphaned) until the next SyncMesh. Capture it before we
+	// overwrite our bookkeeping.
+	var stalePubKey string
+	if prev, ok := mc.peers[peer.ID]; ok && prev.PublicKey != peer.PublicKey {
+		stalePubKey = prev.PublicKey
+	}
+
+	// Push to the underlying manager first. If the manager rejects the peer
+	// (e.g. invalid public key or AllowedIPs), we must NOT record it in our
+	// maps: doing so would make ListPeers/GetPeerConfig advertise a peer that
+	// is not actually present in the WireGuard device — a silent state
+	// corruption that fails the end-user usability guarantee.
 	if mc.manager != nil {
 		if err := mc.manager.AddPeer(pkgPeer); err != nil {
 			return fmt.Errorf("failed to add peer to manager: %w", err)
 		}
 	}
+
+	// The new key is now installed; evict the superseded one so the device
+	// does not retain a stale peer for this ID. This is only meaningful when a
+	// manager is present — guarding on mc.manager != nil also avoids a nil
+	// dereference on the no-device path. A failed eviction leaves an orphaned
+	// peer in the device, so we surface it rather than silently swallowing it.
+	if mc.manager != nil && stalePubKey != "" {
+		if err := mc.manager.RemovePeer(stalePubKey); err != nil {
+			return fmt.Errorf("failed to evict stale peer key for %s: %w", peer.ID, err)
+		}
+	}
+
+	mc.peers[peer.ID] = peer
+	mc.configs[peer.ID] = pkgPeer
 
 	return nil
 }

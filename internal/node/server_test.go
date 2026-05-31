@@ -3,6 +3,7 @@ package node
 import (
 	"context"
 	"fmt"
+	"sync"
 	"testing"
 
 	"github.com/HelixDevelopment/helix_cluster/api/v1"
@@ -71,7 +72,14 @@ func TestServerUpdateNodeStatus(t *testing.T) {
 	})
 	require.NoError(t, err)
 	assert.Equal(t, "maintenance", updated.Status)
-	assert.Equal(t, "maintenance", updated.Status)
+
+	// Sink-side proof: the reported HealthScore must actually be persisted and
+	// retrievable. Without this read-back, deleting the
+	// `s.health[req.NodeId] = req.Health` line in UpdateNodeStatus would leave
+	// this test green (a PASS-bluff).
+	got, ok := srv.HealthScore("n1")
+	require.True(t, ok, "health score must be persisted")
+	assert.Equal(t, int32(85), got.Overall)
 }
 
 func TestServerDeregisterNode(t *testing.T) {
@@ -92,9 +100,13 @@ func TestServerConcurrentOperations(t *testing.T) {
 	srv := NewServer()
 	ctx := context.Background()
 
+	var wg sync.WaitGroup
+
 	// Concurrent registrations
 	for i := 0; i < 100; i++ {
+		wg.Add(1)
 		go func(i int) {
+			defer wg.Done()
 			id := fmt.Sprintf("node-%d", i)
 			_, _ = srv.RegisterNode(ctx, &helixv1.RegisterNodeRequest{Node: &helixv1.Node{Id: id}})
 		}(i)
@@ -102,8 +114,19 @@ func TestServerConcurrentOperations(t *testing.T) {
 
 	// Concurrent reads
 	for i := 0; i < 100; i++ {
+		wg.Add(1)
 		go func() {
+			defer wg.Done()
 			_, _ = srv.ListNodes(ctx, &helixv1.ListNodesRequest{})
 		}()
 	}
+
+	// Barrier: the test must not return while goroutines still touch srv,
+	// otherwise -race flags an access after the test frame is gone.
+	wg.Wait()
+
+	// Sink-side proof that the concurrent registrations actually landed.
+	list, err := srv.ListNodes(ctx, &helixv1.ListNodesRequest{})
+	require.NoError(t, err)
+	assert.Len(t, list.Nodes, 100)
 }

@@ -55,6 +55,28 @@ func (b *Bus) Subscribe(_ context.Context, topic string, handler Handler) (strin
 	return sub.id, nil
 }
 
+// Topics returns the names of all topics that currently have at least one
+// subscriber. The result is a snapshot taken under the read lock and is safe
+// to call concurrently with Publish/Subscribe/Unsubscribe.
+func (b *Bus) Topics() []string {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	topics := make([]string, 0, len(b.topics))
+	for t := range b.topics {
+		topics = append(topics, t)
+	}
+	return topics
+}
+
+// SubscriberCount returns the number of active subscriptions for the given
+// topic. A topic with no subscribers (or that was never subscribed to) reports
+// zero.
+func (b *Bus) SubscriberCount(topic string) int {
+	b.mu.RLock()
+	defer b.mu.RUnlock()
+	return len(b.topics[topic])
+}
+
 // Unsubscribe removes a subscription from a topic.
 func (b *Bus) Unsubscribe(topic, subID string) error {
 	if topic == "" {
