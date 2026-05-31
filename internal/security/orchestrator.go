@@ -27,13 +27,39 @@ type Certificate struct {
 	ExpiresAt   time.Time
 	Revoked     bool
 	RevokedAt   *time.Time
+	// Scopes are the per-credential authorization scopes (used as RBAC roles
+	// downstream). They are fixed at issue time and returned verbatim by
+	// ValidateToken so authorization decisions reflect THIS credential's
+	// grants, not a hard-coded global set.
+	Scopes []string
 }
+
+// defaultScopes is the backward-compatible scope set applied when a caller
+// issues a credential without specifying any scopes.
+var defaultScopes = []string{"read", "write"}
 
 // IssueCertificateRequest holds parameters for certificate issuance.
 type IssueCertificateRequest struct {
 	NodeID     string
 	CommonName string
 	TTL        time.Duration
+	// Scopes are the authorization scopes to bind to the issued credential.
+	// BACKWARD-COMPATIBLE: when empty (zero value), it defaults to
+	// ["read","write"] so existing callers keep their previous behavior.
+	Scopes []string
+}
+
+// resolveScopes returns a defensive copy of the requested scopes, or the
+// default scope set when none were requested. The copy ensures the stored
+// credential cannot be mutated through the caller's slice.
+func resolveScopes(requested []string) []string {
+	src := requested
+	if len(src) == 0 {
+		src = defaultScopes
+	}
+	out := make([]string, len(src))
+	copy(out, src)
+	return out
 }
 
 // Orchestrator manages TLS certificate lifecycle, SPIFFE identities,
@@ -83,6 +109,7 @@ func (o *Orchestrator) IssueCertificate(ctx context.Context, req IssueCertificat
 				Serial:    pkiCert.Serial,
 				IssuedAt:  time.Now(),
 				ExpiresAt: time.Now().Add(pkiCert.LeaseDuration),
+				Scopes:    resolveScopes(req.Scopes),
 			}
 			o.certs[cert.ID] = cert
 			return cert, nil
@@ -138,6 +165,7 @@ func (o *Orchestrator) issueLocal(req IssueCertificateRequest) (*Certificate, er
 		Serial:    template.SerialNumber.String(),
 		IssuedAt:  time.Now(),
 		ExpiresAt: template.NotAfter,
+		Scopes:    resolveScopes(req.Scopes),
 	}
 	return cert, nil
 }
@@ -247,6 +275,9 @@ func (o *Orchestrator) ValidateToken(_ context.Context, token string) (bool, str
 		return false, "", nil, nil
 	}
 
-	scopes := []string{"read", "write"}
+	// Return the per-credential scopes stored at issue time. Defensive copy so
+	// callers cannot mutate the stored credential's scope slice.
+	scopes := make([]string, len(cert.Scopes))
+	copy(scopes, cert.Scopes)
 	return true, cert.NodeID, scopes, nil
 }

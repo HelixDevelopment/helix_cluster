@@ -92,9 +92,13 @@ func (s *GRPCServer) IssueToken(ctx context.Context, req *helixv1.IssueTokenRequ
 		return nil, status.Error(codes.InvalidArgument, "identity is required")
 	}
 
+	// Thread the requested scopes through to the issued credential. The proto
+	// IssueTokenRequest carries a `scopes` field; when empty the orchestrator
+	// defaults to ["read","write"] (backward-compatible).
 	resp, err := s.orch.IssueCertificate(ctx, IssueCertificateRequest{
 		NodeID:     req.Identity,
 		CommonName: req.Identity,
+		Scopes:     req.Scopes,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("issue certificate: %w", err)
