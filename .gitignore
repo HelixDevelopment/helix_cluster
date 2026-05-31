@@ -64,3 +64,10 @@ web/node_modules/
 web/package-lock.json
 !.gitattributes
 helix-build
+
+# root-level built cmd binaries (from `go build ./cmd/...` in repo root)
+/helix-*
+/helixd
+/htmux
+/hxc-registry
+/helix_infra
