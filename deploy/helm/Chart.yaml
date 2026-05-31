@@ -1,0 +1,18 @@
+apiVersion: v2
+name: helix-cluster
+description: A Helm chart for the Helix Cluster OS — distributed AI workload orchestration platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - helix
+  - cluster
+  - ai
+  - orchestration
+  - kubernetes
+home: https://github.com/HelixCluster/HelixCluster
+sources:
+  - https://github.com/HelixCluster/HelixCluster
+maintainers:
+  - name: Helix Cluster Team
+    email: maintainers@helixcluster.io

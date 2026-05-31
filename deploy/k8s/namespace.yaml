@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: helix-cluster
+  labels:
+    app.kubernetes.io/name: helix-cluster
+    app.kubernetes.io/managed-by: kubectl

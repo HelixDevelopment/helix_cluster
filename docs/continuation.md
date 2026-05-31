@@ -1,6 +1,6 @@
 # Continuation Document
 
-**Revision:** 21
+**Revision:** 22
 **Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
@@ -16,7 +16,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
-| `TBD` | feat: health, security, build, wireguard services (HXC-920) |
+| `TBD` | feat: Web UI, K8s/Helm, integration, E2E, benchmarks (HXC-921) |
+| `48c72e6` | feat: health, security, build, wireguard services (HXC-920) |
 | `5cbf614` | feat: htmux, messaging, GPU, WASM, storage, build manifest (HXC-919) |
 | `23f86b8` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
 | `c85c2ff` | feat: LLM service, policy engine, setup CLI, distributed lock (HXC-914) |
@@ -25,7 +26,6 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `fdab788` | feat: ClassAds expression evaluator tests (HXC-913) |
 | `01a040e` | feat: HXC-913 Health monitor, security stub, ClassAds parser |
 | `32e043a` | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
-| `aa16e50` | feat: HXC-911 Scheduler and Session gRPC service wrappers |
 
 ## §2: Environment Snapshot
 
@@ -34,15 +34,21 @@ Any CLI agent resuming work on this project MUST read this file first.
 | **Branch** | `main` |
 | **Commit** | `TBD` |
 | **Timestamp** | 2026-05-31T20:43:17+05:00 |
-| **Go packages** | 71 packages pass `go test -race` |
+| **Go packages** | 74 packages pass `go test -race` |
 | **cmd binaries** | 14 implemented |
 | **internal services** | 10 implemented (all complete) |
-| **Total Go files** | ~260+ files across pkg/, internal/, cmd/ |
+| **Web UI** | React + TypeScript dashboard (193 KB bundle) |
+| **K8s manifests** | Raw YAML + Helm chart (kubeconform-validated) |
+| **Integration tests** | 12 test cases across 5 integration scenarios |
+| **E2E tests** | 2 full cluster lifecycle scenarios |
+| **Benchmarks** | Scheduler, session benchmarks |
+| **Total Go files** | ~290+ files across pkg/, internal/, cmd/, test/ |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-921 | Web UI, K8s/Helm, integration, E2E, benchmarks | ✅ Done |
 | HXC-920 | Health, security, build, wireguard services | ✅ Done |
 | HXC-919 | htmux, messaging, GPU, WASM, storage, build manifest | ✅ Done |
 | HXC-918 | Wire scheduler/session gRPC to real backends, etcd discovery | ✅ Done |
@@ -55,13 +61,13 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 ## §4: Next Planned Work
 
-All MVP, Phase 2, Phase 3, and Phase 4 infrastructure is **COMPLETE**. Remaining potential enhancements:
+All MVP, Phase 2, Phase 3, and Phase 4 are **COMPLETE**. Potential future enhancements:
 
-1. **Integration tests** — End-to-end tests across multiple services
-2. **Performance benchmarks** — Benchmark critical paths (scheduler, session, messaging)
-3. **Documentation** — API docs, architecture diagrams
-4. **Deployment configs** — Kubernetes manifests, Docker Compose
-5. **Monitoring dashboards** — Grafana/Prometheus integration
+1. **Performance optimization** — Profile and optimize hot paths
+2. **Chaos engineering** — Expand chaos test scenarios
+3. **Multi-region support** — Cross-region cluster federation
+4. **GPU scheduling v2** — Multi-GPU, fractional GPU allocation
+5. **Web UI real-time** — WebSocket integration for live updates
 
 ## §5: Known Issues / Blockers
 
@@ -75,4 +81,13 @@ GOWORK=$(pwd)/go.work go test ./... -race -count=1
 
 # Build all binaries
 GOWORK=$(pwd)/go.work go build ./cmd/...
+
+# Build web UI
+cd web && npm run build
+
+# Render Helm chart
+helm template helix-cluster deploy/helm/
+
+# Run benchmarks
+go test -bench=. ./test/benchmark
 ```

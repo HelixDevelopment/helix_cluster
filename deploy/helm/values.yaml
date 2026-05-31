@@ -1,0 +1,146 @@
+# Default values for helix-cluster.
+
+image:
+  registry: "helixcluster"
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+# Service-specific replica counts
+replicaCount:
+  scheduler: 2
+  session: 2
+  gateway: 2
+  health: 2
+  security: 2
+  llm: 2
+  policy: 2
+
+# Resource limits and requests per service
+resources:
+  scheduler:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  session:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  gateway:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1000m"
+  health:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  security:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  llm:
+    requests:
+      memory: "512Mi"
+      cpu: "500m"
+    limits:
+      memory: "4Gi"
+      cpu: "2000m"
+  policy:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  agent:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+# etcd configuration
+etcd:
+  replicas: 3
+  image:
+    repository: quay.io/coreos/etcd
+    tag: v3.5.15
+    pullPolicy: IfNotPresent
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "250m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+
+# Shared configuration
+config:
+  logLevel: info
+  ports:
+    scheduler: 50052
+    session: 50053
+    gateway: 8080
+    health: 50055
+    security: 50056
+    llm: 50057
+    policy: 50058
+    agent: 50059
+
+# Gateway service type (LoadBalancer or NodePort)
+gateway:
+  serviceType: LoadBalancer
+  nodePort: ""
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: helix-cluster.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Pod security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# Node selectors, tolerations, affinity
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

@@ -73,6 +73,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	http.NotFound(w, r)
 }
 
+// SetProxy overrides the reverse proxy for a given prefix (useful in tests).
+func (g *Gateway) SetProxy(prefix string, proxy *httputil.ReverseProxy) {
+	g.proxies[prefix] = proxy
+}
+
 // ListenAndServe starts the gateway HTTP server on the given address.
 func (g *Gateway) ListenAndServe(addr string) error {
 	log.Printf("gateway listening on %s", addr)

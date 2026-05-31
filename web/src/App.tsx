@@ -1,10 +1,29 @@
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import DashboardLayout from './layout/DashboardLayout';
+import ClusterOverview from './pages/ClusterOverview';
+import NodesPage from './pages/NodesPage';
+import JobsPage from './pages/JobsPage';
+import SessionsPage from './pages/SessionsPage';
+import BuildsPage from './pages/BuildsPage';
+import HealthPage from './pages/HealthPage';
+import SecurityPage from './pages/SecurityPage';
+
 function App() {
   return (
-    <div style={{ padding: '2rem', fontFamily: 'sans-serif' }}>
-      <h1>Helix Cluster OS</h1>
-      <p>Web UI scaffolding is ready.</p>
-    </div>
-  )
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<DashboardLayout />}>
+          <Route index element={<ClusterOverview />} />
+          <Route path="nodes" element={<NodesPage />} />
+          <Route path="jobs" element={<JobsPage />} />
+          <Route path="sessions" element={<SessionsPage />} />
+          <Route path="builds" element={<BuildsPage />} />
+          <Route path="health" element={<HealthPage />} />
+          <Route path="security" element={<SecurityPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;

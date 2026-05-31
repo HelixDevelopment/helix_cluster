@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: helix-security
+  namespace: helix-cluster
+  labels:
+    app.kubernetes.io/name: helix-security
+    app.kubernetes.io/component: security
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: helix-security
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: helix-security
+        app.kubernetes.io/component: security
+    spec:
+      containers:
+        - name: security
+          image: helixcluster/helix-security:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50056
+              name: grpc
+          envFrom:
+            - configMapRef:
+                name: helix-config
+          livenessProbe:
+            grpc:
+              port: 50056
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            grpc:
+              port: 50056
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: helix-security
+  namespace: helix-cluster
+  labels:
+    app.kubernetes.io/name: helix-security
+    app.kubernetes.io/component: security
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: helix-security
+  ports:
+    - port: 50056
+      targetPort: 50056
+      name: grpc

@@ -1,0 +1,126 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: etcd
+  namespace: helix-cluster
+  labels:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: datastore
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: 2379
+      targetPort: 2379
+      name: client
+    - port: 2380
+      targetPort: 2380
+      name: peer
+  selector:
+    app.kubernetes.io/name: etcd
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: etcd
+  namespace: helix-cluster
+  labels:
+    app.kubernetes.io/name: etcd
+    app.kubernetes.io/component: datastore
+spec:
+  serviceName: etcd
+  replicas: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: etcd
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd
+        app.kubernetes.io/component: datastore
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app.kubernetes.io/name
+                      operator: In
+                      values:
+                        - etcd
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: etcd
+          image: quay.io/coreos/etcd:v3.5.15
+          command:
+            - /usr/local/bin/etcd
+            - --name
+            - $(POD_NAME)
+            - --data-dir
+            - /etcd-data
+            - --listen-client-urls
+            - http://0.0.0.0:2379
+            - --advertise-client-urls
+            - http://$(POD_NAME).etcd.helix-cluster.svc.cluster.local:2379
+            - --listen-peer-urls
+            - http://0.0.0.0:2380
+            - --initial-advertise-peer-urls
+            - http://$(POD_NAME).etcd.helix-cluster.svc.cluster.local:2380
+            - --initial-cluster
+            - etcd-0=http://etcd-0.etcd.helix-cluster.svc.cluster.local:2380,etcd-1=http://etcd-1.etcd.helix-cluster.svc.cluster.local:2380,etcd-2=http://etcd-2.etcd.helix-cluster.svc.cluster.local:2380
+            - --initial-cluster-token
+            - helix-cluster-etcd
+            - --initial-cluster-state
+            - new
+          env:
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: ETCDCTL_API
+              value: "3"
+          ports:
+            - containerPort: 2379
+              name: client
+            - containerPort: 2380
+              name: peer
+          livenessProbe:
+            exec:
+              command:
+                - etcdctl
+                - endpoint
+                - health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            exec:
+              command:
+                - etcdctl
+                - endpoint
+                - health
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          volumeMounts:
+            - name: etcd-data
+              mountPath: /etcd-data
+  volumeClaimTemplates:
+    - metadata:
+        name: etcd-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

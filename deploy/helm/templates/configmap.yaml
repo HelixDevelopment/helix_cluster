@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helix-cluster.fullname" . }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helix-cluster.labels" . | nindent 4 }}
+data:
+  ETCD_ENDPOINTS: {{ include "helix-cluster.etcdEndpoints" . | quote }}
+  LOG_LEVEL: {{ .Values.config.logLevel | quote }}
+  SCHEDULER_PORT: {{ .Values.config.ports.scheduler | quote }}
+  SESSION_PORT: {{ .Values.config.ports.session | quote }}
+  GATEWAY_PORT: {{ .Values.config.ports.gateway | quote }}
+  HEALTH_PORT: {{ .Values.config.ports.health | quote }}
+  SECURITY_PORT: {{ .Values.config.ports.security | quote }}
+  LLM_PORT: {{ .Values.config.ports.llm | quote }}
+  POLICY_PORT: {{ .Values.config.ports.policy | quote }}
+  AGENT_PORT: {{ .Values.config.ports.agent | quote }}

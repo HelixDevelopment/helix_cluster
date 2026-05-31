@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: helix-cluster
+
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - etcd.yaml
+  - scheduler.yaml
+  - session.yaml
+  - gateway.yaml
+  - agent-daemonset.yaml
+  - health.yaml
+  - security.yaml
+  - llm.yaml
+  - policy.yaml
+
+commonLabels:
+  app.kubernetes.io/part-of: helix-cluster

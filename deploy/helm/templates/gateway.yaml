@@ -1,0 +1,83 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "helix-cluster.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helix-cluster.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount.gateway }}
+  selector:
+    matchLabels:
+  template:
+    metadata:
+      labels:
+        {{- include "helix-cluster.selectorLabels" . | nindent 8 }}
+    spec:
+      serviceAccountName: {{ include "helix-cluster.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      containers:
+        - name: gateway
+          image: "{{ .Values.image.registry }}/helix-gateway:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.config.ports.gateway }}
+              name: http
+          envFrom:
+            - configMapRef:
+                name: {{ include "helix-cluster.fullname" . }}-config
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: {{ .Values.config.ports.gateway }}
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: {{ .Values.config.ports.gateway }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          resources:
+            {{- toYaml .Values.resources.gateway | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "helix-cluster.fullname" . }}-gateway
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "helix-cluster.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.gateway.serviceType }}
+  selector:
+  ports:
+    - port: {{ .Values.config.ports.gateway }}
+      targetPort: {{ .Values.config.ports.gateway }}
+      name: http
+      {{- if and (eq .Values.gateway.serviceType "NodePort") .Values.gateway.nodePort }}
+      nodePort: {{ .Values.gateway.nodePort }}
+      {{- end }}
