@@ -1,3 +1,3 @@
 #!/bin/bash
 
-export UPSTREAMABLE_REPOSITORY="git@gitflic.ru:HelixDevelopment/helix_cluster.git"
+export UPSTREAMABLE_REPOSITORY="git@gitflic.ru:helixdevelopment/helix_cluster.git"
