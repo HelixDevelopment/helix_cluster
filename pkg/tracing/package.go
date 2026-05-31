@@ -25,6 +25,7 @@ type Span struct {
 	StartTime time.Time
 	mu        sync.RWMutex
 	finished  bool
+	endTime   time.Time
 	tags      map[string]string
 	logs      []LogRecord
 }
@@ -70,6 +71,9 @@ func (s *Span) Finish() {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.finished = true
+	if s.endTime.IsZero() {
+		s.endTime = time.Now()
+	}
 }
 
 // IsFinished reports whether the span has been finished.
