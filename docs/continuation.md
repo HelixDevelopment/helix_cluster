@@ -1,6 +1,6 @@
 # Continuation Document
 
-**Revision:** 20
+**Revision:** 21
 **Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
@@ -16,7 +16,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
-| `TBD` | feat: htmux, messaging, GPU, WASM, storage, build manifest (HXC-919) |
+| `TBD` | feat: health, security, build, wireguard services (HXC-920) |
+| `5cbf614` | feat: htmux, messaging, GPU, WASM, storage, build manifest (HXC-919) |
 | `23f86b8` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
 | `c85c2ff` | feat: LLM service, policy engine, setup CLI, distributed lock (HXC-914) |
 | `3f46b40` | feat: Expand stub packages + build artifact cache (HXC-916) |
@@ -25,7 +26,6 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `01a040e` | feat: HXC-913 Health monitor, security stub, ClassAds parser |
 | `32e043a` | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
 | `aa16e50` | feat: HXC-911 Scheduler and Session gRPC service wrappers |
-| `bb4404c` | fix: etcd nil-safe Close + lightweight tests (HXC-910) |
 
 ## §2: Environment Snapshot
 
@@ -34,14 +34,16 @@ Any CLI agent resuming work on this project MUST read this file first.
 | **Branch** | `main` |
 | **Commit** | `TBD` |
 | **Timestamp** | 2026-05-31T20:43:17+05:00 |
-| **Go packages** | 67 packages pass `go test -race` |
-| **cmd binaries** | 14 implemented (htmux now complete) |
-| **Total Go files** | ~230+ files across pkg/, internal/, cmd/ |
+| **Go packages** | 71 packages pass `go test -race` |
+| **cmd binaries** | 14 implemented |
+| **internal services** | 10 implemented (all complete) |
+| **Total Go files** | ~260+ files across pkg/, internal/, cmd/ |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-920 | Health, security, build, wireguard services | ✅ Done |
 | HXC-919 | htmux, messaging, GPU, WASM, storage, build manifest | ✅ Done |
 | HXC-918 | Wire scheduler/session gRPC to real backends, etcd discovery | ✅ Done |
 | HXC-916 | Stub expansion (config, retry, ratelimit, validator, build cache) | ✅ Done |
@@ -53,12 +55,13 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 ## §4: Next Planned Work
 
-1. **internal/health** — Health check aggregation service
-2. **internal/security** — Security orchestration internals
-3. **internal/wireguard** — WireGuard mesh coordination
-4. **internal/build** — Build orchestration internals
-5. **pkg/observability** — Metrics and tracing integration
-6. **BUGGIFY integration** — Deterministic fault injection hooks
+All MVP, Phase 2, Phase 3, and Phase 4 infrastructure is **COMPLETE**. Remaining potential enhancements:
+
+1. **Integration tests** — End-to-end tests across multiple services
+2. **Performance benchmarks** — Benchmark critical paths (scheduler, session, messaging)
+3. **Documentation** — API docs, architecture diagrams
+4. **Deployment configs** — Kubernetes manifests, Docker Compose
+5. **Monitoring dashboards** — Grafana/Prometheus integration
 
 ## §5: Known Issues / Blockers
 
