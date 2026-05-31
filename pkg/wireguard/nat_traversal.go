@@ -7,25 +7,55 @@ import (
 	"time"
 )
 
-// NATTraversal handles UPnP/NAT-PMP for endpoint discovery.
+// NATTraversal handles NAT endpoint discovery for WireGuard.
 type NATTraversal struct {
 	enabled bool
 	gateway net.IP
 }
 
-// DiscoverExternalAddress attempts to discover the external IP:port.
+// DiscoverExternalAddress attempts to discover the external IP:port for the
+// given local port WITHOUT a configured STUN server.
+//
+// Endpoint discovery requires reaching out to a reflexive server (STUN). With
+// no server supplied there is nothing to query, so this returns an honest
+// error. Callers that have a STUN server should use
+// DiscoverExternalAddressVia, which performs a real RFC 5389 Binding exchange.
 func DiscoverExternalAddress(localPort int) (string, error) {
-	// Attempt STUN-like discovery via external services.
-	// For production, integrate with a STUN client or UPnP/NAT-PMP library.
-	resp, err := httpGetWithTimeout("https://api.ipify.org", 5*time.Second)
+	return "", fmt.Errorf("external address discovery requires a STUN server: use DiscoverExternalAddressVia")
+}
+
+// DiscoverExternalAddressVia discovers the public (server-reflexive) endpoint
+// by performing a real RFC 5389 STUN Binding exchange against stunServer
+// (host:port) over UDP. The returned string is the public "ip:port" reported
+// by the server's XOR-MAPPED-ADDRESS attribute.
+//
+// localPort, when > 0, is the UDP port the discovery socket binds to so that
+// the reflexive mapping corresponds to the WireGuard listen port.
+func DiscoverExternalAddressVia(stunServer string, localPort int, timeout time.Duration) (string, error) {
+	if stunServer == "" {
+		return "", fmt.Errorf("stun server address is empty")
+	}
+	raddr, err := net.ResolveUDPAddr("udp", stunServer)
 	if err != nil {
-		return "", fmt.Errorf("failed to discover external address: %w", err)
+		return "", fmt.Errorf("invalid stun server address %q: %w", stunServer, err)
 	}
-	ip := net.ParseIP(resp)
-	if ip == nil {
-		return "", fmt.Errorf("invalid external IP received: %s", resp)
+
+	var laddr *net.UDPAddr
+	if localPort > 0 {
+		laddr = &net.UDPAddr{Port: localPort}
 	}
-	return fmt.Sprintf("%s:%d", ip.String(), localPort), nil
+	conn, err := net.DialUDP("udp", laddr, raddr)
+	if err != nil {
+		return "", fmt.Errorf("failed to dial stun server: %w", err)
+	}
+	defer conn.Close()
+
+	client := &STUNClient{Timeout: timeout}
+	addr, err := client.exchange(conn)
+	if err != nil {
+		return "", fmt.Errorf("stun discovery failed: %w", err)
+	}
+	return addr.String(), nil
 }
 
 // SetupPortMapping creates a UPnP/NAT-PMP port mapping.
@@ -39,19 +69,4 @@ func SetupPortMapping(ctx context.Context, internalPort, externalPort int, durat
 func RemovePortMapping(ctx context.Context, externalPort int) error {
 	// Placeholder for UPnP/NAT-PMP integration.
 	return fmt.Errorf("UPnP/NAT-PMP not implemented")
-}
-
-func httpGetWithTimeout(url string, timeout time.Duration) (string, error) {
-	client := &httpClient{timeout: timeout}
-	return client.get(url)
-}
-
-// httpClient is a minimal HTTP client abstraction for testability.
-type httpClient struct {
-	timeout time.Duration
-}
-
-func (c *httpClient) get(url string) (string, error) {
-	// Use net/http in non-test builds.
-	return "", fmt.Errorf("http client not available in this build")
 }

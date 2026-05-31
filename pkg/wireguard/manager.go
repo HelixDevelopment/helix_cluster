@@ -26,6 +26,15 @@ type Manager struct {
 	// manager was constructed with) and increments on every tracked rotation.
 	keyGeneration uint64
 	keyRotatedAt  time.Time
+
+	// Per-peer key-overlap windows. Keyed by a caller-chosen peer identity,
+	// each entry holds the set of public keys currently accepted for that peer
+	// (the new key plus any not-yet-expired old keys). See keyrotation.go.
+	peerKeys map[string][]validKey
+
+	// now is the clock used for overlap-window expiry. It is injectable so
+	// tests can drive expiry deterministically; nil means time.Now.
+	now func() time.Time
 }
 
 // deviceKeyOnly builds a wgtypes.Config that updates only the interface
@@ -44,10 +53,19 @@ func NewManager(cfg *Config) (*Manager, error) {
 		return nil, fmt.Errorf("failed to create wgctrl client: %w", err)
 	}
 	return &Manager{
-		config: cfg,
-		client: client,
-		peers:  make(map[string]*PeerConfig),
+		config:   cfg,
+		client:   client,
+		peers:    make(map[string]*PeerConfig),
+		peerKeys: make(map[string][]validKey),
 	}, nil
+}
+
+// clock returns the manager's time source, defaulting to time.Now.
+func (m *Manager) clock() time.Time {
+	if m.now != nil {
+		return m.now()
+	}
+	return time.Now()
 }
 
 // Start initializes the WireGuard interface.
