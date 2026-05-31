@@ -49,18 +49,46 @@ func (p *WasmPlugin) Init() error {
 	return nil
 }
 
-// Execute calls the exported execute function with input length as a single i64
-// argument.  The real implementation would use WASM memory; here we pass the
-// length as a simple integration signal.
+// Execute runs the plugin's exported "execute" function against input and
+// returns the bytes the WASM module actually produced.
+//
+// ABI: the host copies input into the module's exported linear memory at
+// offset 0, then calls execute(inputLen i64) -> (outputLen i64). The guest reads
+// inputLen bytes at offset 0, writes its result starting at offset 0, and
+// returns the number of output bytes. The host then reads exactly that many
+// bytes from memory offset 0 and returns them. The output is therefore the real
+// product of the WASM module, not an echo of the input.
 func (p *WasmPlugin) Execute(input []byte) ([]byte, error) {
 	if p.host == nil {
 		return nil, fmt.Errorf("plugin not initialized")
 	}
-	_, err := p.host.Call(p.execFn, int64(len(input)))
+
+	mem := p.host.Memory()
+	if mem == nil {
+		return nil, fmt.Errorf("execute: module exports no linear memory")
+	}
+	if len(input) > len(mem) {
+		return nil, fmt.Errorf("execute: input of %d bytes exceeds WASM memory of %d bytes", len(input), len(mem))
+	}
+	copy(mem, input)
+
+	outLen, err := p.host.Call(p.execFn, int64(len(input)))
 	if err != nil {
 		return nil, fmt.Errorf("execute: %w", err)
 	}
-	return input, nil
+	if outLen < 0 {
+		return nil, fmt.Errorf("execute: module returned negative output length %d", outLen)
+	}
+
+	// Re-fetch memory: the guest may have grown it during execution, which
+	// would invalidate the earlier slice.
+	mem = p.host.Memory()
+	if int64(len(mem)) < outLen {
+		return nil, fmt.Errorf("execute: module reported %d output bytes but memory is %d bytes", outLen, len(mem))
+	}
+	out := make([]byte, outLen)
+	copy(out, mem[:outLen])
+	return out, nil
 }
 
 // Shutdown calls the optional shutdown export and releases the host.

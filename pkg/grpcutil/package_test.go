@@ -16,6 +16,10 @@ import (
 type mockServerStream struct {
 	grpc.ServerStream
 	ctx context.Context
+	// recvCalls / sendCalls record how many times the underlying
+	// ServerStream's RecvMsg/SendMsg were actually reached.
+	recvCalls int
+	sendCalls int
 }
 
 func (m *mockServerStream) Context() context.Context {
@@ -23,6 +27,16 @@ func (m *mockServerStream) Context() context.Context {
 		return m.ctx
 	}
 	return context.Background()
+}
+
+func (m *mockServerStream) RecvMsg(interface{}) error {
+	m.recvCalls++
+	return nil
+}
+
+func (m *mockServerStream) SendMsg(interface{}) error {
+	m.sendCalls++
+	return nil
 }
 
 func TestUnaryInterceptorCallsHandler(t *testing.T) {
@@ -43,8 +57,12 @@ func TestUnaryInterceptorCallsHandler(t *testing.T) {
 		t.Error("expected handler to be called")
 	}
 	output := buf.String()
-	if !strings.Contains(output, "unary") {
-		t.Error("expected log to contain 'unary'")
+	// Assert dynamic, behavior-dependent fields so the assertion fails if the
+	// wrong branch runs or the logged fields are dropped.
+	for _, want := range []string{"unary", "/test/Method", "code=OK", "err=<nil>"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected log to contain %q, got %q", want, output)
+		}
 	}
 }
 
@@ -81,8 +99,10 @@ func TestStreamInterceptorCallsHandler(t *testing.T) {
 		t.Error("expected handler to be called")
 	}
 	output := buf.String()
-	if !strings.Contains(output, "stream") {
-		t.Error("expected log to contain 'stream'")
+	for _, want := range []string{"stream", "/test/Stream", "code=OK", "err=<nil>"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected log to contain %q, got %q", want, output)
+		}
 	}
 }
 
@@ -235,5 +255,165 @@ func TestMutationAuthUnaryInterceptorCaseSensitive(t *testing.T) {
 	_, err := ic(ctx, "req", &grpc.UnaryServerInfo{FullMethod: "/test/Method"}, handler)
 	if err == nil {
 		t.Error("mutation: expected case-sensitive API key comparison to fail")
+	}
+}
+
+// --- LoggingStreamInterceptor counter tests ---
+
+// TestLoggingStreamInterceptorCounts drives a stream through the handler that
+// calls RecvMsg N times and SendMsg M times, then asserts BOTH the wrappedStream
+// counters and the emitted log line report recv=N send=M. This is the only
+// sink-side proof that the counting in wrappedStream is real and not a no-op:
+// a no-op implementation (recvCount/sendCount never incremented) would log
+// recv=0 send=0 and FAIL this test.
+func TestLoggingStreamInterceptorCounts(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(nil)
+
+	const wantRecv = 3
+	const wantSend = 2
+
+	var capturedRecv, capturedSend int
+	handler := func(srv interface{}, stream grpc.ServerStream) error {
+		for i := 0; i < wantRecv; i++ {
+			if err := stream.RecvMsg(nil); err != nil {
+				t.Fatalf("RecvMsg: %v", err)
+			}
+		}
+		for i := 0; i < wantSend; i++ {
+			if err := stream.SendMsg(nil); err != nil {
+				t.Fatalf("SendMsg: %v", err)
+			}
+		}
+		// The stream the handler receives MUST be the *wrappedStream so the
+		// interceptor's counters observe these calls.
+		ws, ok := stream.(*wrappedStream)
+		if !ok {
+			t.Fatalf("handler did not receive *wrappedStream, got %T", stream)
+		}
+		capturedRecv = ws.recvCount
+		capturedSend = ws.sendCount
+		return nil
+	}
+
+	inner := &mockServerStream{}
+	err := LoggingStreamInterceptor(nil, inner, &grpc.StreamServerInfo{FullMethod: "/test/LogStream"}, handler)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+
+	// Direct sink-side state: the wrappedStream actually incremented.
+	if capturedRecv != wantRecv {
+		t.Errorf("wrappedStream.recvCount = %d, want %d", capturedRecv, wantRecv)
+	}
+	if capturedSend != wantSend {
+		t.Errorf("wrappedStream.sendCount = %d, want %d", capturedSend, wantSend)
+	}
+	// The wrappedStream must delegate to the underlying ServerStream.
+	if inner.recvCalls != wantRecv {
+		t.Errorf("underlying RecvMsg called %d times, want %d", inner.recvCalls, wantRecv)
+	}
+	if inner.sendCalls != wantSend {
+		t.Errorf("underlying SendMsg called %d times, want %d", inner.sendCalls, wantSend)
+	}
+	// The emitted log line must report the dynamic counts.
+	output := buf.String()
+	for _, want := range []string{"/test/LogStream", "recv=3", "send=2", "err=<nil>"} {
+		if !strings.Contains(output, want) {
+			t.Errorf("expected log to contain %q, got %q", want, output)
+		}
+	}
+}
+
+// TestLoggingStreamInterceptorPropagatesError asserts the handler's error is
+// surfaced unchanged and that the counts are still logged.
+func TestLoggingStreamInterceptorPropagatesError(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(nil)
+
+	wantErr := status.Error(codes.Internal, "boom")
+	handler := func(srv interface{}, stream grpc.ServerStream) error {
+		_ = stream.RecvMsg(nil)
+		return wantErr
+	}
+	err := LoggingStreamInterceptor(nil, &mockServerStream{}, &grpc.StreamServerInfo{FullMethod: "/test/LogStream"}, handler)
+	if err != wantErr {
+		t.Fatalf("expected error %v to be propagated unchanged, got %v", wantErr, err)
+	}
+	if !strings.Contains(buf.String(), "recv=1") {
+		t.Errorf("expected log to contain recv=1, got %q", buf.String())
+	}
+}
+
+// --- Handler-returns-error code extraction tests ---
+
+// TestUnaryInterceptorLogsHandlerErrorCode exercises the status.FromError
+// branch: when the handler returns a non-OK status, the interceptor must (a)
+// propagate the exact code and (b) log code=<that code>. A broken extraction
+// (e.g. always logging code=OK) would FAIL the code= assertion.
+func TestUnaryInterceptorLogsHandlerErrorCode(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(nil)
+
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return nil, status.Error(codes.Internal, "boom")
+	}
+	_, err := UnaryInterceptor(context.Background(), "req", &grpc.UnaryServerInfo{FullMethod: "/test/Method"}, handler)
+	st, ok := status.FromError(err)
+	if !ok || st.Code() != codes.Internal {
+		t.Fatalf("expected Internal code propagated, got %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "code=Internal") {
+		t.Errorf("expected log to contain code=Internal, got %q", output)
+	}
+	if strings.Contains(output, "code=OK") {
+		t.Errorf("log must not report code=OK for an errored handler, got %q", output)
+	}
+}
+
+// TestStreamInterceptorLogsHandlerErrorCode is the stream counterpart.
+func TestStreamInterceptorLogsHandlerErrorCode(t *testing.T) {
+	var buf bytes.Buffer
+	log.SetOutput(&buf)
+	defer log.SetOutput(nil)
+
+	handler := func(srv interface{}, stream grpc.ServerStream) error {
+		return status.Error(codes.Internal, "boom")
+	}
+	err := StreamInterceptor(nil, &mockServerStream{}, &grpc.StreamServerInfo{FullMethod: "/test/Stream"}, handler)
+	st, ok := status.FromError(err)
+	if !ok || st.Code() != codes.Internal {
+		t.Fatalf("expected Internal code propagated, got %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "code=Internal") {
+		t.Errorf("expected log to contain code=Internal, got %q", output)
+	}
+	if strings.Contains(output, "code=OK") {
+		t.Errorf("log must not report code=OK for an errored handler, got %q", output)
+	}
+}
+
+// TestAuthUnaryInterceptorEmptyTokenSlice pins the len(tokens) == 0 branch:
+// the x-api-key metadata key is present but its value list is empty.
+func TestAuthUnaryInterceptorEmptyTokenSlice(t *testing.T) {
+	ic := AuthUnaryInterceptor("secret-key")
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return "ok", nil
+	}
+	// MD with the key present but no values.
+	md := metadata.MD{"x-api-key": []string{}}
+	ctx := metadata.NewIncomingContext(context.Background(), md)
+	_, err := ic(ctx, "req", &grpc.UnaryServerInfo{FullMethod: "/test/Method"}, handler)
+	if err == nil {
+		t.Fatal("expected error for empty token slice")
+	}
+	st, ok := status.FromError(err)
+	if !ok || st.Code() != codes.Unauthenticated {
+		t.Errorf("expected Unauthenticated, got %v", err)
 	}
 }

@@ -90,6 +90,26 @@ func (h *Host) Call(funcName string, args ...int64) (int64, error) {
 	return val, nil
 }
 
+// Memory returns the instance's exported linear memory ("memory"), or nil if
+// the module is not instantiated or exports no memory. The returned slice
+// aliases WASM linear memory directly: writes are visible to the guest and
+// guest writes are visible here. It is only valid until the next call that may
+// grow memory.
+func (h *Host) Memory() []byte {
+	if h.inst == nil {
+		return nil
+	}
+	ext := h.inst.GetExport(h.store, "memory")
+	if ext == nil {
+		return nil
+	}
+	mem := ext.Memory()
+	if mem == nil {
+		return nil
+	}
+	return mem.UnsafeData(h.store)
+}
+
 // Close releases engine and store resources.
 func (h *Host) Close() {
 	if h.store != nil {

@@ -100,7 +100,7 @@ func NewFileStore(root string) (*FileStore, error) {
 // Put stores data under key as a file.
 func (s *FileStore) Put(key string, data []byte) error {
 	if key == "" {
-		return fmt.Errorf("key cannot be empty")
+		return fmt.Errorf("key cannot be empty: %w", ErrEmptyKey)
 	}
 	path := s.keyPath(key)
 	s.mu.Lock()
