@@ -25,6 +25,14 @@ type Span struct {
 	StartTime time.Time
 	mu        sync.RWMutex
 	finished  bool
+	tags      map[string]string
+	logs      []LogRecord
+}
+
+// LogRecord represents a log entry within a span.
+type LogRecord struct {
+	Timestamp time.Time
+	Message   string
 }
 
 // StartSpan creates a new Span. If the context contains a parent Span, the new
@@ -40,6 +48,7 @@ func StartSpan(ctx context.Context, name string) (*Span, context.Context) {
 		SpanID:    newSpanID(),
 		Name:      name,
 		StartTime: time.Now(),
+		tags:      make(map[string]string),
 	}
 	if parent != nil {
 		s.TraceID = parent.TraceID
@@ -76,6 +85,50 @@ func (s *Span) Duration() time.Duration {
 	return time.Since(s.StartTime)
 }
 
+// SetTag sets a tag on the span.
+func (s *Span) SetTag(key, value string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.tags == nil {
+		s.tags = make(map[string]string)
+	}
+	s.tags[key] = value
+}
+
+// GetTag returns a tag value, or empty string if not set.
+func (s *Span) GetTag(key string) string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.tags[key]
+}
+
+// Tags returns a copy of all tags.
+func (s *Span) Tags() map[string]string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make(map[string]string, len(s.tags))
+	for k, v := range s.tags {
+		out[k] = v
+	}
+	return out
+}
+
+// Log adds a log record to the span.
+func (s *Span) Log(message string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.logs = append(s.logs, LogRecord{Timestamp: time.Now(), Message: message})
+}
+
+// Logs returns a copy of all log records.
+func (s *Span) Logs() []LogRecord {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	out := make([]LogRecord, len(s.logs))
+	copy(out, s.logs)
+	return out
+}
+
 // PropagationHeaders returns key-value pairs suitable for HTTP header propagation.
 func (s *Span) PropagationHeaders() map[string]string {
 	return map[string]string{
@@ -95,11 +148,85 @@ func StartSpanFromHeaders(ctx context.Context, name string, headers map[string]s
 		ParentID:  parentSpanID,
 		Name:      name,
 		StartTime: time.Now(),
+		tags:      make(map[string]string),
 	}
 	if s.TraceID == "" {
 		s.TraceID = newTraceID()
 	}
 	return s, context.WithValue(ctx, traceContextKey, s)
+}
+
+// Tracer is the interface for starting and propagating spans.
+type Tracer interface {
+	StartSpan(ctx context.Context, name string) (*Span, context.Context)
+	Inject(span *Span) map[string]string
+	Extract(headers map[string]string) (context.Context, *Span)
+}
+
+// DefaultTracer implements Tracer with in-memory span creation.
+type DefaultTracer struct{}
+
+// NewTracer creates a new DefaultTracer.
+func NewTracer() Tracer {
+	return &DefaultTracer{}
+}
+
+// StartSpan implements Tracer.
+func (dt *DefaultTracer) StartSpan(ctx context.Context, name string) (*Span, context.Context) {
+	return StartSpan(ctx, name)
+}
+
+// Inject serializes a span into propagation headers.
+func (dt *DefaultTracer) Inject(span *Span) map[string]string {
+	if span == nil {
+		return map[string]string{}
+	}
+	return span.PropagationHeaders()
+}
+
+// Extract deserializes a span from propagation headers and returns a new child span.
+func (dt *DefaultTracer) Extract(headers map[string]string) (context.Context, *Span) {
+	ctx := context.Background()
+	span, ctx := StartSpanFromHeaders(ctx, "extracted", headers)
+	return ctx, span
+}
+
+// NoOpTracer is a tracer that does nothing. Use it when tracing is disabled.
+type NoOpTracer struct{}
+
+// NewNoOpTracer creates a new NoOpTracer.
+func NewNoOpTracer() Tracer {
+	return &NoOpTracer{}
+}
+
+// StartSpan returns a minimal no-op span.
+func (nt *NoOpTracer) StartSpan(ctx context.Context, name string) (*Span, context.Context) {
+	s := &Span{
+		TraceID:   "noop",
+		SpanID:    "noop",
+		Name:      name,
+		StartTime: time.Now(),
+		tags:      make(map[string]string),
+	}
+	return s, ctx
+}
+
+// Inject returns empty headers.
+func (nt *NoOpTracer) Inject(span *Span) map[string]string {
+	return map[string]string{}
+}
+
+// Extract returns a no-op span.
+func (nt *NoOpTracer) Extract(headers map[string]string) (context.Context, *Span) {
+	ctx := context.Background()
+	s := &Span{
+		TraceID:   "noop",
+		SpanID:    "noop",
+		Name:      "noop",
+		StartTime: time.Now(),
+		tags:      make(map[string]string),
+	}
+	return ctx, s
 }
 
 var randReader = rand.Reader

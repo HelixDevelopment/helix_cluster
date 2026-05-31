@@ -111,13 +111,122 @@ func TestTraceIDFormat(t *testing.T) {
 	}
 }
 
+func TestSpanTags(t *testing.T) {
+	span, _ := StartSpan(context.Background(), "test")
+	span.SetTag("service", "helix")
+	span.SetTag("env", "prod")
+
+	if span.GetTag("service") != "helix" {
+		t.Errorf("expected tag service=helix, got %s", span.GetTag("service"))
+	}
+	if span.GetTag("env") != "prod" {
+		t.Errorf("expected tag env=prod, got %s", span.GetTag("env"))
+	}
+	if span.GetTag("missing") != "" {
+		t.Error("expected empty string for missing tag")
+	}
+
+	tags := span.Tags()
+	if len(tags) != 2 {
+		t.Errorf("expected 2 tags, got %d", len(tags))
+	}
+	if tags["service"] != "helix" {
+		t.Error("expected tags copy to contain service=helix")
+	}
+
+	// Mutation safety: modifying returned map should not affect span
+	tags["service"] = "mutated"
+	if span.GetTag("service") != "helix" {
+		t.Error("modifying Tags() copy should not affect span")
+	}
+}
+
+func TestSpanLogs(t *testing.T) {
+	span, _ := StartSpan(context.Background(), "test")
+	span.Log("event 1")
+	span.Log("event 2")
+
+	logs := span.Logs()
+	if len(logs) != 2 {
+		t.Errorf("expected 2 logs, got %d", len(logs))
+	}
+	if logs[0].Message != "event 1" {
+		t.Errorf("expected first log 'event 1', got %s", logs[0].Message)
+	}
+	if logs[1].Message != "event 2" {
+		t.Errorf("expected second log 'event 2', got %s", logs[1].Message)
+	}
+
+	// Mutation safety
+	logs[0].Message = "mutated"
+	logs2 := span.Logs()
+	if logs2[0].Message != "event 1" {
+		t.Error("modifying Logs() copy should not affect span")
+	}
+}
+
+func TestDefaultTracer(t *testing.T) {
+	tracer := NewTracer()
+	span, _ := tracer.StartSpan(context.Background(), "test")
+	if span.Name != "test" {
+		t.Errorf("expected span name 'test', got %s", span.Name)
+	}
+
+	hdrs := tracer.Inject(span)
+	if hdrs["X-Trace-ID"] != span.TraceID {
+		t.Error("Inject should return correct trace ID")
+	}
+
+	ctx2, span2 := tracer.Extract(hdrs)
+	if ctx2 == nil {
+		t.Error("expected non-nil context from Extract")
+	}
+	if span2.ParentID != span.SpanID {
+		t.Errorf("expected extracted span ParentID %s, got %s", span.SpanID, span2.ParentID)
+	}
+	if span2.TraceID != span.TraceID {
+		t.Errorf("expected extracted span TraceID %s, got %s", span.TraceID, span2.TraceID)
+	}
+}
+
+func TestDefaultTracerInjectNil(t *testing.T) {
+	tracer := NewTracer()
+	hdrs := tracer.Inject(nil)
+	if len(hdrs) != 0 {
+		t.Error("expected empty headers for nil span")
+	}
+}
+
+func TestNoOpTracer(t *testing.T) {
+	tracer := NewNoOpTracer()
+	span, _ := tracer.StartSpan(context.Background(), "test")
+	if span.TraceID != "noop" {
+		t.Errorf("expected noop TraceID, got %s", span.TraceID)
+	}
+	if span.SpanID != "noop" {
+		t.Errorf("expected noop SpanID, got %s", span.SpanID)
+	}
+
+	hdrs := tracer.Inject(span)
+	if len(hdrs) != 0 {
+		t.Error("expected empty headers from NoOpTracer.Inject")
+	}
+
+	ctx2, span2 := tracer.Extract(map[string]string{"X-Trace-ID": "abc"})
+	if ctx2 == nil {
+		t.Error("expected non-nil context from NoOpTracer.Extract")
+	}
+	if span2.TraceID != "noop" {
+		t.Errorf("expected noop TraceID from Extract, got %s", span2.TraceID)
+	}
+}
+
 // --- Mutation Tests ---
 
 func TestMutationSpanTamperFinish(t *testing.T) {
 	span, _ := StartSpan(context.Background(), "test")
 	span.Finish()
 
-	// Mutation: call Finish again should not panic and remain finished
 	span.Finish()
 	if !span.IsFinished() {
 		t.Error("mutation: expected span to remain finished")
