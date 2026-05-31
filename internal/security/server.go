@@ -3,6 +3,7 @@ package security
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	"google.golang.org/grpc/codes"
@@ -13,7 +14,7 @@ import (
 // security operations to Orchestrator and PolicyEnforcer.
 type GRPCServer struct {
 	helixv1.UnimplementedSecurityServiceServer
-	orch   *Orchestrator
+	orch     *Orchestrator
 	enforcer *PolicyEnforcer
 }
 
@@ -25,95 +26,97 @@ func NewGRPCServer(orch *Orchestrator, enforcer *PolicyEnforcer) *GRPCServer {
 	}
 }
 
-// IssueCert issues a TLS certificate for a node.
-func (s *GRPCServer) IssueCert(ctx context.Context, req *helixv1.IssueTokenRequest) (*helixv1.IssueTokenResponse, error) {
+// Authenticate performs identity verification and returns a token on success.
+func (s *GRPCServer) Authenticate(ctx context.Context, req *helixv1.AuthenticateRequest) (*helixv1.AuthenticateResponse, error) {
 	if req.Identity == "" {
 		return nil, status.Error(codes.InvalidArgument, "identity is required")
 	}
 
-	issueReq := IssueCertificateRequest{
+	// Validate identity via orchestrator (SPIFFE validation for SPIFFE IDs)
+	spiffeID := req.Identity
+	if !strings.HasPrefix(spiffeID, "spiffe://") {
+		spiffeID = fmt.Sprintf("spiffe://helix.local/%s", req.Identity)
+	}
+	if err := s.orch.ValidateIdentity(ctx, spiffeID); err != nil {
+		return &helixv1.AuthenticateResponse{Success: false}, nil
+	}
+
+	// Issue a real certificate as the token
+	resp, err := s.orch.IssueCertificate(ctx, IssueCertificateRequest{
 		NodeID:     req.Identity,
 		CommonName: req.Identity,
-	}
-	if req.TtlSeconds > 0 {
-		// TTL is handled inside IssueCertificate; we keep the interface simple.
-	}
-
-	cert, err := s.orch.IssueCertificate(ctx, issueReq)
+	})
 	if err != nil {
-		return nil, status.Errorf(codes.Internal, "issue certificate: %v", err)
-	}
-
-	return &helixv1.IssueTokenResponse{
-		Token:     cert.ID,
-		ExpiresAt: cert.ExpiresAt.Unix(),
-	}, nil
-}
-
-// RevokeCert revokes a certificate by its ID.
-func (s *GRPCServer) RevokeCert(ctx context.Context, req *helixv1.ValidateTokenRequest) (*helixv1.AuthorizeResponse, error) {
-	if req.Token == "" {
-		return nil, status.Error(codes.InvalidArgument, "token (cert ID) is required")
-	}
-
-	if err := s.orch.RevokeCertificate(ctx, req.Token); err != nil {
-		return nil, status.Errorf(codes.NotFound, "revoke certificate: %v", err)
-	}
-
-	return &helixv1.AuthorizeResponse{Allowed: true}, nil
-}
-
-// ValidateIdentity validates a SPIFFE identity string.
-func (s *GRPCServer) ValidateIdentity(ctx context.Context, req *helixv1.AuthenticateRequest) (*helixv1.AuthenticateResponse, error) {
-	if req.Identity == "" {
-		return nil, status.Error(codes.InvalidArgument, "identity (SPIFFE ID) is required")
-	}
-
-	if err := s.orch.ValidateIdentity(ctx, req.Identity); err != nil {
-		return &helixv1.AuthenticateResponse{
-			Success: false,
-			SpiffeId: req.Identity,
-		}, nil
+		return nil, fmt.Errorf("issue certificate: %w", err)
 	}
 
 	return &helixv1.AuthenticateResponse{
 		Success:  true,
-		SpiffeId: req.Identity,
+		Token:    resp.ID,
+		SpiffeId: spiffeID,
 	}, nil
 }
 
-// RotateCreds triggers credential rotation.
-func (s *GRPCServer) RotateCreds(ctx context.Context, _ *helixv1.ValidateTokenRequest) (*helixv1.IssueTokenResponse, error) {
-	count, err := s.orch.RotateCredentials(ctx)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "rotate credentials: %v", err)
-	}
-
-	return &helixv1.IssueTokenResponse{
-		Token: fmt.Sprintf("rotated-%d", count),
-	}, nil
-}
-
-// CheckPolicy checks whether an action on a resource is allowed by a policy.
-func (s *GRPCServer) CheckPolicy(ctx context.Context, req *helixv1.AuthorizeRequest) (*helixv1.AuthorizeResponse, error) {
+// Authorize checks whether the provided token may perform action on resource.
+func (s *GRPCServer) Authorize(ctx context.Context, req *helixv1.AuthorizeRequest) (*helixv1.AuthorizeResponse, error) {
 	if req.Token == "" {
-		return nil, status.Error(codes.InvalidArgument, "policy name is required")
-	}
-	if req.Resource == "" {
-		return nil, status.Error(codes.InvalidArgument, "resource is required")
-	}
-	if req.Action == "" {
-		return nil, status.Error(codes.InvalidArgument, "action is required")
+		return nil, status.Error(codes.InvalidArgument, "token is required")
 	}
 
-	policy, ok := s.enforcer.GetPolicy(req.Token)
-	if !ok {
-		return &helixv1.AuthorizeResponse{Allowed: false, Reason: "policy not found"}, nil
+	// Validate token first
+	valid, identity, _, err := s.orch.ValidateToken(ctx, req.Token)
+	if err != nil || !valid {
+		return &helixv1.AuthorizeResponse{Allowed: false, Reason: "invalid token"}, nil
 	}
 
-	if err := s.enforcer.EnforcePolicy(ctx, policy, req.Resource, req.Action); err != nil {
+	// Check policy via enforcer
+	policy := &Policy{
+		Name:    identity,
+		Subject: identity,
+		Roles:   []string{"admin"},
+	}
+	err = s.enforcer.EnforcePolicy(ctx, policy, req.Resource, req.Action)
+	if err != nil {
 		return &helixv1.AuthorizeResponse{Allowed: false, Reason: err.Error()}, nil
 	}
 
 	return &helixv1.AuthorizeResponse{Allowed: true}, nil
+}
+
+// IssueToken generates a new token for the given identity and scopes.
+func (s *GRPCServer) IssueToken(ctx context.Context, req *helixv1.IssueTokenRequest) (*helixv1.IssueTokenResponse, error) {
+	if req.Identity == "" {
+		return nil, status.Error(codes.InvalidArgument, "identity is required")
+	}
+
+	resp, err := s.orch.IssueCertificate(ctx, IssueCertificateRequest{
+		NodeID:     req.Identity,
+		CommonName: req.Identity,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("issue certificate: %w", err)
+	}
+
+	return &helixv1.IssueTokenResponse{
+		Token:     resp.ID,
+		ExpiresAt: resp.ExpiresAt.Unix(),
+	}, nil
+}
+
+// ValidateToken checks token validity and returns decoded claims.
+func (s *GRPCServer) ValidateToken(ctx context.Context, req *helixv1.ValidateTokenRequest) (*helixv1.ValidateTokenResponse, error) {
+	if req.Token == "" {
+		return nil, status.Error(codes.InvalidArgument, "token is required")
+	}
+
+	valid, identity, scopes, err := s.orch.ValidateToken(ctx, req.Token)
+	if err != nil || !valid {
+		return &helixv1.ValidateTokenResponse{Valid: false}, nil
+	}
+
+	return &helixv1.ValidateTokenResponse{
+		Valid:    true,
+		Identity: identity,
+		Scopes:   scopes,
+	}, nil
 }

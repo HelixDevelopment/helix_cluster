@@ -46,7 +46,9 @@ func main() {
 			Timestamp: time.Now().Unix(),
 		}
 		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(resp)
+		if err := json.NewEncoder(w).Encode(resp); err != nil {
+			log.Printf("encode error: %v", err)
+		}
 	})
 
 	srv := &http.Server{
@@ -54,16 +56,21 @@ func main() {
 		Handler: mux,
 	}
 
+	srvErr := make(chan error, 1)
 	go func() {
 		log.Printf("helixd status endpoint on :%s/status", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			srvErr <- err
 		}
 	}()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	select {
+	case <-sig:
+	case err := <-srvErr:
+		log.Printf("listen error: %v", err)
+	}
 
 	log.Println("shutting down...")
 

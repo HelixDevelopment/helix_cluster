@@ -304,12 +304,17 @@ func (o *InfraOrchestrator) VMSimulatePartition(ctx context.Context, nodeID stri
 	node.Status = "partitioned"
 	o.mu.Unlock()
 	go func() {
+		timer := time.NewTimer(duration)
+		defer timer.Stop()
 		select {
-		case <-time.After(duration):
+		case <-timer.C:
 			o.mu.Lock()
 			node.Status = "running"
 			o.mu.Unlock()
 		case <-ctx.Done():
+			if !timer.Stop() {
+				<-timer.C
+			}
 		}
 	}()
 	return nil

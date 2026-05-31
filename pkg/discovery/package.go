@@ -3,9 +3,16 @@ package discovery
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"sync"
 	"time"
+)
+
+var (
+	ErrInstanceNotFound = errors.New("instance not found")
+	ErrNilInstance      = errors.New("instance is nil")
+	ErrMissingFields    = errors.New("instance id and service are required")
 )
 
 // Instance represents a service instance.
@@ -94,7 +101,7 @@ func (b *InMemoryBackend) Delete(ctx context.Context, key string) error {
 	defer b.mu.Unlock()
 	inst, ok := b.data[key]
 	if !ok {
-		return fmt.Errorf("instance not found: %s", key)
+		return fmt.Errorf("instance not found: %s: %w", key, ErrInstanceNotFound)
 	}
 	delete(b.data, key)
 	b.notify(key, BackendEvent{Type: EventDeregister, Key: key, Instance: inst})
@@ -224,7 +231,9 @@ func (r *ServiceRegistry) checkTTLs() {
 		if inst.TTL > 0 && now.Sub(inst.LastSeen) > inst.TTL {
 			inst.Healthy = false
 			// Notify watchers via backend delete so they get deregister event
-			_ = r.backend.Delete(context.Background(), key)
+			deleteCtx, deleteCancel := context.WithTimeout(context.Background(), 10*time.Second)
+			_ = r.backend.Delete(deleteCtx, key)
+			deleteCancel()
 			delete(r.instances, key)
 		}
 	}
@@ -233,10 +242,10 @@ func (r *ServiceRegistry) checkTTLs() {
 // Register registers an instance with optional TTL.
 func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
 	if inst == nil {
-		return fmt.Errorf("instance is nil")
+		return fmt.Errorf("instance is nil: %w", ErrNilInstance)
 	}
 	if inst.ID == "" || inst.Service == "" {
-		return fmt.Errorf("instance id and service are required")
+		return fmt.Errorf("instance id and service are required: %w", ErrMissingFields)
 	}
 	if inst.LastSeen.IsZero() {
 		inst.LastSeen = time.Now()
@@ -318,7 +327,7 @@ func (r *ServiceRegistry) Renew(ctx context.Context, service, id string) error {
 	inst, ok := r.instances[key]
 	if !ok {
 		r.mu.Unlock()
-		return fmt.Errorf("instance not found: %s", key)
+		return fmt.Errorf("instance not found: %s: %w", key, ErrInstanceNotFound)
 	}
 	inst.LastSeen = time.Now()
 	inst.Healthy = true

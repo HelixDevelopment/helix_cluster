@@ -113,6 +113,7 @@ func main() {
 
 	fmt.Printf("LLM service listening on :%s\n", port)
 	if err := httpServer.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-		log.Fatalf("serve: %v", err)
+		log.Printf("serve error: %v", err)
+		os.Exit(1)
 	}
 }

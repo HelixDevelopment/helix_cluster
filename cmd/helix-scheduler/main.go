@@ -27,16 +27,21 @@ func main() {
 		log.Fatalf("listen: %v", err)
 	}
 
+	srvErr := make(chan error, 1)
 	go func() {
 		log.Printf("helix-scheduler listening on :%s", port)
 		if err := s.Serve(lis); err != nil {
-			log.Fatalf("serve: %v", err)
+			srvErr <- err
 		}
 	}()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	select {
+	case <-sig:
+	case err := <-srvErr:
+		log.Printf("serve error: %v", err)
+	}
 
 	log.Println("shutting down...")
 	s.GracefulStop()

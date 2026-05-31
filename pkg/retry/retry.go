@@ -72,10 +72,13 @@ func (r *Retry) Do(ctx context.Context, fn func() error) error {
 		}
 		if i < r.MaxAttempts-1 {
 			delay := r.computeDelay(i)
+			timer := time.NewTimer(delay)
 			select {
 			case <-ctx.Done():
+				timer.Stop()
 				return ctx.Err()
-			case <-time.After(delay):
+			case <-timer.C:
+				timer.Stop()
 			}
 		}
 	}
@@ -97,10 +100,13 @@ func DoWithResult[T any](ctx context.Context, r *Retry, fn func() (T, error)) (T
 		}
 		if i < r.MaxAttempts-1 {
 			delay := r.computeDelay(i)
+			timer := time.NewTimer(delay)
 			select {
 			case <-ctx.Done():
+				timer.Stop()
 				return zero, ctx.Err()
-			case <-time.After(delay):
+			case <-timer.C:
+				timer.Stop()
 			}
 		}
 	}

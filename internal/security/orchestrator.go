@@ -213,3 +213,27 @@ func (o *Orchestrator) IsRevokedSerial(serial string) bool {
 	defer o.mu.RUnlock()
 	return o.revokedSerials[serial]
 }
+
+// ValidateToken checks whether a token (certificate ID) is valid and returns identity info.
+func (o *Orchestrator) ValidateToken(_ context.Context, token string) (bool, string, []string, error) {
+	if token == "" {
+		return false, "", nil, fmt.Errorf("token is required")
+	}
+
+	o.mu.RLock()
+	defer o.mu.RUnlock()
+
+	cert, ok := o.certs[token]
+	if !ok {
+		return false, "", nil, nil
+	}
+	if cert.Revoked {
+		return false, "", nil, nil
+	}
+	if time.Now().After(cert.ExpiresAt) {
+		return false, "", nil, nil
+	}
+
+	scopes := []string{"read", "write"}
+	return true, cert.NodeID, scopes, nil
+}

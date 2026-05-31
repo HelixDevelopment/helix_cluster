@@ -2,12 +2,18 @@
 package storage
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 	"sync"
+)
+
+var (
+	ErrEmptyKey    = errors.New("key cannot be empty")
+	ErrKeyNotFound = errors.New("key not found")
 )
 
 // Store is the unified key-value storage interface.
@@ -32,7 +38,7 @@ func NewMemoryStore() *MemoryStore {
 // Put stores data under key.
 func (s *MemoryStore) Put(key string, data []byte) error {
 	if key == "" {
-		return fmt.Errorf("key cannot be empty")
+		return fmt.Errorf("key cannot be empty: %w", ErrEmptyKey)
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -48,7 +54,7 @@ func (s *MemoryStore) Get(key string) ([]byte, error) {
 	defer s.mu.RUnlock()
 	data, ok := s.data[key]
 	if !ok {
-		return nil, fmt.Errorf("key not found: %s", key)
+		return nil, fmt.Errorf("key not found: %s: %w", key, ErrKeyNotFound)
 	}
 	out := make([]byte, len(data))
 	copy(out, data)
@@ -116,7 +122,7 @@ func (s *FileStore) Get(key string) ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("key not found: %s", key)
+			return nil, fmt.Errorf("key not found: %s: %w", key, ErrKeyNotFound)
 		}
 		return nil, fmt.Errorf("read file: %w", err)
 	}

@@ -2,9 +2,17 @@
 package wasm
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/bytecodealliance/wasmtime-go/v29"
+)
+
+var (
+	ErrNotLoaded        = errors.New("no module loaded")
+	ErrNotInstantiated  = errors.New("module not instantiated")
+	ErrFunctionNotFound = errors.New("function not found")
+	ErrUnexpectedResult = errors.New("unexpected result type")
 )
 
 // Host wraps a Wasmtime engine and provides lifecycle helpers for loading and
@@ -36,7 +44,7 @@ func (h *Host) LoadModule(path string) error {
 // Instantiate creates a WASI-linked instance of the loaded module.
 func (h *Host) Instantiate() error {
 	if h.module == nil {
-		return fmt.Errorf("no module loaded")
+		return fmt.Errorf("no module loaded: %w", ErrNotLoaded)
 	}
 	wasi := wasmtime.NewWasiConfig()
 	h.store.SetWasi(wasi)
@@ -58,11 +66,11 @@ func (h *Host) Instantiate() error {
 // It returns the first result value or an error.
 func (h *Host) Call(funcName string, args ...int64) (int64, error) {
 	if h.inst == nil {
-		return 0, fmt.Errorf("module not instantiated")
+		return 0, fmt.Errorf("module not instantiated: %w", ErrNotInstantiated)
 	}
 	fn := h.inst.GetExport(h.store, funcName)
 	if fn == nil {
-		return 0, fmt.Errorf("function %q not found", funcName)
+		return 0, fmt.Errorf("function %q not found: %w", funcName, ErrFunctionNotFound)
 	}
 	wasmArgs := make([]interface{}, len(args))
 	for i, v := range args {
@@ -77,7 +85,7 @@ func (h *Host) Call(funcName string, args ...int64) (int64, error) {
 	}
 	val, ok := results.(int64)
 	if !ok {
-		return 0, fmt.Errorf("unexpected result type from %q", funcName)
+		return 0, fmt.Errorf("unexpected result type from %q: %w", funcName, ErrUnexpectedResult)
 	}
 	return val, nil
 }

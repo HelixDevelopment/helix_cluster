@@ -2,8 +2,14 @@ package security
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
+)
+
+var (
+	ErrNotInitialized = errors.New("vault client not initialized")
+	ErrMockNotSet     = errors.New("mock function not set")
 )
 
 // VaultClient is a minimal wrapper interface for HashiCorp Vault operations.
@@ -50,7 +56,7 @@ func NewVaultWrapper(client VaultClient) *VaultWrapper {
 // ReadSecret reads a KVv2 secret.
 func (w *VaultWrapper) ReadSecret(ctx context.Context, mount, path string) (map[string]interface{}, error) {
 	if w.client == nil {
-		return nil, fmt.Errorf("vault client not initialized")
+		return nil, fmt.Errorf("vault client not initialized: %w", ErrNotInitialized)
 	}
 	return w.client.KVv2Read(ctx, mount, path)
 }
@@ -58,7 +64,7 @@ func (w *VaultWrapper) ReadSecret(ctx context.Context, mount, path string) (map[
 // WriteSecret writes a KVv2 secret.
 func (w *VaultWrapper) WriteSecret(ctx context.Context, mount, path string, data map[string]interface{}) error {
 	if w.client == nil {
-		return fmt.Errorf("vault client not initialized")
+		return fmt.Errorf("vault client not initialized: %w", ErrNotInitialized)
 	}
 	return w.client.KVv2Write(ctx, mount, path, data)
 }
@@ -91,26 +97,26 @@ func (m *MockVaultClient) KVv2Read(ctx context.Context, mount, path string) (map
 	if m.ReadFn != nil {
 		return m.ReadFn(ctx, mount, path)
 	}
-	return nil, fmt.Errorf("mock ReadFn not set")
+	return nil, fmt.Errorf("mock ReadFn not set: %w", ErrMockNotSet)
 }
 
 func (m *MockVaultClient) KVv2Write(ctx context.Context, mount, path string, data map[string]interface{}) error {
 	if m.WriteFn != nil {
 		return m.WriteFn(ctx, mount, path, data)
 	}
-	return fmt.Errorf("mock WriteFn not set")
+	return fmt.Errorf("mock WriteFn not set: %w", ErrMockNotSet)
 }
 
 func (m *MockVaultClient) PKIIssue(ctx context.Context, mount, role string, params PKIIssueParams) (*PKICertificate, error) {
 	if m.IssueFn != nil {
 		return m.IssueFn(ctx, mount, role, params)
 	}
-	return nil, fmt.Errorf("mock IssueFn not set")
+	return nil, fmt.Errorf("mock IssueFn not set: %w", ErrMockNotSet)
 }
 
 func (m *MockVaultClient) PKIRenew(ctx context.Context, mount, leaseID string) (*PKICertificate, error) {
 	if m.RenewFn != nil {
 		return m.RenewFn(ctx, mount, leaseID)
 	}
-	return nil, fmt.Errorf("mock RenewFn not set")
+	return nil, fmt.Errorf("mock RenewFn not set: %w", ErrMockNotSet)
 }

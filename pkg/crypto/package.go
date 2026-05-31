@@ -8,10 +8,17 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"io"
 
 	"golang.org/x/crypto/pbkdf2"
+)
+
+var (
+	ErrInvalidKey       = errors.New("invalid key")
+	ErrVerifyFailed     = errors.New("signature verification failed")
+	ErrInvalidCiphertext = errors.New("invalid ciphertext")
 )
 
 // Hash returns the SHA-256 hex digest of data.
@@ -43,7 +50,7 @@ func GenerateKeyPair() (*KeyPair, error) {
 // Sign signs message with the given Ed25519 private key and returns the hex-encoded signature.
 func Sign(privateKey ed25519.PrivateKey, message []byte) (string, error) {
 	if len(privateKey) != ed25519.PrivateKeySize {
-		return "", fmt.Errorf("invalid private key size: expected %d, got %d", ed25519.PrivateKeySize, len(privateKey))
+		return "", fmt.Errorf("invalid private key size: expected %d, got %d: %w", ed25519.PrivateKeySize, len(privateKey), ErrInvalidKey)
 	}
 	sig := ed25519.Sign(privateKey, message)
 	return hex.EncodeToString(sig), nil
@@ -52,14 +59,14 @@ func Sign(privateKey ed25519.PrivateKey, message []byte) (string, error) {
 // Verify verifies an Ed25519 signature (hex-encoded) against a message.
 func Verify(publicKey ed25519.PublicKey, message []byte, signatureHex string) error {
 	if len(publicKey) != ed25519.PublicKeySize {
-		return fmt.Errorf("invalid public key size: expected %d, got %d", ed25519.PublicKeySize, len(publicKey))
+		return fmt.Errorf("invalid public key size: expected %d, got %d: %w", ed25519.PublicKeySize, len(publicKey), ErrInvalidKey)
 	}
 	sig, err := hex.DecodeString(signatureHex)
 	if err != nil {
 		return fmt.Errorf("invalid signature hex: %w", err)
 	}
 	if !ed25519.Verify(publicKey, message, sig) {
-		return fmt.Errorf("signature verification failed")
+		return fmt.Errorf("signature verification failed: %w", ErrVerifyFailed)
 	}
 	return nil
 }
@@ -99,7 +106,7 @@ func Decrypt(key []byte, ciphertextHex string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to create GCM: %w", err)
 	}
 	if len(ciphertext) < gcm.NonceSize() {
-		return nil, fmt.Errorf("ciphertext too short")
+		return nil, fmt.Errorf("ciphertext too short: %w", ErrInvalidCiphertext)
 	}
 	nonce, ciphertext := ciphertext[:gcm.NonceSize()], ciphertext[gcm.NonceSize():]
 	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)

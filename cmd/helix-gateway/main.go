@@ -29,16 +29,21 @@ func main() {
 		Handler: g,
 	}
 
+	srvErr := make(chan error, 1)
 	go func() {
 		log.Printf("helix-gateway listening on :%s", port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+			srvErr <- err
 		}
 	}()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	select {
+	case <-sig:
+	case err := <-srvErr:
+		log.Printf("listen error: %v", err)
+	}
 
 	log.Println("shutting down...")
 

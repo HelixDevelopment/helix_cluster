@@ -2,6 +2,7 @@
 package validator
 
 import (
+	"errors"
 	"fmt"
 	"net/mail"
 	"reflect"
@@ -13,6 +14,19 @@ import (
 var (
 	uuidRe   = regexp.MustCompile(`^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$`)
 	alphaNum = regexp.MustCompile(`^[a-zA-Z0-9_-]+$`)
+)
+
+var (
+	ErrEmptyValue      = errors.New("value must not be empty")
+	ErrNilStruct       = errors.New("nil struct")
+	ErrNotStruct       = errors.New("expected struct")
+	ErrValidationFailed = errors.New("validation failed")
+	ErrRequired        = errors.New("field is required")
+	ErrInvalidEmail    = errors.New("invalid email")
+	ErrInvalidUUID     = errors.New("invalid UUID")
+	ErrOneOf           = errors.New("value not in allowed set")
+	ErrMinExceeded     = errors.New("minimum exceeded")
+	ErrMaxExceeded     = errors.New("maximum exceeded")
 )
 
 // RuleFunc is a custom validation function.
@@ -43,7 +57,7 @@ func (v *Validator) IsValidID(id string) bool {
 // NotEmpty returns an error if s is empty.
 func (v *Validator) NotEmpty(s string) error {
 	if strings.TrimSpace(s) == "" {
-		return fmt.Errorf("value must not be empty")
+		return fmt.Errorf("value must not be empty: %w", ErrEmptyValue)
 	}
 	return nil
 }
@@ -52,14 +66,14 @@ func (v *Validator) NotEmpty(s string) error {
 // Supported tags: required, min, max, email, uuid, oneof.
 func (v *Validator) ValidateStruct(s interface{}) error {
 	if s == nil {
-		return fmt.Errorf("nil struct")
+		return fmt.Errorf("nil struct: %w", ErrNilStruct)
 	}
 	val := reflect.ValueOf(s)
 	if val.Kind() == reflect.Ptr {
 		val = val.Elem()
 	}
 	if val.Kind() != reflect.Struct {
-		return fmt.Errorf("expected struct, got %s", val.Kind())
+		return fmt.Errorf("expected struct, got %s: %w", val.Kind(), ErrNotStruct)
 	}
 	typ := val.Type()
 	var errs []string
@@ -78,7 +92,7 @@ func (v *Validator) ValidateStruct(s interface{}) error {
 		}
 	}
 	if len(errs) > 0 {
-		return fmt.Errorf("validation failed: %s", strings.Join(errs, "; "))
+		return fmt.Errorf("validation failed: %s: %w", strings.Join(errs, "; "), ErrValidationFailed)
 	}
 	return nil
 }
@@ -119,7 +133,7 @@ func (v *Validator) checkRule(name, strVal string, val reflect.Value, rule strin
 	switch {
 	case rule == "required":
 		if strings.TrimSpace(strVal) == "" {
-			return fmt.Errorf("field %s is required", name)
+			return fmt.Errorf("field %s is required: %w", name, ErrRequired)
 		}
 	case strings.HasPrefix(rule, "min="):
 		arg := rule[4:]
@@ -133,11 +147,11 @@ func (v *Validator) checkRule(name, strVal string, val reflect.Value, rule strin
 		}
 	case rule == "email":
 		if _, err := mail.ParseAddress(strVal); err != nil {
-			return fmt.Errorf("field %s must be a valid email", name)
+			return fmt.Errorf("field %s must be a valid email: %w", name, ErrInvalidEmail)
 		}
 	case rule == "uuid":
 		if !uuidRe.MatchString(strVal) {
-			return fmt.Errorf("field %s must be a valid UUID", name)
+			return fmt.Errorf("field %s must be a valid UUID: %w", name, ErrInvalidUUID)
 		}
 	case strings.HasPrefix(rule, "oneof="):
 		allowed := strings.Split(rule[6:], " ")
@@ -149,7 +163,7 @@ func (v *Validator) checkRule(name, strVal string, val reflect.Value, rule strin
 			}
 		}
 		if !found {
-			return fmt.Errorf("field %s must be one of %v", name, allowed)
+			return fmt.Errorf("field %s must be one of %v: %w", name, allowed, ErrOneOf)
 		}
 	default:
 		if fn, ok := v.rules[rule]; ok {

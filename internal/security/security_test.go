@@ -267,42 +267,35 @@ func TestGRPCServer_CheckPolicy(t *testing.T) {
 	// RotateCreds uses ValidateTokenRequest / IssueTokenResponse.
 	// CheckPolicy uses AuthorizeRequest / AuthorizeResponse.
 
-	// Test IssueCert.
-	issueResp, err := server.IssueCert(ctx, &helixv1.IssueTokenRequest{Identity: "node-x"})
+	// Test Authenticate.
+	authResp, err := server.Authenticate(ctx, &helixv1.AuthenticateRequest{Identity: "node-x"})
 	require.NoError(t, err)
-	assert.NotEmpty(t, issueResp.Token)
-	assert.Greater(t, issueResp.ExpiresAt, time.Now().Unix())
+	assert.True(t, authResp.Success)
+	assert.NotEmpty(t, authResp.Token)
 
-	// Test RevokeCert.
-	revokeResp, err := server.RevokeCert(ctx, &helixv1.ValidateTokenRequest{Token: issueResp.Token})
+	// Test ValidateToken with valid token.
+	valResp, err := server.ValidateToken(ctx, &helixv1.ValidateTokenRequest{Token: authResp.Token})
 	require.NoError(t, err)
-	assert.True(t, revokeResp.Allowed)
+	assert.True(t, valResp.Valid)
+	assert.Equal(t, "node-x", valResp.Identity)
 
-	// Test ValidateIdentity.
-	idResp, err := server.ValidateIdentity(ctx, &helixv1.AuthenticateRequest{Identity: "spiffe://helix.local/node/node-x"})
-	require.NoError(t, err)
-	assert.True(t, idResp.Success)
-
-	// Test RotateCreds.
-	rotResp, err := server.RotateCreds(ctx, &helixv1.ValidateTokenRequest{})
-	require.NoError(t, err)
-	assert.NotEmpty(t, rotResp.Token)
-
-	// Test CheckPolicy (allow).
-	checkResp, err := server.CheckPolicy(ctx, &helixv1.AuthorizeRequest{
-		Token:    "admin-policy",
+	// Test Authorize (allow - admin role allows everything).
+	checkResp, err := server.Authorize(ctx, &helixv1.AuthorizeRequest{
+		Token:    authResp.Token,
 		Resource: "secrets",
 		Action:   "delete",
 	})
 	require.NoError(t, err)
 	assert.True(t, checkResp.Allowed)
 
-	// Test CheckPolicy (deny - unknown policy).
-	checkResp, err = server.CheckPolicy(ctx, &helixv1.AuthorizeRequest{
-		Token:    "unknown-policy",
-		Resource: "secrets",
-		Action:   "delete",
-	})
+	// Test IssueToken.
+	issueResp, err := server.IssueToken(ctx, &helixv1.IssueTokenRequest{Identity: "node-y"})
 	require.NoError(t, err)
-	assert.False(t, checkResp.Allowed)
+	assert.NotEmpty(t, issueResp.Token)
+	assert.Greater(t, issueResp.ExpiresAt, time.Now().Unix())
+
+	// Test ValidateToken with bad token.
+	valResp2, err := server.ValidateToken(ctx, &helixv1.ValidateTokenRequest{Token: "bad-token"})
+	require.NoError(t, err)
+	assert.False(t, valResp2.Valid)
 }

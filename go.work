@@ -8,7 +8,6 @@ use (
 	./Messaging
 	./api/v1
 	./challenges
-	./cmd/helix-build
 	./cmd/hxc-registry
 	./config
 	./discovery

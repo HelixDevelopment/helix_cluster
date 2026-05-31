@@ -213,7 +213,7 @@ func ValidateToken(token string, secret []byte) error {
 		case int:
 			expUnix = int64(v)
 		default:
-			return fmt.Errorf("invalid exp claim type")
+			return fmt.Errorf("invalid exp claim type: %T", exp)
 		}
 		if time.Now().UTC().After(time.Unix(expUnix, 0).UTC()) {
 			return ErrTokenExpired

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,51 +15,53 @@ import (
 	"time"
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
-	"github.com/HelixDevelopment/helix_cluster/pkg/health"
+	ihealth "github.com/HelixDevelopment/helix_cluster/internal/health"
+	pkghealth "github.com/HelixDevelopment/helix_cluster/pkg/health"
+	"google.golang.org/grpc"
 )
 
-// healthServer holds the composite checker and optional gRPC health client.
-type healthServer struct {
-	checker *health.CompositeChecker
+// httpServer holds the composite checker for legacy HTTP endpoints.
+type httpServer struct {
+	checker *pkghealth.CompositeChecker
 }
 
-func newHealthServer() *healthServer {
-	return &healthServer{
-		checker: health.NewCompositeChecker(),
+func newHTTPServer() *httpServer {
+	return &httpServer{
+		checker: pkghealth.NewCompositeChecker(),
 	}
 }
 
-func (s *healthServer) registerDefaults() {
-	s.checker.AddCheck("helix-health", func() health.Status { return health.Healthy })
+func (s *httpServer) registerDefaults() {
+	s.checker.AddCheck("helix-health", func() pkghealth.Status { return pkghealth.Healthy })
 }
 
 // clusterHealth aggregates all registered checks into a JSON response.
-func (s *healthServer) clusterHealth(w http.ResponseWriter, r *http.Request) {
+func (s *httpServer) clusterHealth(w http.ResponseWriter, r *http.Request) {
 	status, checks := s.checker.Check()
 	code := http.StatusOK
-	if status == health.Unhealthy {
+	if status == pkghealth.Unhealthy {
 		code = http.StatusServiceUnavailable
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	resp := struct {
-		Status  string               `json:"status"`
-		Checks  []health.CheckResult `json:"checks,omitempty"`
-		Message string               `json:"message,omitempty"`
+		Status  string                `json:"status"`
+		Checks  []pkghealth.CheckResult `json:"checks,omitempty"`
+		Message string                `json:"message,omitempty"`
 	}{
 		Status:  string(status),
 		Checks:  checks,
 		Message: "",
 	}
-	if status != health.Healthy {
+	if status != pkghealth.Healthy {
 		resp.Message = fmt.Sprintf("cluster is %s", status)
 	}
 	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // serviceHealth returns health for a specific named service.
-func (s *healthServer) serviceHealth(w http.ResponseWriter, r *http.Request) {
+func (s *httpServer) serviceHealth(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/check/")
 	parts := strings.Split(path, "/")
 	if len(parts) == 0 || parts[0] == "" {
@@ -71,7 +74,7 @@ func (s *healthServer) serviceHealth(w http.ResponseWriter, r *http.Request) {
 	for _, c := range checks {
 		if c.Name == name {
 			code := http.StatusOK
-			if c.Status == health.Unhealthy {
+			if c.Status == pkghealth.Unhealthy {
 				code = http.StatusServiceUnavailable
 			}
 			w.Header().Set("Content-Type", "application/json")
@@ -118,39 +121,74 @@ func main() {
 		port = "50055"
 	}
 
-	srv := newHealthServer()
-	srv.registerDefaults()
+	// ---- gRPC health service (internal/health) ----
+	aggregator := ihealth.NewAggregator()
+	grpcSrv := ihealth.NewServer(aggregator)
+
+	gs := grpc.NewServer()
+	helixv1.RegisterHealthServiceServer(gs, grpcSrv)
+
+	lis, err := net.Listen("tcp", ":"+port)
+	if err != nil {
+		log.Fatalf("grpc listen: %v", err)
+	}
+
+	grpcErr := make(chan error, 1)
+	go func() {
+		log.Printf("helix-health gRPC listening on :%s", port)
+		if err := gs.Serve(lis); err != nil {
+			grpcErr <- err
+		}
+	}()
+
+	// ---- HTTP health endpoints (legacy, dual-stack) ----
+	httpSrv := newHTTPServer()
+	httpSrv.registerDefaults()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/health", srv.clusterHealth)
-	mux.HandleFunc("/check/", srv.serviceHealth)
+	mux.HandleFunc("/health", httpSrv.clusterHealth)
+	mux.HandleFunc("/check/", httpSrv.serviceHealth)
 
-	httpSrv := &http.Server{
-		Addr:         ":" + port,
+	httpPort := os.Getenv("HELIX_HEALTH_HTTP_PORT")
+	if httpPort == "" {
+		// If no separate HTTP port is set, reuse the gRPC port with a
+		// second listener.  In production these are often the same port
+		// with TLS muxing, but here we bind a separate TCP port.
+		httpPort = port
+	}
+
+	httpServerInst := &http.Server{
+		Addr:         ":" + httpPort,
 		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,
 	}
 
+	httpErr := make(chan error, 1)
 	go func() {
-		log.Printf("helix-health listening on :%s", port)
-		if err := httpSrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("listen: %v", err)
+		log.Printf("helix-health HTTP listening on :%s", httpPort)
+		if err := httpServerInst.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			httpErr <- err
 		}
 	}()
 
 	sig := make(chan os.Signal, 1)
 	signal.Notify(sig, syscall.SIGINT, syscall.SIGTERM)
-	<-sig
+	select {
+	case <-sig:
+	case err := <-grpcErr:
+		log.Printf("grpc serve error: %v", err)
+	case err := <-httpErr:
+		log.Printf("http listen error: %v", err)
+	}
 
 	log.Println("shutting down...")
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	if err := httpSrv.Shutdown(ctx); err != nil {
-		log.Printf("shutdown error: %v", err)
+
+	gs.GracefulStop()
+	if err := httpServerInst.Shutdown(ctx); err != nil {
+		log.Printf("http shutdown error: %v", err)
 	}
 }
-
-// Ensure helixv1 is imported so the generated package is reachable.
-var _ = helixv1.CheckRequest{}

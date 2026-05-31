@@ -2,10 +2,16 @@
 package chaos
 
 import (
+	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
 	"time"
+)
+
+var (
+	ErrAlreadyApplied = errors.New("fault already applied")
+	ErrNotApplied     = errors.New("fault not applied")
 )
 
 // Fault is the interface for chaos faults that can be applied and restored.
@@ -29,7 +35,7 @@ func (np *NetworkPartition) Name() string {
 // Apply simulates applying a network partition.
 func (np *NetworkPartition) Apply() error {
 	if np.applied {
-		return fmt.Errorf("partition already applied")
+		return fmt.Errorf("partition already applied: %w", ErrAlreadyApplied)
 	}
 	np.applied = true
 	return nil
@@ -38,7 +44,7 @@ func (np *NetworkPartition) Apply() error {
 // Restore removes the network partition.
 func (np *NetworkPartition) Restore() error {
 	if !np.applied {
-		return fmt.Errorf("partition not applied")
+		return fmt.Errorf("partition not applied: %w", ErrNotApplied)
 	}
 	np.applied = false
 	return nil
@@ -69,7 +75,7 @@ func (pl *PacketLoss) Apply() error {
 	pl.mu.Lock()
 	defer pl.mu.Unlock()
 	if pl.applied {
-		return fmt.Errorf("packet loss already applied")
+		return fmt.Errorf("packet loss already applied: %w", ErrAlreadyApplied)
 	}
 	pl.applied = true
 	return nil
@@ -80,7 +86,7 @@ func (pl *PacketLoss) Restore() error {
 	pl.mu.Lock()
 	defer pl.mu.Unlock()
 	if !pl.applied {
-		return fmt.Errorf("packet loss not applied")
+		return fmt.Errorf("packet loss not applied: %w", ErrNotApplied)
 	}
 	pl.applied = false
 	return nil
@@ -122,7 +128,7 @@ func (li *LatencyInjection) Apply() error {
 	li.mu.Lock()
 	defer li.mu.Unlock()
 	if li.applied {
-		return fmt.Errorf("latency injection already applied")
+		return fmt.Errorf("latency injection already applied: %w", ErrAlreadyApplied)
 	}
 	li.applied = true
 	return nil
@@ -133,7 +139,7 @@ func (li *LatencyInjection) Restore() error {
 	li.mu.Lock()
 	defer li.mu.Unlock()
 	if !li.applied {
-		return fmt.Errorf("latency injection not applied")
+		return fmt.Errorf("latency injection not applied: %w", ErrNotApplied)
 	}
 	li.applied = false
 	return nil
@@ -167,7 +173,7 @@ func (nc *NodeCrash) Name() string {
 // Apply simulates a node crash.
 func (nc *NodeCrash) Apply() error {
 	if nc.applied {
-		return fmt.Errorf("node crash already applied")
+		return fmt.Errorf("node crash already applied: %w", ErrAlreadyApplied)
 	}
 	nc.applied = true
 	return nil
@@ -176,7 +182,7 @@ func (nc *NodeCrash) Apply() error {
 // Restore simulates node recovery.
 func (nc *NodeCrash) Restore() error {
 	if !nc.applied {
-		return fmt.Errorf("node crash not applied")
+		return fmt.Errorf("node crash not applied: %w", ErrNotApplied)
 	}
 	nc.applied = false
 	return nil
@@ -203,7 +209,7 @@ func (re *ResourceExhaustion) Name() string {
 // Apply enables resource exhaustion.
 func (re *ResourceExhaustion) Apply() error {
 	if re.applied {
-		return fmt.Errorf("resource exhaustion already applied")
+		return fmt.Errorf("resource exhaustion already applied: %w", ErrAlreadyApplied)
 	}
 	re.applied = true
 	return nil
@@ -212,7 +218,7 @@ func (re *ResourceExhaustion) Apply() error {
 // Restore disables resource exhaustion.
 func (re *ResourceExhaustion) Restore() error {
 	if !re.applied {
-		return fmt.Errorf("resource exhaustion not applied")
+		return fmt.Errorf("resource exhaustion not applied: %w", ErrNotApplied)
 	}
 	re.applied = false
 	return nil

@@ -140,7 +140,9 @@ func (a *Agent) Start() error {
 		Address:  a.protocol.LocalAddr(),
 		Metadata: a.Labels,
 	}
-	if err := a.registry.Register(context.Background(), inst); err != nil {
+	regCtx, regCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer regCancel()
+	if err := a.registry.Register(regCtx, inst); err != nil {
 		return fmt.Errorf("discovery register: %w", err)
 	}
 
@@ -157,10 +159,21 @@ func (a *Agent) Stop() error {
 	a.cancel()
 	a.wgProc.Wait()
 
-	_ = a.registry.Deregister(context.Background(), "helix-node", a.ID)
-	_ = a.wg.Stop()
-	_ = a.protocol.Stop()
-
+	var errs []error
+	deregCtx, deregCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer deregCancel()
+	if err := a.registry.Deregister(deregCtx, "helix-node", a.ID); err != nil {
+		errs = append(errs, fmt.Errorf("deregister: %w", err))
+	}
+	if err := a.wg.Stop(); err != nil {
+		errs = append(errs, fmt.Errorf("wireguard stop: %w", err))
+	}
+	if err := a.protocol.Stop(); err != nil {
+		errs = append(errs, fmt.Errorf("protocol stop: %w", err))
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("shutdown errors: %v", errs)
+	}
 	return nil
 }
 
