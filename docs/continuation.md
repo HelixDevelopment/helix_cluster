@@ -1,6 +1,6 @@
 # Continuation Document
 
-**Revision:** 22
+**Revision:** 23
 **Last modified:** 2026-05-31T20:43:17+05:00
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
@@ -16,7 +16,8 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
-| `TBD` | feat: Web UI, K8s/Helm, integration, E2E, benchmarks (HXC-921) |
+| `TBD` | feat: Node service, advisory locks, chaos tests, docs (HXC-922) |
+| `6f358a6` | feat: Web UI, K8s/Helm, integration, E2E, benchmarks (HXC-921) |
 | `48c72e6` | feat: health, security, build, wireguard services (HXC-920) |
 | `5cbf614` | feat: htmux, messaging, GPU, WASM, storage, build manifest (HXC-919) |
 | `23f86b8` | feat: Wire scheduler/session gRPC to real backends, etcd discovery (HXC-918) |
@@ -25,7 +26,6 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `9b4687f` | docs: Update continuation.md — all HXC-910/911/912/913 complete |
 | `fdab788` | feat: ClassAds expression evaluator tests (HXC-913) |
 | `01a040e` | feat: HXC-913 Health monitor, security stub, ClassAds parser |
-| `32e043a` | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
 
 ## §2: Environment Snapshot
 
@@ -34,20 +34,23 @@ Any CLI agent resuming work on this project MUST read this file first.
 | **Branch** | `main` |
 | **Commit** | `TBD` |
 | **Timestamp** | 2026-05-31T20:43:17+05:00 |
-| **Go packages** | 74 packages pass `go test -race` |
-| **cmd binaries** | 14 implemented |
-| **internal services** | 10 implemented (all complete) |
+| **Go packages** | 77 packages pass `go test -race` |
+| **cmd binaries** | 15 implemented |
+| **internal services** | 11 implemented (all complete) |
 | **Web UI** | React + TypeScript dashboard (193 KB bundle) |
 | **K8s manifests** | Raw YAML + Helm chart (kubeconform-validated) |
-| **Integration tests** | 12 test cases across 5 integration scenarios |
+| **Integration tests** | 12 test cases across 5 scenarios |
 | **E2E tests** | 2 full cluster lifecycle scenarios |
-| **Benchmarks** | Scheduler, session benchmarks |
-| **Total Go files** | ~290+ files across pkg/, internal/, cmd/, test/ |
+| **Chaos tests** | 10 chaos engineering scenarios |
+| **Benchmarks** | 5 performance benchmarks |
+| **Documentation** | 8 guides, 3 security docs, 1 changelog |
+| **Total Go files** | ~310+ files across pkg/, internal/, cmd/, test/ |
 
 ## §3: Active Work
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-922 | Node service, advisory locks, chaos tests, docs | ✅ Done |
 | HXC-921 | Web UI, K8s/Helm, integration, E2E, benchmarks | ✅ Done |
 | HXC-920 | Health, security, build, wireguard services | ✅ Done |
 | HXC-919 | htmux, messaging, GPU, WASM, storage, build manifest | ✅ Done |
@@ -64,10 +67,10 @@ Any CLI agent resuming work on this project MUST read this file first.
 All MVP, Phase 2, Phase 3, and Phase 4 are **COMPLETE**. Potential future enhancements:
 
 1. **Performance optimization** — Profile and optimize hot paths
-2. **Chaos engineering** — Expand chaos test scenarios
-3. **Multi-region support** — Cross-region cluster federation
-4. **GPU scheduling v2** — Multi-GPU, fractional GPU allocation
-5. **Web UI real-time** — WebSocket integration for live updates
+2. **Multi-region support** — Cross-region cluster federation
+3. **GPU scheduling v2** — Multi-GPU, fractional GPU allocation
+4. **Web UI real-time** — WebSocket integration for live updates
+5. **Operator pattern** — Kubernetes operator for cluster management
 
 ## §5: Known Issues / Blockers
 
@@ -90,4 +93,7 @@ helm template helix-cluster deploy/helm/
 
 # Run benchmarks
 go test -bench=. ./test/benchmark
+
+# Run chaos tests
+go test -race -count=1 ./test/chaos
 ```
