@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| (pending) | feat: HXC-913 Health monitor, security stub, ClassAds parser (HXC-913) |
 | (pending) | feat: HXC-912 Gateway, helixd, and helix-agent service binaries |
 | (pending) | feat: HXC-911 Scheduler and Session gRPC service wrappers |
 | `74448f2` | feat: Phase 4 testing infrastructure (DST engine, chaos faults, device profiles, snapshots) (HXC-910) |
@@ -40,6 +41,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | HXC | Title | Status |
 |-----|-------|--------|
+| HXC-913 | Health monitor, security stub, ClassAds parser | Done |
 | HXC-912 | Gateway, helixd, and helix-agent service binaries | Done |
 | HXC-911 | Scheduler and Session gRPC service wrappers | Done |
 | HXC-910 | Phase 2/3/4 Console, Security, Testing Infra | Done |
@@ -53,6 +55,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 4. Connect scheduler service to pkg/scheduler backend
 5. Connect session service to persistent store
 6. Wire gateway reverse proxy to real gRPC backends (gRPC-Web or HTTP transcoding)
+7. Integrate ClassAds parser into scheduler matchmaking
 
 ## §5: Known Issues / Blockers
 
