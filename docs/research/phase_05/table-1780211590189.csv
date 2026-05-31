@@ -1,0 +1,9 @@
+﻿Category,#1 Recommendation,Price,Why
+**Handheld Compute**,Steam Deck LCD/OLED,\$399,"Native Linux, 1.6 TFLOPS, 4M+ units, power-aware scheduling"
+**AI Edge**,Jetson Orin Nano Super,\$249,"67 TOPS INT8, TensorRT, best AI \$/TOPS"
+**ARM Density**,Turing RK1 (4x RK3588),~\$800,"32 cores, 32GB on single board"
+**Edge Gateway**,GL.iNet MT6000 router,\$159,"Docker, dual 2.5GbE, 1GB RAM"
+**Server (used)**,EPYC 7551 32-core,~\$65 (\$2.10/core),Best price/core on used market
+**Mini PC**,Minisforum MS-01,\$679,i9 + dual 10GbE SFP+
+**RISC-V**,Milk-V Pioneer,"\$1,199","64-core, production Docker"
+**FPGA**,DE10-Nano,\$190,"Dual A9 + Cyclone V, GbE, Linux"

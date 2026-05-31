@@ -1,0 +1,7 @@
+﻿Deliverable,Size,Description
+**Research (7 dimensions)**,"~39,200 words","Gaming, ARM SBCs, RISC-V, FPGA, Enterprise, IoT, Exotic"
+**Cross-Verification**,"5,259","17 high-confidence findings, 7 conflict zones, 12 capability gaps"
+**Cross-Dimension Insights**,"3,861",12 insights combining 2+ research streams
+**Architecture Document**,"13,386","64-device taxonomy, 5 cluster recipes, Go/YAML code"
+**Complete Report (10 sections)**,"**32,084**",Executive Summary + 9 chapters
+**Word Document (.docx)**,1.2 MB,"23 footnotes, 37 cross-references"

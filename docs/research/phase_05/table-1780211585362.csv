@@ -1,0 +1,11 @@
+﻿Section,Words,Highlights
+Executive Summary,"1,527","12 key metrics, 64-device overview, strategic impact"
+Ch1: Gaming & Handheld,"4,025","Steam Deck #1 (1.6 TFLOPS, \$399), Xbox EXCLUDED, GPU API matrix"
+Ch2: Advanced ARM SBCs,"4,124","Jetson Orin Nano (67 TOPS, \$249), Turing RK1 (32 cores), 3 cluster builds"
+Ch3: RISC-V & Emerging,"3,219","Pioneer 64-core (\$1,199), Docker ready, LoongArch, POWER9"
+Ch4: FPGA Compute,"2,800","DE10-Nano (\$190), Colorlight (\$15), LiteX SoC, soft-core RISC-V"
+Ch5: Enterprise/Server/Cloud,"3,925","Altra 128-core (\$800), EPYC \$2.10/core, spot instances, TCO"
+Ch6: IoT/Smart/Edge,"3,748","MT6000 router (\$159), NAS Docker, Shield TV, wearables excluded"
+Ch7: Exotic/Future,"3,019","Groq LPU (55% relevance), Cerebras, quantum 2029+, ASICs excluded"
+Ch8: Universal Integration,"3,695","**64-device master table**, 15 tiers, 5 build recipes, Go detection engine"
+Ch9: Implementation Roadmap,"2,002","24-week plan, 4 sub-phases, risk mitigation"
