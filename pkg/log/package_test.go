@@ -8,17 +8,6 @@ import (
 	"testing"
 )
 
-func captureOutput(fn func()) string {
-	var buf bytes.Buffer
-	old := defaultOutput
-	defaultOutput = &buf
-	defer func() { defaultOutput = old }()
-	fn()
-	return buf.String()
-}
-
-var defaultOutput *bytes.Buffer
-
 func TestNew(t *testing.T) {
 	var buf bytes.Buffer
 	l := New("test", &buf)
@@ -71,6 +60,50 @@ func TestSetLevel_Mutation(t *testing.T) {
 	}
 }
 
+func TestDebugSuppressedBelowLevel(t *testing.T) {
+	// Lower-bound filter: Debug must be suppressed when level is INFO.
+	var buf bytes.Buffer
+	l := New("test", &buf)
+	l.SetLevel(InfoLevel)
+	l.Debug("should be suppressed", "key", "value")
+	if buf.Len() != 0 {
+		t.Errorf("expected no output for Debug at INFO level, got %s", buf.String())
+	}
+}
+
+// TestLoggerFieldFromNew proves the prefix passed to New reaches the JSON sink
+// as the "logger" field.
+func TestLoggerFieldFromNew(t *testing.T) {
+	var buf bytes.Buffer
+	l := New("svc", &buf)
+	l.Info("hello")
+	var record map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &record); err != nil {
+		t.Fatalf("expected valid JSON output: %v", err)
+	}
+	if record["logger"] != "svc" {
+		t.Errorf("expected logger field 'svc', got %v", record["logger"])
+	}
+}
+
+// TestLoggerFieldSurvivesSetLevel is the regression test for the prefix-loss
+// bug: SetLevel must NOT discard the prefix given to New. Before the fix,
+// SetLevel rebuilt the handler with a hard-coded .With("logger","helix"),
+// so this asserted "svc" but received "helix".
+func TestLoggerFieldSurvivesSetLevel(t *testing.T) {
+	var buf bytes.Buffer
+	l := New("svc", &buf)
+	l.SetLevel(WarnLevel)
+	l.Warn("after setlevel")
+	var record map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &record); err != nil {
+		t.Fatalf("expected valid JSON output: %v", err)
+	}
+	if record["logger"] != "svc" {
+		t.Errorf("prefix lost across SetLevel: expected logger 'svc', got %v", record["logger"])
+	}
+}
+
 func TestDebug(t *testing.T) {
 	var buf bytes.Buffer
 	l := New("test", &buf)
@@ -112,10 +145,34 @@ func TestInfo_Mutation(t *testing.T) {
 func TestWarn(t *testing.T) {
 	var buf bytes.Buffer
 	l := New("test", &buf)
-	l.Warn("warn message")
+	l.Warn("warn message", "retry", 3)
+	var record map[string]interface{}
+	if err := json.Unmarshal(buf.Bytes(), &record); err != nil {
+		t.Fatalf("expected valid JSON output: %v", err)
+	}
+	if record["msg"] != "warn message" {
+		t.Errorf("expected msg 'warn message', got %v", record["msg"])
+	}
+	if record["level"] != "WARN" {
+		t.Errorf("expected level WARN, got %v", record["level"])
+	}
+	// retry was unmarshaled from JSON number -> float64(3)
+	if record["retry"] != float64(3) {
+		t.Errorf("expected structured field retry=3 in output, got %v", record["retry"])
+	}
+}
+
+func TestWarn_Mutation(t *testing.T) {
+	// Mutation: structured fields dropped on the Warn path
+	var buf bytes.Buffer
+	l := New("test", &buf)
+	l.Warn("warn message", "retry", 3)
 	out := buf.String()
-	if !strings.Contains(out, "warn message") {
-		t.Errorf("expected warn message, got %s", out)
+	if !strings.Contains(out, "retry") {
+		t.Error("expected structured field key 'retry' in Warn output")
+	}
+	if !strings.Contains(out, "3") {
+		t.Error("expected structured field value 3 in Warn output")
 	}
 }
 

@@ -60,6 +60,7 @@ type Logger struct {
 	inner  *slog.Logger
 	level  Level
 	output io.Writer
+	prefix string
 	mu     sync.RWMutex
 }
 
@@ -81,6 +82,7 @@ func New(prefix string, output io.Writer) *Logger {
 		inner:  inner,
 		level:  InfoLevel,
 		output: output,
+		prefix: prefix,
 	}
 }
 
@@ -97,7 +99,7 @@ func (l *Logger) SetLevel(level Level) {
 	handler := slog.NewJSONHandler(l.output, &slog.HandlerOptions{
 		Level: level.toSlogLevel(),
 	})
-	l.inner = slog.New(handler).With("logger", "helix")
+	l.inner = slog.New(handler).With("logger", l.prefix)
 }
 
 // Level returns the current minimum log level.
@@ -126,6 +128,7 @@ func (l *Logger) WithContext(ctx context.Context) *Logger {
 		inner:  l.inner.With(args...),
 		level:  l.level,
 		output: l.output,
+		prefix: l.prefix,
 	}
 }
 
@@ -188,6 +191,7 @@ func (l *Logger) WithFields(fields map[string]interface{}) *Logger {
 		inner:  l.inner.With(args...),
 		level:  l.level,
 		output: l.output,
+		prefix: l.prefix,
 	}
 }
 

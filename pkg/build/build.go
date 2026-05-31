@@ -60,6 +60,15 @@ func (j *Job) GetLogs() []string {
 	return out
 }
 
+// SetImageTag sets the resulting image tag thread-safely. Builders MUST use
+// this (rather than assigning Job.ImageTag directly) so concurrent readers via
+// Service.Get/clone observe the field under the same lock.
+func (j *Job) SetImageTag(tag string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.ImageTag = tag
+}
+
 // TransitionTo updates the job state with validation.
 func (j *Job) TransitionTo(newState State) error {
 	j.mu.Lock()
@@ -92,6 +101,64 @@ func (j *Job) TransitionTo(newState State) error {
 	return nil
 }
 
+// Builder executes the actual build for a job and is the seam through which a
+// REAL image builder (e.g. docker buildx / buildkit) is injected.
+//
+// Contract: Build MUST drive the job to a terminal state via Job.TransitionTo
+// (StateSucceeded / StateFailed / StateCancelled) and, on success of a REAL
+// build, set Job.ImageTag to a tag that refers to an image that actually
+// exists and is pullable. The default implementation (simulatedBuilder) does
+// NOT satisfy that last guarantee — see its documentation.
+type Builder interface {
+	// Build runs the build for j. It must respect ctx cancellation and must
+	// move j into a terminal state before returning.
+	Build(ctx context.Context, j *Job)
+}
+
+// simulatedBuilder is a NON-PRODUCTION, SIMULATED build implementation.
+//
+// WARNING (PCS-6 / CLAUDE-1): This builder does NOT build anything real. It
+// does not clone a repository, read a Dockerfile, invoke any container builder,
+// produce any layer, compute any digest, or push to any registry. It sleeps
+// briefly, branches on the sentinel RepoURL "fail" to simulate a failure, and
+// fabricates an ImageTag string that does NOT correspond to any real image.
+//
+// It exists only so the orchestration plumbing (queue, worker pool, state
+// machine, cancellation) can be exercised in unit tests. A green test using
+// this builder proves ONLY that the SIMULATION ran — it is NOT evidence that
+// any image was built. Inject a real Builder via NewServiceWithBuilder for
+// production use.
+type simulatedBuilder struct{}
+
+// Simulated is an exported, unmistakable marker that this Builder produces no
+// real artifact. Callers and tests can assert b.Simulated() to confirm they are
+// running against the non-production simulation rather than a real builder.
+func (simulatedBuilder) Simulated() bool { return true }
+
+// Build implements Builder with a simulated (fake) build. See type docs.
+func (simulatedBuilder) Build(ctx context.Context, j *Job) {
+	j.AppendLog(fmt.Sprintf("[%s] SIMULATED build started on worker (NON-PRODUCTION; no real image is produced)", time.Now().UTC().Format(time.RFC3339)))
+
+	select {
+	case <-ctx.Done():
+		j.TransitionTo(StateCancelled)
+		j.AppendLog("Build cancelled by context")
+		return
+	case <-time.After(100 * time.Millisecond):
+	}
+
+	if j.RepoURL == "fail" {
+		j.TransitionTo(StateFailed)
+		j.AppendLog("Build failed: simulated failure")
+		return
+	}
+
+	// NOTE: This tag is fabricated. No image with this tag exists anywhere.
+	j.SetImageTag(fmt.Sprintf("helix/%s:%s", j.ID, j.Ref))
+	j.TransitionTo(StateSucceeded)
+	j.AppendLog(fmt.Sprintf("SIMULATED build succeeded: fabricated image tag %s (no real artifact)", j.ImageTag))
+}
+
 // Service orchestrates build jobs.
 type Service struct {
 	mu      sync.RWMutex
@@ -100,17 +167,32 @@ type Service struct {
 	queue   chan *Job
 	cancel  context.CancelFunc
 	wg      sync.WaitGroup
+	builder Builder
 }
 
 // NewService creates a build service with the given worker pool size.
+//
+// WARNING: The returned Service uses simulatedBuilder, a NON-PRODUCTION
+// simulation that produces NO real image. Use NewServiceWithBuilder with a real
+// Builder for production. See simulatedBuilder docs.
 func NewService(workers int) *Service {
+	return NewServiceWithBuilder(workers, simulatedBuilder{})
+}
+
+// NewServiceWithBuilder creates a build service backed by the given Builder.
+// This is the injection seam for a real image builder.
+func NewServiceWithBuilder(workers int, builder Builder) *Service {
 	if workers < 1 {
 		workers = 1
+	}
+	if builder == nil {
+		builder = simulatedBuilder{}
 	}
 	return &Service{
 		jobs:    make(map[string]*Job),
 		workers: workers,
 		queue:   make(chan *Job, 100),
+		builder: builder,
 	}
 }
 
@@ -233,30 +315,7 @@ func (s *Service) worker(ctx context.Context, id int) {
 			if err := j.TransitionTo(StateRunning); err != nil {
 				continue
 			}
-			s.runBuild(ctx, j)
+			s.builder.Build(ctx, j)
 		}
 	}
-}
-
-// runBuild executes the build logic. Override in production.
-func (s *Service) runBuild(ctx context.Context, j *Job) {
-	j.AppendLog(fmt.Sprintf("[%s] Build started on worker", time.Now().UTC().Format(time.RFC3339)))
-
-	select {
-	case <-ctx.Done():
-		j.TransitionTo(StateCancelled)
-		j.AppendLog("Build cancelled by context")
-		return
-	case <-time.After(100 * time.Millisecond):
-	}
-
-	if j.RepoURL == "fail" {
-		j.TransitionTo(StateFailed)
-		j.AppendLog("Build failed: simulated failure")
-		return
-	}
-
-	j.ImageTag = fmt.Sprintf("helix/%s:%s", j.ID, j.Ref)
-	j.TransitionTo(StateSucceeded)
-	j.AppendLog(fmt.Sprintf("Build succeeded: image %s", j.ImageTag))
 }

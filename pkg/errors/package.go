@@ -43,9 +43,14 @@ type Frame struct {
 func (e *Error) Error() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf("[%s] %s", e.Code, e.Message))
+	// Read Fields under the RLock: WithField/WithFields mutate the map under the
+	// write lock, so an unsynchronized read here is a data race and can crash
+	// with "concurrent map iteration and map write". Snapshot under the lock.
+	e.mu.RLock()
 	if len(e.Fields) > 0 {
 		b.WriteString(fmt.Sprintf(" | fields=%v", e.Fields))
 	}
+	e.mu.RUnlock()
 	if e.Cause != nil {
 		b.WriteString(fmt.Sprintf(": %v", e.Cause))
 	}

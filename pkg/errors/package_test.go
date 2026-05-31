@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"sync"
 	"testing"
 )
 
@@ -196,33 +197,150 @@ func TestErrorFormattingWithCause_Mutation(t *testing.T) {
 }
 
 func TestCodeEnumValues(t *testing.T) {
-	codes := []Code{
-		E_UNKNOWN, E_NOT_FOUND, E_INVALID, E_TIMEOUT,
-		E_UNAVAILABLE, E_INTERNAL, E_UNAUTHORIZED, E_CONFLICT,
+	// Assert EXACT string values: a rename or accidental edit of any constant
+	// must fail this test (the previous non-empty-only check could not catch it).
+	expected := map[Code]string{
+		E_UNKNOWN:      "E_UNKNOWN",
+		E_NOT_FOUND:    "E_NOT_FOUND",
+		E_INVALID:      "E_INVALID",
+		E_TIMEOUT:      "E_TIMEOUT",
+		E_UNAVAILABLE:  "E_UNAVAILABLE",
+		E_INTERNAL:     "E_INTERNAL",
+		E_UNAUTHORIZED: "E_UNAUTHORIZED",
+		E_CONFLICT:     "E_CONFLICT",
 	}
-	for _, c := range codes {
-		if c == "" {
-			t.Error("expected non-empty code enum")
+	for code, want := range expected {
+		if string(code) != want {
+			t.Errorf("expected code constant to equal %q, got %q", want, string(code))
+		}
+	}
+
+	// Assert pairwise DISTINCTNESS: two constants sharing a value (a collision
+	// from a copy/paste) must fail. We invert the map and verify cardinality,
+	// then prove every value is unique via a set.
+	seen := make(map[Code]bool)
+	for code := range expected {
+		if seen[code] {
+			t.Errorf("duplicate Code value detected: %q", string(code))
+		}
+		seen[code] = true
+	}
+	if len(seen) != len(expected) {
+		t.Errorf("expected %d distinct codes, got %d", len(expected), len(seen))
+	}
+}
+
+// TestConcurrentFieldAccess proves the sync.RWMutex contract is real: many
+// writers (WithField) run concurrently with many readers that go through the
+// LOCKED accessor (GetFields), so the test exercises the exact lock path the
+// mutex guards. It is meaningful only under `-race` and, after the goroutines
+// settle, asserts a DETERMINISTIC sink-side result: all 50 writes are observed.
+func TestConcurrentFieldAccess(t *testing.T) {
+	const writers = 50
+	err := New(E_INTERNAL, "race test")
+
+	var wg sync.WaitGroup
+
+	// Writers: each adds a distinct key under the write lock.
+	wg.Add(writers)
+	for i := 0; i < writers; i++ {
+		go func(i int) {
+			defer wg.Done()
+			err.WithField(fmt.Sprintf("key%d", i), i)
+		}(i)
+	}
+
+	// Readers: route through the LOCKED accessor (GetFields -> RLock), not the
+	// raw err.Fields map header. This is what makes the test honest about the
+	// mutex contract; under `-race` an unsynchronized read here would fail.
+	wg.Add(writers)
+	for i := 0; i < writers; i++ {
+		go func() {
+			defer wg.Done()
+			_ = GetFields(err)
+		}()
+	}
+
+	wg.Wait()
+
+	// Sink-side, deterministic assertion: every write must have landed.
+	got := GetFields(err)
+	if len(got) != writers {
+		t.Fatalf("expected all %d concurrent writes to be observed, got %d", writers, len(got))
+	}
+	for i := 0; i < writers; i++ {
+		k := fmt.Sprintf("key%d", i)
+		if got[k] != i {
+			t.Errorf("expected field %s=%d, got %v", k, i, got[k])
 		}
 	}
 }
 
-func TestConcurrentFieldAccess(t *testing.T) {
-	err := New(E_INTERNAL, "race test")
-	done := make(chan struct{}, 100)
-	for i := 0; i < 50; i++ {
+// TestConcurrentErrorRendering exercises the OTHER real read path — Error() —
+// concurrently with writers. Error() must read Fields under the lock; without
+// proper locking this fails under `-race`.
+func TestConcurrentErrorRendering(t *testing.T) {
+	const n = 50
+	err := New(E_INTERNAL, "render race")
+
+	var wg sync.WaitGroup
+	wg.Add(n * 2)
+	for i := 0; i < n; i++ {
 		go func(i int) {
-			err.WithField(fmt.Sprintf("key%d", i), i)
-			done <- struct{}{}
+			defer wg.Done()
+			err.WithField(fmt.Sprintf("k%d", i), i)
 		}(i)
-	}
-	for i := 0; i < 50; i++ {
 		go func() {
-			_ = err.Fields
-			done <- struct{}{}
+			defer wg.Done()
+			_ = err.Error()
 		}()
 	}
-	for i := 0; i < 100; i++ {
-		<-done
+	wg.Wait()
+}
+
+func TestWithFields_NilReceiver(t *testing.T) {
+	// Mutation/safety: WithFields on a nil receiver must return nil, not panic.
+	var nilErr *Error
+	result := nilErr.WithFields(map[string]interface{}{"k": "v"})
+	if result != nil {
+		t.Error("expected nil result from WithFields on nil receiver")
+	}
+}
+
+func TestAsChain(t *testing.T) {
+	// Prove errors.As compatibility (not just errors.Is): a *Error must be
+	// extractable through a multi-level Wrap chain, including across a
+	// non-*Error std wrapper in the middle.
+	leaf := New(E_NOT_FOUND, "leaf missing").WithField("resource", "user")
+	mid := fmt.Errorf("std wrapper: %w", leaf)
+	top := Wrap(mid, E_UNAVAILABLE, "service down")
+
+	var target *Error
+	if !errors.As(top, &target) {
+		t.Fatal("expected errors.As to extract *Error from chain")
+	}
+	// errors.As yields the first *Error in the chain (the top wrapper here).
+	if target.Code != E_UNAVAILABLE {
+		t.Errorf("expected first extracted *Error to be the top (E_UNAVAILABLE), got %s", target.Code)
+	}
+
+	// And the leaf *Error is reachable too.
+	var leafTarget *Error
+	if !errors.As(mid, &leafTarget) {
+		t.Fatal("expected errors.As to extract leaf *Error through std wrapper")
+	}
+	if leafTarget.Code != E_NOT_FOUND {
+		t.Errorf("expected leaf code E_NOT_FOUND, got %s", leafTarget.Code)
+	}
+}
+
+func TestGetFieldsNil(t *testing.T) {
+	// GetFields(nil) must return an empty, non-nil map (safe to range/index).
+	fields := GetFields(nil)
+	if fields == nil {
+		t.Fatal("expected non-nil map from GetFields(nil)")
+	}
+	if len(fields) != 0 {
+		t.Errorf("expected empty map from GetFields(nil), got %v", fields)
 	}
 }
