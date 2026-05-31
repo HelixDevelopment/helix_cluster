@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 24
-**Last modified:** 2026-05-31T14:10:38Z
+**Revision:** 25
+**Last modified:** 2026-05-31T14:24:06Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `9dd576d` | Add MVP+Phase5-8B roadmaps; register containers submodule with decoupled NATS/JetStream brokertest provisioner (real-run verified) |
 | `427e547` | Auto-commit |
 | `9e90826` | Auto-commit |
 | `dde5607` | Auto-commit |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `378e1a9` | docs: Comprehensive audit report HXC-923 |
 | `fcbf9b7` | feat: Node service, advisory locks, chaos tests, docs (HXC-922) |
 | `6f358a6` | feat: Web UI, K8s/Helm, integration, E2E, benchmarks (HXC-921) |
-| `48c72e6` | feat: health, security, build, wireguard services (HXC-920) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `427e547` |
-| **Timestamp** | 2026-05-31T14:10:38Z |
+| **Commit** | `9dd576d` |
+| **Timestamp** | 2026-05-31T14:24:06Z |
 
 ## §3: Active Work
 

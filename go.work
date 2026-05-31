@@ -9,6 +9,7 @@ use (
 	./api/v1
 	./challenges
 	./cmd/hxc-registry
+	./containers
 	./config
 	./discovery
 	./pkg/build
