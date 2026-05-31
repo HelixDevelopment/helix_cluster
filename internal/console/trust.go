@@ -26,8 +26,10 @@ const (
 var AllTrustLevels = []TrustLevel{TrustFull, TrustSemi, TrustUntrusted}
 
 // ParseTrustLevel parses a trust level string (case-insensitive).
+// Surrounding whitespace is trimmed so values sourced from environment
+// variables or node labels parse cleanly.
 func ParseTrustLevel(s string) (TrustLevel, error) {
-	switch strings.ToUpper(s) {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "FULL":
 		return TrustFull, nil
 	case "SEMI":

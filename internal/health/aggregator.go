@@ -19,6 +19,10 @@ type Aggregator struct {
 	mu      sync.RWMutex
 	checks  map[string]HealthCheck
 	results map[string]ServiceStatus
+	// kinds records the liveness/readiness classification of each check so the
+	// liveness and readiness rollups can select the relevant subset. Checks
+	// registered via RegisterCheck default to KindReadiness (the zero value).
+	kinds map[string]CheckKind
 }
 
 // NewAggregator creates a new Aggregator.
@@ -26,14 +30,17 @@ func NewAggregator() *Aggregator {
 	return &Aggregator{
 		checks:  make(map[string]HealthCheck),
 		results: make(map[string]ServiceStatus),
+		kinds:   make(map[string]CheckKind),
 	}
 }
 
-// RegisterCheck registers a named health check.
+// RegisterCheck registers a named health check. The check defaults to
+// KindReadiness; use RegisterCheckKind to classify it for the liveness rollup.
 func (a *Aggregator) RegisterCheck(name string, check HealthCheck) {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.checks[name] = check
+	a.kinds[name] = KindReadiness
 }
 
 // UnregisterCheck removes a named health check.
@@ -42,6 +49,7 @@ func (a *Aggregator) UnregisterCheck(name string) {
 	defer a.mu.Unlock()
 	delete(a.checks, name)
 	delete(a.results, name)
+	delete(a.kinds, name)
 }
 
 // RunChecks runs all registered checks concurrently and stores the results.
@@ -80,25 +88,7 @@ func (a *Aggregator) RunChecks(ctx context.Context) {
 func (a *Aggregator) GetStatus() Status {
 	a.mu.RLock()
 	defer a.mu.RUnlock()
-
-	if len(a.results) == 0 {
-		return Unknown
-	}
-
-	overall := Healthy
-	for _, r := range a.results {
-		switch r.Status {
-		case Critical:
-			return Critical
-		case Degraded:
-			overall = Degraded
-		case Unknown:
-			if overall == Healthy {
-				overall = Unknown
-			}
-		}
-	}
-	return overall
+	return a.getStatusLocked()
 }
 
 // GetServiceStatus returns the status for a specific service.

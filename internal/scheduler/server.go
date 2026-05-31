@@ -18,10 +18,19 @@ import (
 type Server struct {
 	helixv1.UnimplementedSchedulerServiceServer
 
-	mu        sync.RWMutex
-	sched     *scheduler.Scheduler
-	registry  *discovery.ServiceRegistry
-	jobNodes  map[string]string // jobID -> assigned nodeID
+	mu       sync.RWMutex
+	sched    *scheduler.Scheduler
+	registry *discovery.ServiceRegistry
+	jobs     map[string]*jobRecord // jobID -> placement record
+}
+
+// jobRecord captures everything needed to report on and tear down a placement.
+// It retains the consumed resources so CancelJob can return them to the node,
+// preventing the resource leak that a bare jobID->nodeID map would cause.
+type jobRecord struct {
+	nodeID    string
+	resources scheduler.Resources
+	startedAt int64
 }
 
 // NewServer creates a new Scheduler gRPC server wired to pkg/scheduler
@@ -38,7 +47,7 @@ func NewServer() *Server {
 	return &Server{
 		sched:    sched,
 		registry: reg,
-		jobNodes: make(map[string]string),
+		jobs:     make(map[string]*jobRecord),
 	}
 }
 
@@ -73,6 +82,13 @@ func (s *Server) ScheduleJob(ctx context.Context, req *helixv1.ScheduleJobReques
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	// Reject duplicate job IDs: re-scheduling the same ID would consume node
+	// resources a second time and silently overwrite the prior placement,
+	// leaking the original placement's resources.
+	if _, exists := s.jobs[job.ID]; exists {
+		return nil, status.Errorf(codes.AlreadyExists, "job %s already scheduled", job.ID)
+	}
+
 	// Register any newly discovered nodes with the scheduler.
 	for _, inst := range instances {
 		if _, ok := s.sched.GetNode(inst.ID); !ok {
@@ -92,7 +108,11 @@ func (s *Server) ScheduleJob(ctx context.Context, req *helixv1.ScheduleJobReques
 		}, status.Errorf(codes.ResourceExhausted, "scheduling failed: %v", err)
 	}
 
-	s.jobNodes[job.ID] = result.AssignedNode
+	s.jobs[job.ID] = &jobRecord{
+		nodeID:    result.AssignedNode,
+		resources: job.Resources,
+		startedAt: time.Now().Unix(),
+	}
 
 	return &helixv1.ScheduleJobResponse{
 		JobId:     job.ID,
@@ -101,23 +121,35 @@ func (s *Server) ScheduleJob(ctx context.Context, req *helixv1.ScheduleJobReques
 	}, nil
 }
 
-// CancelJob cancels a scheduled job.
+// CancelJob cancels a scheduled job and returns its consumed resources to the
+// node it was placed on, so the freed capacity becomes schedulable again.
 func (s *Server) CancelJob(ctx context.Context, req *helixv1.CancelJobRequest) (*helixv1.CancelJobResponse, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if _, ok := s.jobNodes[req.JobId]; !ok {
+	rec, ok := s.jobs[req.JobId]
+	if !ok {
 		return nil, status.Errorf(codes.NotFound, "job %s not found", req.JobId)
 	}
 
-	delete(s.jobNodes, req.JobId)
+	// Restore the resources this job consumed on its node. Schedule() bound the
+	// job by debiting node.AvailableResources; without this credit the capacity
+	// would be leaked forever across schedule/cancel cycles.
+	if node, found := s.sched.GetNode(rec.nodeID); found {
+		node.AvailableResources.CPU += rec.resources.CPU
+		node.AvailableResources.Memory += rec.resources.Memory
+		node.AvailableResources.GPU += rec.resources.GPU
+		s.sched.RegisterNode(node)
+	}
+
+	delete(s.jobs, req.JobId)
 	return &helixv1.CancelJobResponse{Cancelled: true}, nil
 }
 
 // GetJobStatus returns the status of a job by ID.
 func (s *Server) GetJobStatus(ctx context.Context, req *helixv1.GetJobStatusRequest) (*helixv1.JobStatus, error) {
 	s.mu.RLock()
-	nodeID, ok := s.jobNodes[req.JobId]
+	rec, ok := s.jobs[req.JobId]
 	s.mu.RUnlock()
 
 	if !ok {
@@ -125,9 +157,10 @@ func (s *Server) GetJobStatus(ctx context.Context, req *helixv1.GetJobStatusRequ
 	}
 
 	return &helixv1.JobStatus{
-		JobId:  req.JobId,
-		State:  string(scheduler.JobStatusScheduled),
-		NodeId: nodeID,
+		JobId:     req.JobId,
+		State:     string(scheduler.JobStatusScheduled),
+		NodeId:    rec.nodeID,
+		StartedAt: rec.startedAt,
 	}, nil
 }
 
@@ -137,8 +170,8 @@ func (s *Server) ListJobs(ctx context.Context, req *helixv1.ListJobsRequest) (*h
 	defer s.mu.RUnlock()
 
 	var out []*helixv1.JobStatus
-	for jobID, nodeID := range s.jobNodes {
-		if req.NodeId != "" && nodeID != req.NodeId {
+	for jobID, rec := range s.jobs {
+		if req.NodeId != "" && rec.nodeID != req.NodeId {
 			continue
 		}
 		state := string(scheduler.JobStatusScheduled)
@@ -146,9 +179,10 @@ func (s *Server) ListJobs(ctx context.Context, req *helixv1.ListJobsRequest) (*h
 			continue
 		}
 		out = append(out, &helixv1.JobStatus{
-			JobId:  jobID,
-			State:  state,
-			NodeId: nodeID,
+			JobId:     jobID,
+			State:     state,
+			NodeId:    rec.nodeID,
+			StartedAt: rec.startedAt,
 		})
 	}
 
@@ -158,7 +192,7 @@ func (s *Server) ListJobs(ctx context.Context, req *helixv1.ListJobsRequest) (*h
 // StreamJobEvents streams a single mock event for the requested job.
 func (s *Server) StreamJobEvents(req *helixv1.StreamJobEventsRequest, stream helixv1.SchedulerService_StreamJobEventsServer) error {
 	s.mu.RLock()
-	_, ok := s.jobNodes[req.JobId]
+	_, ok := s.jobs[req.JobId]
 	s.mu.RUnlock()
 
 	if !ok {

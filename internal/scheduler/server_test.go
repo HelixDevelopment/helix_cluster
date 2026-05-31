@@ -158,7 +158,20 @@ func TestServerStreamJobEvents(t *testing.T) {
 		t.Fatalf("StreamJobEvents: %v", err)
 	}
 
-	if _, err := stream.Recv(); err != nil {
+	event, err := stream.Recv()
+	if err != nil {
 		t.Fatalf("Recv: %v", err)
+	}
+	if event.JobId != "job-5" {
+		t.Errorf("event job id = %q, want job-5", event.JobId)
+	}
+	if event.EventType != "scheduled" {
+		t.Errorf("event type = %q, want scheduled", event.EventType)
+	}
+	if event.Message != "job scheduled" {
+		t.Errorf("event message = %q, want %q", event.Message, "job scheduled")
+	}
+	if event.Timestamp <= 0 {
+		t.Errorf("event timestamp = %d, want > 0", event.Timestamp)
 	}
 }

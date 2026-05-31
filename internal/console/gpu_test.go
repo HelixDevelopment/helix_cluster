@@ -53,11 +53,33 @@ func TestQuery_MockDRM(t *testing.T) {
 	}
 
 	gq := NewGPUQuerier()
-	// We cannot easily redirect /sys/class/drm; test the fallback path instead.
+	// Redirect the DRM base path at the faked sysfs tree so Query() exercises
+	// real detection instead of the host's /sys/class/drm.
+	gq.drmBasePath = drmDir
+	// Force the vulkan fallback to be unavailable so a PASS here can only come
+	// from the DRM probe actually parsing the faked card.
+	gq.vulkanLoaderPath = filepath.Join(tmpDir, "absent-libvulkan.so")
+
 	info, err := gq.Query()
-	// Either we get a real GPU or fallback; just ensure no panic.
-	_ = info
-	_ = err
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	// Mutation: remove `info.ComputeOK = true` in queryLinux's DRM branch -> fails.
+	if !info.ComputeOK {
+		t.Error("expected ComputeOK true after successful DRM probe")
+	}
+	// Mutation: change `info.Vendor = vendor` in probeDRM to "" -> fails.
+	if info.Vendor != "0x1002" {
+		t.Errorf("expected vendor 0x1002, got %q", info.Vendor)
+	}
+	// Mutation: change `info.Name = strings.TrimPrefix(line, "DRIVER=")` -> fails.
+	if info.Name != "amdgpu" {
+		t.Errorf("expected name amdgpu, got %q", info.Name)
+	}
+	// Mutation: drop the `info.MemoryBytes = v` assignment -> fails.
+	if info.MemoryBytes != 8589934592 {
+		t.Errorf("expected VRAM 8589934592, got %d", info.MemoryBytes)
+	}
 }
 
 func TestHasVulkanCompute_NonLinux(t *testing.T) {

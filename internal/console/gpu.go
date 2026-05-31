@@ -20,12 +20,14 @@ type GPUInfo struct {
 // GPUQuerier probes GPU compute capabilities.
 type GPUQuerier struct {
 	vulkanLoaderPath string
+	drmBasePath      string
 }
 
 // NewGPUQuerier creates a new GPU querier.
 func NewGPUQuerier() *GPUQuerier {
 	return &GPUQuerier{
 		vulkanLoaderPath: "/usr/lib/libvulkan.so",
+		drmBasePath:      "/sys/class/drm",
 	}
 }
 
@@ -61,7 +63,7 @@ func (gq *GPUQuerier) queryLinux() (*GPUInfo, error) {
 }
 
 func (gq *GPUQuerier) probeDRM(info *GPUInfo) error {
-	drmPath := "/sys/class/drm"
+	drmPath := gq.drmBasePath
 	entries, err := os.ReadDir(drmPath)
 	if err != nil {
 		return err
