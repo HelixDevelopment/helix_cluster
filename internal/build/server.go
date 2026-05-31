@@ -114,6 +114,24 @@ func (s *Server) StreamBuildLogs(req *helixv1.StreamBuildLogsRequest, stream hel
 		}
 
 		if j.IsTerminal() {
+			// Re-read once more: the producer may append a final log line
+			// concurrently with (or just after) the terminal transition, so a
+			// single pre-terminal flush can miss the last line. Drain remaining
+			// lines before closing the stream so the client sees every line.
+			final, err := s.orch.GetBuildStatus(ctx, buildID)
+			if err != nil {
+				return err
+			}
+			logs = final.GetLogs()
+			for i := lastSent; i < len(logs); i++ {
+				if err := stream.Send(&helixv1.BuildLogLine{
+					BuildId:   final.ID,
+					Line:      logs[i],
+					Timestamp: time.Now().Unix(),
+				}); err != nil {
+					return err
+				}
+			}
 			return nil
 		}
 	}

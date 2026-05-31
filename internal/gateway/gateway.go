@@ -9,7 +9,12 @@ import (
 	"net/http/httputil"
 	"net/url"
 	"strings"
+	"sync"
 )
+
+// gatewayHeader marks responses that traversed the gateway. It gives clients
+// and tests a sink-side signal that routing actually occurred.
+const gatewayHeader = "X-Helix-Gateway"
 
 // route defines a single path prefix → backend mapping.
 type route struct {
@@ -26,7 +31,11 @@ var routes = []route{
 }
 
 // Gateway is an HTTP reverse proxy with path-based routing.
+//
+// The proxies map may be reconfigured via SetProxy after construction, so all
+// access is guarded by mu to remain safe for concurrent serving.
 type Gateway struct {
+	mu      sync.RWMutex
 	proxies map[string]*httputil.ReverseProxy
 	routes  []route
 }
@@ -43,10 +52,30 @@ func NewGateway() (*Gateway, error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid backend URL %q: %w", r.backend, err)
 		}
-		g.proxies[r.prefix] = httputil.NewSingleHostReverseProxy(target)
+		g.proxies[r.prefix] = newReverseProxy(target)
 	}
 
 	return g, nil
+}
+
+// newReverseProxy builds a single-host reverse proxy that emits a usable,
+// machine-readable JSON error when the backend is unreachable (the stdlib
+// default writes a bare 502 with an empty body) and stamps the gateway marker
+// header on every proxied response.
+func newReverseProxy(target *url.URL) *httputil.ReverseProxy {
+	proxy := httputil.NewSingleHostReverseProxy(target)
+	proxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, err error) {
+		log.Printf("gateway: backend %s unreachable for %s: %v", target, r.URL.Path, err)
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(gatewayHeader, "true")
+		w.WriteHeader(http.StatusBadGateway)
+		_, _ = w.Write([]byte(`{"error":"backend unavailable","status":502}`))
+	}
+	proxy.ModifyResponse = func(resp *http.Response) error {
+		resp.Header.Set(gatewayHeader, "true")
+		return nil
+	}
+	return proxy
 }
 
 // ServeHTTP implements http.Handler.
@@ -60,7 +89,9 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, route := range g.routes {
 		if strings.HasPrefix(r.URL.Path, route.prefix) {
+			g.mu.RLock()
 			proxy, ok := g.proxies[route.prefix]
+			g.mu.RUnlock()
 			if !ok {
 				http.Error(w, "no proxy for route", http.StatusInternalServerError)
 				return
@@ -74,8 +105,11 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // SetProxy overrides the reverse proxy for a given prefix (useful in tests).
+// It is safe to call concurrently with ServeHTTP.
 func (g *Gateway) SetProxy(prefix string, proxy *httputil.ReverseProxy) {
+	g.mu.Lock()
 	g.proxies[prefix] = proxy
+	g.mu.Unlock()
 }
 
 // ListenAndServe starts the gateway HTTP server on the given address.

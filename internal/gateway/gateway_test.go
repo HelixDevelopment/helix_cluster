@@ -59,7 +59,7 @@ func TestRoutePrefixes(t *testing.T) {
 
 	// Override the build proxy to point at our test backend.
 	target, _ := url.Parse(backend.URL)
-	g.proxies["/api/v1/build/"] = httputil.NewSingleHostReverseProxy(target)
+	g.SetProxy("/api/v1/build/", httputil.NewSingleHostReverseProxy(target))
 
 	rr := httptest.NewRecorder()
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/build/status", nil)

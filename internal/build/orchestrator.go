@@ -108,7 +108,7 @@ func (j *Job) clone() *Job {
 		RepoURL:        j.RepoURL,
 		Ref:            j.Ref,
 		DockerfilePath: j.DockerfilePath,
-		BuildArgs:      j.BuildArgs,
+		BuildArgs:      cloneArgs(j.BuildArgs),
 		State:          j.State,
 		ImageTag:       j.ImageTag,
 		CreatedAt:      j.CreatedAt,
@@ -124,6 +124,19 @@ func (j *Job) clone() *Job {
 		c.CompletedAt = &t
 	}
 	return c
+}
+
+// cloneArgs returns a deep copy of a build-args map. A nil input yields nil so
+// that a clone faithfully reflects "no args set".
+func cloneArgs(in map[string]string) map[string]string {
+	if in == nil {
+		return nil
+	}
+	out := make(map[string]string, len(in))
+	for k, v := range in {
+		out[k] = v
+	}
+	return out
 }
 
 // BuildSpec defines the parameters for submitting a new build job.
@@ -228,8 +241,12 @@ func (o *Orchestrator) SubmitBuild(ctx context.Context, spec BuildSpec) (*Job, e
 	select {
 	case o.queue <- j:
 	case <-ctx.Done():
+		// Roll back registration so a failed submit does not leave a phantom
+		// job that blocks resubmission of the same ID and pollutes listings.
+		delete(o.jobs, j.ID)
 		return nil, ctx.Err()
 	default:
+		delete(o.jobs, j.ID)
 		return nil, fmt.Errorf("build queue is full")
 	}
 
@@ -303,6 +320,32 @@ func (o *Orchestrator) Cache() cache.Cache {
 	return o.cache
 }
 
+// PurgeTerminal removes terminal jobs (succeeded/failed/cancelled) that completed
+// at or before the given cutoff, returning the number reaped. It exists to bound
+// orchestrator memory: without reaping, the jobs map grows without limit for the
+// process lifetime. Non-terminal jobs and jobs with no CompletedAt are retained.
+func (o *Orchestrator) PurgeTerminal(before time.Time) int {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+
+	purged := 0
+	for id, j := range o.jobs {
+		if !j.IsTerminal() {
+			continue
+		}
+		j.mu.RLock()
+		completed := j.CompletedAt
+		j.mu.RUnlock()
+		if completed == nil || completed.After(before) {
+			continue
+		}
+		delete(o.jobs, id)
+		delete(o.artifacts, id)
+		purged++
+	}
+	return purged
+}
+
 // worker processes jobs from the queue.
 func (o *Orchestrator) worker(ctx context.Context, id int) {
 	defer o.wg.Done()
@@ -332,14 +375,17 @@ func (o *Orchestrator) runBuild(ctx context.Context, j *Job) {
 	}
 
 	if j.RepoURL == "fail" {
-		j.TransitionTo(StateFailed)
+		// Append the outcome log BEFORE the terminal transition so a client
+		// streaming logs (which stops once the job is terminal) cannot miss
+		// the final line due to a transition/append ordering race.
 		j.AppendLog("Build failed: simulated failure")
+		j.TransitionTo(StateFailed)
 		return
 	}
 
 	j.mu.Lock()
 	j.ImageTag = fmt.Sprintf("helix/%s:%s", j.ID, j.Ref)
 	j.mu.Unlock()
-	j.TransitionTo(StateSucceeded)
 	j.AppendLog(fmt.Sprintf("Build succeeded: image %s", j.ImageTag))
+	j.TransitionTo(StateSucceeded)
 }

@@ -1,3 +1,9 @@
+// Package gpu provides detection, allocation, and health monitoring of GPU
+// devices for the Helix cluster. On Linux it reads real NVIDIA device
+// information from /proc; on other platforms (and in tests) it falls back to a
+// deterministic mock inventory. The Manager type owns the device inventory and
+// is safe for concurrent use; the Monitor type periodically refreshes per-GPU
+// health metrics.
 package gpu
 
 import (
