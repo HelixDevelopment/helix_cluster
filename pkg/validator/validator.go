@@ -76,7 +76,7 @@ func (v *Validator) ValidateStruct(s interface{}) error {
 		return fmt.Errorf("expected struct, got %s: %w", val.Kind(), ErrNotStruct)
 	}
 	typ := val.Type()
-	var errs []string
+	var fieldErrs []error
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		fv := val.Field(i)
@@ -88,11 +88,15 @@ func (v *Validator) ValidateStruct(s interface{}) error {
 			continue
 		}
 		if err := v.validateField(field.Name, fv, tag); err != nil {
-			errs = append(errs, err.Error())
+			fieldErrs = append(fieldErrs, err)
 		}
 	}
-	if len(errs) > 0 {
-		return fmt.Errorf("validation failed: %s: %w", strings.Join(errs, "; "), ErrValidationFailed)
+	if len(fieldErrs) > 0 {
+		// errors.Join preserves every per-field wrapped sentinel (ErrRequired,
+		// ErrMinExceeded, ...) so callers can match them via errors.Is, while we
+		// also wrap ErrValidationFailed for the aggregate contract.
+		joined := errors.Join(fieldErrs...)
+		return fmt.Errorf("validation failed: %w: %w", joined, ErrValidationFailed)
 	}
 	return nil
 }
@@ -180,22 +184,22 @@ func (v *Validator) checkMin(name, strVal string, val reflect.Value, arg string)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		n, _ := strconv.ParseInt(arg, 10, 64)
 		if val.Int() < n {
-			return fmt.Errorf("field %s must be >= %d", name, n)
+			return fmt.Errorf("field %s must be >= %d: %w", name, n, ErrMinExceeded)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		n, _ := strconv.ParseUint(arg, 10, 64)
 		if val.Uint() < n {
-			return fmt.Errorf("field %s must be >= %d", name, n)
+			return fmt.Errorf("field %s must be >= %d: %w", name, n, ErrMinExceeded)
 		}
 	case reflect.Float32, reflect.Float64:
 		n, _ := strconv.ParseFloat(arg, 64)
 		if val.Float() < n {
-			return fmt.Errorf("field %s must be >= %f", name, n)
+			return fmt.Errorf("field %s must be >= %f: %w", name, n, ErrMinExceeded)
 		}
 	default:
 		n, _ := strconv.Atoi(arg)
 		if len(strVal) < n {
-			return fmt.Errorf("field %s length must be >= %d", name, n)
+			return fmt.Errorf("field %s length must be >= %d: %w", name, n, ErrMinExceeded)
 		}
 	}
 	return nil
@@ -206,22 +210,22 @@ func (v *Validator) checkMax(name, strVal string, val reflect.Value, arg string)
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		n, _ := strconv.ParseInt(arg, 10, 64)
 		if val.Int() > n {
-			return fmt.Errorf("field %s must be <= %d", name, n)
+			return fmt.Errorf("field %s must be <= %d: %w", name, n, ErrMaxExceeded)
 		}
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		n, _ := strconv.ParseUint(arg, 10, 64)
 		if val.Uint() > n {
-			return fmt.Errorf("field %s must be <= %d", name, n)
+			return fmt.Errorf("field %s must be <= %d: %w", name, n, ErrMaxExceeded)
 		}
 	case reflect.Float32, reflect.Float64:
 		n, _ := strconv.ParseFloat(arg, 64)
 		if val.Float() > n {
-			return fmt.Errorf("field %s must be <= %f", name, n)
+			return fmt.Errorf("field %s must be <= %f: %w", name, n, ErrMaxExceeded)
 		}
 	default:
 		n, _ := strconv.Atoi(arg)
 		if len(strVal) > n {
-			return fmt.Errorf("field %s length must be <= %d", name, n)
+			return fmt.Errorf("field %s length must be <= %d: %w", name, n, ErrMaxExceeded)
 		}
 	}
 	return nil

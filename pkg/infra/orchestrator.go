@@ -63,25 +63,106 @@ func DefaultServices() []string {
 	}
 }
 
-// InfraOrchestrator manages the lifecycle of infrastructure services.
-type InfraOrchestrator struct {
+// Orchestrator is the seam through which a REAL infrastructure orchestrator
+// (one that actually boots containers/VMs, probes services over the network,
+// streams real logs, and scales real replicas) is injected.
+//
+// Contract for a REAL implementation:
+//   - Boot MUST actually start each named service (container / process / VM)
+//     and only report Status "running" / Healthy true after a real readiness
+//     probe to that service succeeds.
+//   - Health MUST perform a live probe (TCP/HTTP/gRPC/PING/etc.) against the
+//     service and report Healthy false for a service that is down or absent,
+//     with Latency measured from the actual round-trip — never a constant.
+//   - Logs MUST stream real log output from the running service, honoring
+//     follow/tail/since/timestamps.
+//   - Scale MUST create/destroy real replicas observable in the runtime.
+//   - VMSpawn/VMDestroy/VMSSH MUST create/destroy reachable nodes and return
+//     an SSH target that actually accepts a session.
+//
+// The default constructor (NewOrchestrator) returns simulatedOrchestrator,
+// which satisfies NONE of the above guarantees — see its documentation.
+type Orchestrator interface {
+	Boot(ctx context.Context, services []string) ([]ServiceStatus, error)
+	Stop(ctx context.Context, services []string, removeVolumes bool) ([]ServiceStatus, error)
+	Status(ctx context.Context, services []string) ([]ServiceStatus, error)
+	Health(ctx context.Context, services []string) ([]ServiceStatus, error)
+	Logs(ctx context.Context, service string, follow bool, tail int, since string, timestamps bool) error
+	Scale(ctx context.Context, service string, replicas int) (ServiceStatus, error)
+	VMSpawn(ctx context.Context, count int) ([]VMNode, error)
+	VMDestroy(ctx context.Context, nodeID string) error
+	VMList(ctx context.Context) ([]VMNode, error)
+	VMStatus(ctx context.Context, nodeID string) (VMNode, error)
+	VMSSH(ctx context.Context, nodeID string) (string, error)
+	VMSimulateFailure(ctx context.Context, nodeID string) error
+	VMSimulatePartition(ctx context.Context, nodeID string, duration time.Duration) error
+	// Simulated reports whether this orchestrator is the NON-PRODUCTION
+	// simulation. A real implementation MUST return false.
+	Simulated() bool
+}
+
+// simulatedOrchestrator is a NON-PRODUCTION, SIMULATED infrastructure
+// orchestrator.
+//
+// WARNING (PCS-6 / CLAUDE-1): This orchestrator does NOT perform ANY real
+// infrastructure operation. It boots NOTHING (no container, no process, no VM),
+// probes NOTHING (Health never opens a socket — it echoes the canned Healthy
+// flag that Boot unconditionally set to true), streams NO logs (Logs only
+// checks the in-memory map and returns nil; follow/tail/since/timestamps are
+// ignored), creates NO real replicas (Scale only writes a struct field), and
+// spawns NO real machines (VMSpawn fabricates CPU/Memory/IP constants with no
+// hypervisor or cloud call; VMSSH returns a formatted "ssh user@<ip>" string
+// for a host that does not exist and is not reachable).
+//
+// Every method is pure in-memory bookkeeping over two maps. A green test using
+// this type proves ONLY that the bookkeeping state machine behaves (insert /
+// lookup / mutate / delete, plus the partition auto-heal timer) — it is NOT
+// evidence that any service booted, is healthy, is reachable, or is usable by
+// an end user. Inject a real Orchestrator (see the Orchestrator interface and
+// infra_integration_test.go) for production use.
+//
+// The type is intentionally named so it is unmistakable in stack traces, logs,
+// and code review that this is a fake.
+type simulatedOrchestrator struct {
 	mu       sync.RWMutex
 	config   *InfraConfig
 	services map[string]*ServiceStatus
 	vmNodes  map[string]*VMNode
 }
 
-// NewOrchestrator creates a new InfraOrchestrator from the given config.
-func NewOrchestrator(cfg *InfraConfig) *InfraOrchestrator {
-	return &InfraOrchestrator{
+// InfraOrchestrator is retained as a backward-compatible alias for the
+// concrete simulation type. It carries the same NON-PRODUCTION guarantees as
+// simulatedOrchestrator — see that type's WARNING documentation.
+type InfraOrchestrator = simulatedOrchestrator
+
+// NewOrchestrator creates a new infrastructure orchestrator from the given
+// config.
+//
+// WARNING (PCS-6 / CLAUDE-1): The returned orchestrator is a
+// simulatedOrchestrator — a NON-PRODUCTION simulation that boots nothing,
+// probes nothing, and returns canned values. Its Simulated() method returns
+// true. It exists so the control-plane plumbing and state machine can be
+// exercised in unit tests; it MUST NOT be relied upon as a working
+// infrastructure orchestrator. Wire a real Orchestrator implementation (per the
+// Orchestrator interface) for production.
+func NewOrchestrator(cfg *InfraConfig) *simulatedOrchestrator {
+	return &simulatedOrchestrator{
 		config:   cfg,
 		services: make(map[string]*ServiceStatus),
 		vmNodes:  make(map[string]*VMNode),
 	}
 }
 
+// Simulated reports that this orchestrator is the NON-PRODUCTION simulation. It
+// always returns true. Callers and tests MUST assert o.Simulated() to confirm
+// they are running against the fake rather than a real orchestrator.
+func (o *simulatedOrchestrator) Simulated() bool { return true }
+
+// compile-time assertion that the simulation satisfies the Orchestrator seam.
+var _ Orchestrator = (*simulatedOrchestrator)(nil)
+
 // Boot starts the specified services. If no services are specified, all are started.
-func (o *InfraOrchestrator) Boot(ctx context.Context, services []string) ([]ServiceStatus, error) {
+func (o *simulatedOrchestrator) Boot(ctx context.Context, services []string) ([]ServiceStatus, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if len(services) == 0 {
@@ -103,7 +184,7 @@ func (o *InfraOrchestrator) Boot(ctx context.Context, services []string) ([]Serv
 }
 
 // Stop stops the specified services. If no services are specified, all are stopped.
-func (o *InfraOrchestrator) Stop(ctx context.Context, services []string, removeVolumes bool) ([]ServiceStatus, error) {
+func (o *simulatedOrchestrator) Stop(ctx context.Context, services []string, removeVolumes bool) ([]ServiceStatus, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if len(services) == 0 {
@@ -129,7 +210,7 @@ func (o *InfraOrchestrator) Stop(ctx context.Context, services []string, removeV
 }
 
 // Status returns the status of the specified services, or all if none specified.
-func (o *InfraOrchestrator) Status(ctx context.Context, services []string) ([]ServiceStatus, error) {
+func (o *simulatedOrchestrator) Status(ctx context.Context, services []string) ([]ServiceStatus, error) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 	if len(services) == 0 {
@@ -157,7 +238,7 @@ func (o *InfraOrchestrator) Status(ctx context.Context, services []string) ([]Se
 }
 
 // Health runs health checks for the specified services, or all if none specified.
-func (o *InfraOrchestrator) Health(ctx context.Context, services []string) ([]ServiceStatus, error) {
+func (o *simulatedOrchestrator) Health(ctx context.Context, services []string) ([]ServiceStatus, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if len(services) == 0 {
@@ -186,7 +267,7 @@ func (o *InfraOrchestrator) Health(ctx context.Context, services []string) ([]Se
 }
 
 // Logs streams logs from a service.
-func (o *InfraOrchestrator) Logs(ctx context.Context, service string, follow bool, tail int, since string, timestamps bool) error {
+func (o *simulatedOrchestrator) Logs(ctx context.Context, service string, follow bool, tail int, since string, timestamps bool) error {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 	if _, ok := o.services[service]; !ok {
@@ -196,7 +277,7 @@ func (o *InfraOrchestrator) Logs(ctx context.Context, service string, follow boo
 }
 
 // Scale scales a service to N replicas.
-func (o *InfraOrchestrator) Scale(ctx context.Context, service string, replicas int) (ServiceStatus, error) {
+func (o *simulatedOrchestrator) Scale(ctx context.Context, service string, replicas int) (ServiceStatus, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if s, ok := o.services[service]; ok {
@@ -216,7 +297,7 @@ func (o *InfraOrchestrator) Scale(ctx context.Context, service string, replicas 
 }
 
 // VMSpawn spawns N VM nodes.
-func (o *InfraOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, error) {
+func (o *simulatedOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	nodes := make([]VMNode, 0, count)
@@ -239,7 +320,7 @@ func (o *InfraOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, e
 }
 
 // VMDestroy destroys a VM node by ID.
-func (o *InfraOrchestrator) VMDestroy(ctx context.Context, nodeID string) error {
+func (o *simulatedOrchestrator) VMDestroy(ctx context.Context, nodeID string) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	if _, ok := o.vmNodes[nodeID]; !ok {
@@ -250,7 +331,7 @@ func (o *InfraOrchestrator) VMDestroy(ctx context.Context, nodeID string) error 
 }
 
 // VMList lists all VM nodes.
-func (o *InfraOrchestrator) VMList(ctx context.Context) ([]VMNode, error) {
+func (o *simulatedOrchestrator) VMList(ctx context.Context) ([]VMNode, error) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 	nodes := make([]VMNode, 0, len(o.vmNodes))
@@ -261,7 +342,7 @@ func (o *InfraOrchestrator) VMList(ctx context.Context) ([]VMNode, error) {
 }
 
 // VMStatus returns the status of a specific VM node.
-func (o *InfraOrchestrator) VMStatus(ctx context.Context, nodeID string) (VMNode, error) {
+func (o *simulatedOrchestrator) VMStatus(ctx context.Context, nodeID string) (VMNode, error) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 	if node, ok := o.vmNodes[nodeID]; ok {
@@ -271,7 +352,7 @@ func (o *InfraOrchestrator) VMStatus(ctx context.Context, nodeID string) (VMNode
 }
 
 // VMSSH returns the SSH command/connection string for a VM node.
-func (o *InfraOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, error) {
+func (o *simulatedOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, error) {
 	o.mu.RLock()
 	defer o.mu.RUnlock()
 	node, ok := o.vmNodes[nodeID]
@@ -282,7 +363,7 @@ func (o *InfraOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, e
 }
 
 // VMSimulateFailure simulates a failure on a VM node.
-func (o *InfraOrchestrator) VMSimulateFailure(ctx context.Context, nodeID string) error {
+func (o *simulatedOrchestrator) VMSimulateFailure(ctx context.Context, nodeID string) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	node, ok := o.vmNodes[nodeID]
@@ -294,7 +375,7 @@ func (o *InfraOrchestrator) VMSimulateFailure(ctx context.Context, nodeID string
 }
 
 // VMSimulatePartition simulates a network partition on a VM node for a given duration.
-func (o *InfraOrchestrator) VMSimulatePartition(ctx context.Context, nodeID string, duration time.Duration) error {
+func (o *simulatedOrchestrator) VMSimulatePartition(ctx context.Context, nodeID string, duration time.Duration) error {
 	o.mu.Lock()
 	node, ok := o.vmNodes[nodeID]
 	if !ok {
