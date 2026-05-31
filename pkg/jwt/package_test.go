@@ -9,7 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"encoding/pem"
+	"strings"
 	"testing"
+	"time"
 )
 
 func TestParseValidToken(t *testing.T) {
@@ -48,7 +50,6 @@ func TestVerifyHMAC(t *testing.T) {
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"HS256","typ":"JWT"}`))
 	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"user1"}`))
 
-	// Compute valid HMAC signature
 	mac := hmac.New(sha256.New, secret)
 	mac.Write([]byte(header + "." + payload))
 	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
@@ -88,7 +89,6 @@ func TestVerifyRSA(t *testing.T) {
 		t.Fatalf("failed to generate RSA key: %v", err)
 	}
 
-	// Encode public key to PEM
 	pubASN1, err := x509.MarshalPKIXPublicKey(&privKey.PublicKey)
 	if err != nil {
 		t.Fatalf("failed to marshal public key: %v", err)
@@ -98,7 +98,6 @@ func TestVerifyRSA(t *testing.T) {
 	header := base64.RawURLEncoding.EncodeToString([]byte(`{"alg":"RS256","typ":"JWT"}`))
 	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"user1"}`))
 
-	// Compute valid RSA signature
 	hash := sha256.Sum256([]byte(header + "." + payload))
 	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, 0, hash[:])
 	if err != nil {
@@ -153,6 +152,101 @@ func TestDecodePayload(t *testing.T) {
 	}
 }
 
+func TestGenerateToken(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1", "role": "admin"}
+	token, err := GenerateToken(claims, secret, time.Hour)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		t.Fatalf("expected 3 parts, got %d", len(parts))
+	}
+
+	parsed, err := Parse(token)
+	if err != nil {
+		t.Fatalf("parse failed: %v", err)
+	}
+	if parsed.Payload["sub"] != "user1" {
+		t.Errorf("expected sub=user1, got %v", parsed.Payload["sub"])
+	}
+	if parsed.Payload["role"] != "admin" {
+		t.Errorf("expected role=admin, got %v", parsed.Payload["role"])
+	}
+	if _, ok := parsed.Payload["iat"]; !ok {
+		t.Error("expected iat claim")
+	}
+	if _, ok := parsed.Payload["exp"]; !ok {
+		t.Error("expected exp claim")
+	}
+}
+
+func TestValidateTokenSuccess(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1"}
+	token, err := GenerateToken(claims, secret, time.Hour)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	if err := ValidateToken(token, secret); err != nil {
+		t.Fatalf("validate failed: %v", err)
+	}
+}
+
+func TestValidateTokenExpired(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1"}
+	token, err := GenerateToken(claims, secret, -time.Second)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	if err := ValidateToken(token, secret); err != ErrTokenExpired {
+		t.Fatalf("expected ErrTokenExpired, got %v", err)
+	}
+}
+
+func TestValidateTokenBadSecret(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1"}
+	token, err := GenerateToken(claims, secret, time.Hour)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	if err := ValidateToken(token, []byte("wrong-secret")); err == nil {
+		t.Fatal("expected validation to fail with wrong secret")
+	}
+}
+
+func TestParseToken(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1", "role": "admin"}
+	token, err := GenerateToken(claims, secret, time.Hour)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	parsedClaims, err := ParseToken(token, secret)
+	if err != nil {
+		t.Fatalf("parse token failed: %v", err)
+	}
+	if parsedClaims["sub"] != "user1" {
+		t.Errorf("expected sub=user1, got %v", parsedClaims["sub"])
+	}
+}
+
+func TestParseTokenExpired(t *testing.T) {
+	secret := []byte("super-secret")
+	claims := map[string]interface{}{"sub": "user1"}
+	token, err := GenerateToken(claims, secret, -time.Second)
+	if err != nil {
+		t.Fatalf("generate token failed: %v", err)
+	}
+	_, err = ParseToken(token, secret)
+	if err != ErrTokenExpired {
+		t.Fatalf("expected ErrTokenExpired, got %v", err)
+	}
+}
+
 // --- Mutation Tests ---
 
 func TestMutationVerifyHMAC(t *testing.T) {
@@ -166,7 +260,6 @@ func TestMutationVerifyHMAC(t *testing.T) {
 
 	tok, _ := Parse(header + "." + payload + "." + sig)
 
-	// Mutation: tamper with payload should fail verification
 	tok.rawBody = base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"attacker"}`))
 	if err := tok.VerifyHMAC(secret); err == nil {
 		t.Fatal("mutation: expected verification to fail after payload tamper")
@@ -187,9 +280,21 @@ func TestMutationVerifyRSA(t *testing.T) {
 
 	tok, _ := Parse(header + "." + payload + "." + sig)
 
-	// Mutation: tamper with payload should fail verification
 	tok.rawBody = base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"attacker"}`))
 	if err := tok.VerifyRSA(pubPEM); err == nil {
 		t.Fatal("mutation: expected verification to fail after payload tamper")
+	}
+}
+
+func TestGenerateTokenDoesNotMutateInputClaims(t *testing.T) {
+	secret := []byte("secret")
+	claims := map[string]interface{}{"sub": "user1"}
+	originalLen := len(claims)
+	_, err := GenerateToken(claims, secret, time.Hour)
+	if err != nil {
+		t.Fatalf("generate failed: %v", err)
+	}
+	if len(claims) != originalLen {
+		t.Error("GenerateToken must not mutate input claims map")
 	}
 }

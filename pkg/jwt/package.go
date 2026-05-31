@@ -14,6 +14,7 @@ import (
 	"fmt"
 	"hash"
 	"strings"
+	"time"
 )
 
 var (
@@ -21,6 +22,7 @@ var (
 	ErrInvalidAlg   = errors.New("unsupported algorithm")
 	ErrInvalidKey   = errors.New("invalid key")
 	ErrVerifyFailed = errors.New("signature verification failed")
+	ErrTokenExpired = errors.New("token has expired")
 )
 
 // Header represents a JWT header.
@@ -158,6 +160,78 @@ func (t *Token) verifyRSA(pub *rsa.PublicKey, h func() hash.Hash, hashType crypt
 // DecodePayload returns the raw payload bytes.
 func (t *Token) DecodePayload() ([]byte, error) {
 	return base64.RawURLEncoding.DecodeString(t.rawBody)
+}
+
+// GenerateToken creates a new HS256 JWT with the given claims, secret, and duration.
+// It automatically sets the 'iat' (issued at) and 'exp' (expiration) claims.
+func GenerateToken(claims map[string]interface{}, secret []byte, duration time.Duration) (string, error) {
+	header := Header{Alg: "HS256", Typ: "JWT"}
+	headerJSON, err := json.Marshal(header)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal header: %w", err)
+	}
+
+	now := time.Now().UTC()
+	payload := make(map[string]interface{}, len(claims)+2)
+	for k, v := range claims {
+		payload[k] = v
+	}
+	payload["iat"] = now.Unix()
+	payload["exp"] = now.Add(duration).Unix()
+
+	payloadJSON, err := json.Marshal(payload)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal payload: %w", err)
+	}
+
+	encodedHeader := base64.RawURLEncoding.EncodeToString(headerJSON)
+	encodedPayload := base64.RawURLEncoding.EncodeToString(payloadJSON)
+
+	mac := hmac.New(sha256.New, secret)
+	mac.Write([]byte(encodedHeader + "." + encodedPayload))
+	sig := base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+
+	return encodedHeader + "." + encodedPayload + "." + sig, nil
+}
+
+// ValidateToken parses and validates a JWT token (signature and expiry) using HS256.
+func ValidateToken(token string, secret []byte) error {
+	tok, err := Parse(token)
+	if err != nil {
+		return err
+	}
+	if err := tok.VerifyHMAC(secret); err != nil {
+		return err
+	}
+	if exp, ok := tok.Payload["exp"]; ok {
+		var expUnix int64
+		switch v := exp.(type) {
+		case float64:
+			expUnix = int64(v)
+		case int64:
+			expUnix = v
+		case int:
+			expUnix = int64(v)
+		default:
+			return fmt.Errorf("invalid exp claim type")
+		}
+		if time.Now().UTC().After(time.Unix(expUnix, 0).UTC()) {
+			return ErrTokenExpired
+		}
+	}
+	return nil
+}
+
+// ParseToken parses and validates a JWT token, then returns its claims.
+func ParseToken(token string, secret []byte) (map[string]interface{}, error) {
+	if err := ValidateToken(token, secret); err != nil {
+		return nil, err
+	}
+	tok, err := Parse(token)
+	if err != nil {
+		return nil, err
+	}
+	return tok.Payload, nil
 }
 
 type cryptoHash int
