@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -25,7 +24,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show status of infrastructure services",
 	Long:  `Shows status of all services or a specific service.`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
@@ -35,38 +34,17 @@ var statusCmd = &cobra.Command{
 			services = args[:1]
 		}
 
+		out := cmd.OutOrStdout()
 		for {
-			ctx := context.Background()
-			results, err := orch.Status(ctx, services)
+			code, err := runStatus(context.Background(), orch, services, statusJSONFlag, out)
 			if err != nil {
-				return err
+				return finish(code, err)
 			}
-
-			if statusJSONFlag {
-				if err := printJSON(results); err != nil {
-					return err
-				}
-			} else {
-				headers := []string{"SERVICE", "STATUS", "HEALTHY", "UPTIME", "PORTS"}
-				rows := make([][]string, 0, len(results))
-				for _, r := range results {
-					rows = append(rows, []string{
-						r.Name,
-						r.Status,
-						fmt.Sprintf("%v", r.Healthy),
-						r.Uptime.String(),
-						fmt.Sprintf("%v", r.Ports),
-					})
-				}
-				printTable(headers, rows)
-			}
-
 			if !statusWatchFlag {
-				break
+				return finish(code, nil)
 			}
 			time.Sleep(2 * time.Second)
-			fmt.Fprint(os.Stdout, "\033[H\033[2J")
+			fmt.Fprint(out, "\033[H\033[2J")
 		}
-		return nil
 	},
 }

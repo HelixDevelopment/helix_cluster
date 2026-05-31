@@ -2,14 +2,13 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	vmSpawnCountFlag      int
+	vmSpawnCountFlag        int
 	vmPartitionDurationFlag time.Duration
 )
 
@@ -37,19 +36,12 @@ var vmSpawnCmd = &cobra.Command{
 	Use:   "spawn",
 	Short: "Spawn N VM nodes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		nodes, err := orch.VMSpawn(ctx, vmSpawnCountFlag)
-		if err != nil {
-			return err
-		}
-		for _, n := range nodes {
-			fmt.Printf("Spawned VM node: %s (%s)\n", n.ID, n.IP)
-		}
-		return nil
+		code, err := runVMSpawn(context.Background(), orch, vmSpawnCountFlag, cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -58,16 +50,12 @@ var vmDestroyCmd = &cobra.Command{
 	Short: "Destroy a VM node",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		if err := orch.VMDestroy(ctx, args[0]); err != nil {
-			return err
-		}
-		fmt.Printf("Destroyed VM node: %s\n", args[0])
-		return nil
+		code, err := runVMDestroy(context.Background(), orch, args[0], cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -75,22 +63,12 @@ var vmListCmd = &cobra.Command{
 	Use:   "list",
 	Short: "List all VM nodes",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		nodes, err := orch.VMList(ctx)
-		if err != nil {
-			return err
-		}
-		headers := []string{"ID", "NAME", "STATUS", "IP", "CPU", "MEMORY"}
-		rows := make([][]string, 0, len(nodes))
-		for _, n := range nodes {
-			rows = append(rows, []string{n.ID, n.Name, n.Status, n.IP, fmt.Sprintf("%d", n.CPU), fmt.Sprintf("%d", n.Memory)})
-		}
-		printTable(headers, rows)
-		return nil
+		code, err := runVMList(context.Background(), orch, cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -99,23 +77,12 @@ var vmStatusCmd = &cobra.Command{
 	Short: "Show VM node status",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		node, err := orch.VMStatus(ctx, args[0])
-		if err != nil {
-			return err
-		}
-		fmt.Printf("ID:       %s\n", node.ID)
-		fmt.Printf("Name:     %s\n", node.Name)
-		fmt.Printf("Status:   %s\n", node.Status)
-		fmt.Printf("IP:       %s\n", node.IP)
-		fmt.Printf("CPU:      %d\n", node.CPU)
-		fmt.Printf("Memory:   %d MB\n", node.Memory)
-		fmt.Printf("Created:  %s\n", node.Created.Format(time.RFC3339))
-		return nil
+		code, err := runVMStatus(context.Background(), orch, args[0], cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -124,17 +91,12 @@ var vmSSHCmd = &cobra.Command{
 	Short: "SSH into a VM node",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		sshCmd, err := orch.VMSSH(ctx, args[0])
-		if err != nil {
-			return err
-		}
-		fmt.Printf("SSH command: %s\n", sshCmd)
-		return nil
+		code, err := runVMSSH(context.Background(), orch, args[0], cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -143,16 +105,12 @@ var vmSimulateFailureCmd = &cobra.Command{
 	Short: "Simulate node failure",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		if err := orch.VMSimulateFailure(ctx, args[0]); err != nil {
-			return err
-		}
-		fmt.Printf("Simulated failure on VM node: %s\n", args[0])
-		return nil
+		code, err := runVMSimulateFailure(context.Background(), orch, args[0], cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
 
@@ -161,15 +119,11 @@ var vmSimulatePartitionCmd = &cobra.Command{
 	Short: "Simulate network partition",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-		ctx := context.Background()
-		if err := orch.VMSimulatePartition(ctx, args[0], vmPartitionDurationFlag); err != nil {
-			return err
-		}
-		fmt.Printf("Simulated network partition on VM node: %s for %s\n", args[0], vmPartitionDurationFlag)
-		return nil
+		code, err := runVMSimulatePartition(context.Background(), orch, args[0], vmPartitionDurationFlag, cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }

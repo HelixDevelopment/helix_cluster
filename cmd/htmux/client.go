@@ -14,9 +14,15 @@ import (
 const defaultSessionAddr = "localhost:50053"
 
 // Client wraps the gRPC SessionServiceClient with connection management.
+// It implements the sessionClient interface consumed by the CLI handlers.
 type Client struct {
 	conn   *grpc.ClientConn
 	client helixv1.SessionServiceClient
+}
+
+// dialGRPC is the production dialFunc: it establishes a real gRPC connection.
+func dialGRPC(addr string) (sessionClient, error) {
+	return NewClient(addr)
 }
 
 // NewClient creates a new htmux client connected to the session service.
@@ -50,8 +56,23 @@ func (c *Client) Close() error {
 	return nil
 }
 
+// toView projects a proto Session into the transport-agnostic sessionView.
+func toView(s *helixv1.Session) *sessionView {
+	if s == nil {
+		return nil
+	}
+	return &sessionView{
+		ID:      s.Id,
+		Name:    s.Name,
+		Owner:   s.Owner,
+		Status:  s.Status,
+		Backend: s.Backend,
+		NodeID:  s.NodeId,
+	}
+}
+
 // CreateSession creates a new session on the cluster.
-func (c *Client) CreateSession(ctx context.Context, name, owner, backend, nodeID string) (*helixv1.Session, error) {
+func (c *Client) CreateSession(ctx context.Context, name, owner, backend, nodeID string) (*sessionView, error) {
 	req := &helixv1.CreateSessionRequest{
 		Name:    name,
 		Owner:   owner,
@@ -67,21 +88,21 @@ func (c *Client) CreateSession(ctx context.Context, name, owner, backend, nodeID
 	if err != nil {
 		return nil, fmt.Errorf("create session: %w", err)
 	}
-	return sess, nil
+	return toView(sess), nil
 }
 
 // GetSession retrieves a session by ID.
-func (c *Client) GetSession(ctx context.Context, sessionID string) (*helixv1.Session, error) {
+func (c *Client) GetSession(ctx context.Context, sessionID string) (*sessionView, error) {
 	req := &helixv1.GetSessionRequest{SessionId: sessionID}
 	sess, err := c.client.GetSession(ctx, req)
 	if err != nil {
 		return nil, fmt.Errorf("get session %s: %w", sessionID, err)
 	}
-	return sess, nil
+	return toView(sess), nil
 }
 
 // ListSessions lists sessions, optionally filtered by owner and status.
-func (c *Client) ListSessions(ctx context.Context, owner, status string) ([]*helixv1.Session, error) {
+func (c *Client) ListSessions(ctx context.Context, owner, status string) ([]*sessionView, error) {
 	req := &helixv1.ListSessionsRequest{
 		Owner:  owner,
 		Status: status,
@@ -90,7 +111,11 @@ func (c *Client) ListSessions(ctx context.Context, owner, status string) ([]*hel
 	if err != nil {
 		return nil, fmt.Errorf("list sessions: %w", err)
 	}
-	return resp.Sessions, nil
+	views := make([]*sessionView, 0, len(resp.Sessions))
+	for _, s := range resp.Sessions {
+		views = append(views, toView(s))
+	}
+	return views, nil
 }
 
 // KillSession terminates a session by ID.
@@ -104,10 +129,10 @@ func (c *Client) KillSession(ctx context.Context, sessionID string) error {
 }
 
 // RenameSession updates the name of an existing session.
-func (c *Client) RenameSession(ctx context.Context, sessionID, newName string) (*helixv1.Session, error) {
-	// The API does not have a dedicated rename RPC; we use UpdateSession.
-	// The server currently only supports status and resources updates,
-	// so we return an error indicating the limitation.
+func (c *Client) RenameSession(ctx context.Context, sessionID, newName string) (*sessionView, error) {
+	// The API does not have a dedicated rename RPC; UpdateSession on the server
+	// currently only supports status and resources updates, so rename cannot be
+	// honored. Report the limitation explicitly rather than silently no-op.
 	_ = sessionID
 	_ = newName
 	return nil, fmt.Errorf("rename session: not supported by session service API")

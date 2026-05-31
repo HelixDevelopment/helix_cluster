@@ -2,17 +2,15 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
 var (
-	logsFollowFlag      bool
-	logsTailFlag        string
-	logsSinceFlag       string
-	logsTimestampsFlag  bool
+	logsFollowFlag     bool
+	logsTailFlag       string
+	logsSinceFlag      string
+	logsTimestampsFlag bool
 )
 
 func init() {
@@ -29,21 +27,11 @@ var logsCmd = &cobra.Command{
 	Long:  `Streams logs from the specified infrastructure service.`,
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-
-		service := args[0]
-		tail, _ := strconv.Atoi(logsTailFlag)
-
-		ctx := context.Background()
-		if err := orch.Logs(ctx, service, logsFollowFlag, tail, logsSinceFlag, logsTimestampsFlag); err != nil {
-			return err
-		}
-
-		fmt.Printf("Streaming logs from %s... (follow=%v, tail=%d, since=%s, timestamps=%v)\n",
-			service, logsFollowFlag, tail, logsSinceFlag, logsTimestampsFlag)
-		return nil
+		code, err := runLogs(context.Background(), orch, args[0], logsFollowFlag, logsTailFlag, logsSinceFlag, logsTimestampsFlag, cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }

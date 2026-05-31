@@ -1,9 +1,15 @@
 // Package main provides the htmux CLI — Helix Terminal Multiplexer.
+//
+// htmux is a thin gRPC client for the cluster SessionService. It is NOT a
+// long-lived network server: each invocation dials the session service,
+// performs one operation, prints a concrete result to stdout, and exits.
 package main
 
 import (
 	"context"
 	"fmt"
+	"io"
+	"log/slog"
 	"os"
 	"os/user"
 	"strings"
@@ -12,51 +18,115 @@ import (
 
 const defaultAddr = "localhost:50053"
 
-func main() {
-	if err := run(); err != nil {
-		fmt.Fprintf(os.Stderr, "htmux: %v\n", err)
-		os.Exit(1)
-	}
+// usage is the top-level usage string, emitted on argument errors.
+const usage = "usage: htmux <create|attach|list|kill|rename> [options]"
+
+// commandTimeout bounds every remote operation a single invocation performs.
+const commandTimeout = 30 * time.Second
+
+// dialFunc constructs a session client for the given address. It is a seam so
+// tests can inject an in-process client without real network egress.
+type dialFunc func(addr string) (sessionClient, error)
+
+// sessionClient is the subset of the gRPC client the handlers depend on.
+// Defining it here lets tests substitute a fake or an in-process real client.
+type sessionClient interface {
+	CreateSession(ctx context.Context, name, owner, backend, nodeID string) (*sessionView, error)
+	GetSession(ctx context.Context, sessionID string) (*sessionView, error)
+	ListSessions(ctx context.Context, owner, status string) ([]*sessionView, error)
+	KillSession(ctx context.Context, sessionID string) error
+	RenameSession(ctx context.Context, sessionID, newName string) (*sessionView, error)
+	Close() error
 }
 
-func run() error {
-	if len(os.Args) < 2 {
-		return fmt.Errorf("usage: htmux <create|attach|list|kill|rename> [options]")
+// sessionView is a transport-agnostic projection of a session, so handler
+// output formatting is decoupled from the generated proto type.
+type sessionView struct {
+	ID      string
+	Name    string
+	Owner   string
+	Status  string
+	Backend string
+	NodeID  string
+}
+
+// env carries the injectable dependencies for a single CLI invocation.
+type env struct {
+	stdout io.Writer
+	stderr io.Writer
+	dial   dialFunc
+	// lookupOwner resolves the default session owner when none is supplied.
+	lookupOwner func() (string, error)
+	log         *slog.Logger
+}
+
+func main() {
+	e := &env{
+		stdout:      os.Stdout,
+		stderr:      os.Stderr,
+		dial:        dialGRPC,
+		lookupOwner: currentUsername,
+		log:         slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})),
+	}
+	os.Exit(run(context.Background(), os.Args[1:], e))
+}
+
+// run is the testable entry point. It parses args, dispatches to a handler,
+// and returns a process exit code (0 success, 1 failure, 2 usage error).
+func run(ctx context.Context, args []string, e *env) int {
+	if e.log == nil {
+		e.log = slog.New(slog.NewTextHandler(io.Discard, nil))
+	}
+	if len(args) < 1 {
+		fmt.Fprintln(e.stderr, usage)
+		return 2
 	}
 
-	cmd := os.Args[1]
-	args := os.Args[2:]
-
-	flags := parseFlags(args)
+	cmd := args[0]
+	flags := parseFlags(args[1:])
 	addr := flags["addr"]
 	if addr == "" {
 		addr = defaultAddr
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, commandTimeout)
 	defer cancel()
 
+	var handler func(context.Context, *env, map[string]string, string) error
 	switch cmd {
 	case "create":
-		return handleCreate(ctx, flags, addr)
+		handler = handleCreate
 	case "attach":
-		return handleAttach(ctx, flags, addr)
+		handler = handleAttach
 	case "list":
-		return handleList(ctx, flags, addr)
+		handler = handleList
 	case "kill":
-		return handleKill(ctx, flags, addr)
+		handler = handleKill
 	case "rename":
-		return handleRename(ctx, flags, addr)
+		handler = handleRename
 	default:
-		return fmt.Errorf("unknown command: %s", cmd)
+		fmt.Fprintf(e.stderr, "htmux: unknown command: %s\n%s\n", cmd, usage)
+		return 2
 	}
+
+	if err := handler(ctx, e, flags, addr); err != nil {
+		e.log.Error("command failed", "command", cmd, "error", err)
+		fmt.Fprintf(e.stderr, "htmux: %v\n", err)
+		return 1
+	}
+	return 0
 }
 
-func handleCreate(ctx context.Context, flags map[string]string, addr string) error {
-	name := flags["session"]
-	if name == "" {
-		name = flags["s"]
+// sessionFlag returns the session identifier from either --session or -s.
+func sessionFlag(flags map[string]string) string {
+	if v := flags["session"]; v != "" {
+		return v
 	}
+	return flags["s"]
+}
+
+func handleCreate(ctx context.Context, e *env, flags map[string]string, addr string) error {
+	name := sessionFlag(flags)
 	if name == "" {
 		return fmt.Errorf("create requires --session or -s flag")
 	}
@@ -68,14 +138,13 @@ func handleCreate(ctx context.Context, flags map[string]string, addr string) err
 	}
 
 	owner := flags["owner"]
-	if owner == "" {
-		u, err := user.Current()
-		if err == nil {
-			owner = u.Username
+	if owner == "" && e.lookupOwner != nil {
+		if u, err := e.lookupOwner(); err == nil {
+			owner = u
 		}
 	}
 
-	client, err := NewClient(addr)
+	client, err := e.dial(addr)
 	if err != nil {
 		return err
 	}
@@ -86,20 +155,17 @@ func handleCreate(ctx context.Context, flags map[string]string, addr string) err
 		return err
 	}
 
-	fmt.Printf("Created session %s (%s) on node %s\n", sess.Name, sess.Id, sess.NodeId)
+	fmt.Fprintf(e.stdout, "Created session %s (%s) on node %s\n", sess.Name, sess.ID, sess.NodeID)
 	return nil
 }
 
-func handleAttach(ctx context.Context, flags map[string]string, addr string) error {
-	sessionID := flags["session"]
-	if sessionID == "" {
-		sessionID = flags["s"]
-	}
+func handleAttach(ctx context.Context, e *env, flags map[string]string, addr string) error {
+	sessionID := sessionFlag(flags)
 	if sessionID == "" {
 		return fmt.Errorf("attach requires --session or -s flag")
 	}
 
-	client, err := NewClient(addr)
+	client, err := e.dial(addr)
 	if err != nil {
 		return err
 	}
@@ -110,27 +176,20 @@ func handleAttach(ctx context.Context, flags map[string]string, addr string) err
 		return err
 	}
 
-	fmt.Printf("Attaching to session %s (%s) on node %s...\n", sess.Name, sess.Id, sess.NodeId)
+	fmt.Fprintf(e.stdout, "Attaching to session %s (%s) on node %s...\n", sess.Name, sess.ID, sess.NodeID)
 
 	// The current SessionService API does not expose a streaming attach RPC.
-	// We simulate attachment by entering raw mode and displaying a message.
-	term := NewTerminal(os.Stdin, os.Stdout)
-	if term.IsTerminal() {
-		if err := term.SetRawMode(); err != nil {
-			return fmt.Errorf("failed to set raw mode: %w", err)
-		}
-		defer term.Restore()
-	}
-
-	fmt.Println("(attach simulation: no streaming RPC available in current API)")
+	// We report attachment intent without entering raw mode here; interactive
+	// raw-mode bridging lives in terminal.go and is exercised separately.
+	fmt.Fprintln(e.stdout, "(attach simulation: no streaming RPC available in current API)")
 	return nil
 }
 
-func handleList(ctx context.Context, flags map[string]string, addr string) error {
+func handleList(ctx context.Context, e *env, flags map[string]string, addr string) error {
 	owner := flags["owner"]
 	status := flags["status"]
 
-	client, err := NewClient(addr)
+	client, err := e.dial(addr)
 	if err != nil {
 		return err
 	}
@@ -142,27 +201,24 @@ func handleList(ctx context.Context, flags map[string]string, addr string) error
 	}
 
 	if len(sessions) == 0 {
-		fmt.Println("No sessions found.")
+		fmt.Fprintln(e.stdout, "No sessions found.")
 		return nil
 	}
 
-	fmt.Printf("%-24s %-16s %-12s %-10s %s\n", "ID", "NAME", "OWNER", "STATUS", "NODE")
+	fmt.Fprintf(e.stdout, "%-24s %-16s %-12s %-10s %s\n", "ID", "NAME", "OWNER", "STATUS", "NODE")
 	for _, s := range sessions {
-		fmt.Printf("%-24s %-16s %-12s %-10s %s\n", s.Id, s.Name, s.Owner, s.Status, s.NodeId)
+		fmt.Fprintf(e.stdout, "%-24s %-16s %-12s %-10s %s\n", s.ID, s.Name, s.Owner, s.Status, s.NodeID)
 	}
 	return nil
 }
 
-func handleKill(ctx context.Context, flags map[string]string, addr string) error {
-	sessionID := flags["session"]
-	if sessionID == "" {
-		sessionID = flags["s"]
-	}
+func handleKill(ctx context.Context, e *env, flags map[string]string, addr string) error {
+	sessionID := sessionFlag(flags)
 	if sessionID == "" {
 		return fmt.Errorf("kill requires --session or -s flag")
 	}
 
-	client, err := NewClient(addr)
+	client, err := e.dial(addr)
 	if err != nil {
 		return err
 	}
@@ -172,15 +228,12 @@ func handleKill(ctx context.Context, flags map[string]string, addr string) error
 		return err
 	}
 
-	fmt.Printf("Killed session %s\n", sessionID)
+	fmt.Fprintf(e.stdout, "Killed session %s\n", sessionID)
 	return nil
 }
 
-func handleRename(ctx context.Context, flags map[string]string, addr string) error {
-	sessionID := flags["session"]
-	if sessionID == "" {
-		sessionID = flags["s"]
-	}
+func handleRename(ctx context.Context, e *env, flags map[string]string, addr string) error {
+	sessionID := sessionFlag(flags)
 	if sessionID == "" {
 		return fmt.Errorf("rename requires --session or -s flag")
 	}
@@ -193,7 +246,7 @@ func handleRename(ctx context.Context, flags map[string]string, addr string) err
 		return fmt.Errorf("rename requires --command or -c flag for the new name")
 	}
 
-	client, err := NewClient(addr)
+	client, err := e.dial(addr)
 	if err != nil {
 		return err
 	}
@@ -203,8 +256,18 @@ func handleRename(ctx context.Context, flags map[string]string, addr string) err
 	return err
 }
 
-// parseFlags parses a simple subset of flags from os.Args-style slice.
-// Supports --key=value, --key value, -k=value, -k value.
+// currentUsername resolves the current OS user's name as the default owner.
+func currentUsername() (string, error) {
+	u, err := user.Current()
+	if err != nil {
+		return "", err
+	}
+	return u.Username, nil
+}
+
+// parseFlags parses a simple subset of flags from an os.Args-style slice.
+// Supports --key=value, --key value, -k=value, -k value. A flag with no
+// following value (or followed by another flag) maps to the empty string.
 func parseFlags(args []string) map[string]string {
 	flags := make(map[string]string)
 	for i := 0; i < len(args); i++ {

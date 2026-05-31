@@ -1,50 +1,84 @@
+// Command hxc-registry is the CLI front end for the Helix Cluster OS HXC item
+// registry (pkg/hxcregistry, backed by SQLite). It exposes the registry's CRUD
+// operations as subcommands: init, add, list, show, update and next.
+//
+// The monolithic main() has been split into a testable seam:
+//   - run(args, getenv, stdout, stderr) int does ALL the work: it parses the
+//     subcommand and flags, validates input, opens the registry, performs the
+//     operation and writes results to the supplied writers. It returns a process
+//     exit code instead of calling os.Exit, so tests can drive it against a real
+//     on-disk registry (t.TempDir) and assert exact stdout/stderr/exit-code.
+//
+// main() stays thin: it just forwards os.Args/os.Getenv/os.Stdout/os.Stderr to
+// run and exits with the returned code.
 package main
 
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"strings"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/hxcregistry"
 )
 
+// defaultDBPath is used when HXC_DB is unset.
+const defaultDBPath = "data/hxc_registry.db"
+
+// exit codes returned by run; kept small and stable for scripts and tests.
+const (
+	exitOK    = 0
+	exitError = 1
+	exitUsage = 2
+)
+
 func main() {
-	if len(os.Args) < 2 {
-		usage()
-		os.Exit(1)
+	os.Exit(run(os.Args[1:], os.Getenv, os.Stdout, os.Stderr))
+}
+
+// run is the testable entry point. args is the argument list WITHOUT the program
+// name (i.e. os.Args[1:]). It never calls os.Exit; it returns the intended
+// process exit code. All human-readable output goes to stdout, all diagnostics
+// to stderr.
+func run(args []string, getenv func(string) string, stdout, stderr io.Writer) int {
+	if len(args) < 1 {
+		usage(stdout)
+		return exitUsage
 	}
 
-	dbPath := os.Getenv("HXC_DB")
+	dbPath := getenv("HXC_DB")
 	if dbPath == "" {
-		dbPath = "data/hxc_registry.db"
+		dbPath = defaultDBPath
 	}
 
-	cmd := os.Args[1]
+	cmd := args[0]
+	rest := args[1:]
 	switch cmd {
 	case "init":
-		cmdInit(dbPath)
+		return cmdInit(dbPath, stdout, stderr)
 	case "add":
-		cmdAdd(dbPath, os.Args[2:])
+		return cmdAdd(dbPath, rest, stdout, stderr)
 	case "list":
-		cmdList(dbPath, os.Args[2:])
+		return cmdList(dbPath, rest, stdout, stderr)
 	case "show":
-		cmdShow(dbPath, os.Args[2:])
+		return cmdShow(dbPath, rest, stdout, stderr)
 	case "update":
-		cmdUpdate(dbPath, os.Args[2:])
+		return cmdUpdate(dbPath, rest, stdout, stderr)
 	case "next":
-		cmdNext(dbPath)
+		return cmdNext(dbPath, stdout, stderr)
 	case "help", "-h", "--help":
-		usage()
+		usage(stdout)
+		return exitOK
 	default:
-		fmt.Fprintf(os.Stderr, "Unknown command: %s\n", cmd)
-		usage()
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Unknown command: %s\n", cmd)
+		usage(stdout)
+		return exitUsage
 	}
 }
 
-func usage() {
-	fmt.Println(`HXC Registry CLI
+func usage(w io.Writer) {
+	fmt.Fprintln(w, `HXC Registry CLI
 
 Usage: hxc-registry <command> [options]
 
@@ -68,51 +102,74 @@ Examples:
   hxc-registry update HXC-904 --status Completed --commit abc123`)
 }
 
-func cmdInit(dbPath string) {
+// openRegistry centralises the open/error path so every subcommand reports a
+// consistent error and exit code on a bad DB path.
+func openRegistry(dbPath string, stderr io.Writer) (*hxcregistry.Registry, int) {
 	reg, err := hxcregistry.Open(dbPath)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return nil, exitError
 	}
-	defer reg.Close()
-	fmt.Printf("Registry initialized at %s\n", dbPath)
+	return reg, exitOK
 }
 
-func cmdAdd(dbPath string, args []string) {
-	fs := flag.NewFlagSet("add", flag.ExitOnError)
+func cmdInit(dbPath string, stdout, stderr io.Writer) int {
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
+	}
+	defer reg.Close()
+	fmt.Fprintf(stdout, "Registry initialized at %s\n", dbPath)
+	return exitOK
+}
+
+// parseFlags parses the given flag set against args using a continue-on-error
+// policy so a bad flag yields a non-zero exit code instead of killing the whole
+// process (the old flag.ExitOnError behaviour was untestable). Parse errors are
+// written to stderr by the FlagSet, which we point at stderr.
+func parseFlags(fs *flag.FlagSet, args []string, stderr io.Writer) error {
+	fs.SetOutput(stderr)
+	return fs.Parse(args)
+}
+
+func cmdAdd(dbPath string, args []string, stdout, stderr io.Writer) int {
+	fs := flag.NewFlagSet("add", flag.ContinueOnError)
 	id := fs.String("id", "", "HXC ID (auto-generated if empty)")
 	title := fs.String("title", "", "Item title")
 	itemType := fs.String("type", "Task", "Item type: Bug, Feature, Task, Research, Docs")
 	priority := fs.String("priority", "P1", "Priority: P0, P1, P2, P3")
 	phase := fs.Int("phase", 0, "Phase number")
 	desc := fs.String("description", "", "Description")
-	fs.Parse(args)
+	if err := parseFlags(fs, args, stderr); err != nil {
+		return exitUsage
+	}
 
 	if *title == "" {
-		fmt.Fprintln(os.Stderr, "Error: --title is required")
-		os.Exit(1)
+		fmt.Fprintln(stderr, "Error: --title is required")
+		return exitUsage
 	}
 	if *desc == "" {
 		*desc = *title
 	}
 
-	reg, err := hxcregistry.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
 	}
 	defer reg.Close()
 
-	if *id == "" {
-		*id, err = reg.NextHXCID()
+	itemID := *id
+	if itemID == "" {
+		next, err := reg.NextHXCID()
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
+			fmt.Fprintf(stderr, "Error: %v\n", err)
+			return exitError
 		}
+		itemID = next
 	}
 
 	item := &hxcregistry.HXCItem{
-		HXCID:           *id,
+		HXCID:           itemID,
 		Type:            *itemType,
 		Status:          "Queued",
 		Priority:        *priority,
@@ -122,99 +179,110 @@ func cmdAdd(dbPath string, args []string) {
 		CurrentLocation: "Issues",
 	}
 	if err := reg.CreateItem(item); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
-	fmt.Printf("Created %s: %s\n", item.HXCID, item.Title)
+	fmt.Fprintf(stdout, "Created %s: %s\n", item.HXCID, item.Title)
+	return exitOK
 }
 
-func cmdList(dbPath string, args []string) {
+func cmdList(dbPath string, args []string, stdout, stderr io.Writer) int {
 	status := ""
+	// Accept either a positional status ("list Queued") or a --status flag
+	// ("list --status Queued") to match the documented usage examples.
 	if len(args) > 0 && !strings.HasPrefix(args[0], "-") {
 		status = args[0]
+	} else if len(args) > 0 {
+		fs := flag.NewFlagSet("list", flag.ContinueOnError)
+		statusFlag := fs.String("status", "", "Filter by status")
+		if err := parseFlags(fs, args, stderr); err != nil {
+			return exitUsage
+		}
+		status = *statusFlag
 	}
 
-	reg, err := hxcregistry.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
 	}
 	defer reg.Close()
 
 	items, err := reg.ListItems(status)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
 
-	fmt.Printf("%-10s %-12s %-10s %-8s %-6s %s\n", "HXC-ID", "Status", "Type", "Priority", "Phase", "Title")
-	fmt.Println(strings.Repeat("-", 80))
+	fmt.Fprintf(stdout, "%-10s %-12s %-10s %-8s %-6s %s\n", "HXC-ID", "Status", "Type", "Priority", "Phase", "Title")
+	fmt.Fprintln(stdout, strings.Repeat("-", 80))
 	for _, item := range items {
-		fmt.Printf("%-10s %-12s %-10s %-8s %-6d %s\n",
+		fmt.Fprintf(stdout, "%-10s %-12s %-10s %-8s %-6d %s\n",
 			item.HXCID, item.Status, item.Type, item.Priority, item.Phase, item.Title)
 	}
-	fmt.Printf("\nTotal: %d items\n", len(items))
+	fmt.Fprintf(stdout, "\nTotal: %d items\n", len(items))
+	return exitOK
 }
 
-func cmdShow(dbPath string, args []string) {
+func cmdShow(dbPath string, args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Error: HXC-ID required")
-		os.Exit(1)
+		fmt.Fprintln(stderr, "Error: HXC-ID required")
+		return exitUsage
 	}
 	id := args[0]
 
-	reg, err := hxcregistry.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
 	}
 	defer reg.Close()
 
 	item, err := reg.GetItem(id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
 
-	fmt.Printf("HXC ID:      %s\n", item.HXCID)
-	fmt.Printf("Title:       %s\n", item.Title)
-	fmt.Printf("Status:      %s\n", item.Status)
-	fmt.Printf("Type:        %s\n", item.Type)
-	fmt.Printf("Priority:    %s\n", item.Priority)
-	fmt.Printf("Phase:       %d\n", item.Phase)
-	fmt.Printf("Location:    %s\n", item.CurrentLocation)
-	fmt.Printf("Description: %s\n", item.Description)
+	fmt.Fprintf(stdout, "HXC ID:      %s\n", item.HXCID)
+	fmt.Fprintf(stdout, "Title:       %s\n", item.Title)
+	fmt.Fprintf(stdout, "Status:      %s\n", item.Status)
+	fmt.Fprintf(stdout, "Type:        %s\n", item.Type)
+	fmt.Fprintf(stdout, "Priority:    %s\n", item.Priority)
+	fmt.Fprintf(stdout, "Phase:       %d\n", item.Phase)
+	fmt.Fprintf(stdout, "Location:    %s\n", item.CurrentLocation)
+	fmt.Fprintf(stdout, "Description: %s\n", item.Description)
 	if item.CommitSHA != "" {
-		fmt.Printf("Commit:      %s\n", item.CommitSHA)
+		fmt.Fprintf(stdout, "Commit:      %s\n", item.CommitSHA)
 	}
-	fmt.Printf("Created:     %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
-	fmt.Printf("Modified:    %s\n", item.LastModified.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(stdout, "Created:     %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Fprintf(stdout, "Modified:    %s\n", item.LastModified.Format("2006-01-02 15:04:05"))
+	return exitOK
 }
 
-func cmdUpdate(dbPath string, args []string) {
+func cmdUpdate(dbPath string, args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 {
-		fmt.Fprintln(os.Stderr, "Error: HXC-ID required")
-		os.Exit(1)
+		fmt.Fprintln(stderr, "Error: HXC-ID required")
+		return exitUsage
 	}
 	id := args[0]
 
-	fs := flag.NewFlagSet("update", flag.ExitOnError)
+	fs := flag.NewFlagSet("update", flag.ContinueOnError)
 	status := fs.String("status", "", "New status")
 	commit := fs.String("commit", "", "Commit SHA")
 	priority := fs.String("priority", "", "New priority")
-	fs.Parse(args[1:])
+	if err := parseFlags(fs, args[1:], stderr); err != nil {
+		return exitUsage
+	}
 
-	reg, err := hxcregistry.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
 	}
 	defer reg.Close()
 
 	item, err := reg.GetItem(id)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
 
 	if *status != "" {
@@ -228,24 +296,25 @@ func cmdUpdate(dbPath string, args []string) {
 	}
 
 	if err := reg.UpdateItem(item); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
-	fmt.Printf("Updated %s\n", id)
+	fmt.Fprintf(stdout, "Updated %s\n", id)
+	return exitOK
 }
 
-func cmdNext(dbPath string) {
-	reg, err := hxcregistry.Open(dbPath)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+func cmdNext(dbPath string, stdout, stderr io.Writer) int {
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
 	}
 	defer reg.Close()
 
 	next, err := reg.NextHXCID()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
 	}
-	fmt.Println(next)
+	fmt.Fprintln(stdout, next)
+	return exitOK
 }

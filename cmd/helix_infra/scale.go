@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"strconv"
-	"time"
 
 	"github.com/spf13/cobra"
 )
@@ -23,29 +20,11 @@ var scaleCmd = &cobra.Command{
 	Short: "Scale a service to N replicas",
 	Args:  cobra.ExactArgs(2),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		orch, err := loadOrchestrator()
+		orch, _, err := loadOrchestrator("")
 		if err != nil {
 			return err
 		}
-
-		service := args[0]
-		replicas, err := strconv.Atoi(args[1])
-		if err != nil {
-			return fmt.Errorf("invalid replica count: %w", err)
-		}
-
-		ctx := context.Background()
-		status, err := orch.Scale(ctx, service, replicas)
-		if err != nil {
-			return err
-		}
-
-		fmt.Printf("Scaling %s to %d replicas...\n", service, replicas)
-		if scaleWaitFlag {
-			fmt.Println("Waiting for scale to complete...")
-			time.Sleep(500 * time.Millisecond)
-		}
-		fmt.Printf("%s: %s\n", service, status.Message)
-		return nil
+		code, err := runScale(context.Background(), orch, args[0], args[1], scaleWaitFlag, cmd.OutOrStdout())
+		return finish(code, err)
 	},
 }
