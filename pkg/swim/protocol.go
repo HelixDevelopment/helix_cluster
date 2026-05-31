@@ -266,6 +266,45 @@ func (p *Protocol) FailureDetector() *FailureDetector {
 	return p.fd
 }
 
+// NewHardenedSuspicion builds a SuspicionManager wired to this protocol's real
+// UDP transport. It implements incarnation-number refutation and a
+// suspicion->Dead timeout that first attempts indirect probes through k random
+// alive relay members before declaring a node Dead. The suspicion timeout is
+// suspicionMult * probeInterval, and k is gossipCount.
+//
+// clock is injectable for deterministic testing; pass nil to use the real
+// system clock. onDead/onRefute may be nil. This is an additive, opt-in API and
+// does not alter the protocol's existing default behaviour.
+func (p *Protocol) NewHardenedSuspicion(clock Clock, onDead, onRefute func(string)) *SuspicionManager {
+	if clock == nil {
+		clock = NewSystemClock()
+	}
+	prober := newTransportProber(p.transport, p.localID, p.probeTimeout)
+	return NewSuspicionManager(SuspicionConfig{
+		Clock:            clock,
+		Prober:           prober,
+		SuspicionTimeout: time.Duration(p.suspicionMult) * p.probeInterval,
+		IndirectProbes:   p.gossipCount,
+		OnDead:           onDead,
+		OnRefute:         onRefute,
+	})
+}
+
+// SelectRelays returns up to k random alive members suitable for indirect
+// probing of excludeID, excluding the local node and excludeID itself. Use this
+// together with SuspicionManager.SuspectWithRelays.
+func (p *Protocol) SelectRelays(excludeID string, k int) []*Member {
+	members := p.HealthyMembers()
+	candidates := make([]*Member, 0, len(members))
+	for _, m := range members {
+		if m.ID == p.localID || m.ID == excludeID {
+			continue
+		}
+		candidates = append(candidates, m)
+	}
+	return RandomMembers(candidates, k, "")
+}
+
 // --- internal handlers ---
 
 func (p *Protocol) handlePing(msg *Message, addr net.Addr) {
@@ -279,33 +318,47 @@ func (p *Protocol) handlePing(msg *Message, addr net.Addr) {
 	if udpAddr != nil {
 		p.transport.Send(ack, *udpAddr)
 	}
+
+	// Indirect-probe support (backward compatible): if the ping carries an
+	// origin requester address in its Payload (set by a relay forwarding a
+	// Ping-Req), also ack that original requester directly so its indirect
+	// probe can observe us as alive. Plain direct pings carry an empty Payload
+	// and are unaffected.
+	if len(msg.Payload) > 0 {
+		if originAddr, err := net.ResolveUDPAddr("udp", string(msg.Payload)); err == nil {
+			p.transport.Send(ack, *originAddr)
+		}
+	}
 }
 
 func (p *Protocol) handlePingReq(msg *Message, addr net.Addr) {
-	// Forward ping to target and relay ack back
+	// Forward ping to target. The original requester address is carried in the
+	// Payload so the target can ack the requester directly, completing the SWIM
+	// indirect-probe path: requester -> relay (ping-req) -> target -> requester.
 	targetAddr, err := net.ResolveUDPAddr("udp", string(msg.Payload))
 	if err != nil {
 		return
 	}
+	origin := addr.String()
 	ping := &Message{
 		Type:     MsgPing,
 		SourceID: p.localID,
 		TargetID: msg.TargetID,
+		Payload:  []byte(origin),
 	}
 	p.transport.Send(ping, *targetAddr)
-	// In a full implementation, we'd wait for ack and relay it.
-	// For this phase, we rely on the target responding directly.
 }
 
 func (p *Protocol) handleAck(msg *Message, addr net.Addr) {
-	p.mu.Lock()
-	if m, ok := p.members[msg.SourceID]; ok {
+	p.mu.RLock()
+	m, ok := p.members[msg.SourceID]
+	p.mu.RUnlock()
+	if ok {
 		m.Touch()
-		if m.State == StateSuspect {
-			m.State = StateAlive
-		}
+		// Transition Suspect->Alive under the member's own lock so this does not
+		// race with concurrent UpdateState callers (e.g. the suspicion manager).
+		m.ClearSuspect()
 	}
-	p.mu.Unlock()
 	p.fd.Refute(msg.SourceID)
 }
 

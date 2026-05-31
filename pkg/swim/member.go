@@ -45,6 +45,21 @@ func (m *Member) UpdateState(state MemberState, incarnation uint32) bool {
 	return true
 }
 
+// ClearSuspect atomically transitions the member from Suspect back to Alive
+// (e.g. upon receiving an ack) under the member's own lock, and reports whether
+// a transition occurred. Using this instead of a bare State write keeps all
+// State mutations serialized on m.mu, avoiding races with UpdateState.
+func (m *Member) ClearSuspect() bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.State == StateSuspect {
+		m.State = StateAlive
+		m.lastSeen = time.Now()
+		return true
+	}
+	return false
+}
+
 // IsHealthy returns true if member is alive.
 func (m *Member) IsHealthy() bool {
 	m.mu.RLock()
@@ -57,6 +72,13 @@ func (m *Member) TimeSinceLastSeen() time.Duration {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return time.Since(m.lastSeen)
+}
+
+// LastSeen returns the timestamp of the most recent observation of this member.
+func (m *Member) LastSeen() time.Time {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.lastSeen
 }
 
 // Touch updates the last seen timestamp.
