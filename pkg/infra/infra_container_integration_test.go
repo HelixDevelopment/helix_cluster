@@ -238,6 +238,12 @@ func TestRealVMSSH_EchoOkOverRealSession(t *testing.T) {
 	// (runtime.Exec into the node container). The default VMNodeImage
 	// (busybox) + VMNodeCommand (sleep 3600) keep the node alive.
 
+	// VMSpawn names the first node deterministically ("vm-1"); pre-clean any
+	// leftover of that name from a crashed prior run so the create cannot
+	// collide, and defer cleanup of both candidate node names.
+	cleanupContainer(context.Background(), rt, "vm-1")
+	defer cleanupContainer(context.Background(), rt, "vm-1")
+
 	nodes, err := o.VMSpawn(ctx, 1)
 	require.NoError(t, err, "VMSpawn must create a real local-container node")
 	require.Len(t, nodes, 1)
@@ -263,9 +269,14 @@ func TestRealOrchestrator_Partition_ObservableEffect(t *testing.T) {
 	o.cfg.HealthProbeTimeout = 300 * time.Millisecond
 	ctx := context.Background()
 
+	// VMSpawn now creates a REAL node container ("vm-1"); pre-clean any leftover
+	// and clean up after so this test does not leak a container that would
+	// collide with other VMSpawn-using tests.
+	cleanupContainer(context.Background(), rt, "vm-1")
 	nodes, err := o.VMSpawn(ctx, 1)
 	require.NoError(t, err)
 	nodeID := nodes[0].ID
+	defer cleanupContainer(context.Background(), rt, nodeID)
 
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
