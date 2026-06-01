@@ -38,7 +38,7 @@ type Protocol struct {
 	localID   string
 	localAddr string
 	members   map[string]*Member
-	transport *Transport
+	transport MessageTransport
 	ctx       context.Context
 	cancel    context.CancelFunc
 
@@ -67,6 +67,12 @@ type Config struct {
 	SuspicionMult  int           // default 4
 	GossipCount    int           // default 3
 	GossipInterval time.Duration // default 200ms
+
+	// Transport is an optional pre-built MessageTransport. When non-nil it is
+	// used directly and BindAddr/BindPort are not used to open a UDP socket.
+	// When nil (the default), NewProtocol creates a real UDP *Transport bound
+	// to BindAddr:BindPort — preserving the existing production behaviour.
+	Transport MessageTransport
 }
 
 // NewProtocol creates a new SWIM protocol instance.
@@ -93,9 +99,16 @@ func NewProtocol(cfg *Config) (*Protocol, error) {
 		cfg.GossipInterval = 200 * time.Millisecond
 	}
 
-	transport, err := NewTransport(cfg.BindAddr, cfg.BindPort)
-	if err != nil {
-		return nil, fmt.Errorf("create transport: %w", err)
+	// Use the injected transport if provided; otherwise create a real UDP socket.
+	var transport MessageTransport
+	if cfg.Transport != nil {
+		transport = cfg.Transport
+	} else {
+		udpT, err := NewTransport(cfg.BindAddr, cfg.BindPort)
+		if err != nil {
+			return nil, fmt.Errorf("create transport: %w", err)
+		}
+		transport = udpT
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
