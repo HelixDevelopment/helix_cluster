@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 15
-**Last modified:** 2026-06-01T14:11:33Z
+**Revision:** 16
+**Last modified:** 2026-06-01T15:15:45Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **108**.
+Total completed: **113**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -108,13 +108,18 @@ Total completed: **108**.
 | HXC-1081 | Feature | P0 | Implement optimistic-concurrency versioning for scheduler pool | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-1082 | Feature | P1 | Implement HTCondor ClassAds matching in scheduler (pkg/classads) | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-1083 | Feature | P1 | Implement gang scheduling and preemption in scheduler | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1084 | Feature | P0 | Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
+| HXC-1085 | Feature | P0 | Implement CRDT session state and lifecycle (create/attach/migrate) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-1086 | Feature | P0 | Implement real Node gRPC handlers serving helixv1 Node API (internal/node) | 4d0ac6681bf586c30aaa881226aa2113f6b956b1 |
 | HXC-1087 | Feature | P0 | Make node registry etcd-backed and cross-process shared (internal/node) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1088 | Feature | P0 | Implement SWIM gossip membership and failure detection (pkg/swim) | 4d0ac6681bf586c30aaa881226aa2113f6b956b1 |
 | HXC-1089 | Feature | P0 | Implement WireGuard mesh config-gen and key rotation (pkg/wireguard) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1090 | Feature | P1 | Implement WireGuard NAT traversal / STUN hole-punch (pkg/wireguard) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-1091 | Feature | P0 | Wire API gateway reverse proxy with prefix routing and /health (internal/gateway) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1092 | Feature | P0 | Add JWT/RBAC auth middleware to API gateway (internal/gateway) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1093 | Feature | P0 | Implement leader election with fencing tokens (pkg/leader) | 4d0ac6681bf586c30aaa881226aa2113f6b956b1 |
 | HXC-1094 | Feature | P0 | Implement distributed lock primitives over etcd (pkg/lock) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1095 | Feature | P1 | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
+| HXC-1099 | Feature | P1 | Implement Build Service orchestrator and worker pool (internal/build) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

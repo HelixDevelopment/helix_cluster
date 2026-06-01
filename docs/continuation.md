@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 47
-**Last modified:** 2026-06-01T15:14:58Z
+**Revision:** 48
+**Last modified:** 2026-06-01T15:15:45Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `1367dca` | Foundation wave 6: session(tmux -CC + CRDT) / wireguard STUN-NAT / postgres registry / build orchestrator — integration-proven |
 | `e0d3938` | Wave 5 deferred resolved: mark HXC-1086/1088/1093 Completed (integration-proven) |
 | `4d0ac66` | fix(swim,leader,node): resolve Wave 5 deferred — real-dep integration now green |
 | `8184725` | Foundation wave 5: mark 5 items Completed (HXC-1087/1089/1091/1092/1094); 1086/1088/1093 stay Queued (integration WIP) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `44db918` | Foundation wave 4 + cross-platform parity: 9 real-infra items + macOS GPU/resources + real VMSSH — integration-proven |
 | `366a436` | CLAUDE-2: Cross-Platform Parity Guarantee — no Linux-only feature may fall back to a mock/stub on macOS |
 | `f6209f6` | Foundation wave 3b: mark 7 items Completed (HXC-1010/1011/1012/1013/1015/1020/1028) |
-| `85ee85e` | Foundation wave 3b: real-infra impl (infra orchestrator / podman builder / vault api) — integration-proven |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `e0d3938` |
-| **Timestamp** | 2026-06-01T15:14:58Z |
+| **Commit** | `1367dca` |
+| **Timestamp** | 2026-06-01T15:15:45Z |
 
 ## §3: Active Work
 

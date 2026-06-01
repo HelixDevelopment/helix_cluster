@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 15
-**Last modified:** 2026-06-01T14:11:33Z
+**Revision:** 16
+**Last modified:** 2026-06-01T15:15:45Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **532**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **527**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,12 +18,10 @@ Total active items: **532**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (54 active)
+## MVP (49 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1084 | Feature | P0 | Queued | Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session) |
-| HXC-1085 | Feature | P0 | Queued | Implement CRDT session state and lifecycle (create/attach/migrate) |
 | HXC-1101 | Feature | P0 | Queued | Implement e2ee transport record protocol (security/pkg/e2ee) |
 | HXC-1103 | Feature | P0 | Queued | Implement RBAC scopes and identity bindings (internal/security) |
 | HXC-1105 | Feature | P0 | Queued | Implement htmux CLI raw-mode terminal client (cmd/htmux) |
@@ -35,11 +33,8 @@ Total active items: **532**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1121 | Task | P0 | Queued | Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS) |
 | HXC-1135 | Feature | P0 | Queued | Implement two-node cluster formation end-to-end (exit gate) |
 | HXC-1136 | Feature | P0 | Queued | Implement session-create end-to-end path (htmux new exit gate) |
-| HXC-1090 | Feature | P1 | Queued | Implement WireGuard NAT traversal / STUN hole-punch (pkg/wireguard) |
-| HXC-1095 | Feature | P1 | Queued | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) |
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
 | HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
-| HXC-1099 | Feature | P1 | Queued | Implement Build Service orchestrator and worker pool (internal/build) |
 | HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
 | HXC-1102 | Feature | P1 | Queued | Implement software-rooted attestation (security/pkg/attestation) |
 | HXC-1104 | Feature | P1 | Queued | Implement SPIFFE/SPIRE SVID issuance and mTLS identity (internal/security) |
