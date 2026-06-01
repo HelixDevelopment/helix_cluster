@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 28
-**Last modified:** 2026-06-01T21:35:03Z
+**Revision:** 29
+**Last modified:** 2026-06-01T21:56:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **177**.
+Total completed: **180**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -120,6 +120,7 @@ Total completed: **177**.
 | HXC-1093 | Feature | P0 | Implement leader election with fencing tokens (pkg/leader) | 4d0ac6681bf586c30aaa881226aa2113f6b956b1 |
 | HXC-1094 | Feature | P0 | Implement distributed lock primitives over etcd (pkg/lock) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1095 | Feature | P1 | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
+| HXC-1096 | Feature | P1 | Implement GPU resource probe with /proc parser (internal/gpu) | 9c58146 |
 | HXC-1097 | Feature | P1 | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) | 05f408d |
 | HXC-1098 | Feature | P2 | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) | 1a67f0a |
 | HXC-1099 | Feature | P1 | Implement Build Service orchestrator and worker pool (internal/build) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
@@ -144,6 +145,7 @@ Total completed: **177**.
 | HXC-1122 | Feature | P2 | Implement Cap'n Proto zero-copy serialization for control-plane (pkg/serde) | 63822b3bcd439a360fae67d282fe7154af491c06 |
 | HXC-1123 | Feature | P2 | Implement FlatBuffers serialization for GPU compute payloads | 63822b3bcd439a360fae67d282fe7154af491c06 |
 | HXC-1124 | Feature | P2 | Implement ZeroMQ message patterns for internal data planes | 63822b3bcd439a360fae67d282fe7154af491c06 |
+| HXC-1125 | Feature | P1 | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) | 9c58146 |
 | HXC-1127 | Feature | P1 | Implement OPA/WASM Policy Engine with HelixConstitution enforcement | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |
 | HXC-1131 | Feature | P2 | Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1132 | Feature | P1 | Implement Metrics Collector node scrape endpoint and GPU metrics aggregation | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |
@@ -154,6 +156,7 @@ Total completed: **177**.
 | HXC-1137 | Task | P1 | Benchmark job scheduling decision latency under 100ms (exit gate) | 553a043 |
 | HXC-1138 | Task | P1 | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) | 75f076f |
 | HXC-1141 | Feature | P2 | Implement interactive-mode AI CLI agent resource provisioning | 1a67f0a |
+| HXC-1142 | Feature | P2 | Implement hybrid mode switching and batch/interactive resource sharing | 9c58146 |
 | HXC-1144 | Feature | P2 | Implement WireGuard mesh network policies (segmentation) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1148 | Feature | P1 | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client | 7718c20 |
 | HXC-1149 | Task | P3 | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard | 7718c20 |

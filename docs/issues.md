@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 28
-**Last modified:** 2026-06-01T21:35:03Z
+**Revision:** 29
+**Last modified:** 2026-06-01T21:56:42Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **463**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **460**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,15 +18,13 @@ Total active items: **463**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (15 active)
+## MVP (12 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
-| HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
 | HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
 | HXC-1119 | Feature | P1 | Queued | Implement Avro event schemas and schema-validated routing (Event Bus) |
-| HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
 | HXC-1113 | Bug | P2 | Queued | Remove dangling pkg/gpuattest placeholder and reuse security/pkg/gpuattest |
 | HXC-1126 | Feature | P2 | Queued | Implement LLM Brain advisory engine with LLMsVerifier gate (internal/llm) |
@@ -34,7 +32,6 @@ Total active items: **463**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1129 | Feature | P2 | Queued | Implement CRIU/DMTCP-based session live migration orchestration |
 | HXC-1130 | Feature | P2 | Queued | Implement Zellij and GNU screen session backends |
 | HXC-1139 | Research | P2 | Queued | Author TLA+ specifications for consensus and scheduling concurrency |
-| HXC-1142 | Feature | P2 | Queued | Implement hybrid mode switching and batch/interactive resource sharing |
 | HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
 | HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
