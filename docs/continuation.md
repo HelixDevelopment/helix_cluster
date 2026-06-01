@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 54
-**Last modified:** 2026-06-01T17:11:14Z
+**Revision:** 55
+**Last modified:** 2026-06-01T17:28:06Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `f1e920b` | Foundation wave 9: mark 4 items Completed (HXC-1104/1116/1127/1132) — integration-proven vs real redis/mTLS/opa/HTTP; CLAUDE-2 macOS CPU utilization now real |
 | `7634fbb` | Foundation wave 9: Redis store (routing TTL + NodeEvent pub/sub, go-redis/v9), SPIFFE SVID issuance + mTLS identity (go-spiffe/v2), OPA policy engine + HelixConstitution scheduling (open-policy-agent/opa), metrics collector scrape endpoint — integration-proven vs real redis/mTLS/opa/HTTP. GATE FIXES: tmux ControlModeAttach EOF-before-drain race; pkg/resources DarwinReader now samples REAL macOS CPU utilization via top (CLAUDE-2: no more 0%% on macOS); redis test mutex-copy vet violation |
 | `51cea15` | Foundation wave 8: mark 5 items Completed (HXC-1108/1109/1118/1120/1121) — integration-proven vs real NATS/Kafka/HTTP |
 | `6c825df` | Foundation wave 8: NATS JetStream stream-config (5 streams + EnsureStreams), Kafka topic-config (partitions/replication/retention + EnsureTopics), HelixQA challenge runner + DST chaos/session-recovery harness, gateway REST surface (/v1/sessions, /v1/pool/utilization) + OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `1367dca` | Foundation wave 6: session(tmux -CC + CRDT) / wireguard STUN-NAT / postgres registry / build orchestrator — integration-proven |
 | `e0d3938` | Wave 5 deferred resolved: mark HXC-1086/1088/1093 Completed (integration-proven) |
 | `4d0ac66` | fix(swim,leader,node): resolve Wave 5 deferred — real-dep integration now green |
-| `8184725` | Foundation wave 5: mark 5 items Completed (HXC-1087/1089/1091/1092/1094); 1086/1088/1093 stay Queued (integration WIP) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `7634fbb` |
-| **Timestamp** | 2026-06-01T17:11:14Z |
+| **Commit** | `f1e920b` |
+| **Timestamp** | 2026-06-01T17:28:06Z |
 
 ## §3: Active Work
 
