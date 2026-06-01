@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 25
-**Last modified:** 2026-05-31T14:24:06Z
+**Revision:** 26
+**Last modified:** 2026-06-01T09:28:08Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,24 +16,24 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
-| `9dd576d` | Add MVP+Phase5-8B roadmaps; register containers submodule with decoupled NATS/JetStream brokertest provisioner (real-run verified) |
-| `427e547` | Auto-commit |
-| `9e90826` | Auto-commit |
-| `dde5607` | Auto-commit |
-| `596dbc2` | Phase 7 Research. |
-| `7c34e53` | Phase 6 Research. |
-| `cc1a87f` | Phase 5 Research. |
-| `378e1a9` | docs: Comprehensive audit report HXC-923 |
-| `fcbf9b7` | feat: Node service, advisory locks, chaos tests, docs (HXC-922) |
-| `6f358a6` | feat: Web UI, K8s/Helm, integration, E2E, benchmarks (HXC-921) |
+| `279bce8` | Bump security submodule -> fb1f3ce (Phase 8C e2ee interop + gpuattest spot-check/seal) |
+| `f73806e` | Phase 8C gaps: model-integrity gate, attestation-gated admission, GPU class model, fiber stake admission, inference proxy (PCS-6/CLAUDE-1) |
+| `31c4490` | Phase 8B gaps: GPU pool manager, cost broker, burst hysteresis, local GPU TCO, provider adapter (PCS-6/CLAUDE-1) |
+| `8b04418` | Phase 8 gaps: chutes inference client+SSE+crypto seams, marketplace adapter+scorer, GPU dual-class reservation (PCS-6/CLAUDE-1) |
+| `ded59ff` | Phase 7 gaps: hashslot CRC16, largest-subcluster voting, SLURM backfill, health startup tier, N+K admission, BOINC trust (PCS-6/CLAUDE-1) |
+| `a31c0de` | Phase 6 gaps: HLC, CRDTs+merkle anti-entropy, federation cell registry/FSM, SWIM phi-accrual (PCS-6/CLAUDE-1) |
+| `0d543b0` | Phase 5 gaps: device tier classifier, tier+power scheduler plugin, trust registry, cloudspot preemption, inference router (PCS-6/CLAUDE-1) |
+| `7a58d0b` | Phase 4 gaps: 26 chaos faults, SWIM SimTransport DST, Welch regression detector, device provisioner, wasm capability sandbox (PCS-6/CLAUDE-1) |
+| `2e70be1` | Phase 3 gaps: classads scheduler plugin, S3 storage backend (SigV4), OTLP/HTTP trace exporter (PCS-6/CLAUDE-1) |
+| `8d12a12` | Phase 2 gaps: console boot FSM, real STUN + WG key-rotation overlap, session checkpoint migration, DRM GPU reader (PCS-6/CLAUDE-1) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `9dd576d` |
-| **Timestamp** | 2026-05-31T14:24:06Z |
+| **Commit** | `279bce8` |
+| **Timestamp** | 2026-06-01T09:28:08Z |
 
 ## §3: Active Work
 

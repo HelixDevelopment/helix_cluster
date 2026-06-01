@@ -71,3 +71,12 @@ web/package-lock.json
 /htmux
 /hxc-registry
 /helix_infra
+
+# docs_chain engine runtime (§11.4.106) — state + staging sidecars are generated
+.docs_chain/state.json
+*.docs_chain.tmp
+qa-results/docs_chain/
+
+# stale root-level test binaries (§11.4.30)
+/e2e.test
+/jwt.test

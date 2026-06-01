@@ -85,3 +85,6 @@
 [submodule "LLMOrchestrator"]
 	path = LLMOrchestrator
 	url = git@github.com:HelixDevelopment/LLMOrchestrator.git
+[submodule "docs_chain"]
+	path = docs_chain
+	url = git@github.com:vasic-digital/docs_chain.git
