@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 32
-**Last modified:** 2026-06-01T22:47:59Z
+**Revision:** 33
+**Last modified:** 2026-06-01T23:14:38Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **453**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **452**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -34,7 +34,7 @@ Total active items: **453**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
 | HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
-## Phase 2 (15 active)
+## Phase 2 (14 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -48,7 +48,6 @@ Total active items: **453**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1155 | Feature | P2 | Queued | Implement console/node thermal sink reader via /sys/class/thermal |
 | HXC-1158 | Task | P2 | Queued | Harden device hardware-identification in internal/console/detector.go (generic, fixture-tested) |
 | HXC-1161 | Feature | P2 | Queued | E2E: aggregate GPU pool runs llama.cpp inference across heterogeneous nodes |
-| HXC-1162 | Task | P2 | Queued | E2E: multi-node session CRDT convergence |
 | HXC-1163 | Task | P2 | Queued | Validate cross-NAT WireGuard mesh hole-punching across real hosts |
 | HXC-1164 | Docs | P2 | Queued | Author phase_02 architecture diagram (operator console + mesh + node integration) |
 | HXC-1165 | Task | P2 | Queued | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end |

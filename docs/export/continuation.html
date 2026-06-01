@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 82 <strong>Last modified:</strong>
-2026-06-01T23:14:05Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 83 <strong>Last modified:</strong>
+2026-06-01T23:14:44Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,27 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>8e8cebb</code></td>
+<td>Foundation wave 24: HXC-1162 E2E multi-node session CRDT convergence
+(pkg/session/convergence_hxc1162_test.go, test-only, ZERO edits). Proves
+STRONG EVENTUAL CONSISTENCY beyond the existing 2-replica tests: 5
+independent replicas each seeded with a DISJOINT partition of 100 ops,
+gossiped via seeded-random ARBITRARY-ORDER pairwise merges (dst =
+dst.Clone().Merge(src)) until 3-sweep quiescence; asserts (a) ALL 5
+replicas reach an identical Fingerprint AND (b) that fingerprint equals
+a canonical truth replica that applied all 100 ops sequentially — over
+20 seeds. Reuses existing genUpdates/replicaFrom/buildUpdate +
+CRDTSessionState Merge/Clone/Fingerprint. Builds on W22
+pkg/checkpoint_merge: this is the convergence guarantee that makes
+coordinator-free session migration safe. Gate: build/vet/vet-integration
+clean, full -short -race green (zero failures this run), dataplane ok,
+tmux ls clean (W23 leak fix holds); INDEPENDENT MUTATION SPOT-CHECK:
+order-dependent equal-version pane tiebreak (paneWins ‘return false’)
+-&gt; replicas DIVERGE -&gt; ‘CONVERGENCE FAILED replica 0 and 1
+diverged’ (the N-node convergence bite is genuinely real). ZERO new
+deps.</td>
+</tr>
 <tr>
 <td><code>06ca1a2</code></td>
 <td>Foundation wave 23: fix tmux-session test leak (CLAUDE-1/§7.1 test
@@ -419,14 +440,6 @@ deps. Gate: build/vet/vet-integration clean, full -short -race green,
 dataplane ok, mutation spot-checks A+B bite, C verified end-to-end via
 real binary run.</td>
 </tr>
-<tr>
-<td><code>9a42d7c</code></td>
-<td>Foundation wave 18: mark 3 items Completed (HXC-1098/1110/1141) —
-GPU sharing modes (honest ErrUnsupported hardware seam) / Prometheus
-/metrics wired into 5 HTTP services / interactive-agent
-admission+context registry. Mutation spot-checks confirm bites. Registry
-174-&gt;177 Completed / 462 Queued.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -444,11 +457,11 @@ admission+context registry. Mutation spot-checks confirm bites. Registry
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>06ca1a2</code></td>
+<td><code>8e8cebb</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:14:05Z</td>
+<td>2026-06-01T23:14:44Z</td>
 </tr>
 </tbody>
 </table>
