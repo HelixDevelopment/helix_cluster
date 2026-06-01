@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 14
-**Last modified:** 2026-06-01T13:53:26Z
+**Revision:** 15
+**Last modified:** 2026-06-01T14:11:33Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **535**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **532**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,15 +18,12 @@ Total active items: **535**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (57 active)
+## MVP (54 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1084 | Feature | P0 | Queued | Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session) |
 | HXC-1085 | Feature | P0 | Queued | Implement CRDT session state and lifecycle (create/attach/migrate) |
-| HXC-1086 | Feature | P0 | Queued | Implement real Node gRPC handlers serving helixv1 Node API (internal/node) |
-| HXC-1088 | Feature | P0 | Queued | Implement SWIM gossip membership and failure detection (pkg/swim) |
-| HXC-1093 | Feature | P0 | Queued | Implement leader election with fencing tokens (pkg/leader) |
 | HXC-1101 | Feature | P0 | Queued | Implement e2ee transport record protocol (security/pkg/e2ee) |
 | HXC-1103 | Feature | P0 | Queued | Implement RBAC scopes and identity bindings (internal/security) |
 | HXC-1105 | Feature | P0 | Queued | Implement htmux CLI raw-mode terminal client (cmd/htmux) |
