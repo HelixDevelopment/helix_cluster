@@ -7,6 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"gopkg.in/yaml.v3"
 )
 
 // allFound is a lookPath stub that reports every probed command as present.
@@ -269,5 +271,120 @@ func TestDefaultDataDir(t *testing.T) {
 	want := filepath.Join("/home/tester", ".helix")
 	if got != want {
 		t.Fatalf("defaultDataDir = %q, want %q", got, want)
+	}
+}
+
+// ─── Integration: run() wires the Orchestrator ───────────────────────────────
+
+// TestRunWiresOrchestrator is the primary anti-PASS-bluff integration test.
+// It proves that run() actually invokes the Orchestrator path by asserting:
+//
+//  1. node-config.yaml is written to the data dir (orchestrator artifact).
+//  2. node-config.yaml contains a real tier value (T1–T4), proving hardware
+//     detection ran — the static configContent constant has "tier: T1" in the
+//     labels map but not as a top-level field; only the orchestrator writes the
+//     top-level "tier:" key in node-config.yaml.
+//  3. The injected joiner was called (Join received the expected node ID),
+//     proving the orchestrator mesh-join step was not skipped.
+//  4. config.yaml (static endpoints) is ALSO written (existing behaviour
+//     preserved — both files must exist).
+//
+// Bite: remove orch.Run() from run() → node-config.yaml absent, test fails.
+// Bite: skip joiner.Join in orchestrator.Run() → joiner.called==false, fails.
+// Bite: use static configContent for node-config → YAML has no "tier:" key.
+func TestRunWiresOrchestrator(t *testing.T) {
+	dataDir := filepath.Join(t.TempDir(), ".helix")
+	joiner := &recordingJoiner{}
+
+	cfg := Config{
+		DataDir:  dataDir,
+		Prereqs:  defaultPrereqs(),
+		lookPath: allFound,
+		Joiner:   joiner,
+	}
+	var out, errOut strings.Builder
+
+	code := run(context.Background(), cfg,
+		[]string{"helix-setup", "--skip-checks", "--cluster-name", "integration-cluster", "--node-id", "inode-1"},
+		&out, &errOut)
+
+	if code != exitOK {
+		t.Fatalf("run() exit = %d, want 0; stderr=%q stdout=%q", code, errOut.String(), out.String())
+	}
+
+	// 1. node-config.yaml must exist.
+	nodeConfigPath := filepath.Join(dataDir, "node-config.yaml")
+	raw, err := os.ReadFile(nodeConfigPath)
+	if err != nil {
+		t.Fatalf("node-config.yaml not found at %s: %v\nstdout=%s\nstderr=%s",
+			nodeConfigPath, err, out.String(), errOut.String())
+	}
+	if len(raw) == 0 {
+		t.Fatal("node-config.yaml is empty")
+	}
+
+	// 2. node-config.yaml must contain a real tier.
+	var decoded NodeConfig
+	if err := yaml.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("node-config.yaml is not valid YAML: %v\ncontent:\n%s", err, raw)
+	}
+	validTiers := map[string]bool{"T1": true, "T2": true, "T3": true, "T4": true}
+	if !validTiers[decoded.Tier] {
+		t.Errorf("node-config.yaml tier = %q, want one of T1–T4\ncontent:\n%s", decoded.Tier, raw)
+	}
+
+	// 3. Joiner must have been called with correct identity.
+	if !joiner.called {
+		t.Fatal("MeshJoiner.Join was never called — orchestrator not wired into run()")
+	}
+	if joiner.receivedCfg.NodeID != "inode-1" {
+		t.Errorf("joiner received NodeID %q, want %q", joiner.receivedCfg.NodeID, "inode-1")
+	}
+	if joiner.receivedCfg.ClusterName != "integration-cluster" {
+		t.Errorf("joiner received ClusterName %q, want %q", joiner.receivedCfg.ClusterName, "integration-cluster")
+	}
+
+	// 4. config.yaml (static service endpoints) must also exist.
+	if _, err := os.Stat(filepath.Join(dataDir, configFileName)); err != nil {
+		t.Fatalf("config.yaml not found: %v", err)
+	}
+}
+
+// TestRunNodeIDAutoFromHostname proves --node-id omitted causes run() to derive
+// the node ID from the host's hostname (non-empty). The written node-config.yaml
+// must carry a non-empty node_id field.
+//
+// Bite: leave effectiveNodeID as "" when flag absent → decoded.NodeID == "".
+func TestRunNodeIDAutoFromHostname(t *testing.T) {
+	dataDir := filepath.Join(t.TempDir(), ".helix")
+	joiner := &recordingJoiner{}
+
+	cfg := Config{
+		DataDir:  dataDir,
+		Prereqs:  defaultPrereqs(),
+		lookPath: allFound,
+		Joiner:   joiner,
+	}
+	var out, errOut strings.Builder
+
+	// No --node-id flag; hostname fallback must be used.
+	code := run(context.Background(), cfg,
+		[]string{"helix-setup", "--skip-checks"}, &out, &errOut)
+
+	if code != exitOK {
+		t.Fatalf("run() exit = %d, want 0; stderr=%q", code, errOut.String())
+	}
+
+	nodeConfigPath := filepath.Join(dataDir, "node-config.yaml")
+	raw, err := os.ReadFile(nodeConfigPath)
+	if err != nil {
+		t.Fatalf("node-config.yaml not found: %v", err)
+	}
+	var decoded NodeConfig
+	if err := yaml.Unmarshal(raw, &decoded); err != nil {
+		t.Fatalf("node-config.yaml not valid YAML: %v", err)
+	}
+	if decoded.NodeID == "" {
+		t.Errorf("node_id is empty in node-config.yaml — hostname fallback not wired\ncontent:\n%s", raw)
 	}
 }

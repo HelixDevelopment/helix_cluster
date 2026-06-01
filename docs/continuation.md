@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 72
-**Last modified:** 2026-06-01T21:35:04Z
+**Revision:** 73
+**Last modified:** 2026-06-01T21:55:59Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `9a42d7c` | Foundation wave 18: mark 3 items Completed (HXC-1098/1110/1141) — GPU sharing modes (honest ErrUnsupported hardware seam) / Prometheus /metrics wired into 5 HTTP services / interactive-agent admission+context registry. Mutation spot-checks confirm bites. Registry 174->177 Completed / 462 Queued. |
 | `1a67f0a` | Foundation wave 18: 3 disjoint streams (all approved no-fix; mutation spot-checks confirm bites). HXC-1098 GPU sharing modes (internal/gpu/backend_sharing.go: SharingMode Exclusive/MPS/TimeSlice/MIG + REAL DeviceSharingState.Admit decisions — exclusive rejects 2nd job, time-slice rejects over-quantum, MIG rejects over-partition-limit, Release frees; ConfigureSharing hardware control returns typed ErrUnsupported on M3 via real AppleBackend.EnableMPS — NEVER fake hardware success; 25 tests). HXC-1110 Prometheus /metrics wiring (pkg/metrics/mount.go Mount+NewServiceRegistry reusing existing Registry/PrometheusHandler; in-process httptest scrape asserts exact 'helix_test_jobs_total 2' rejecting 0/1; WIRED into 5 HTTP-serving mains gateway/policy/helixd/health/llm; gRPC-only bins correctly skipped). HXC-1141 interactive-agent provisioning (NEW pkg/agentprovision: AgentAdmission per-node cap+queue + per-user rate-limit reusing pkg/ratelimit.PerKeyLimiter; ContextRegistry copy-isolated shared-context map; workload type defined locally — ZERO scheduler edits; 9 deterministic bite tests). ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green under load, dataplane+security ok; mutation spot-checks: A ConfigureSharing fake-success->ErrUnsupported test FAILS, A cap-unlimited->queue test FAILS (C), confirming decisions bite. |
 | `a0d623e` | Foundation wave 17: mark 3 items Completed (HXC-1097/1111/1112) — GPUBackend interface+registry+AutoDetect (honest ErrUnsupported for compute) / gRPC W3C trace-ID propagation (3-hop proven) / standard grpc.health.v1 wired into 6 services. All 3 mutation spot-checks confirm assertions bite. Registry 171->174 Completed / 465 Queued. |
 | `05f408d` | Foundation wave 17: 3 disjoint streams (all approved no-fix; mutation spot-check confirms all 3 bite). HXC-1097 unified GPUBackend interface + BackendRegistry.AutoDetect (REAL probes nvidia-smi/rocm-smi/sycl-ls + Apple/Darwin backend with real system_profiler/sysctl device detection + metrics) — compute ops (Execute/ExecuteDistributed/AllocateMemory/MPS) return typed ErrUnsupported, NEVER fake success (CLAUDE-2 honest seam; mutation: fake-success->ErrUnsupported test FAILS). HXC-1111 gRPC W3C trace-ID propagation (pkg/tracing/grpc.go Unary client+server interceptors reusing existing Inject/Extract/ParseTraceParent; proven across a REAL 3-hop in-process gateway->scheduler->session chain — one trace ID survives, distinct per-hop parent; mutation: drop-inject->3-hop equality FAILS). HXC-1112 standard grpc.health.v1 (pkg/health/grpc.go RegisterGRPC+SetServing bridging health.Checker->SERVING/NOT_SERVING; in-process grpc_health_v1 client Check proves SERVING+NOT_SERVING; wired into 6 gRPC service mains advisory/build/node/scheduler/security/session; htmux/gateway/policy correctly skipped — no grpc.Server). ZERO new deps (used grpc's health/grpc_health_v1/metadata/bufconn already vendored). Gate: build/vet/vet-integration clean, full -short -race green, dataplane+security ok, 3 mutation spot-checks confirm assertions bite. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `553a043` | Foundation wave 15: 4 streams, 4 items incl 2 MVP exit gates. HXC-1136 session-create EXIT GATE — wired pkg/session.Manager to a REAL tmux/PTY backend via BackendAdapter (fixed the nil-backend StatusRunning PASS-bluff in internal/session.NewServer; added NewServerWithTmuxBackend seam + SessionExists sink-probe); E2E proves htmux create -> helix-session -> real tmux session visible running in 388ms (<3s). HXC-1137 scheduler decision-latency EXIT GATE (<100ms across 10 jobs, histogram + placement-correctness + 120ms-slow-plugin mutation). NEW pkg/testing/instance Provisioner/Instance lifecycle FSM (provisioned->booting->ready->stopped on virtual clock, illegal-transition reject). NEW pkg/qualitygate KPI baseline validation + critical-severity CI gate (8 rules). ZERO new deps. GATE caught+fixed a real regression: 1136's real backend exposed test/chaos+test/e2e relying on the no-op bluff (1000 free sessions -> 509 leaked tmux -> PTY exhaustion) -> switched those harnesses to the in-memory NewServerWithTmuxBackend(nil) seam + added SessionExists to the test double. Full -short -race green, 1136 real-tmux E2E + 1231/1260 integration green, live mutation spot-check on qualitygate critical gate confirmed real. |
 | `34efa5d` | Foundation wave 14: mark 4 items Completed (HXC-1135/1229/1247/1261) — MVP two-node-formation EXIT GATE proven vs real etcd / chaos-sequencer+Byzantine / device-profile-registry / Welch-t-test. Registry 157->161 Completed / 478 Queued. |
 | `1c0d943` | Foundation wave 14: 4 disjoint streams, 4 items incl the MVP two-node-formation EXIT GATE. cmd/helix-agent --etcd-endpoints/HELIX_ETCD_ENDPOINTS wiring + HXC-1135 E2E (two REAL helix-agent processes form a cluster via real etcd, both visible <60s w/ per-run UUID + formation timestamp + evidence file); pkg/testing/chaos seeded deterministic fault sequencer (reproducible injection log) + Byzantine equivocation fault; NEW pkg/deviceprofile versioned-YAML device profile registry T1-T8 + schema validation/rejection; NEW pkg/stats Welch t-test regression detector (t-stat/Welch-Satterthwaite df/p-value). ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, 1135 two-process formation PROVEN vs REAL etcd (2.76s), deviceprofile+stats integration green, live mutation spot-check on Welch significance confirmed real. |
-| `e1dab02` | Foundation wave 13: mark 6 items Completed (HXC-1189/1190/1198/1210/1213/1220) — gateway-auth-deny-reason / node-etcd-wiring (real etcd cross-visibility) / OPA-decision-log / EdgeAware-Filter+Score / offline-sync-delta-compression. Registry 151->157 Completed / 482 Queued. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `1a67f0a` |
-| **Timestamp** | 2026-06-01T21:35:04Z |
+| **Commit** | `9a42d7c` |
+| **Timestamp** | 2026-06-01T21:55:59Z |
 
 ## §3: Active Work
 
