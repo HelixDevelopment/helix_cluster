@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/internal/policy"
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 )
 
 // Config holds the validated runtime configuration for the policy service.
@@ -94,7 +95,7 @@ func (c Config) Validate() error {
 }
 
 // newHandler builds the HTTP routes backed by the given policy engine.
-func newHandler(engine *policy.Engine) http.Handler {
+func newHandler(engine *policy.Engine) *http.ServeMux {
 	mux := http.NewServeMux()
 
 	// GET  /policies        — list loaded policy names
@@ -180,7 +181,10 @@ func run(ctx context.Context, cfg Config, ready func(addr net.Addr)) error {
 	// available without a separate /policies POST.
 	policy.MustLoadSchedulingPolicy(engine)
 
-	server := &http.Server{Handler: newHandler(engine)}
+	reg := metrics.NewServiceRegistry("policy")
+	mux := newHandler(engine)
+	metrics.Mount(mux, reg)
+	server := &http.Server{Handler: mux}
 
 	lis, err := net.Listen("tcp", cfg.Addr)
 	if err != nil {

@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/internal/gateway"
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 )
 
 // defaultPort is the gateway's well-known HTTP port (matches the
@@ -109,12 +110,21 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 		return fmt.Errorf("gateway init: %w", err)
 	}
 
+	// Mount Prometheus /metrics alongside the gateway handler.
+	// The gateway is a plain http.Handler (not a ServeMux), so we wrap it in a
+	// new mux: /metrics is handled by the registry, everything else is forwarded
+	// to the gateway's ServeHTTP.
+	reg := metrics.NewServiceRegistry("gateway")
+	mux := http.NewServeMux()
+	metrics.Mount(mux, reg)
+	mux.Handle("/", g)
+
 	lis, err := net.Listen("tcp", cfg.Addr())
 	if err != nil {
 		return fmt.Errorf("listen %s: %w", cfg.Addr(), err)
 	}
 
-	srv := &http.Server{Handler: g}
+	srv := &http.Server{Handler: mux}
 
 	if ready != nil {
 		ready(lis.Addr().String())

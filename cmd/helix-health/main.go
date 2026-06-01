@@ -33,6 +33,7 @@ import (
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	ihealth "github.com/HelixDevelopment/helix_cluster/internal/health"
 	pkghealth "github.com/HelixDevelopment/helix_cluster/pkg/health"
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 	"google.golang.org/grpc"
 )
 
@@ -328,8 +329,11 @@ func run(ctx context.Context, cfg Config, ready func(ReadyAddrs)) error {
 		return fmt.Errorf("http listen %s: %w", cfg.HTTPAddr(), err)
 	}
 
+	reg := metrics.NewServiceRegistry("health")
+	httpMux := httpSrv.mux()
+	metrics.Mount(httpMux, reg)
 	httpServerInst := &http.Server{
-		Handler:      httpSrv.mux(),
+		Handler:      httpMux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

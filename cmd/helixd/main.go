@@ -38,6 +38,8 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 )
 
 const version = "0.1.0"
@@ -255,8 +257,11 @@ func run(ctx context.Context, cfg Config, deps []Dependency, probe Prober, ready
 		return fmt.Errorf("listen %s: %w", cfg.Addr(), err)
 	}
 
+	reg := metrics.NewServiceRegistry("helixd")
+	mux := newMux(deps, probe, cfg.ProbeTimeout)
+	metrics.Mount(mux, reg)
 	srv := &http.Server{
-		Handler:      newMux(deps, probe, cfg.ProbeTimeout),
+		Handler:      mux,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 10 * time.Second,
 		IdleTimeout:  120 * time.Second,

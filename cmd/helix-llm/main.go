@@ -27,6 +27,7 @@ import (
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/internal/llm"
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 )
 
 // defaultPort is the LLM service's well-known HTTP port (matches the
@@ -199,7 +200,10 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 	}
 
 	s := &server{manager: llm.NewManager()}
-	httpServer := &http.Server{Handler: s.newMux()}
+	reg := metrics.NewServiceRegistry("llm")
+	llmMux := s.newMux()
+	metrics.Mount(llmMux, reg)
+	httpServer := &http.Server{Handler: llmMux}
 
 	if ready != nil {
 		ready(lis.Addr().String())
