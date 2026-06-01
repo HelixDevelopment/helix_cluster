@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 22
-**Last modified:** 2026-06-01T18:47:21Z
+**Revision:** 23
+**Last modified:** 2026-06-01T19:08:03Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -70,7 +70,7 @@ Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1165 | Task | P2 | Queued | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end |
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 
-## Phase 3 (47 active)
+## Phase 3 (41 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -86,13 +86,10 @@ Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1185 | Feature | P0 | Queued | Implement edge heartbeat with battery/thermal/network telemetry |
 | HXC-1186 | Feature | P0 | Queued | Implement edge protocol gateway (MQTT/QUIC/WebSocket) |
 | HXC-1187 | Feature | P0 | Queued | Define EdgeWorkUnit and EdgeWorkResult protobuf schemas |
-| HXC-1189 | Feature | P0 | Queued | Implement EdgeAwarePlugin scheduler Filter stage |
 | HXC-1197 | Feature | P0 | Queued | Implement edge output verification (LLMsVerifier/redundant/checksum) |
 | HXC-1205 | Feature | P0 | Queued | Build edge setup wizard for device onboarding |
 | HXC-1207 | Task | P0 | Queued | Implement edge device chaos test suite |
 | HXC-1208 | Task | P0 | Queued | Implement battery/thermal stress testing for edge devices |
-| HXC-1210 | Bug | P0 | Queued | Wire EtcdBackend into the node agent for cluster-wide discovery |
-| HXC-1213 | Feature | P0 | Queued | Add auth + RBAC enforcement to the gateway |
 | HXC-1169 | Feature | P1 | Queued | Implement SBCAdapter for SBC-specific hardware monitoring |
 | HXC-1170 | Feature | P1 | Queued | Integrate RK3588 NPU via RKNN Toolkit2 C API |
 | HXC-1176 | Feature | P1 | Queued | Implement Android Vulkan/NNAPI compute backend |
@@ -100,11 +97,9 @@ Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1179 | Feature | P1 | Queued | Scaffold iOS Agent app (Swift, Tier T7 EDGE_DONOR) |
 | HXC-1180 | Feature | P1 | Queued | Implement iOS Metal compute integration |
 | HXC-1182 | Feature | P1 | Queued | Implement iOS background execution scheduling (BGAppRefresh/BGProcessing) |
-| HXC-1190 | Feature | P1 | Queued | Implement EdgeAwarePlugin scheduler Score stage |
 | HXC-1192 | Feature | P1 | Queued | Implement unified NPU backend with ONNX model converter |
 | HXC-1193 | Feature | P1 | Queued | Implement per-tier workload quantization selection |
 | HXC-1194 | Feature | P1 | Queued | Integrate MLC LLM universal engine for mobile inference |
-| HXC-1198 | Feature | P1 | Queued | Implement offline sync protocol with delta compression |
 | HXC-1199 | Feature | P1 | Queued | Implement edge sensor-fusion framework and stream workload type |
 | HXC-1200 | Feature | P1 | Queued | Implement Jetson CUDA-on-ARM GPU backend |
 | HXC-1203 | Task | P1 | Queued | Implement Armbian TV-box provisioning path (RK3588/Amlogic) |
@@ -118,7 +113,6 @@ Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1217 | Feature | P2 | Queued | Implement internal/gpu cgo vendor backends (CUDA/ROCm/oneAPI/MLX) |
 | HXC-1218 | Feature | P2 | Queued | Implement session live migration (CRIU/DMTCP) |
 | HXC-1219 | Feature | P2 | Queued | Implement WireGuard UPnP/NAT-PMP NAT traversal |
-| HXC-1220 | Task | P2 | Queued | Replace custom policy engine with OPA/Rego |
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 

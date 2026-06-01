@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 61 <strong>Last modified:</strong>
-2026-06-01T19:07:20Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 62 <strong>Last modified:</strong>
+2026-06-01T19:08:09Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,25 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>203c42a</code></td>
+<td>Foundation wave 13: 5 disjoint-package streams, 6 items.
+internal/gateway X-Helix-Deny-Reason header + scheduler:write scope
+enforcement (401/403 reject-before-proxy); internal/node REAL
+EtcdBackend wiring (Config.EtcdEndpoints -&gt; NewEtcdBackend w/
+SWIM-tied TTL lease + resource metadata, BackendType() status, in-memory
+fallback) — node registrations now cluster-visible (unblocks 1135
+two-node formation); internal/policy real persisted OPA decision-log
+sink (DecisionLogEntry RunUUID/Allow/Reason/PolicyName); NEW
+pkg/scheduler/edgeaware.go EdgeAware Filter (tier&gt;=6 reject
+session/sleeping/over-thermal/not-charging w/ reasons) + Score
+(per-tier+thermal-headroom bonuses); NEW pkg/offlinesync
+delta-compression (flate) offline job-ledger + idempotent reconcile
+(100% recovery). ZERO new deps. GATE: build/vet/vet-integration clean,
+full -short -race green, integration tier 1210 vs REAL etcd (A sees
+B+metadata, UUID) + gateway/policy green, live mutation spot-check on
+edgeaware T6 guard confirmed real.</td>
+</tr>
 <tr>
 <td><code>23df87b</code></td>
 <td>Foundation wave 12: mark 14 items Completed
@@ -343,14 +362,6 @@ violation</td>
 (HXC-1108/1109/1118/1120/1121) — integration-proven vs real
 NATS/Kafka/HTTP</td>
 </tr>
-<tr>
-<td><code>6c825df</code></td>
-<td>Foundation wave 8: NATS JetStream stream-config (5 streams +
-EnsureStreams), Kafka topic-config (partitions/replication/retention +
-EnsureTopics), HelixQA challenge runner + DST chaos/session-recovery
-harness, gateway REST surface (/v1/sessions, /v1/pool/utilization) +
-OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -368,11 +379,11 @@ OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>23df87b</code></td>
+<td><code>203c42a</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T19:07:20Z</td>
+<td>2026-06-01T19:08:09Z</td>
 </tr>
 </tbody>
 </table>

@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 22
-**Last modified:** 2026-06-01T18:47:21Z
+**Revision:** 23
+**Last modified:** 2026-06-01T19:08:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **151**.
+Total completed: **157**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -152,12 +152,18 @@ Total completed: **151**.
 | HXC-1156 | Feature | P1 | Implement thermal-aware scheduler plugin (throttle on overheat) | 7718c20 |
 | HXC-1157 | Feature | P1 | Implement semi-trusted node output verification (redundant-compute/checksum) | 7718c20 |
 | HXC-1188 | Feature | P0 | Enforce work-unit resource limits (duration/memory/CPU) on edge devices | 7718c20 |
+| HXC-1189 | Feature | P0 | Implement EdgeAwarePlugin scheduler Filter stage | 203c42a |
+| HXC-1190 | Feature | P1 | Implement EdgeAwarePlugin scheduler Score stage | 203c42a |
 | HXC-1191 | Feature | P1 | Implement declarative per-tier ScheduleRule engine | 7718c20 |
 | HXC-1195 | Feature | P0 | Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR) | 7718c20 |
 | HXC-1196 | Feature | P0 | Enforce workload restriction matrix by trust level | 7718c20 |
+| HXC-1198 | Feature | P1 | Implement offline sync protocol with delta compression | 203c42a |
+| HXC-1210 | Bug | P0 | Wire EtcdBackend into the node agent for cluster-wide discovery | 203c42a |
 | HXC-1211 | Bug | P0 | Make internal/scheduler.StreamJobEvents a real event stream | 7718c20 |
 | HXC-1212 | Feature | P0 | Connect pkg/classads to scheduler Filter/Score stages | 7718c20 |
+| HXC-1213 | Feature | P0 | Add auth + RBAC enforcement to the gateway | 203c42a |
 | HXC-1214 | Feature | P1 | Add S3-compatible (minio) backend to pkg/storage | 7718c20 |
 | HXC-1215 | Feature | P1 | Add OTLP/Jaeger export shim for pkg/tracing | 7718c20 |
+| HXC-1220 | Task | P2 | Replace custom policy engine with OPA/Rego | 203c42a |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
