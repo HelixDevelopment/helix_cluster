@@ -20,6 +20,12 @@ import (
 	"go.etcd.io/etcd/client/v3/concurrency"
 )
 
+// EpochNamespace is the parallel etcd key root under which durable fencing-epoch
+// counters are stored. It is deliberately disjoint from any election key prefix
+// so concurrency.Election's WithPrefix(ElectionKey) scan never matches an epoch
+// key (which would otherwise hang Campaign — see NewEtcdElection).
+const EpochNamespace = "/helix/leader-epoch"
+
 // EtcdElectionBackend is the injectable seam that isolates EtcdElection from
 // the real clientv3/concurrency library during unit tests.
 // The concurrency.Session + concurrency.Election pair satisfies this interface
@@ -110,7 +116,13 @@ func NewEtcdElection(cfg EtcdElectionConfig, backend EtcdElectionBackend, epochS
 	}
 	epochKey := cfg.EpochKey
 	if epochKey == "" {
-		epochKey = cfg.ElectionKey + "/epoch"
+		// The durable epoch counter MUST NOT live under the election key prefix.
+		// concurrency.Election.Campaign calls waitDeletes with WithPrefix(ElectionKey),
+		// so any key string-prefixed by ElectionKey (e.g. ElectionKey+"/epoch") is
+		// treated as a lower-revision predecessor candidate and Campaign blocks forever
+		// waiting for the (permanent) epoch key to be deleted. Store it in a parallel
+		// namespace that is not a prefix-child of ElectionKey.
+		epochKey = EpochNamespace + cfg.ElectionKey
 	}
 	return &EtcdElection{
 		localID:    cfg.LocalID,

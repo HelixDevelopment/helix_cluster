@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 44
-**Last modified:** 2026-06-01T13:53:27Z
+**Revision:** 45
+**Last modified:** 2026-06-01T14:10:51Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `8184725` | Foundation wave 5: mark 5 items Completed (HXC-1087/1089/1091/1092/1094); 1086/1088/1093 stay Queued (integration WIP) |
 | `2f27ac9` | Foundation wave 5: 5 control-plane streams (gateway/lock/wireguard/node-registry proven; leader+swim+node-watch WIP) |
 | `8f570cb` | fix(pkg/infra): isolate VMSpawn integration tests against deterministic vm-1 collision |
 | `23668fa` | Foundation wave 4 + parity: mark 10 items Completed (HXC-1014/1075-1083) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `85ee85e` | Foundation wave 3b: real-infra impl (infra orchestrator / podman builder / vault api) — integration-proven |
 | `909d107` | Disable all active CI per operator directive: park race.yml in disabled/ |
 | `7cc8147` | Foundation wave 3a: mark 6 items Completed (HXC-1019/1022/1023/1025/1029/1038) |
-| `32feec3` | Foundation wave 3a: real fixes for lock leak + build sync/cancel + security/wasm coverage |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `2f27ac9` |
-| **Timestamp** | 2026-06-01T13:53:27Z |
+| **Commit** | `8184725` |
+| **Timestamp** | 2026-06-01T14:10:51Z |
 
 ## §3: Active Work
 

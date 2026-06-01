@@ -39,8 +39,18 @@ func (fd *FailureDetector) Suspect(memberID string, incarnation uint32) {
 	fd.mu.Lock()
 	defer fd.mu.Unlock()
 
+	// A member already in a suspicion period MUST NOT have its death timer reset.
+	// The probe loop re-suspects an unresponsive peer on every failed probe
+	// (~every probeInterval); resetting the timer each time would starve the
+	// suspicion timeout and the peer would never be Confirmed dead. Standard SWIM
+	// runs a single suspicion period to completion, cleared only by Refute (the
+	// peer responds) or Confirm (the timeout fires). Track the highest incarnation
+	// but keep the original deadline.
 	if existing, ok := fd.suspects[memberID]; ok {
-		existing.timer.Stop()
+		if incarnation > existing.incarnation {
+			existing.incarnation = incarnation
+		}
+		return
 	}
 
 	rec := &suspectRecord{

@@ -191,7 +191,10 @@ func TestEtcdElectionEpochKeyDefaults(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewEtcdElection: %v", err)
 	}
-	want := "/helix/election/sched/epoch"
+	// The epoch key MUST live in the parallel EpochNamespace, NOT under the
+	// ElectionKey prefix — otherwise concurrency.Election.waitDeletes treats the
+	// permanent epoch key as a predecessor candidate and Campaign hangs forever.
+	want := EpochNamespace + "/helix/election/sched"
 	if ee.epochKey != want {
 		t.Fatalf("epochKey = %q, want %q", ee.epochKey, want)
 	}
