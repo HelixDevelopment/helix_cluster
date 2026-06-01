@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 81 <strong>Last modified:</strong>
-2026-06-01T23:02:10Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 82 <strong>Last modified:</strong>
+2026-06-01T23:14:05Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,28 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>06ca1a2</code></td>
+<td>Foundation wave 23: fix tmux-session test leak (CLAUDE-1/§7.1 test
+hygiene; PTY-exhaustion guard, W15/W22 lesson). Real-tmux-backed tests
+now leave ZERO leaked sessions. ROOT CAUSE was
+cmd/helix-session/main_test.go: TestRunServesRealRPC +
+TestRunGracefulShutdownStopsServing call the production run() (real tmux
+backend since W15) and CreateSession 2 real tmux sessions
+(server-assigned session-<nanos> id == tmux session name) with no
+cleanup -&gt; leaked on every full-suite run. FIX: added
+killSession(t,id) helper t.Cleanup-ing ‘tmux kill-session -t <id>’ after
+each CreateSession. Also pkg/session/backends/package_test.go (W23
+workflow): added t.Cleanup kills to
+TestTmuxBackend_CreateAndKill/Lifecycle (defended against
+mid-test-failure leaks). VERIFIED: full -short -race ./… then ‘tmux ls’
+=&gt; no server running (zero leaks); real-tmux proofs intact (hxc1136
+exit gate untouched). Test-only changes, ZERO production code modified.
+NOTE flakes: internal/advisory TestLockBlocksUntilAvailable + test/e2e
+TestClusterLifecycleSuite FAIL only under heavy concurrent full-suite
+-race load, PASS isolated (load-induced timing flakes, not
+regressions).</td>
+</tr>
 <tr>
 <td><code>639e479</code></td>
 <td>Foundation wave 22: mark 2 items Completed (HXC-1152/1160) —
@@ -405,30 +427,6 @@ GPU sharing modes (honest ErrUnsupported hardware seam) / Prometheus
 admission+context registry. Mutation spot-checks confirm bites. Registry
 174-&gt;177 Completed / 462 Queued.</td>
 </tr>
-<tr>
-<td><code>1a67f0a</code></td>
-<td>Foundation wave 18: 3 disjoint streams (all approved no-fix;
-mutation spot-checks confirm bites). HXC-1098 GPU sharing modes
-(internal/gpu/backend_sharing.go: SharingMode
-Exclusive/MPS/TimeSlice/MIG + REAL DeviceSharingState.Admit decisions —
-exclusive rejects 2nd job, time-slice rejects over-quantum, MIG rejects
-over-partition-limit, Release frees; ConfigureSharing hardware control
-returns typed ErrUnsupported on M3 via real AppleBackend.EnableMPS —
-NEVER fake hardware success; 25 tests). HXC-1110 Prometheus /metrics
-wiring (pkg/metrics/mount.go Mount+NewServiceRegistry reusing existing
-Registry/PrometheusHandler; in-process httptest scrape asserts exact
-‘helix_test_jobs_total 2’ rejecting 0/1; WIRED into 5 HTTP-serving mains
-gateway/policy/helixd/health/llm; gRPC-only bins correctly skipped).
-HXC-1141 interactive-agent provisioning (NEW pkg/agentprovision:
-AgentAdmission per-node cap+queue + per-user rate-limit reusing
-pkg/ratelimit.PerKeyLimiter; ContextRegistry copy-isolated
-shared-context map; workload type defined locally — ZERO scheduler
-edits; 9 deterministic bite tests). ZERO new deps. Gate:
-build/vet/vet-integration clean, full -short -race green under load,
-dataplane+security ok; mutation spot-checks: A ConfigureSharing
-fake-success-&gt;ErrUnsupported test FAILS, A cap-unlimited-&gt;queue
-test FAILS (C), confirming decisions bite.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -446,11 +444,11 @@ test FAILS (C), confirming decisions bite.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>639e479</code></td>
+<td><code>06ca1a2</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:02:10Z</td>
+<td>2026-06-01T23:14:05Z</td>
 </tr>
 </tbody>
 </table>
