@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 30
-**Last modified:** 2026-06-01T22:12:55Z
+**Revision:** 31
+**Last modified:** 2026-06-01T22:31:27Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **182**.
+Total completed: **185**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -147,6 +147,7 @@ Total completed: **182**.
 | HXC-1124 | Feature | P2 | Implement ZeroMQ message patterns for internal data planes | 63822b3bcd439a360fae67d282fe7154af491c06 |
 | HXC-1125 | Feature | P1 | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) | 9c58146 |
 | HXC-1127 | Feature | P1 | Implement OPA/WASM Policy Engine with HelixConstitution enforcement | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |
+| HXC-1130 | Feature | P2 | Implement Zellij and GNU screen session backends | 15977c0 |
 | HXC-1131 | Feature | P2 | Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1132 | Feature | P1 | Implement Metrics Collector node scrape endpoint and GPU metrics aggregation | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |
 | HXC-1133 | Feature | P1 | Implement token-bucket rate limiter for API gateway (pkg/ratelimit) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
@@ -185,9 +186,11 @@ Total completed: **182**.
 | HXC-1239 | Feature | P1 | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods | 75f076f |
 | HXC-1240 | Feature | P1 | Achieve 1,000+ simulated nodes in a single DST process | 75f076f |
 | HXC-1241 | Feature | P1 | Author DST consensus+gossip workloads using SETUP→EXECUTION→CHECK→METRICS pattern | 75f076f |
+| HXC-1243 | Feature | P0 | Implement 8 network fault injectors (latency, loss, corruption, reorder, dup, bandwidth, partition, DNS, TCP reset) | 15977c0 |
 | HXC-1244 | Feature | P0 | Implement 8 node fault injectors (VM crash/restart/pause, CPU/mem/disk pressure, OOM kill, graceful shutdown) | e93fad6 |
 | HXC-1247 | Feature | P1 | Implement pure-Go in-sim chaos faults toward 25+ (ClockSkew, DiskFill, MessageReorder, Byzantine, etc.) | 1c0d943 |
 | HXC-1248 | Feature | P0 | Build YAML chaos Scenario Engine with phases, blast radius and abort-on-SLO-breach | e93fad6 |
+| HXC-1249 | Feature | P0 | Implement emergency-stop and auto-recovery with <=2s halt latency | 15977c0 |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |
 | HXC-902 | Task | P1 |  |  |
