@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 83 <strong>Last modified:</strong>
-2026-06-01T23:14:44Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 84 <strong>Last modified:</strong>
+2026-06-01T23:30:01Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,13 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>ace79d4</code></td>
+<td>Foundation wave 24: mark HXC-1162 Completed — E2E multi-node session
+CRDT convergence (5 replicas, arbitrary-order gossip, converge to
+identical Fingerprint + canonical truth; mutation-verified bite).
+Registry 187-&gt;188 Completed / 451 Queued.</td>
+</tr>
 <tr>
 <td><code>8e8cebb</code></td>
 <td>Foundation wave 24: HXC-1162 E2E multi-node session CRDT convergence
@@ -410,36 +417,6 @@ batch/interactive mode switching+preemption / GPU /proc parser
 critical not-wired-into-main CLAUDE-1 bluff; node-config now real,
 verified sink-side). Registry 177-&gt;180 Completed / 459 Queued.</td>
 </tr>
-<tr>
-<td><code>9c58146</code></td>
-<td>Foundation wave 19: 3 disjoint streams (A/B approved no-fix; C had a
-CRITICAL CLAUDE-1 bluff CAUGHT+FIXED by review). HXC-1142
-batch/interactive mode switching + preemption
-(pkg/agentprovision/modeswitch.go: ModeManager with REAL fixed-capacity
-resource pool — Interactive Submit preempts the most-recent Batch
-occupant when full, marks Preempted=true in an eviction ledger,
-frees+reuses the slot; SwitchMode mutates live record changing the
-preempt outcome; mutation: Preempted=true-&gt;false fails the bite).
-HXC-1096 GPU /proc parser (internal/gpu/nvidia_parser.go: PURE
-ParseNvidiaInformation/ParseNvidiaProcTree fixture-tested on M3 — exact
-Model/UUID/MemoryMB, MiB+MB units, no-Model-&gt;error,
-malformed-mem-&gt;0, contiguous Index + Model-less skip;
-nvidia_reader_linux.go //go:build linux real /proc reader; mutation:
-corrupt Model prefix fails parse). HXC-1125 Setup Wizard orchestrator
-(cmd/helix-setup: Orchestrator
-detect-&gt;GenerateConfig-&gt;mesh-join(MeshJoiner seam)-&gt;Lifecycle
-SM, real per-OS memory via mem_darwin/linux/other.go,
-scripts/helix-setup.sh entrypoint with driver-install as printed
-host-step). REVIEW CAUGHT: orchestrator was implemented+tested but NEVER
-wired into main() (main wrote a hardcoded static config -&gt; 21 passing
-tests on UNREACHABLE code = CLAUDE-1 PASS-bluff). FIXED: wired
-NewOrchestrator(…).Run() into run(); binary now writes node-config.yaml
-with REAL hardware-detected tier (T2 on M3, cpu_cores 11), flag
-node_id/cluster_name, wg_endpoint — VERIFIED sink-side by me. ZERO new
-deps. Gate: build/vet/vet-integration clean, full -short -race green,
-dataplane ok, mutation spot-checks A+B bite, C verified end-to-end via
-real binary run.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -457,11 +434,11 @@ real binary run.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>8e8cebb</code></td>
+<td><code>ace79d4</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:14:44Z</td>
+<td>2026-06-01T23:30:01Z</td>
 </tr>
 </tbody>
 </table>
