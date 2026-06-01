@@ -25,12 +25,12 @@ var (
 type Election struct {
 	mu sync.RWMutex
 
-	localID    string
-	term       uint64
-	isLeader   bool
-	leaderID   string
+	localID     string
+	term        uint64
+	isLeader    bool
+	leaderID    string
 	lastElected time.Time
-	ttl        time.Duration
+	ttl         time.Duration
 
 	// clock is an injectable time source. Defaults to a real-time clock.
 	// It exists so failover/expiry can be tested deterministically with a fake

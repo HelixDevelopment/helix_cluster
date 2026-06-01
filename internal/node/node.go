@@ -25,22 +25,22 @@ type Agent struct {
 	aggregator   *resources.NodeAggregator
 	pollInterval time.Duration
 
-	mu      sync.RWMutex
-	status  Status
-	ctx     context.Context
-	cancel  context.CancelFunc
-	wgProc  sync.WaitGroup
+	mu     sync.RWMutex
+	status Status
+	ctx    context.Context
+	cancel context.CancelFunc
+	wgProc sync.WaitGroup
 }
 
 // Status represents the operational state of a node agent.
 type Status string
 
 const (
-	StatusStarting   Status = "starting"
-	StatusHealthy    Status = "healthy"
-	StatusDegraded   Status = "degraded"
-	StatusUnhealthy  Status = "unhealthy"
-	StatusStopping   Status = "stopping"
+	StatusStarting  Status = "starting"
+	StatusHealthy   Status = "healthy"
+	StatusDegraded  Status = "degraded"
+	StatusUnhealthy Status = "unhealthy"
+	StatusStopping  Status = "stopping"
 )
 
 // Config holds agent configuration.

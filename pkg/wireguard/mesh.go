@@ -11,9 +11,9 @@ import (
 
 // MeshCoordinator coordinates WireGuard peers with SWIM membership.
 type MeshCoordinator struct {
-	mu         sync.RWMutex
-	wgManager  *Manager
-	swimProto  *swim.Protocol
+	mu        sync.RWMutex
+	wgManager *Manager
+	swimProto *swim.Protocol
 
 	// Auto-sync config
 	syncInterval time.Duration

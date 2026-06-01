@@ -9,11 +9,11 @@ import (
 
 // Config holds WireGuard interface configuration.
 type Config struct {
-	InterfaceName     string
-	ListenPort        int
-	PrivateKey        string
-	Address           string // CIDR
-	MTU               int
+	InterfaceName string
+	ListenPort    int
+	PrivateKey    string
+	Address       string // CIDR
+	MTU           int
 
 	// NAT traversal
 	EnableUPnP        bool

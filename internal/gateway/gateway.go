@@ -3,18 +3,34 @@
 package gateway
 
 import (
+	"context"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 )
 
 // gatewayHeader marks responses that traversed the gateway. It gives clients
 // and tests a sink-side signal that routing actually occurred.
 const gatewayHeader = "X-Helix-Gateway"
+
+// contextKey is the unexported type for context values set by this package,
+// preventing collision with keys from other packages.
+type contextKey int
+
+const (
+	// ClaimsContextKey is the key under which validated JWT claims are stored in
+	// the request context after successful authorization. Downstream handlers
+	// (and integration tests) retrieve claims via:
+	//
+	//   claims, _ := r.Context().Value(gateway.ClaimsContextKey).(map[string]interface{})
+	ClaimsContextKey contextKey = iota
+)
 
 // route defines a single path prefix → backend mapping.
 type route struct {
@@ -103,9 +119,15 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, route.prefix) {
 			// Enforce JWT/RBAC BEFORE proxying so unauthorized requests never
 			// reach the upstream. No-op when auth is disabled.
-			if e := g.authorize(r); e != nil {
+			e, claims := g.authorize(r)
+			if e != nil {
 				writeAuthError(w, e)
 				return
+			}
+			// Inject verified claims into the request context so downstream
+			// handlers can read them without re-parsing the token.
+			if claims != nil {
+				r = r.WithContext(context.WithValue(r.Context(), ClaimsContextKey, claims))
 			}
 			g.mu.RLock()
 			proxy, ok := g.proxies[route.prefix]
@@ -131,7 +153,54 @@ func (g *Gateway) SetProxy(prefix string, proxy *httputil.ReverseProxy) {
 }
 
 // ListenAndServe starts the gateway HTTP server on the given address.
-func (g *Gateway) ListenAndServe(addr string) error {
-	log.Printf("gateway listening on %s", addr)
-	return http.ListenAndServe(addr, g)
+// It blocks until the context is cancelled, at which point it initiates a
+// graceful shutdown with up to 30 s for in-flight requests to complete.
+func (g *Gateway) ListenAndServe(ctx context.Context, addr string) error {
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return fmt.Errorf("gateway listen %s: %w", addr, err)
+	}
+	srv := &http.Server{Handler: g}
+	log.Printf("gateway listening on %s", ln.Addr())
+
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.Serve(ln) }()
+
+	select {
+	case err := <-errCh:
+		return err
+	case <-ctx.Done():
+		shutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutCtx); err != nil {
+			return fmt.Errorf("gateway shutdown: %w", err)
+		}
+		return nil
+	}
+}
+
+// Serve starts the gateway on an already-bound listener. The caller supplies
+// the listener so tests can obtain the real port via ln.Addr(). Context
+// cancellation triggers graceful shutdown with a 30 s drain.
+func (g *Gateway) Serve(ctx context.Context, ln net.Listener) error {
+	srv := &http.Server{Handler: g}
+	log.Printf("gateway serving on %s", ln.Addr())
+
+	errCh := make(chan error, 1)
+	go func() { errCh <- srv.Serve(ln) }()
+
+	select {
+	case err := <-errCh:
+		if err == http.ErrServerClosed {
+			return nil
+		}
+		return err
+	case <-ctx.Done():
+		shutCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := srv.Shutdown(shutCtx); err != nil {
+			return fmt.Errorf("gateway shutdown: %w", err)
+		}
+		return nil
+	}
 }

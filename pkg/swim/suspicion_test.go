@@ -85,11 +85,11 @@ func TestManualClock_StopPreventsFire(t *testing.T) {
 // recordingProber records direct/indirect probe attempts and lets the test
 // decide whether each probe succeeds. Deterministic, no real network.
 type recordingProber struct {
-	mu             sync.Mutex
-	directTargets  []string
-	indirectCalls  []indirectCall
-	directReply    map[string]bool // memberID -> direct ping succeeds
-	indirectReply  map[string]bool // memberID -> indirect ping succeeds
+	mu            sync.Mutex
+	directTargets []string
+	indirectCalls []indirectCall
+	directReply   map[string]bool // memberID -> direct ping succeeds
+	indirectReply map[string]bool // memberID -> indirect ping succeeds
 }
 
 type indirectCall struct {
@@ -157,11 +157,11 @@ func TestSuspicionManager_HigherIncarnationRefutes(t *testing.T) {
 
 	var deadCalled bool
 	sm := NewSuspicionManager(SuspicionConfig{
-		Clock:          clk,
-		Prober:         prober,
+		Clock:            clk,
+		Prober:           prober,
 		SuspicionTimeout: 1 * time.Second,
-		IndirectProbes: 2,
-		OnDead:         func(string) { deadCalled = true },
+		IndirectProbes:   2,
+		OnDead:           func(string) { deadCalled = true },
 	})
 
 	// Suspect at incarnation 1.

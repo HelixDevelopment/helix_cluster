@@ -150,9 +150,9 @@ func TestMemoryLockerConcurrent(t *testing.T) {
 	ctx := context.Background()
 
 	const n = 16
-	var counter int        // non-atomic; only safe under real mutual exclusion
-	var inCritical int      // non-atomic occupancy flag
-	var violations int64    // atomic so the failure signal itself is race-free
+	var counter int      // non-atomic; only safe under real mutual exclusion
+	var inCritical int   // non-atomic occupancy flag
+	var violations int64 // atomic so the failure signal itself is race-free
 	var wg sync.WaitGroup
 
 	for i := 0; i < n; i++ {

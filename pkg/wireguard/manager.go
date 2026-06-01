@@ -13,10 +13,10 @@ import (
 
 // Manager manages a WireGuard interface and its peers.
 type Manager struct {
-	mu        sync.RWMutex
-	config    *Config
-	client    *wgctrl.Client
-	peers     map[string]*PeerConfig // keyed by public key
+	mu     sync.RWMutex
+	config *Config
+	client *wgctrl.Client
+	peers  map[string]*PeerConfig // keyed by public key
 
 	// Key rotation
 	keyRotationInterval time.Duration

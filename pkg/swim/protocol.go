@@ -423,7 +423,19 @@ func (p *Protocol) handleDead(msg *Message, addr net.Addr) {
 
 func (p *Protocol) handleJoin(msg *Message, addr net.Addr) {
 	p.mu.Lock()
-	if _, ok := p.members[msg.SourceID]; !ok {
+	if existing, ok := p.members[msg.SourceID]; ok {
+		// Rejoin: a previously known (possibly Dead/Left) node is re-joining.
+		// UpdateState to StateAlive at its current incarnation+1 so the state
+		// machine accepts the transition (Dead > Alive numerically, so we must
+		// use a higher incarnation to override).
+		existing.mu.Lock()
+		newInc := existing.Incarnation + 1
+		existing.Address = string(msg.Payload)
+		existing.State = StateAlive
+		existing.Incarnation = newInc
+		existing.lastSeen = time.Now()
+		existing.mu.Unlock()
+	} else {
 		p.members[msg.SourceID] = &Member{
 			ID:       msg.SourceID,
 			Address:  string(msg.Payload),

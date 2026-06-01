@@ -23,7 +23,9 @@ func withClock(t *testing.T, now time.Time) {
 // stored and retrievable, not silently dropped.
 //
 // Mutation that breaks this: in UpdateNodeStatus, remove the line
-//   s.health[req.NodeId] = req.Health
+//
+//	s.health[req.NodeId] = req.Health
+//
 // (which is what the original code effectively did). HealthScore() then returns
 // ok==false and the test fails.
 func TestUpdateNodeStatusPersistsHealth(t *testing.T) {

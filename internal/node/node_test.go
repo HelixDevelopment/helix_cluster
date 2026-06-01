@@ -17,15 +17,15 @@ func testKey() string {
 
 func TestNewAgent(t *testing.T) {
 	cfg := &Config{
-		ID:       "node-1",
-		Region:   "us-east-1",
-		Labels:   map[string]string{"tier": "T1"},
-		SwimBindAddr: "127.0.0.1",
-		SwimBindPort: 7946,
-		WgListenPort: 51820,
-		WgPrivateKey: testKey(),
-		WgNoOp:       true,
-		DiscoveryTTL: 30 * time.Second,
+		ID:                   "node-1",
+		Region:               "us-east-1",
+		Labels:               map[string]string{"tier": "T1"},
+		SwimBindAddr:         "127.0.0.1",
+		SwimBindPort:         7946,
+		WgListenPort:         51820,
+		WgPrivateKey:         testKey(),
+		WgNoOp:               true,
+		DiscoveryTTL:         30 * time.Second,
 		ResourcePollInterval: 30 * time.Second,
 	}
 
@@ -52,14 +52,14 @@ func TestNewAgentMissingID(t *testing.T) {
 
 func TestAgentStartStop(t *testing.T) {
 	cfg := &Config{
-		ID:       "node-2",
-		Region:   "us-west-1",
-		SwimBindAddr: "127.0.0.1",
-		SwimBindPort: 7947,
-		WgListenPort: 51821,
-		WgPrivateKey: testKey(),
-		WgNoOp:       true,
-		DiscoveryTTL: 30 * time.Second,
+		ID:                   "node-2",
+		Region:               "us-west-1",
+		SwimBindAddr:         "127.0.0.1",
+		SwimBindPort:         7947,
+		WgListenPort:         51821,
+		WgPrivateKey:         testKey(),
+		WgNoOp:               true,
+		DiscoveryTTL:         30 * time.Second,
 		ResourcePollInterval: 30 * time.Second,
 	}
 
@@ -83,13 +83,13 @@ func TestAgentStartStop(t *testing.T) {
 
 func TestAgentDoubleStart(t *testing.T) {
 	cfg := &Config{
-		ID:       "node-3",
-		SwimBindAddr: "127.0.0.1",
-		SwimBindPort: 7948,
-		WgListenPort: 51822,
-		WgPrivateKey: testKey(),
-		WgNoOp:       true,
-		DiscoveryTTL: 30 * time.Second,
+		ID:                   "node-3",
+		SwimBindAddr:         "127.0.0.1",
+		SwimBindPort:         7948,
+		WgListenPort:         51822,
+		WgPrivateKey:         testKey(),
+		WgNoOp:               true,
+		DiscoveryTTL:         30 * time.Second,
 		ResourcePollInterval: 30 * time.Second,
 	}
 

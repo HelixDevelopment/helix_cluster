@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 42
-**Last modified:** 2026-06-01T13:12:11Z
+**Revision:** 43
+**Last modified:** 2026-06-01T13:52:26Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `8f570cb` | fix(pkg/infra): isolate VMSpawn integration tests against deterministic vm-1 collision |
 | `23668fa` | Foundation wave 4 + parity: mark 10 items Completed (HXC-1014/1075-1083) |
 | `44db918` | Foundation wave 4 + cross-platform parity: 9 real-infra items + macOS GPU/resources + real VMSSH — integration-proven |
 | `366a436` | CLAUDE-2: Cross-Platform Parity Guarantee — no Linux-only feature may fall back to a mock/stub on macOS |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `7cc8147` | Foundation wave 3a: mark 6 items Completed (HXC-1019/1022/1023/1025/1029/1038) |
 | `32feec3` | Foundation wave 3a: real fixes for lock leak + build sync/cancel + security/wasm coverage |
 | `930a7ac` | Foundation wave 2: mark 30 items Completed (HXC-1039..1041/1046..1061/1064..1074) |
-| `a084eb1` | Foundation wave 2: anti-bluff harden 29 pkg test items + §1.1 mutation runner + -race CI gate |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `23668fa` |
-| **Timestamp** | 2026-06-01T13:12:11Z |
+| **Commit** | `8f570cb` |
+| **Timestamp** | 2026-06-01T13:52:26Z |
 
 ## §3: Active Work
 

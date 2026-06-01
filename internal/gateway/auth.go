@@ -110,39 +110,40 @@ type authError struct {
 }
 
 // authorize validates the bearer token on r and checks it carries the scope
-// required for r's path. It returns nil when the request may proceed to the
-// upstream, or an *authError (401/403) describing the rejection. The upstream
-// is never contacted on a non-nil return — the caller writes the error first.
-func (g *Gateway) authorize(r *http.Request) *authError {
+// required for r's path. It returns (nil, claims) when the request may proceed
+// to the upstream — claims are non-nil so the caller can inject them into the
+// request context. It returns (non-nil *authError, nil) on rejection (401/403).
+// The upstream is never contacted on a non-nil *authError return.
+func (g *Gateway) authorize(r *http.Request) (*authError, map[string]interface{}) {
 	policy := g.auth
 	if policy == nil {
-		return nil // enforcement disabled: open behavior preserved.
+		return nil, nil // enforcement disabled: open behavior preserved.
 	}
 
 	authz := r.Header.Get("Authorization")
 	const bearer = "Bearer "
 	if !strings.HasPrefix(authz, bearer) {
-		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}
+		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}, nil
 	}
 	raw := strings.TrimSpace(authz[len(bearer):])
 	if raw == "" {
-		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}
+		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}, nil
 	}
 
 	// ParseToken validates structure, HS256 signature, and expiry in one shot.
 	claims, err := jwt.ParseToken(raw, policy.Secret)
 	if err != nil {
-		return &authError{http.StatusUnauthorized, `{"error":"invalid or expired token","status":401}`}
+		return &authError{http.StatusUnauthorized, `{"error":"invalid or expired token","status":401}`}, nil
 	}
 
 	required := policy.RequiredScope(r.URL.Path)
 	if required == "" {
-		return nil // any valid token is sufficient for this path.
+		return nil, claims // any valid token is sufficient for this path.
 	}
 	if _, ok := claimScopes(claims)[required]; !ok {
-		return &authError{http.StatusForbidden, `{"error":"insufficient scope","status":403}`}
+		return &authError{http.StatusForbidden, `{"error":"insufficient scope","status":403}`}, nil
 	}
-	return nil
+	return nil, claims
 }
 
 // writeAuthError emits a JSON auth rejection. It stamps the gateway marker so
