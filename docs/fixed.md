@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 21
-**Last modified:** 2026-06-01T18:10:59Z
+**Revision:** 22
+**Last modified:** 2026-06-01T18:47:21Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **137**.
+Total completed: **151**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -145,5 +145,19 @@ Total completed: **137**.
 | HXC-1133 | Feature | P1 | Implement token-bucket rate limiter for API gateway (pkg/ratelimit) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
 | HXC-1134 | Feature | P2 | Implement Vault secret injection and rotation for all services | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1144 | Feature | P2 | Implement WireGuard mesh network policies (segmentation) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
+| HXC-1148 | Feature | P1 | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client | 7718c20 |
+| HXC-1149 | Task | P3 | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard | 7718c20 |
+| HXC-1150 | Feature | P1 | Add WireGuard key-rotation grace/overlap window with ActiveKeys() | 7718c20 |
+| HXC-1151 | Task | P1 | Add pkg/discovery etcd-backed integration test against a real etcd | 7718c20 |
+| HXC-1156 | Feature | P1 | Implement thermal-aware scheduler plugin (throttle on overheat) | 7718c20 |
+| HXC-1157 | Feature | P1 | Implement semi-trusted node output verification (redundant-compute/checksum) | 7718c20 |
+| HXC-1188 | Feature | P0 | Enforce work-unit resource limits (duration/memory/CPU) on edge devices | 7718c20 |
+| HXC-1191 | Feature | P1 | Implement declarative per-tier ScheduleRule engine | 7718c20 |
+| HXC-1195 | Feature | P0 | Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR) | 7718c20 |
+| HXC-1196 | Feature | P0 | Enforce workload restriction matrix by trust level | 7718c20 |
+| HXC-1211 | Bug | P0 | Make internal/scheduler.StreamJobEvents a real event stream | 7718c20 |
+| HXC-1212 | Feature | P0 | Connect pkg/classads to scheduler Filter/Score stages | 7718c20 |
+| HXC-1214 | Feature | P1 | Add S3-compatible (minio) backend to pkg/storage | 7718c20 |
+| HXC-1215 | Feature | P1 | Add OTLP/Jaeger export shim for pkg/tracing | 7718c20 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

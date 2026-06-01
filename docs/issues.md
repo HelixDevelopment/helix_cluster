@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 21
-**Last modified:** 2026-06-01T18:10:59Z
+**Revision:** 22
+**Last modified:** 2026-06-01T18:47:21Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **489**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -48,20 +48,15 @@ Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
 | HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
-## Phase 2 (23 active)
+## Phase 2 (17 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1146 | Docs | P0 | Queued | Document node-provisioning boundary: project does NOT implement jailbreak/exploit/DRM-circumvention |
 | HXC-905 | Feature | P0 | Queued | SQLite HXC Registry |
 | HXC-1147 | Feature | P1 | Queued | Implement internal/console/linux_boot.go BootCoordinator state machine |
-| HXC-1148 | Feature | P1 | Queued | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client |
-| HXC-1150 | Feature | P1 | Queued | Add WireGuard key-rotation grace/overlap window with ActiveKeys() |
-| HXC-1151 | Task | P1 | Queued | Add pkg/discovery etcd-backed integration test against a real etcd |
 | HXC-1152 | Feature | P1 | Queued | Implement pkg/session container-checkpoint migration strategy (CRDT + manifest) |
 | HXC-1153 | Feature | P1 | Queued | Implement pkg/resources Linux GPU reader via /sys/class/drm (NVML-free) |
-| HXC-1156 | Feature | P1 | Queued | Implement thermal-aware scheduler plugin (throttle on overheat) |
-| HXC-1157 | Feature | P1 | Queued | Implement semi-trusted node output verification (redundant-compute/checksum) |
 | HXC-1159 | Task | P1 | Queued | E2E: a Linux node joins the cluster mesh and becomes schedulable |
 | HXC-906 | Docs | P1 | Queued | PHASE_2_ROADMAP.md |
 | HXC-1154 | Feature | P2 | Queued | Integrate universal Vulkan compute backend (vendor-neutral, no device-specific code) |
@@ -73,10 +68,9 @@ Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1163 | Task | P2 | Queued | Validate cross-NAT WireGuard mesh hole-punching across real hosts |
 | HXC-1164 | Docs | P2 | Queued | Author phase_02 architecture diagram (operator console + mesh + node integration) |
 | HXC-1165 | Task | P2 | Queued | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end |
-| HXC-1149 | Task | P3 | Queued | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard |
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 
-## Phase 3 (55 active)
+## Phase 3 (47 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -92,17 +86,12 @@ Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1185 | Feature | P0 | Queued | Implement edge heartbeat with battery/thermal/network telemetry |
 | HXC-1186 | Feature | P0 | Queued | Implement edge protocol gateway (MQTT/QUIC/WebSocket) |
 | HXC-1187 | Feature | P0 | Queued | Define EdgeWorkUnit and EdgeWorkResult protobuf schemas |
-| HXC-1188 | Feature | P0 | Queued | Enforce work-unit resource limits (duration/memory/CPU) on edge devices |
 | HXC-1189 | Feature | P0 | Queued | Implement EdgeAwarePlugin scheduler Filter stage |
-| HXC-1195 | Feature | P0 | Queued | Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR) |
-| HXC-1196 | Feature | P0 | Queued | Enforce workload restriction matrix by trust level |
 | HXC-1197 | Feature | P0 | Queued | Implement edge output verification (LLMsVerifier/redundant/checksum) |
 | HXC-1205 | Feature | P0 | Queued | Build edge setup wizard for device onboarding |
 | HXC-1207 | Task | P0 | Queued | Implement edge device chaos test suite |
 | HXC-1208 | Task | P0 | Queued | Implement battery/thermal stress testing for edge devices |
 | HXC-1210 | Bug | P0 | Queued | Wire EtcdBackend into the node agent for cluster-wide discovery |
-| HXC-1211 | Bug | P0 | Queued | Make internal/scheduler.StreamJobEvents a real event stream |
-| HXC-1212 | Feature | P0 | Queued | Connect pkg/classads to scheduler Filter/Score stages |
 | HXC-1213 | Feature | P0 | Queued | Add auth + RBAC enforcement to the gateway |
 | HXC-1169 | Feature | P1 | Queued | Implement SBCAdapter for SBC-specific hardware monitoring |
 | HXC-1170 | Feature | P1 | Queued | Integrate RK3588 NPU via RKNN Toolkit2 C API |
@@ -112,7 +101,6 @@ Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1180 | Feature | P1 | Queued | Implement iOS Metal compute integration |
 | HXC-1182 | Feature | P1 | Queued | Implement iOS background execution scheduling (BGAppRefresh/BGProcessing) |
 | HXC-1190 | Feature | P1 | Queued | Implement EdgeAwarePlugin scheduler Score stage |
-| HXC-1191 | Feature | P1 | Queued | Implement declarative per-tier ScheduleRule engine |
 | HXC-1192 | Feature | P1 | Queued | Implement unified NPU backend with ONNX model converter |
 | HXC-1193 | Feature | P1 | Queued | Implement per-tier workload quantization selection |
 | HXC-1194 | Feature | P1 | Queued | Integrate MLC LLM universal engine for mobile inference |
@@ -123,8 +111,6 @@ Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1204 | Task | P1 | Queued | Implement ADB-over-WiFi fleet provisioning for Android cluster |
 | HXC-1206 | Feature | P1 | Queued | Build APK/IPA distribution system |
 | HXC-1209 | Task | P1 | Queued | Validate ARM SBC per-watt performance >=80% of x86 |
-| HXC-1214 | Feature | P1 | Queued | Add S3-compatible (minio) backend to pkg/storage |
-| HXC-1215 | Feature | P1 | Queued | Add OTLP/Jaeger export shim for pkg/tracing |
 | HXC-1181 | Feature | P2 | Queued | Implement iOS CoreML / Neural Engine inference engine |
 | HXC-1183 | Feature | P2 | Queued | Implement HarmonyOS Agent (ArkTS) with Da Vinci NPU inference |
 | HXC-1201 | Feature | P2 | Queued | Implement low-bandwidth protocol optimizations (CoAP option) |

@@ -176,13 +176,13 @@
 <h1 class="title">issues</h1>
 </header>
 <h1 id="issues">Issues</h1>
-<p><strong>Revision:</strong> 21 <strong>Last modified:</strong>
-2026-06-01T18:10:59Z <strong>Description:</strong> Active workable-item
+<p><strong>Revision:</strong> 22 <strong>Last modified:</strong>
+2026-06-01T18:47:21Z <strong>Description:</strong> Active workable-item
 registry for Helix Cluster OS <strong>Authority:</strong> Constitution
 §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total active items: <strong>503</strong>. Canonical source:
+<p>Total active items: <strong>489</strong>. Canonical source:
 <code>data/hxc_registry.db</code>. Full per-item detail (description,
 closure criteria, required test types, source refs) lives in the DB and
 <code>docs/research/_ledger/*.json</code>.</p>
@@ -449,7 +449,7 @@ artifacts</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-2-23-active">Phase 2 (23 active)</h2>
+<h2 id="phase-2-17-active">Phase 2 (17 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -492,29 +492,6 @@ jailbreak/exploit/DRM-circumvention</td>
 machine</td>
 </tr>
 <tr>
-<td>HXC-1148</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Replace pkg/wireguard NAT discovery with RFC 5389 STUN client</td>
-</tr>
-<tr>
-<td>HXC-1150</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add WireGuard key-rotation grace/overlap window with
-ActiveKeys()</td>
-</tr>
-<tr>
-<td>HXC-1151</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/discovery etcd-backed integration test against a real
-etcd</td>
-</tr>
-<tr>
 <td>HXC-1152</td>
 <td>Feature</td>
 <td>P1</td>
@@ -529,21 +506,6 @@ etcd</td>
 <td>Queued</td>
 <td>Implement pkg/resources Linux GPU reader via /sys/class/drm
 (NVML-free)</td>
-</tr>
-<tr>
-<td>HXC-1156</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement thermal-aware scheduler plugin (throttle on overheat)</td>
-</tr>
-<tr>
-<td>HXC-1157</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement semi-trusted node output verification
-(redundant-compute/checksum)</td>
 </tr>
 <tr>
 <td>HXC-1159</td>
@@ -631,13 +593,6 @@ integration)</td>
 consumed end-to-end</td>
 </tr>
 <tr>
-<td>HXC-1149</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard</td>
-</tr>
-<tr>
 <td>HXC-1166</td>
 <td>Research</td>
 <td>P3</td>
@@ -646,7 +601,7 @@ consumed end-to-end</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-3-55-active">Phase 3 (55 active)</h2>
+<h2 id="phase-3-47-active">Phase 3 (47 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -752,33 +707,11 @@ START_STICKY</td>
 <td>Define EdgeWorkUnit and EdgeWorkResult protobuf schemas</td>
 </tr>
 <tr>
-<td>HXC-1188</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Enforce work-unit resource limits (duration/memory/CPU) on edge
-devices</td>
-</tr>
-<tr>
 <td>HXC-1189</td>
 <td>Feature</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Implement EdgeAwarePlugin scheduler Filter stage</td>
-</tr>
-<tr>
-<td>HXC-1195</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR)</td>
-</tr>
-<tr>
-<td>HXC-1196</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Enforce workload restriction matrix by trust level</td>
 </tr>
 <tr>
 <td>HXC-1197</td>
@@ -815,20 +748,6 @@ devices</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Wire EtcdBackend into the node agent for cluster-wide discovery</td>
-</tr>
-<tr>
-<td>HXC-1211</td>
-<td>Bug</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Make internal/scheduler.StreamJobEvents a real event stream</td>
-</tr>
-<tr>
-<td>HXC-1212</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Connect pkg/classads to scheduler Filter/Score stages</td>
 </tr>
 <tr>
 <td>HXC-1213</td>
@@ -893,13 +812,6 @@ devices</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Implement EdgeAwarePlugin scheduler Score stage</td>
-</tr>
-<tr>
-<td>HXC-1191</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement declarative per-tier ScheduleRule engine</td>
 </tr>
 <tr>
 <td>HXC-1192</td>
@@ -970,20 +882,6 @@ devices</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Validate ARM SBC per-watt performance &gt;=80% of x86</td>
-</tr>
-<tr>
-<td>HXC-1214</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add S3-compatible (minio) backend to pkg/storage</td>
-</tr>
-<tr>
-<td>HXC-1215</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add OTLP/Jaeger export shim for pkg/tracing</td>
 </tr>
 <tr>
 <td>HXC-1181</td>

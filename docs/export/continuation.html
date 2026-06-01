@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 59 <strong>Last modified:</strong>
-2026-06-01T18:46:00Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 60 <strong>Last modified:</strong>
+2026-06-01T18:47:26Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,25 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>7718c20</code></td>
+<td>Foundation wave 12: 5 disjoint-package streams, 12 items
+integration-proven vs real etcd/minio. pkg/wireguard typed
+ErrUnsupported (errors.Is) + key-rotation grace/overlap ActiveKeys()
+consumed by mesh; pkg/scheduler named ClassAdFilter/ScorePlugin
+(classads Requirements/Rank) + thermal-aware plugin (filter/score on
+temp_c threshold); internal/scheduler real PREEMPTED lifecycle event
+(terminal, ordered); NEW pkg/edge trust model
+(FULL/STANDARD/SEMI/EDGE_DONOR) + workload restriction matrix +
+work-unit resource-limit executor (kill-after duration) + declarative
+per-tier ScheduleRule engine; NEW internal/verifier SEMI output
+verification (sha256 redundant-recompute reject tamper) + pkg/discovery
+etcd TTL-lifecycle integration test + pkg/storage real-minio S3
+round-trip integration test. ZERO new deps. GATE:
+build/vet/vet-integration clean, full -short -race green, integration
+tier vs real etcd(:38623 ephemeral)+minio(:9000) green, mutation
+spot-check on verifier confirmed real.</td>
+</tr>
 <tr>
 <td><code>6715b3a</code></td>
 <td>Foundation wave 11: mark 3 items Completed (HXC-1122/1123/1124) —
@@ -330,15 +349,6 @@ OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP</td>
 (HXC-1101/1102/1103/1105/1106/1107/1114/1115/1133) — integration-proven
 vs real tmux/etcd/postgres</td>
 </tr>
-<tr>
-<td><code>e12003a</code></td>
-<td>Foundation wave 7: session WS-vertical (htmux
-attach+PTY-over-WS+msgpack envelope), e2ee ML-KEM record +
-sw-attestation, RBAC scopes, ratelimit token-bucket + etcd key
-namespace, postgres 15-table primary schema — integration-proven (real
-tmux/etcd/postgres); gate fixed tmux-CC subscribe race + pg applier
-host-path-in-container bug</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -356,11 +366,11 @@ host-path-in-container bug</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>6715b3a</code></td>
+<td><code>7718c20</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T18:46:00Z</td>
+<td>2026-06-01T18:47:26Z</td>
 </tr>
 </tbody>
 </table>
