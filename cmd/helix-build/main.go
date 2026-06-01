@@ -29,6 +29,7 @@ import (
 	"github.com/HelixDevelopment/helix_cluster/internal/build"
 	"github.com/HelixDevelopment/helix_cluster/pkg/build/cache"
 	"github.com/HelixDevelopment/helix_cluster/pkg/health"
+	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"
 	"google.golang.org/grpc"
 )
 
@@ -214,6 +215,13 @@ func main() {
 		log.Printf("helix-build config error: %v", err)
 		os.Exit(1)
 	}
+
+	reg := metrics.NewServiceRegistry("build")
+	metricsSrv, metricsErr := metrics.StartSidecarFromEnv(reg)
+	if metricsErr != nil {
+		log.Printf("metrics sidecar: %v (continuing without /metrics)", metricsErr)
+	}
+	defer metrics.ShutdownSidecar(metricsSrv)
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
