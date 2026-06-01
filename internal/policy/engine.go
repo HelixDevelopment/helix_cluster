@@ -10,9 +10,14 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/open-policy-agent/opa/rego"
 )
+
+// timeNow is the clock function used when stamping DecisionLogEntry.At.
+// It is a package-level variable so tests can override it if needed.
+var timeNow = time.Now
 
 // Decision is the result of evaluating a policy against an input document.
 type Decision struct {
@@ -36,10 +41,16 @@ type compiledPolicy struct {
 }
 
 // Engine compiles and evaluates OPA rego policies.  Zero value is invalid; use
-// NewEngine.
+// NewEngine or NewEngineWithOptions.
 type Engine struct {
 	mu       sync.RWMutex
 	policies map[string]*compiledPolicy
+
+	// Decision-log fields (HXC-1220).  Populated only when the engine is
+	// constructed with WithDecisionLog() or WithDecisionLogSink().
+	logOpts     *engineOptions
+	logMu       sync.RWMutex
+	decisionLog []DecisionLogEntry
 }
 
 // NewEngine returns a ready-to-use Engine with no policies loaded.
@@ -146,12 +157,23 @@ func (e *Engine) Evaluate(ctx context.Context, name string, input map[string]int
 	}
 
 	reason := buildReason(name, allow, input)
-	return Decision{
+	dec := Decision{
 		Allow:          allow,
 		Reason:         reason,
 		EvaluatedInput: evalInput,
 		PolicyName:     name,
-	}, nil
+	}
+
+	// HXC-1220: record an audit entry when the decision-log sink is active.
+	e.appendDecisionLog(DecisionLogEntry{
+		RunUUID:    extractRunUUID(input),
+		PolicyName: name,
+		Allow:      allow,
+		Reason:     reason,
+		At:         timeNow(),
+	})
+
+	return dec, nil
 }
 
 // buildReason constructs a human-readable explanation.  For the scheduling

@@ -3,10 +3,12 @@ package node
 import (
 	"context"
 	"fmt"
+	"strconv"
 	"sync"
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/discovery"
+	"github.com/HelixDevelopment/helix_cluster/pkg/etcd"
 	"github.com/HelixDevelopment/helix_cluster/pkg/resources"
 	"github.com/HelixDevelopment/helix_cluster/pkg/swim"
 	"github.com/HelixDevelopment/helix_cluster/pkg/wireguard"
@@ -24,6 +26,12 @@ type Agent struct {
 	registry     *discovery.ServiceRegistry
 	aggregator   *resources.NodeAggregator
 	pollInterval time.Duration
+	effectiveTTL time.Duration
+
+	// backendType records which discovery backend is in use: "etcd" or "in-memory".
+	backendType string
+	// etcdClient is non-nil when the etcd backend is selected; closed in Stop().
+	etcdClient *etcd.Client
 
 	mu     sync.RWMutex
 	status Status
@@ -56,7 +64,15 @@ type Config struct {
 	WgNoOp               bool // disable real WireGuard (for testing)
 	DiscoveryTTL         time.Duration
 	ResourcePollInterval time.Duration
+	// EtcdEndpoints, when non-empty, selects the etcd discovery backend.
+	// If empty the in-memory backend is used (single-node / testing).
+	EtcdEndpoints []string
 }
+
+// swimDeadHorizonDefault is the SWIM dead-detection horizon computed from the
+// default SuspicionMult (4) × ProbeInterval (1 s). This is the minimum TTL
+// an etcd lease must carry so only genuinely dead nodes expire.
+const swimDeadHorizonDefault = 4 * time.Second
 
 // NewAgent creates a new node agent.
 func NewAgent(cfg *Config) (*Agent, error) {
@@ -101,9 +117,35 @@ func NewAgent(cfg *Config) (*Agent, error) {
 	}
 	a.wg = wgMgr
 
-	// Initialize discovery registry
-	backend := discovery.NewInMemoryBackend()
-	a.registry = discovery.NewServiceRegistry(backend)
+	// Compute the effective TTL: clamp cfg.DiscoveryTTL to be at least the SWIM
+	// dead-detection horizon so the etcd lease auto-expires only genuinely dead
+	// nodes (not ones that are merely slow to heartbeat).
+	effectiveTTL := cfg.DiscoveryTTL
+	if effectiveTTL < swimDeadHorizonDefault {
+		effectiveTTL = swimDeadHorizonDefault
+	}
+	a.effectiveTTL = effectiveTTL
+
+	// Initialize discovery registry — select etcd or in-memory backend.
+	if len(cfg.EtcdEndpoints) > 0 {
+		ec, err := etcd.New(etcd.Config{
+			Endpoints:   cfg.EtcdEndpoints,
+			DialTimeout: 10 * time.Second,
+		})
+		if err != nil {
+			cancel()
+			return nil, fmt.Errorf("etcd client init: %w", err)
+		}
+		a.etcdClient = ec
+		a.backendType = "etcd"
+		const etcdPrefix = "helix-node"
+		backend := discovery.NewEtcdBackend(ec, etcdPrefix)
+		a.registry = discovery.NewServiceRegistry(backend)
+	} else {
+		a.backendType = "in-memory"
+		backend := discovery.NewInMemoryBackend()
+		a.registry = discovery.NewServiceRegistry(backend)
+	}
 
 	// Initialize resource aggregator
 	a.aggregator = resources.NewNodeAggregator(cfg.ResourcePollInterval)
@@ -141,12 +183,13 @@ func (a *Agent) Start() error {
 	a.wgProc.Add(1)
 	go a.resourcePoller()
 
-	// Register with discovery
+	// Register with discovery — stamp TTL and resource metadata.
 	inst := &discovery.Instance{
 		ID:       a.ID,
 		Service:  "helix-node",
 		Address:  a.protocol.LocalAddr(),
-		Metadata: a.Labels,
+		TTL:      a.effectiveTTL,
+		Metadata: a.BuildInstanceMetadata(),
 	}
 	regCtx, regCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer regCancel()
@@ -179,10 +222,52 @@ func (a *Agent) Stop() error {
 	if err := a.protocol.Stop(); err != nil {
 		errs = append(errs, fmt.Errorf("protocol stop: %w", err))
 	}
+	// Close the etcd client if we opened one.
+	if a.etcdClient != nil {
+		if err := a.etcdClient.Close(); err != nil {
+			errs = append(errs, fmt.Errorf("etcd client close: %w", err))
+		}
+	}
 	if len(errs) > 0 {
 		return fmt.Errorf("shutdown errors: %v", errs)
 	}
 	return nil
+}
+
+// BackendType returns the name of the discovery backend in use: "etcd" or
+// "in-memory". It is set once in NewAgent and never changes after that.
+func (a *Agent) BackendType() string {
+	return a.backendType
+}
+
+// EffectiveTTL returns the clamped discovery TTL that was stamped on the
+// discovery Instance at registration time. It is guaranteed to be >= the SWIM
+// dead-detection horizon (swimDeadHorizonDefault).
+func (a *Agent) EffectiveTTL() time.Duration {
+	return a.effectiveTTL
+}
+
+// BuildInstanceMetadata constructs the metadata map that is attached to the
+// discovery Instance. It merges a.Labels with resource-capacity fields derived
+// from a.Capacity (when non-nil). Callers receive a fresh copy; mutations do
+// not affect Agent state.
+func (a *Agent) BuildInstanceMetadata() map[string]string {
+	meta := make(map[string]string)
+
+	// Forward all labels first so capacity fields can coexist.
+	for k, v := range a.Labels {
+		meta[k] = v
+	}
+
+	// Attach resource capacity when available.
+	if a.Capacity != nil {
+		meta["cpu_cores"] = strconv.Itoa(a.Capacity.CPU.Cores)
+		meta["memory_total_kb"] = strconv.FormatInt(a.Capacity.Memory.TotalKB, 10)
+		meta["gpu_count"] = strconv.Itoa(a.Capacity.GPU.Count)
+		meta["gpu_model"] = a.Capacity.GPU.Model
+	}
+
+	return meta
 }
 
 // GetStatus returns the current agent status.

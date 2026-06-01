@@ -104,9 +104,13 @@ func claimScopes(payload map[string]interface{}) map[string]struct{} {
 }
 
 // authError describes why a request was rejected and the HTTP status to use.
+// reason is a human-readable, single-line summary emitted as the
+// X-Helix-Deny-Reason response header so callers can diagnose rejections
+// without parsing the JSON body.
 type authError struct {
 	status int
 	body   string
+	reason string
 }
 
 // authorize validates the bearer token on r and checks it carries the scope
@@ -123,17 +127,17 @@ func (g *Gateway) authorize(r *http.Request) (*authError, map[string]interface{}
 	authz := r.Header.Get("Authorization")
 	const bearer = "Bearer "
 	if !strings.HasPrefix(authz, bearer) {
-		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}, nil
+		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`, "missing bearer token"}, nil
 	}
 	raw := strings.TrimSpace(authz[len(bearer):])
 	if raw == "" {
-		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`}, nil
+		return &authError{http.StatusUnauthorized, `{"error":"missing bearer token","status":401}`, "missing bearer token"}, nil
 	}
 
 	// ParseToken validates structure, HS256 signature, and expiry in one shot.
 	claims, err := jwt.ParseToken(raw, policy.Secret)
 	if err != nil {
-		return &authError{http.StatusUnauthorized, `{"error":"invalid or expired token","status":401}`}, nil
+		return &authError{http.StatusUnauthorized, `{"error":"invalid or expired token","status":401}`, "invalid or expired token"}, nil
 	}
 
 	required := policy.RequiredScope(r.URL.Path)
@@ -141,7 +145,7 @@ func (g *Gateway) authorize(r *http.Request) (*authError, map[string]interface{}
 		return nil, claims // any valid token is sufficient for this path.
 	}
 	if _, ok := claimScopes(claims)[required]; !ok {
-		return &authError{http.StatusForbidden, `{"error":"insufficient scope","status":403}`}, nil
+		return &authError{http.StatusForbidden, `{"error":"insufficient scope","status":403}`, "insufficient scope"}, nil
 	}
 	return nil, claims
 }
@@ -149,9 +153,15 @@ func (g *Gateway) authorize(r *http.Request) (*authError, map[string]interface{}
 // writeAuthError emits a JSON auth rejection. It stamps the gateway marker so
 // clients can still tell the response came from the gateway, but it is written
 // BEFORE any upstream is contacted.
+//
+// X-Helix-Deny-Reason is set when e.reason is non-empty so callers can
+// diagnose rejections without parsing the JSON body (HXC-1213).
 func writeAuthError(w http.ResponseWriter, e *authError) {
 	w.Header().Set("Content-Type", "application/json")
 	w.Header().Set(gatewayHeader, "true")
+	if e.reason != "" {
+		w.Header().Set("X-Helix-Deny-Reason", e.reason)
+	}
 	w.WriteHeader(e.status)
 	_, _ = w.Write([]byte(e.body))
 }

@@ -286,6 +286,198 @@ func TestAuthDisabledPreservesOpenBehavior(t *testing.T) {
 	}
 }
 
+// ── HXC-1213: scheduler scope + X-Helix-Deny-Reason tests ──────────────────
+
+// schedulerAuthGateway wires a Gateway with enforcement on /api/v1/scheduler/
+// requiring the "scheduler:write" scope — the exact closure requirement for
+// HXC-1213 — using the authSecret shared across auth tests.
+func schedulerAuthGateway(t *testing.T, backendURL string) *Gateway {
+	t.Helper()
+	g, err := NewGateway(WithAuth(AuthPolicy{
+		Secret: authSecret,
+		Prefixes: map[string]string{
+			"/api/v1/scheduler/": "scheduler:write",
+		},
+		DefaultScope: "core:read",
+	}))
+	if err != nil {
+		t.Fatalf("schedulerAuthGateway: %v", err)
+	}
+	tgt, _ := url.Parse(backendURL)
+	g.SetProxy("/api/v1/scheduler/", newReverseProxy(tgt))
+	return g
+}
+
+// TestSchedulerNoTokenReturns401BackendNotHit proves that GET /api/v1/scheduler/
+// with NO Authorization header is rejected with HTTP 401, and the backend hit
+// counter stays at 0 (upstream never contacted).
+//
+// Per-run UUID: embedded in the request path so a false-proxy would echo it in
+// the backend body; the 0-hit assertion is the stronger proof, but we also
+// check the UUID is absent from the response body.
+//
+// Mutation target (§1.1): make authorize() fail-open on missing scope (skip
+// the scope check / always return nil) — the missing-token path returns 401
+// before scope, so for this test the killing mutation is: return nil instead
+// of the 401 authError when the Authorization header is absent. That mutation
+// causes status 200 and hits==1, breaking both assertions.
+func TestSchedulerNoTokenReturns401BackendNotHit(t *testing.T) {
+	const runUUID = "hxc-1213-no-token-test-uuid-a1b2c3"
+
+	be, hits := hitBackend(t)
+	g := schedulerAuthGateway(t, be.URL)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/scheduler/"+runUUID, nil)
+	rr := httptest.NewRecorder()
+	g.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("status = %d, want 401 (no token)", rr.Code)
+	}
+	if n := atomic.LoadInt32(hits); n != 0 {
+		t.Errorf("backend hits = %d, want 0 (must reject before proxy)", n)
+	}
+	// UUID must not appear in the response (backend was not contacted).
+	if body := rr.Body.String(); containsStr(body, runUUID) {
+		t.Errorf("UUID found in 401 response body (upstream was hit): %q", body)
+	}
+}
+
+// TestSchedulerWrongScopeReturns403WithDenyReason proves that GET
+// /api/v1/scheduler/ with a valid JWT that LACKS "scheduler:write" returns:
+//   - HTTP 403
+//   - non-empty X-Helix-Deny-Reason response header (exact value asserted)
+//   - backend hit counter == 0
+//
+// This is the PRIMARY closure criterion for HXC-1213: the header must exist and
+// its value must describe the reason.
+//
+// Per-run UUID: embedded in the request path to make a false-proxy detectable.
+//
+// Mutation target (§1.1): comment out the scope-check block in authorize()
+// (lines `if _, ok := claimScopes(claims)[required]; !ok { ... }`) — the
+// request now proxies through, status becomes 200, hits becomes 1, and the
+// X-Helix-Deny-Reason assertion is never reached. Both the status check and
+// the hits check FAIL, proving the mutation is caught.
+func TestSchedulerWrongScopeReturns403WithDenyReason(t *testing.T) {
+	const runUUID = "hxc-1213-wrong-scope-uuid-d4e5f6"
+
+	be, hits := hitBackend(t)
+	g := schedulerAuthGateway(t, be.URL)
+
+	// Token holds "core:read" but /api/v1/scheduler/ requires "scheduler:write".
+	token := mustToken(t, map[string]interface{}{"scope": "core:read"}, time.Minute)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/scheduler/jobs/"+runUUID, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	g.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusForbidden {
+		t.Fatalf("status = %d, want 403 (wrong scope)", rr.Code)
+	}
+	if n := atomic.LoadInt32(hits); n != 0 {
+		t.Errorf("backend hits = %d, want 0 (403 must not proxy)", n)
+	}
+
+	// PRIMARY HXC-1213 assertion: X-Helix-Deny-Reason MUST be present and
+	// describe the missing scope. Assert the exact value.
+	reason := rr.Header().Get("X-Helix-Deny-Reason")
+	if reason == "" {
+		t.Fatalf("X-Helix-Deny-Reason header absent on 403 response (HXC-1213 closure criterion)")
+	}
+	const wantReason = "insufficient scope"
+	if reason != wantReason {
+		t.Errorf("X-Helix-Deny-Reason = %q, want %q", reason, wantReason)
+	}
+
+	// UUID must not appear in the 403 response body.
+	if body := rr.Body.String(); containsStr(body, runUUID) {
+		t.Errorf("UUID found in 403 body (upstream was hit): %q", body)
+	}
+}
+
+// TestSchedulerValidTokenProxiedWithGatewayHeader proves that GET
+// /api/v1/scheduler/ with a valid JWT that HOLDS "scheduler:write":
+//   - is proxied to the upstream (hit counter == 1)
+//   - receives HTTP 200
+//   - has X-Helix-Gateway: true on the response
+//
+// Per-run UUID: embedded in the request path and expected in the upstream
+// response body. The backend echoes the full path including the UUID, so
+// finding the UUID in the body proves the exact request reached the exact
+// backend via the gateway's proxy — not a shortcut.
+//
+// Mutation target (§1.1): see comment on TestSchedulerWrongScopeReturns403
+// — a fail-open mutation makes the 403 test pass erroneously; the complementary
+// mutation for THIS test is to make authorize() always return a 401/403
+// authError, which causes hits==0 and status!=200, failing here.
+func TestSchedulerValidTokenProxiedWithGatewayHeader(t *testing.T) {
+	const runUUID = "hxc-1213-valid-token-uuid-g7h8i9"
+
+	// Use a backend that echoes the full path so we can assert the UUID
+	// round-trip, proving routing actually happened.
+	var gotPath string
+	echoBackend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		gotPath = r.URL.Path
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte("proxied-path:" + r.URL.Path))
+	}))
+	t.Cleanup(echoBackend.Close)
+
+	g, err := NewGateway(WithAuth(AuthPolicy{
+		Secret: authSecret,
+		Prefixes: map[string]string{
+			"/api/v1/scheduler/": "scheduler:write",
+		},
+		DefaultScope: "core:read",
+	}))
+	if err != nil {
+		t.Fatalf("new gateway: %v", err)
+	}
+	tgt, _ := url.Parse(echoBackend.URL)
+	g.SetProxy("/api/v1/scheduler/", newReverseProxy(tgt))
+
+	// Token WITH scheduler:write — must proxy through.
+	token := mustToken(t, map[string]interface{}{"scope": "scheduler:write"}, time.Minute)
+	req := httptest.NewRequest(http.MethodGet, "/api/v1/scheduler/jobs/"+runUUID, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+	rr := httptest.NewRecorder()
+	g.ServeHTTP(rr, req)
+
+	if rr.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200 (valid scheduler:write token)", rr.Code)
+	}
+
+	// X-Helix-Gateway must be present on the proxied response (stamp by ModifyResponse).
+	if rr.Header().Get(gatewayHeader) != "true" {
+		t.Errorf("missing %s marker on proxied response", gatewayHeader)
+	}
+
+	// UUID round-trip: the backend echoed the path, which includes the UUID.
+	wantBody := "proxied-path:/api/v1/scheduler/jobs/" + runUUID
+	if body := rr.Body.String(); body != wantBody {
+		t.Errorf("body = %q, want %q (UUID did not round-trip through proxy)", body, wantBody)
+	}
+	// Also assert the backend's captured path so any routing bypass is visible.
+	if gotPath != "/api/v1/scheduler/jobs/"+runUUID {
+		t.Errorf("backend received path %q, want /api/v1/scheduler/jobs/%s", gotPath, runUUID)
+	}
+}
+
+// containsStr is a test helper that avoids importing strings in test files
+// that don't otherwise need it.
+func containsStr(s, sub string) bool {
+	return len(sub) > 0 && len(s) >= len(sub) &&
+		func() bool {
+			for i := 0; i <= len(s)-len(sub); i++ {
+				if s[i:i+len(sub)] == sub {
+					return true
+				}
+			}
+			return false
+		}()
+}
+
 // TestAuthLongestPrefixWins proves RequiredScope picks the most specific rule:
 // a more specific sub-prefix overrides a broader one.
 //

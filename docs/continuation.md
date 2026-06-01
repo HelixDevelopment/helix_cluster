@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 60
-**Last modified:** 2026-06-01T18:47:26Z
+**Revision:** 61
+**Last modified:** 2026-06-01T19:07:20Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `23df87b` | Foundation wave 12: mark 14 items Completed (HXC-1148/1149/1150/1151/1156/1157/1188/1191/1195/1196/1211/1212/1214/1215) — 12 integration-proven vs real etcd/minio + 2 gate-verified already-implemented (STUN/OTLP). Registry 137->151 Completed / 488 Queued. |
 | `7718c20` | Foundation wave 12: 5 disjoint-package streams, 12 items integration-proven vs real etcd/minio. pkg/wireguard typed ErrUnsupported (errors.Is) + key-rotation grace/overlap ActiveKeys() consumed by mesh; pkg/scheduler named ClassAdFilter/ScorePlugin (classads Requirements/Rank) + thermal-aware plugin (filter/score on temp_c threshold); internal/scheduler real PREEMPTED lifecycle event (terminal, ordered); NEW pkg/edge trust model (FULL/STANDARD/SEMI/EDGE_DONOR) + workload restriction matrix + work-unit resource-limit executor (kill-after duration) + declarative per-tier ScheduleRule engine; NEW internal/verifier SEMI output verification (sha256 redundant-recompute reject tamper) + pkg/discovery etcd TTL-lifecycle integration test + pkg/storage real-minio S3 round-trip integration test. ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, integration tier vs real etcd(:38623 ephemeral)+minio(:9000) green, mutation spot-check on verifier confirmed real. |
 | `6715b3a` | Foundation wave 11: mark 3 items Completed (HXC-1122/1123/1124) — integration-proven vs real capnp/clang++/libzmq |
 | `63822b3` | Foundation wave 11: Cap'n Proto zero-copy serde (node.capnp + capnpc-go, AllocsPerRun==0), FlatBuffers GPU compute payloads (compute.fbs + flatc Go + pooled builder + clang++ C++ consumer harness), ZeroMQ data-plane (ROUTER/DEALER correlated + PUSH/PULL at-least-once, pebbe/zmq4) — integration-proven (real capnp/clang++/libzmq). Toolchains capnp/flatc/libzmq + Go runtimes wired. GATE: fixed C++ harness flatc root-accessor (GetRootAsComputeTask->GetComputeTask) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `7634fbb` | Foundation wave 9: Redis store (routing TTL + NodeEvent pub/sub, go-redis/v9), SPIFFE SVID issuance + mTLS identity (go-spiffe/v2), OPA policy engine + HelixConstitution scheduling (open-policy-agent/opa), metrics collector scrape endpoint — integration-proven vs real redis/mTLS/opa/HTTP. GATE FIXES: tmux ControlModeAttach EOF-before-drain race; pkg/resources DarwinReader now samples REAL macOS CPU utilization via top (CLAUDE-2: no more 0%% on macOS); redis test mutex-copy vet violation |
 | `51cea15` | Foundation wave 8: mark 5 items Completed (HXC-1108/1109/1118/1120/1121) — integration-proven vs real NATS/Kafka/HTTP |
 | `6c825df` | Foundation wave 8: NATS JetStream stream-config (5 streams + EnsureStreams), Kafka topic-config (partitions/replication/retention + EnsureTopics), HelixQA challenge runner + DST chaos/session-recovery harness, gateway REST surface (/v1/sessions, /v1/pool/utilization) + OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP |
-| `479efb5` | Foundation wave 7: mark 9 items Completed (HXC-1101/1102/1103/1105/1106/1107/1114/1115/1133) — integration-proven vs real tmux/etcd/postgres |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `7718c20` |
-| **Timestamp** | 2026-06-01T18:47:26Z |
+| **Commit** | `23df87b` |
+| **Timestamp** | 2026-06-01T19:07:20Z |
 
 ## §3: Active Work
 
