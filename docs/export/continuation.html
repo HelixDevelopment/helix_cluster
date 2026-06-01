@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 75 <strong>Last modified:</strong>
-2026-06-01T22:12:14Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 76 <strong>Last modified:</strong>
+2026-06-01T22:12:56Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,29 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>e93fad6</code></td>
+<td>Foundation wave 20: 3 disjoint streams (all approved; A minor
+silent-error-discard fixed by orchestrator). /metrics sidecar completing
+HXC-1110 ‘every binary’ intent (pkg/metrics/sidecar.go
+StartSidecar/StartSidecarFromEnv opt-in HTTP listener
+HELIX_METRICS_ADDR-gated; in-process scrape asserts exact
+‘helix_sidecar_hits_total 3’; wired into the 6 gRPC-only mains
+advisory/build/node/scheduler/security/session; orchestrator added
+log-on-bind-error to all 6 to avoid silent failure). HXC-1248 YAML chaos
+Scenario Engine (NEW pkg/testing/scenario:
+Scenario{phases,faults,MaxFaults,MaxAffected,AbortOn} parsed via
+yaml.v3; Engine.Run-&gt;ExecutionLog with per-phase + global
+blast-radius clamp + abort-on-condition early-stop; deterministic, no
+wall-clock; reuses chaos catalog read-only). HXC-1244 simulated node
+fault injectors (NEW pkg/testing/chaos/node_faults.go: NodeRestart w/
+recovery window, DiskSpaceExhaustion write-block, ProcessTerminate —
+each a real chaos.Fault with state-flipping Apply/Restore; distinct from
+existing NodeCrash/SlowDisk/OOMKill). ZERO new deps. Gate:
+build/vet/vet-integration clean, full -short -race green, dataplane ok;
+mutation spot-checks B blast-radius + C node-restart bite; A sidecar
+exact-value scrape verified.</td>
+</tr>
 <tr>
 <td><code>b7f988f</code></td>
 <td>Foundation wave 19: mark 3 items Completed (HXC-1142/1096/1125) —
@@ -414,28 +437,6 @@ GATE &lt;100ms / provisioner-lifecycle-FSM / KPI-quality-gate. MVP
 exit-gate triad complete (1135+1136+1137). Registry 161-&gt;165
 Completed / 474 Queued.</td>
 </tr>
-<tr>
-<td><code>553a043</code></td>
-<td>Foundation wave 15: 4 streams, 4 items incl 2 MVP exit gates.
-HXC-1136 session-create EXIT GATE — wired pkg/session.Manager to a REAL
-tmux/PTY backend via BackendAdapter (fixed the nil-backend StatusRunning
-PASS-bluff in internal/session.NewServer; added NewServerWithTmuxBackend
-seam + SessionExists sink-probe); E2E proves htmux create -&gt;
-helix-session -&gt; real tmux session visible running in 388ms (&lt;3s).
-HXC-1137 scheduler decision-latency EXIT GATE (&lt;100ms across 10 jobs,
-histogram + placement-correctness + 120ms-slow-plugin mutation). NEW
-pkg/testing/instance Provisioner/Instance lifecycle FSM
-(provisioned-&gt;booting-&gt;ready-&gt;stopped on virtual clock,
-illegal-transition reject). NEW pkg/qualitygate KPI baseline validation
-+ critical-severity CI gate (8 rules). ZERO new deps. GATE caught+fixed
-a real regression: 1136’s real backend exposed test/chaos+test/e2e
-relying on the no-op bluff (1000 free sessions -&gt; 509 leaked tmux
--&gt; PTY exhaustion) -&gt; switched those harnesses to the in-memory
-NewServerWithTmuxBackend(nil) seam + added SessionExists to the test
-double. Full -short -race green, 1136 real-tmux E2E + 1231/1260
-integration green, live mutation spot-check on qualitygate critical gate
-confirmed real.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -453,11 +454,11 @@ confirmed real.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>b7f988f</code></td>
+<td><code>e93fad6</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T22:12:14Z</td>
+<td>2026-06-01T22:12:56Z</td>
 </tr>
 </tbody>
 </table>

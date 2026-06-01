@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 29
-**Last modified:** 2026-06-01T21:56:42Z
+**Revision:** 30
+**Last modified:** 2026-06-01T22:12:55Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **460**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **458**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -102,7 +102,7 @@ Total active items: **460**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (61 active)
+## Phase 4 (59 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -116,8 +116,6 @@ Total active items: **460**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1237 | Feature | P0 | Queued | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) |
 | HXC-1242 | Feature | P0 | Queued | Build Elixir/OTP Chaos Controller GenServer with supervision-tree isolation |
 | HXC-1243 | Feature | P0 | Queued | Implement 8 network fault injectors (latency, loss, corruption, reorder, dup, bandwidth, partition, DNS, TCP reset) |
-| HXC-1244 | Feature | P0 | Queued | Implement 8 node fault injectors (VM crash/restart/pause, CPU/mem/disk pressure, OOM kill, graceful shutdown) |
-| HXC-1248 | Feature | P0 | Queued | Build YAML chaos Scenario Engine with phases, blast radius and abort-on-SLO-breach |
 | HXC-1249 | Feature | P0 | Queued | Implement emergency-stop and auto-recovery with <=2s halt latency |
 | HXC-1251 | Feature | P0 | Queued | Build Virtual Testing Controller OTP supervision tree (one_for_all) |
 | HXC-1252 | Feature | P0 | Queued | Implement SessionManager with 50-session cap, 2h TTL, resource-quota enforcement |
