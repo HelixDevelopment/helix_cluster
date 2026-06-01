@@ -274,6 +274,47 @@ func TestMutationUUIDCaseInsensitive(t *testing.T) {
 	}
 }
 
+// TestUnregisteredRuleIsSilentlyIgnored pins the documented behavior of
+// checkRule's default fall-through: a tag name with no registered function is
+// silently skipped. A mutation that instead returns an error for unknown rules
+// breaks this test.
+func TestUnregisteredRuleIsSilentlyIgnored(t *testing.T) {
+	v := New()
+	type S struct {
+		Name string `validate:"nonexistent_rule"`
+	}
+	// An unregistered rule must not cause an error.
+	if err := v.ValidateStruct(&S{Name: "hello"}); err != nil {
+		t.Errorf("unregistered rule should be silently ignored, got error: %v", err)
+	}
+}
+
+// TestRegisteredRuleRequiredOrdering proves that when both required and a
+// custom rule appear on the same field, required is evaluated first (it is the
+// first token in the tag string) and short-circuits before the custom rule if
+// the field is empty.
+func TestRegisteredRuleRequiredOrdering(t *testing.T) {
+	v := New()
+	v.RegisterRule("mustbe_x", func(value string) error {
+		if value != "x" {
+			return errors.New("must be x")
+		}
+		return nil
+	})
+	type S struct {
+		Name string `validate:"required,mustbe_x"`
+	}
+	// Empty field: required fires first, mustbe_x is never reached.
+	err := v.ValidateStruct(&S{Name: ""})
+	if !errors.Is(err, ErrRequired) {
+		t.Errorf("expected ErrRequired for empty required field, got %v", err)
+	}
+	// Correct value: both rules pass.
+	if err := v.ValidateStruct(&S{Name: "x"}); err != nil {
+		t.Errorf("unexpected error for valid value: %v", err)
+	}
+}
+
 func contains(s, substr string) bool {
 	for i := 0; i <= len(s)-len(substr); i++ {
 		if s[i:i+len(substr)] == substr {

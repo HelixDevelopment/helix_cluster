@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"io"
 	"math"
 	"net/http"
 	"net/http/httptest"
@@ -625,6 +626,68 @@ func TestHistogram_ConcurrentObserve_Race(t *testing.T) {
 	for i, w := range want {
 		if counts[i] != w {
 			t.Errorf("bucket[%d] expected exact %d, got %d", i, w, counts[i])
+		}
+	}
+}
+
+// --- HXC-1049: real HTTP scrape via httptest.NewServer ---
+
+// TestPrometheusHandler_HTTPServer mounts PrometheusHandler on a real
+// httptest.Server, issues an actual HTTP GET (not just an in-process recorder
+// call), and validates the parsed body. This proves end-user /metrics scrape
+// behavior: the handler is reachable over a real TCP connection, returns
+// Content-Type text/plain, and contains all expected metric lines including the
+// +Inf bucket and _sum line. A no-op handler, wrong content-type, or missing
+// lines fail this test.
+func TestPrometheusHandler_HTTPServer(t *testing.T) {
+	r := NewRegistry()
+	c := r.RegisterCounter("http_requests_total", "Total HTTP requests")
+	g := r.RegisterGauge("open_conns", "Open connections")
+	h := r.RegisterHistogram("rpc_duration_seconds", "RPC duration", []float64{0.01, 0.1, 1})
+
+	c.Add(7)
+	g.Set(3)
+	h.Observe(0.005) // <= 0.01, 0.1, 1
+	h.Observe(0.05)  // <= 0.1, 1 (not <= 0.01)
+	h.Observe(2)     // exceeds all finite buckets
+
+	ts := httptest.NewServer(r.PrometheusHandler())
+	defer ts.Close()
+
+	resp, err := http.Get(ts.URL) //nolint:noctx
+	if err != nil {
+		t.Fatalf("HTTP GET failed: %v", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("expected 200 OK, got %d", resp.StatusCode)
+	}
+	ct := resp.Header.Get("Content-Type")
+	if ct != "text/plain; charset=utf-8" {
+		t.Errorf("unexpected Content-Type: %q", ct)
+	}
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		t.Fatalf("reading body: %v", err)
+	}
+	body := string(bodyBytes)
+
+	// Validate all required lines are present — any omission fails.
+	required := []string{
+		"http_requests_total 7",
+		"open_conns 3",
+		`rpc_duration_seconds_bucket{le="0.01"} 1`,
+		`rpc_duration_seconds_bucket{le="0.1"} 2`,
+		`rpc_duration_seconds_bucket{le="1"} 2`,
+		`rpc_duration_seconds_bucket{le="+Inf"} 3`,
+		"rpc_duration_seconds_sum 2.055",
+		"rpc_duration_seconds_count 3",
+	}
+	for _, line := range required {
+		if !strings.Contains(body, line) {
+			t.Errorf("HTTP /metrics body missing required line %q\nfull body:\n%s", line, body)
 		}
 	}
 }

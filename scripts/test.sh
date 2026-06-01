@@ -33,7 +33,10 @@ case "${MODE}" in
             echo "[mutation] Constitution inheritance paired mutation..."
             bash scripts/testing/meta_test_inheritance.sh
         fi
-        echo "Mutation tests: Placeholder — integrate mutation testing framework"
+        # §1.1 source-level paired mutation: each case removes an atomic/lock/guard
+        # and asserts its paired test flips PASS->FAIL (a survivor is a PASS-bluff).
+        echo "[mutation] §1.1 source paired-mutation runner..."
+        bash test/mutation/run_mutations.sh
         ;;
     chaos)
         echo "=== Running chaos engineering tests ==="

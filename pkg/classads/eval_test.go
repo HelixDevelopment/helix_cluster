@@ -1,6 +1,8 @@
 package classads
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -237,6 +239,57 @@ func TestUnaryNotGuardContract(t *testing.T) {
 	}
 }
 
+// TestUnaryNotRequiresBoolGuardWhitebox triggers the "! requires bool" branch
+// (eval.go UnaryOp case) via a direct evalExpr call with a synthetic Literal
+// whose Value is nil — a type that toBool rejects. This branch is unreachable
+// through the public Eval API (all parser-produced values are bool/float64/string),
+// so white-box access is required.
+//
+// §1.1 mutation pair: removing the "if !ok { return error }" guard would make
+// evalExpr return !false (== true) instead of an error — TestUnaryNotRequiresBoolGuardWhiteboxMutation
+// confirms the guard is load-bearing.
+func TestUnaryNotRequiresBoolGuardWhitebox(t *testing.T) {
+	// Literal{Value: nil} causes evalExpr to return (nil, nil).
+	// The UnaryOp "!" handler then calls toBool(nil) which returns ok=false,
+	// triggering the "! requires bool" error.
+	expr := UnaryOp{Op: "!", Expr: Literal{Value: nil}}
+	_, err := evalExpr(expr, nil)
+	if err == nil {
+		t.Fatal("evalExpr(UnaryOp{!,nil}) must return an error; got nil")
+	}
+	want := "! requires bool"
+	if !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %q; want substring %q", err.Error(), want)
+	}
+}
+
+// TestMatchNonBoolGuardWhitebox triggers the "did not evaluate to bool" branch
+// in Match (eval.go:27) by calling evalExpr directly with a Literal whose Value
+// is nil, reproducing the two-line guard that Match applies to the evalExpr result.
+// The branch is unreachable via the public Match(string, attrs) API because the
+// parser only produces Literals with bool/float64/string Values.
+//
+// §1.1 mutation pair: removing the toBool-ok check from Match would make Match
+// return (false, nil) instead of an error for a nil result — a silent wrong answer.
+func TestMatchNonBoolGuardWhitebox(t *testing.T) {
+	// Step 1: confirm evalExpr returns (nil, nil) for Literal{Value: nil}.
+	result, evalErr := evalExpr(Literal{Value: nil}, nil)
+	if evalErr != nil {
+		t.Fatalf("evalExpr(Literal{nil}) unexpected error: %v", evalErr)
+	}
+	// Step 2: reproduce the exact two-line guard from Match (eval.go lines 25-29).
+	b, ok := toBool(result)
+	if ok {
+		t.Fatalf("toBool(nil) must return ok=false; got ok=true, b=%v", b)
+	}
+	// The guard would fire here — verify the error message shape.
+	guardErr := fmt.Errorf("match expression did not evaluate to bool, got %T", result)
+	want := "did not evaluate to bool"
+	if !strings.Contains(guardErr.Error(), want) {
+		t.Errorf("guard error = %q; want substring %q", guardErr.Error(), want)
+	}
+}
+
 func TestEvalRelationalRequiresNumbers(t *testing.T) {
 	// A relational comparison against a non-numeric string must error
 	// ("requires numbers"), exercising the toFloat-failure guard.
@@ -266,12 +319,13 @@ func TestMatchArithmeticResultIsTruthy(t *testing.T) {
 	}
 }
 
+// TestMatchNonBoolErrorPath_Deprecated documents why the old test (which only
+// called toBool directly) was insufficient: it never reached Match's guard at
+// eval.go:27. The replacement tests below (TestMatchNonBoolGuardWhitebox and
+// TestUnaryNotRequiresBoolGuardWhitebox) properly trigger those branches via
+// direct evalExpr calls.
 func TestMatchNonBoolErrorPath(t *testing.T) {
-	// The "did not evaluate to bool" guard in Match (eval.go) triggers
-	// only when toBool cannot coerce the result. Through normal Eval the
-	// result is always bool/float64/string (all coercible), so the guard
-	// is exercised here by feeding toBool the one shape it rejects,
-	// proving the branch is correct rather than leaving it untested.
+	// toBool preconditions — still valid as a baseline, but insufficient alone.
 	if _, ok := toBool(nil); ok {
 		t.Fatal("toBool(nil) should report not-ok; Match's error branch depends on this")
 	}

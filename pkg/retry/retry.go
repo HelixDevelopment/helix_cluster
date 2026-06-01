@@ -129,9 +129,12 @@ func (r *Retry) computeDelay(attempt int) time.Duration {
 		delay = r.MaxDelay
 	}
 	if r.Jitter {
-		// Add up to 25% random jitter.
-		jitter := time.Duration(rand.Int63n(int64(delay) / 4))
-		delay += jitter
+		// Add up to 25% random jitter. Guard: rand.Int63n panics on n<=0, which
+		// happens when delay < 4ns (int64(delay)/4 == 0). Skip jitter in that case.
+		if n := int64(delay) / 4; n > 0 {
+			jitter := time.Duration(rand.Int63n(n))
+			delay += jitter
+		}
 	}
 	return delay
 }

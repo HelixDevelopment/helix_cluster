@@ -104,3 +104,34 @@ func TestDuration_FactorChanged_Mutation(t *testing.T) {
 		t.Errorf("with factor=1, duration should equal base, got %v", d0)
 	}
 }
+
+// TestDuration_MidRange_Uncapped pins the exact mid-range value when Max is large
+// enough that the cap does NOT apply. Duration(3) = 100ms * 2^3 = 800ms, which is
+// below Max=10s, so the cap branch must NOT fire and the raw computed value is
+// returned. Mutation: removing the exponential formula (e.g. replacing math.Pow
+// with a fixed value) would yield a different result and fail this test.
+func TestDuration_MidRange_Uncapped(t *testing.T) {
+	// Max intentionally larger than 100*2^3=800ms so the cap does not bind.
+	c := Config{Base: 100 * time.Millisecond, Max: 10 * time.Second, Factor: 2}
+
+	// n=3: 100ms * 2^3 = 800ms — must be returned exactly (no cap).
+	if d := c.Duration(3); d != 800*time.Millisecond {
+		t.Errorf("Duration(3): got %v, want 800ms (uncapped mid-range)", d)
+	}
+
+	// Also pin n=0..3 exact values to guard against math.Pow regression.
+	cases := []struct {
+		n    int
+		want time.Duration
+	}{
+		{0, 100 * time.Millisecond},
+		{1, 200 * time.Millisecond},
+		{2, 400 * time.Millisecond},
+		{3, 800 * time.Millisecond},
+	}
+	for _, tc := range cases {
+		if d := c.Duration(tc.n); d != tc.want {
+			t.Errorf("Duration(%d): got %v, want %v", tc.n, d, tc.want)
+		}
+	}
+}

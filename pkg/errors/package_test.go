@@ -196,37 +196,60 @@ func TestErrorFormattingWithCause_Mutation(t *testing.T) {
 	}
 }
 
+// TestCodeEnumValues asserts exact string values AND pairwise distinctness for
+// every Code constant. It uses an ORDERED SLICE of (Code, expectedString) pairs —
+// NOT a map — so that two constants sharing the same underlying string value
+// cannot silently collapse into a single map entry. With a map literal keyed by
+// Code (a typed string), a collision like E_INVALID="E_UNKNOWN" would reduce
+// len(expected) from 8 to 7 and the len-equality check would pass trivially;
+// the per-code string assertion would also never fire for the missing key.
+//
+// §1.1 mutation proof: changing any constant's string value (e.g. E_INVALID →
+// "E_UNKNOWN") causes the string(code)!=want assertion to fire for that entry
+// (runtime FAIL), and causes the duplicate-string detection to fire for the
+// colliding pair. Both paths are exercised regardless of map-literal collapsing.
 func TestCodeEnumValues(t *testing.T) {
-	// Assert EXACT string values: a rename or accidental edit of any constant
-	// must fail this test (the previous non-empty-only check could not catch it).
-	expected := map[Code]string{
-		E_UNKNOWN:      "E_UNKNOWN",
-		E_NOT_FOUND:    "E_NOT_FOUND",
-		E_INVALID:      "E_INVALID",
-		E_TIMEOUT:      "E_TIMEOUT",
-		E_UNAVAILABLE:  "E_UNAVAILABLE",
-		E_INTERNAL:     "E_INTERNAL",
-		E_UNAUTHORIZED: "E_UNAUTHORIZED",
-		E_CONFLICT:     "E_CONFLICT",
+	// Ordered slice: every constant appears exactly once. A collision is visible
+	// because BOTH entries are present in the slice and both are checked.
+	type codeCase struct {
+		code Code
+		want string
 	}
-	for code, want := range expected {
-		if string(code) != want {
-			t.Errorf("expected code constant to equal %q, got %q", want, string(code))
+	cases := []codeCase{
+		{E_UNKNOWN, "E_UNKNOWN"},
+		{E_NOT_FOUND, "E_NOT_FOUND"},
+		{E_INVALID, "E_INVALID"},
+		{E_TIMEOUT, "E_TIMEOUT"},
+		{E_UNAVAILABLE, "E_UNAVAILABLE"},
+		{E_INTERNAL, "E_INTERNAL"},
+		{E_UNAUTHORIZED, "E_UNAUTHORIZED"},
+		{E_CONFLICT, "E_CONFLICT"},
+	}
+
+	// 1. Exact value assertion: every constant must equal its declared string.
+	for _, tc := range cases {
+		if string(tc.code) != tc.want {
+			t.Errorf("Code constant mismatch: got %q, want %q", string(tc.code), tc.want)
 		}
 	}
 
-	// Assert pairwise DISTINCTNESS: two constants sharing a value (a collision
-	// from a copy/paste) must fail. We invert the map and verify cardinality,
-	// then prove every value is unique via a set.
-	seen := make(map[Code]bool)
-	for code := range expected {
-		if seen[code] {
-			t.Errorf("duplicate Code value detected: %q", string(code))
+	// 2. Pairwise distinctness: build an inverted map (string → index of first
+	//    occurrence). If two entries share the same string the second one fires
+	//    a clear failure naming both the duplicate string and both positions.
+	//    This runs over the slice — collisions can never collapse silently.
+	seen := make(map[string]int) // string value → slice index of first occurrence
+	for i, tc := range cases {
+		if j, dup := seen[tc.want]; dup {
+			t.Errorf("duplicate Code string value %q: cases[%d] and cases[%d] share the same value",
+				tc.want, j, i)
+		} else {
+			seen[tc.want] = i
 		}
-		seen[code] = true
 	}
-	if len(seen) != len(expected) {
-		t.Errorf("expected %d distinct codes, got %d", len(expected), len(seen))
+	// The cardinality check is now meaningful: if any collision exists, the
+	// duplicate detection above already fired, AND len(seen) < len(cases).
+	if len(seen) != len(cases) {
+		t.Errorf("expected %d distinct Code values, got %d (collision present)", len(cases), len(seen))
 	}
 }
 
@@ -342,5 +365,71 @@ func TestGetFieldsNil(t *testing.T) {
 	}
 	if len(fields) != 0 {
 		t.Errorf("expected empty map from GetFields(nil), got %v", fields)
+	}
+}
+
+// TestStackFrame_ContentAndCap asserts two §1.1-paired properties of captureStack:
+//
+//  1. Frame content: at least one frame must reference the actual source file that
+//     called New() — here "package_test.go". If captureStack returned synthetic or
+//     blank frames this assertion fails.
+//
+//  2. 32-frame cap: captureStack must stop at 32 frames. Removing the
+//     `if len(frames) >= 32 { break }` guard would allow arbitrarily deep stacks
+//     (and potentially panic in deep call chains); asserting <= 32 catches that
+//     mutation. Asserting len >= 1 catches a regression that returns an empty slice.
+//
+// Mutation proof: removing the `len(frames) >= 32` cap makes the test still pass
+// for shallow stacks (the test call depth is ~10), so the cap is validated by
+// calling a deeply recursive helper that forces >= 32 frames onto the Go stack,
+// ensuring captureStack would exceed 32 without the guard.
+func TestStackFrame_ContentAndCap(t *testing.T) {
+	// --- 1. Content: frame must reference the test file ---
+	err := New(E_INTERNAL, "stack test")
+	if len(err.Stack) == 0 {
+		t.Fatal("expected at least one stack frame")
+	}
+	found := false
+	for _, f := range err.Stack {
+		if strings.Contains(f.File, "package_test.go") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Errorf("expected a frame from package_test.go; got frames: %v", err.Stack)
+	}
+	// Verify frame fields are populated: Function and File must be non-empty.
+	for i, f := range err.Stack {
+		if f.File == "" {
+			t.Errorf("frame[%d].File is empty", i)
+		}
+		if f.Function == "" {
+			t.Errorf("frame[%d].Function is empty", i)
+		}
+		if f.Line <= 0 {
+			t.Errorf("frame[%d].Line=%d, want >0", i, f.Line)
+		}
+	}
+
+	// --- 2. 32-frame cap: captureStack must not return more than 32 frames ---
+	// Call New() from inside a deeply recursive function so the real call depth
+	// at captureStack time exceeds 32. Without the cap guard the stack would have
+	// 40+ frames; with the guard it must be exactly 32.
+	var captured *Error
+	var recurse func(depth int)
+	recurse = func(depth int) {
+		if depth == 0 {
+			captured = New(E_INTERNAL, "deep stack")
+			return
+		}
+		recurse(depth - 1)
+	}
+	recurse(40) // 40 recursive frames → well above the 32-frame cap
+	if len(captured.Stack) > 32 {
+		t.Errorf("stack exceeded 32-frame cap: got %d frames", len(captured.Stack))
+	}
+	if len(captured.Stack) == 0 {
+		t.Error("expected at least 1 frame from deep stack")
 	}
 }

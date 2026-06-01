@@ -493,3 +493,81 @@ func TestJitter_UpperBound_Exponential(t *testing.T) {
 		}
 	}
 }
+
+// TestJitter_TinyDelay_NoNegativeOrPanic proves that a Delay of 1ns does not
+// trigger a panic in rand.Int63n (which panics on n<=0). With Delay=1ns and
+// Jitter=true, int64(delay)/4 == 0, which is exactly the panic boundary.
+// The source guards against this with `if int64(delay)/4 > 0`. If that guard is
+// removed, rand.Int63n(0) panics and this test fails.
+func TestJitter_TinyDelay_NoNegativeOrPanic(t *testing.T) {
+	r := &Retry{
+		MaxAttempts:     2,
+		Delay:           1, // 1 ns — int64(1)/4 == 0 → panic without guard
+		Jitter:          true,
+		BackoffStrategy: Fixed,
+	}
+	// Must not panic, and must return a non-negative delay.
+	for i := 0; i < 100; i++ {
+		d := r.computeDelay(0)
+		if d < 0 {
+			t.Fatalf("computeDelay returned negative duration %v for 1ns delay", d)
+		}
+	}
+}
+
+// TestComputeDelay_Table exercises the computeDelay function with jitter disabled
+// (Jitter: false) so we get deterministic, exact results. The table covers:
+//   - Fixed strategy: delay is always Delay regardless of attempt.
+//   - Linear strategy: delay grows as Delay*(attempt+1).
+//   - Exponential strategy: delay grows as Delay*2^attempt.
+//   - MaxDelay clamp: once the computed delay exceeds MaxDelay it is clamped.
+//   - default (unknown strategy): treated as Fixed.
+//
+// Mutation proof: changing any case branch or the cap condition makes at least
+// one row fail.
+func TestComputeDelay_Table(t *testing.T) {
+	type row struct {
+		name     string
+		r        *Retry
+		attempt  int
+		wantExact time.Duration
+	}
+	base := 10 * time.Millisecond
+	max := 50 * time.Millisecond
+
+	rows := []row{
+		// Fixed: always base, regardless of attempt.
+		{"Fixed/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Fixed}, 0, base},
+		{"Fixed/attempt5", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Fixed}, 5, base},
+
+		// Linear: base*(attempt+1).
+		{"Linear/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 0, base * 1},      // 10ms
+		{"Linear/attempt1", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 1, base * 2},      // 20ms
+		{"Linear/attempt2", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 2, base * 3},      // 30ms
+		{"Linear/attempt4", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 4, base * 5},      // 50ms clamped
+		// Linear/attempt4: base*(4+1)=50ms == max → clamped to max.
+		{"Linear/attempt5", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 5, max},           // 60ms clamped to 50ms
+
+		// Exponential: base*2^attempt.
+		{"Exponential/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 0, base},      // 10ms
+		{"Exponential/attempt1", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 1, 20 * time.Millisecond}, // 20ms
+		{"Exponential/attempt2", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 2, 40 * time.Millisecond}, // 40ms
+		{"Exponential/attempt3", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 3, max},                  // 80ms clamped to 50ms
+
+		// Default/unknown strategy: treated as Fixed.
+		{"Default/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: BackoffStrategy(99)}, 0, base},
+		{"Default/attempt3", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: BackoffStrategy(99)}, 3, base},
+
+		// MaxDelay=0 means no cap: exponential should not be clamped.
+		{"Exponential/NoCap", &Retry{Delay: base, MaxDelay: 0, Jitter: false, BackoffStrategy: Exponential}, 3, 80 * time.Millisecond},
+	}
+
+	for _, tc := range rows {
+		t.Run(tc.name, func(t *testing.T) {
+			got := tc.r.computeDelay(tc.attempt)
+			if got != tc.wantExact {
+				t.Errorf("computeDelay(attempt=%d): got %v, want %v", tc.attempt, got, tc.wantExact)
+			}
+		})
+	}
+}

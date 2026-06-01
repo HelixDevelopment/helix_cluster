@@ -1,0 +1,59 @@
+name: Race & Mutation Gate
+
+# HXC-1074 — fleet-wide -race CI gate. The audit found that concurrency/atomicity
+# guarantees in errors, metrics, semaphore, storage, lock, pubsub, ratelimit were
+# "proven" by count-only tests that pass even with the lock/atomic removed, because
+# the audit command never ran -race. This gate runs the unit suite under -race so a
+# removed lock/atomic is detected fleet-wide, and the mutation-gate job proves the
+# detection power locally (§1.1 paired mutation).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  race:
+    name: go test -race ./...
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Per-run forensic UUID (§7.1)
+        run: echo "RACE_RUN_ID=$(uuidgen)" >> "$GITHUB_ENV"
+
+      - name: Build
+        run: go build ./...
+
+      - name: Vet
+        run: go vet ./...
+
+      - name: Unit suite under race detector
+        run: |
+          echo "race gate run-id: ${RACE_RUN_ID}"
+          go test -short -race -count=1 ./...
+
+  mutation-gate:
+    name: §1.1 paired-mutation gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # Proves the -race gate above is load-bearing: each case removes an
+      # atomic/lock/guard in a listed package and asserts the paired test flips
+      # PASS -> FAIL. A surviving mutation fails this job (a PASS-bluff escaped).
+      - name: Run mutation runner
+        run: bash test/mutation/run_mutations.sh

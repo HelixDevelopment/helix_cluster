@@ -24,6 +24,10 @@ func Match(requirements string, attrs map[string]interface{}) (bool, error) {
 	}
 	b, ok := toBool(result)
 	if !ok {
+		// unreachable via public string-input Match API: the parser only
+		// produces Literals with bool/float64/string values, all coercible.
+		// Reachable only via evalExpr called directly with a synthetic Literal
+		// whose Value is a non-coercible type (e.g. nil, []byte).
 		return false, fmt.Errorf("match expression did not evaluate to bool, got %T", result)
 	}
 	return b, nil
@@ -48,6 +52,10 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 		case "!":
 			b, ok := toBool(v)
 			if !ok {
+				// unreachable via public Eval API: every value producible by
+				// evalExpr (bool, float64, string) is accepted by toBool.
+				// Reachable only via evalExpr called directly with a synthetic
+				// Literal whose Value is a non-coercible type (e.g. nil).
 				return nil, fmt.Errorf("! requires bool, got %T", v)
 			}
 			return !b, nil
