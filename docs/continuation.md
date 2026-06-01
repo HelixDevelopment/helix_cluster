@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 35
-**Last modified:** 2026-06-01T11:24:02Z
+**Revision:** 36
+**Last modified:** 2026-06-01T11:29:14Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `7cc8147` | Foundation wave 3a: mark 6 items Completed (HXC-1019/1022/1023/1025/1029/1038) |
 | `32feec3` | Foundation wave 3a: real fixes for lock leak + build sync/cancel + security/wasm coverage |
 | `930a7ac` | Foundation wave 2: mark 30 items Completed (HXC-1039..1041/1046..1061/1064..1074) |
 | `a084eb1` | Foundation wave 2: anti-bluff harden 29 pkg test items + §1.1 mutation runner + -race CI gate |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `47b6d91` | Phase 0: ingest 614-item phase ledger into hxc_registry.db (HXC-1001..1614); DB-as-source-of-truth |
 | `a15c272` | Phase 0: wire docs_chain (§11.4.106) — tracked_docs context, engine wrapper, commit gate sync+verify, canonical doc dedup manifest |
 | `4554e9a` | Phase 0 enabling: integrate constitution upstream (§11.4.106 Docs Chain + workable-items DB), add docs_chain + helixqa submodules, purge stale test binaries, gitignore docs_chain runtime |
-| `279bce8` | Bump security submodule -> fb1f3ce (Phase 8C e2ee interop + gpuattest spot-check/seal) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `32feec3` |
-| **Timestamp** | 2026-06-01T11:24:02Z |
+| **Commit** | `7cc8147` |
+| **Timestamp** | 2026-06-01T11:29:14Z |
 
 ## §3: Active Work
 
