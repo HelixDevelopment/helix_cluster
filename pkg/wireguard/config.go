@@ -3,6 +3,7 @@ package wireguard
 import (
 	"encoding/base64"
 	"fmt"
+	"time"
 
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
@@ -22,6 +23,12 @@ type Config struct {
 	// NoOp disables real WireGuard interface operations.
 	// Useful for testing on platforms without WireGuard kernel support.
 	NoOp bool
+
+	// KeyOverlap is the duration the superseded device key remains valid after
+	// RotateKeysTracked is called, so in-flight traffic encrypted under it is
+	// not dropped during rotation. Zero disables the grace window (the old key
+	// is invalidated immediately).
+	KeyOverlap time.Duration
 }
 
 // PeerConfig holds configuration for a single peer.

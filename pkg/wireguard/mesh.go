@@ -98,13 +98,26 @@ func (mc *MeshCoordinator) SyncNow() error {
 			allowedIPs = append(allowedIPs, cidr)
 		}
 
-		peer := &PeerConfig{
-			PublicKey:           wgPubKey,
-			AllowedIPs:          allowedIPs,
-			Endpoint:            endpoint,
-			PersistentKeepalive: 25,
+		// Collect all keys accepted for this peer identity: the live key plus
+		// any superseded keys still within their grace/overlap window. This
+		// ensures that remote peers which have recently rotated are reachable
+		// under their old key until all nodes see the new one.
+		activeKeys := mc.wgManager.ValidPeerKeys(m.ID)
+		// Always include the advertised key even if it is not yet tracked.
+		keySet := make(map[string]struct{}, len(activeKeys)+1)
+		keySet[wgPubKey] = struct{}{}
+		for _, k := range activeKeys {
+			keySet[k] = struct{}{}
 		}
-		_ = mc.wgManager.AddPeer(peer)
+		for key := range keySet {
+			peer := &PeerConfig{
+				PublicKey:           key,
+				AllowedIPs:          allowedIPs,
+				Endpoint:            endpoint,
+				PersistentKeepalive: 25,
+			}
+			_ = mc.wgManager.AddPeer(peer)
+		}
 	}
 
 	// Remove peers that are no longer in SWIM.

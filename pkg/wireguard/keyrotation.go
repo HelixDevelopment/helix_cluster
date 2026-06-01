@@ -95,9 +95,20 @@ func (m *Manager) currentKeyStateLocked() KeyState {
 	return st
 }
 
+// deviceIdentity is the reserved peer-keys identity used to track the
+// manager's own device key rotation grace window via the peer-keys machinery.
+const deviceIdentity = "__device__"
+
 // RotateKeysTracked generates a fresh Curve25519 keypair, installs it as the
 // manager's active key (superseding the previous one), advances the generation
 // counter, and returns a RotationResult describing the change.
+//
+// If m.config.KeyOverlap > 0 the superseded public key is retained in the
+// active-keys grace window for that duration, so remote peers that have not
+// yet received the rotation notice can still establish sessions. The window is
+// tracked internally via the same per-peer machinery used by
+// RotatePeerKeyWithOverlap; callers retrieve the live + grace keys via
+// ActiveKeys().
 //
 // On non-NoOp managers the new private key is pushed to the device via wgctrl;
 // in NoOp mode only the in-memory config is updated. This method is purely
@@ -132,6 +143,43 @@ func (m *Manager) RotateKeysTracked() (*RotationResult, error) {
 	m.keyGeneration++
 	m.keyRotatedAt = time.Now()
 
+	// Track the device's own key in the peer-keys grace-window machinery so
+	// that ActiveKeys() and mesh consumers can retrieve old+new keys during
+	// the overlap window. We use the reserved identity deviceIdentity.
+	if m.peerKeys == nil {
+		m.peerKeys = make(map[string][]validKey)
+	}
+	now := m.clock()
+	existing := m.peerKeys[deviceIdentity]
+
+	// Bootstrap: if the device identity has never been seeded (first rotation),
+	// create a synthetic live-key entry for the previous key so it can be
+	// retained in the grace window.
+	if len(existing) == 0 && prev.PublicKey != "" {
+		existing = []validKey{{publicKey: prev.PublicKey}}
+	}
+
+	next := make([]validKey, 0, len(existing)+1)
+	overlap := m.config.KeyOverlap
+	for _, vk := range existing {
+		if vk.publicKey == pubKeyStr {
+			continue
+		}
+		if vk.expiresAt.IsZero() {
+			// Previous live key: retain for the overlap window if configured.
+			if overlap > 0 {
+				next = append(next, validKey{publicKey: vk.publicKey, expiresAt: now.Add(overlap)})
+			}
+			continue
+		}
+		next = append(next, vk)
+	}
+	next = append(next, validKey{publicKey: pubKeyStr}) // live key
+	if pruned := pruneExpired(next, now); pruned != nil {
+		next = pruned
+	}
+	m.peerKeys[deviceIdentity] = next
+
 	return &RotationResult{
 		Generation:          m.keyGeneration,
 		NewPrivateKey:       privKeyStr,
@@ -140,6 +188,20 @@ func (m *Manager) RotateKeysTracked() (*RotationResult, error) {
 		PreviousPublicKey:   prev.PublicKey,
 		PreviousFingerprint: prev.Fingerprint,
 	}, nil
+}
+
+// ActiveKeys returns the set of public keys currently accepted for THIS
+// manager's device identity — the live key plus any superseded keys whose
+// grace/overlap window has not yet elapsed. The live key is always first.
+//
+// This builds on the same per-peer key-overlap machinery used by
+// RotatePeerKeyWithOverlap; callers use it so that mesh peers that have not
+// yet received a rotation notice can still establish sessions with the old key
+// during the configured overlap window.
+//
+// Pure-Go: reads only in-memory state.
+func (m *Manager) ActiveKeys() []string {
+	return m.ValidPeerKeys(deviceIdentity)
 }
 
 // ---------------------------------------------------------------------------

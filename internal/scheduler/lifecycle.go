@@ -23,12 +23,13 @@ const (
 	phaseSucceeded jobPhase = "succeeded"
 	phaseFailed    jobPhase = "failed"
 	phaseCancelled jobPhase = "cancelled"
+	phasePreempted jobPhase = "preempted"
 )
 
 // isTerminal reports whether a phase ends the lifecycle.
 func (p jobPhase) isTerminal() bool {
 	switch p {
-	case phaseSucceeded, phaseFailed, phaseCancelled:
+	case phaseSucceeded, phaseFailed, phaseCancelled, phasePreempted:
 		return true
 	default:
 		return false
@@ -49,6 +50,8 @@ func transitionMsg(p jobPhase) string {
 		return "job failed"
 	case phaseCancelled:
 		return "job cancelled"
+	case phasePreempted:
+		return "job preempted"
 	default:
 		return string(p)
 	}
@@ -125,9 +128,9 @@ func (l *jobLifecycle) advanceTo(next jobPhase) bool {
 func legalTransition(from, to jobPhase) bool {
 	switch from {
 	case phaseScheduled:
-		return to == phaseRunning || to == phaseCancelled
+		return to == phaseRunning || to == phaseCancelled || to == phasePreempted
 	case phaseRunning:
-		return to == phaseSucceeded || to == phaseFailed || to == phaseCancelled
+		return to == phaseSucceeded || to == phaseFailed || to == phaseCancelled || to == phasePreempted
 	default:
 		return false
 	}
@@ -184,7 +187,7 @@ func (l *jobLifecycle) subscribe() (history []transition, ch <-chan transition, 
 	}
 
 	// At most three further transitions can occur from any non-terminal phase
-	// (running, then one of succeeded/failed/cancelled). Size generously.
+	// (running, then one of succeeded/failed/cancelled/preempted). Size generously.
 	c := make(chan transition, 4)
 	id := l.nextSubID
 	l.nextSubID++

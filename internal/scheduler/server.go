@@ -185,6 +185,46 @@ func (s *Server) CancelJob(ctx context.Context, req *helixv1.CancelJobRequest) (
 	return &helixv1.CancelJobResponse{Cancelled: true}, nil
 }
 
+// PreemptJob drives a running (or scheduled) job to the preempted terminal
+// phase, returning its consumed resources to the node. This is the real
+// operator/scheduler entrypoint for evicting a job in favour of a
+// higher-priority workload. The lifecycle machine enforces the legal transition
+// (running->preempted or scheduled->preempted), so calling PreemptJob on an
+// already-terminal job is a safe no-op returning NotFound (job removed) or
+// false from advanceTo.
+//
+// PreemptJob is an exported method (not a gRPC RPC) so tests and internal
+// scheduler policy can drive preemption without needing a proto extension.
+func (s *Server) PreemptJob(ctx context.Context, jobID string) error {
+	s.mu.Lock()
+	rec, ok := s.jobs[jobID]
+	if !ok {
+		s.mu.Unlock()
+		return status.Errorf(codes.NotFound, "job %s not found", jobID)
+	}
+	lc := rec.lifecycle
+	nodeID := rec.nodeID
+	resources := rec.resources
+	delete(s.jobs, jobID)
+	s.mu.Unlock()
+
+	// Return the resources this job consumed to the node so preemption does not
+	// permanently leak cluster capacity — identical semantics to CancelJob.
+	if node, found := s.sched.GetNode(nodeID); found {
+		node.AvailableResources.CPU += resources.CPU
+		node.AvailableResources.Memory += resources.Memory
+		node.AvailableResources.GPU += resources.GPU
+		s.sched.RegisterNode(node)
+	}
+
+	// Drive the lifecycle to the preempted terminal phase. advanceTo rejects
+	// post-terminal calls so this is safe even if the job already completed.
+	if lc != nil {
+		lc.advanceTo(phasePreempted)
+	}
+	return nil
+}
+
 // GetJobStatus returns the status of a job by ID.
 func (s *Server) GetJobStatus(ctx context.Context, req *helixv1.GetJobStatusRequest) (*helixv1.JobStatus, error) {
 	s.mu.RLock()

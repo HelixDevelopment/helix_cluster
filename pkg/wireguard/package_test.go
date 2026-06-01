@@ -2,6 +2,7 @@ package wireguard
 
 import (
 	"context"
+	"errors"
 	"os"
 	"runtime"
 	"testing"
@@ -300,11 +301,11 @@ func TestNATTraversalPortMapping(t *testing.T) {
 
 	err := SetupPortMapping(ctx, 51820, 51820, time.Hour)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
+	assert.True(t, errors.Is(err, ErrUnsupported), "SetupPortMapping error must wrap ErrUnsupported")
 
 	err = RemovePortMapping(ctx, 51820)
 	assert.Error(t, err)
-	assert.Contains(t, err.Error(), "not implemented")
+	assert.True(t, errors.Is(err, ErrUnsupported), "RemovePortMapping error must wrap ErrUnsupported")
 }
 
 // TestMeshCoordinatorSync tests mesh coordinator sync logic.

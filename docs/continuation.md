@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 58
-**Last modified:** 2026-06-01T18:11:06Z
+**Revision:** 59
+**Last modified:** 2026-06-01T18:46:00Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `6715b3a` | Foundation wave 11: mark 3 items Completed (HXC-1122/1123/1124) — integration-proven vs real capnp/clang++/libzmq |
 | `63822b3` | Foundation wave 11: Cap'n Proto zero-copy serde (node.capnp + capnpc-go, AllocsPerRun==0), FlatBuffers GPU compute payloads (compute.fbs + flatc Go + pooled builder + clang++ C++ consumer harness), ZeroMQ data-plane (ROUTER/DEALER correlated + PUSH/PULL at-least-once, pebbe/zmq4) — integration-proven (real capnp/clang++/libzmq). Toolchains capnp/flatc/libzmq + Go runtimes wired. GATE: fixed C++ harness flatc root-accessor (GetRootAsComputeTask->GetComputeTask) |
 | `546c68d` | Foundation wave 10: mark 3 items Completed (HXC-1131/1134/1144) — integration-proven vs real vault/etcd/postgres |
 | `467a6dc` | Foundation wave 10: Vault secret injection + rotation (KV v2, no-downtime refresh), WireGuard mesh segmentation policy engine (DENY-wins label selectors + enforcement ruleset), Backup service (etcd clientv3 snapshot + pg_dump/restore state-match) — integration-proven vs real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files (unused ctx, unused require import) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `6c825df` | Foundation wave 8: NATS JetStream stream-config (5 streams + EnsureStreams), Kafka topic-config (partitions/replication/retention + EnsureTopics), HelixQA challenge runner + DST chaos/session-recovery harness, gateway REST surface (/v1/sessions, /v1/pool/utilization) + OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP |
 | `479efb5` | Foundation wave 7: mark 9 items Completed (HXC-1101/1102/1103/1105/1106/1107/1114/1115/1133) — integration-proven vs real tmux/etcd/postgres |
 | `e12003a` | Foundation wave 7: session WS-vertical (htmux attach+PTY-over-WS+msgpack envelope), e2ee ML-KEM record + sw-attestation, RBAC scopes, ratelimit token-bucket + etcd key namespace, postgres 15-table primary schema — integration-proven (real tmux/etcd/postgres); gate fixed tmux-CC subscribe race + pg applier host-path-in-container bug |
-| `6882b02` | Foundation wave 6: mark 5 items Completed (HXC-1084/1085/1090/1095/1099) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `63822b3` |
-| **Timestamp** | 2026-06-01T18:11:06Z |
+| **Commit** | `6715b3a` |
+| **Timestamp** | 2026-06-01T18:46:00Z |
 
 ## §3: Active Work
 

@@ -2,10 +2,15 @@ package wireguard
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net"
 	"time"
 )
+
+// ErrUnsupported is returned by NAT-traversal operations that are not yet
+// implemented on this platform. Callers may branch on it with errors.Is.
+var ErrUnsupported = errors.New("operation not supported on this platform")
 
 // NATTraversal handles NAT endpoint discovery for WireGuard.
 type NATTraversal struct {
@@ -59,14 +64,20 @@ func DiscoverExternalAddressVia(stunServer string, localPort int, timeout time.D
 }
 
 // SetupPortMapping creates a UPnP/NAT-PMP port mapping.
+//
+// UPnP/NAT-PMP is not yet implemented; the function always returns an error
+// wrapping ErrUnsupported so callers can branch with errors.Is.
 func SetupPortMapping(ctx context.Context, internalPort, externalPort int, duration time.Duration) error {
 	// Placeholder for UPnP/NAT-PMP integration.
 	// In a full implementation, use github.com/huin/goupnp or similar.
-	return fmt.Errorf("UPnP/NAT-PMP not implemented")
+	return fmt.Errorf("UPnP/NAT-PMP: %w", ErrUnsupported)
 }
 
 // RemovePortMapping removes a port mapping.
+//
+// UPnP/NAT-PMP is not yet implemented; the function always returns an error
+// wrapping ErrUnsupported so callers can branch with errors.Is.
 func RemovePortMapping(ctx context.Context, externalPort int) error {
 	// Placeholder for UPnP/NAT-PMP integration.
-	return fmt.Errorf("UPnP/NAT-PMP not implemented")
+	return fmt.Errorf("UPnP/NAT-PMP: %w", ErrUnsupported)
 }
