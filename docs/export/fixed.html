@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 9 <strong>Last modified:</strong>
-2026-06-01T11:05:59Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 10 <strong>Last modified:</strong>
+2026-06-01T11:23:56Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>77</strong>.</p>
+<p>Total completed: <strong>83</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -396,6 +396,14 @@ path)</td>
 <td>dbed10c</td>
 </tr>
 <tr>
+<td>HXC-1019</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Characterize or fix MemoryLocker.Lock context-cancellation goroutine
+leak</td>
+<td>32feec3</td>
+</tr>
+<tr>
 <td>HXC-1021</td>
 <td>Bug</td>
 <td>P1</td>
@@ -404,12 +412,35 @@ path)</td>
 <td>dbed10c</td>
 </tr>
 <tr>
+<td>HXC-1022</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Make pkg/build List/Concurrent tests Start() the service and assert
+terminal states</td>
+<td>32feec3</td>
+</tr>
+<tr>
+<td>HXC-1023</td>
+<td>Task</td>
+<td>P2</td>
+<td>Replace time.Sleep polling in pkg/build with completion sync and add
+state-machine mutation tests</td>
+<td>32feec3</td>
+</tr>
+<tr>
 <td>HXC-1024</td>
 <td>Bug</td>
 <td>P2</td>
 <td>Enforce or document pkg/build content-addressable cache digest
 integrity</td>
 <td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1025</td>
+<td>Task</td>
+<td>P2</td>
+<td>Cover pkg/build cancel-mid-flight branch sets StateCancelled</td>
+<td>32feec3</td>
 </tr>
 <tr>
 <td>HXC-1026</td>
@@ -425,6 +456,14 @@ succeeds, no/foreign cert rejected)</td>
 <td>P1</td>
 <td>Assert MinVersion==TLS13 on the client TLS path in pkg/security</td>
 <td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1029</td>
+<td>Task</td>
+<td>P3</td>
+<td>Replace pkg/security non-nil-only TestNewTLSConfigBuilder with
+meaningful assertion</td>
+<td>32feec3</td>
 </tr>
 <tr>
 <td>HXC-1030</td>
@@ -489,6 +528,13 @@ module Init</td>
 <td>Prove pkg/wasm init/shutdown exports actually run via memory
 side-effect</td>
 <td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1038</td>
+<td>Task</td>
+<td>P3</td>
+<td>Cover pkg/wasm Host.Call ErrUnexpectedResult branch</td>
+<td>32feec3</td>
 </tr>
 <tr>
 <td>HXC-1039</td>

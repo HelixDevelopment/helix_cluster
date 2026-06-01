@@ -1,14 +1,14 @@
 # Issues
 
-**Revision:** 9
-**Last modified:** 2026-06-01T11:05:59Z
+**Revision:** 10
+**Last modified:** 2026-06-01T11:23:56Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **563**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **557**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (19 active)
+## Foundation (anti-bluff) (13 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -24,13 +24,7 @@ Total active items: **563**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1012 | Feature | P1 | Queued | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps |
 | HXC-1013 | Feature | P1 | Queued | Make pkg/infra Scale create real replicas verified via runtime query |
 | HXC-1014 | Feature | P1 | Queued | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end |
-| HXC-1022 | Bug | P1 | Queued | Make pkg/build List/Concurrent tests Start() the service and assert terminal states |
 | HXC-1015 | Feature | P2 | Queued | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect |
-| HXC-1019 | Bug | P2 | Queued | Characterize or fix MemoryLocker.Lock context-cancellation goroutine leak |
-| HXC-1023 | Task | P2 | Queued | Replace time.Sleep polling in pkg/build with completion sync and add state-machine mutation tests |
-| HXC-1025 | Task | P2 | Queued | Cover pkg/build cancel-mid-flight branch sets StateCancelled |
-| HXC-1029 | Task | P3 | Queued | Replace pkg/security non-nil-only TestNewTLSConfigBuilder with meaningful assertion |
-| HXC-1038 | Task | P3 | Queued | Cover pkg/wasm Host.Call ErrUnexpectedResult branch |
 
 ## MVP (71 active)
 
