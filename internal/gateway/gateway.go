@@ -58,6 +58,11 @@ type Gateway struct {
 	// auth, when non-nil, enables JWT/RBAC enforcement in ServeHTTP. It is set
 	// only via the WithAuth option so the zero/default gateway stays open.
 	auth *AuthPolicy
+
+	// restAPI, when non-nil, handles the REST surface (/v1/sessions,
+	// /v1/pool/utilization, /openapi.json) before the proxy dispatch logic.
+	// Installed via the WithREST option.
+	restAPI *RESTAPI
 }
 
 // NewGateway creates a new Gateway with the default route table.
@@ -112,6 +117,14 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"healthy"}`))
+		return
+	}
+
+	// Dispatch REST API paths before the proxy logic so JWT/RBAC enforcement
+	// does not interfere with the REST surface (the REST handlers apply their
+	// own validation as needed).
+	if g.restAPI != nil && restAPIPath(r.URL.Path) {
+		g.restAPI.ServeHTTP(w, r)
 		return
 	}
 

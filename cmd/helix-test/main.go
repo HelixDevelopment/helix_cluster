@@ -58,6 +58,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return cmdDevice(rest, stdout, stderr)
 	case "snapshot":
 		return cmdSnapshot(rest, stdout, stderr)
+	case "challenge":
+		return cmdChallenge(rest, stdout, stderr)
 	case "help", "-h", "--help":
 		usage(stdout)
 		return 0
@@ -74,10 +76,11 @@ func usage(w io.Writer) {
 	fmt.Fprintln(w, "Usage: helix-test <command> [args...]")
 	fmt.Fprintln(w)
 	fmt.Fprintln(w, "Commands:")
-	fmt.Fprintln(w, "  dst       Run deterministic simulation tests")
-	fmt.Fprintln(w, "  chaos     Run chaos experiments")
-	fmt.Fprintln(w, "  device    Run device simulation tests")
-	fmt.Fprintln(w, "  snapshot  Manage golden snapshots")
+	fmt.Fprintln(w, "  dst        Run deterministic simulation tests")
+	fmt.Fprintln(w, "  chaos      Run chaos experiments")
+	fmt.Fprintln(w, "  device     Run device simulation tests")
+	fmt.Fprintln(w, "  snapshot   Manage golden snapshots")
+	fmt.Fprintln(w, "  challenge  Run a HelixQA challenge probe against a live endpoint")
 }
 
 // cmdDST runs a deterministic simulation test. The optional first arg is the

@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 50
-**Last modified:** 2026-06-01T16:14:47Z
+**Revision:** 51
+**Last modified:** 2026-06-01T16:32:40Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `479efb5` | Foundation wave 7: mark 9 items Completed (HXC-1101/1102/1103/1105/1106/1107/1114/1115/1133) — integration-proven vs real tmux/etcd/postgres |
 | `e12003a` | Foundation wave 7: session WS-vertical (htmux attach+PTY-over-WS+msgpack envelope), e2ee ML-KEM record + sw-attestation, RBAC scopes, ratelimit token-bucket + etcd key namespace, postgres 15-table primary schema — integration-proven (real tmux/etcd/postgres); gate fixed tmux-CC subscribe race + pg applier host-path-in-container bug |
 | `6882b02` | Foundation wave 6: mark 5 items Completed (HXC-1084/1085/1090/1095/1099) |
 | `1367dca` | Foundation wave 6: session(tmux -CC + CRDT) / wireguard STUN-NAT / postgres registry / build orchestrator — integration-proven |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `2f27ac9` | Foundation wave 5: 5 control-plane streams (gateway/lock/wireguard/node-registry proven; leader+swim+node-watch WIP) |
 | `8f570cb` | fix(pkg/infra): isolate VMSpawn integration tests against deterministic vm-1 collision |
 | `23668fa` | Foundation wave 4 + parity: mark 10 items Completed (HXC-1014/1075-1083) |
-| `44db918` | Foundation wave 4 + cross-platform parity: 9 real-infra items + macOS GPU/resources + real VMSSH — integration-proven |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `e12003a` |
-| **Timestamp** | 2026-06-01T16:14:47Z |
+| **Commit** | `479efb5` |
+| **Timestamp** | 2026-06-01T16:32:40Z |
 
 ## §3: Active Work
 

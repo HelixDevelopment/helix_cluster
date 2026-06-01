@@ -1,0 +1,87 @@
+openapi: "3.0.3"
+info:
+  title: HelixCluster Gateway API
+  version: "0.1.0"
+  description: >
+    REST surface exposed by the HelixCluster API gateway (HXC-1118).
+    Two primary endpoints are defined: session creation and pool utilization.
+
+paths:
+  /v1/sessions:
+    post:
+      summary: Create a session
+      operationId: createSession
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SessionSpec"
+      responses:
+        "201":
+          description: Session accepted; status is CREATING.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SessionResponse"
+        "400":
+          description: Malformed request body.
+
+  /v1/pool/utilization:
+    get:
+      summary: Current pool utilization
+      operationId: getPoolUtilization
+      responses:
+        "200":
+          description: Numeric utilization percentages.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoolUtilization"
+
+components:
+  schemas:
+    SessionSpec:
+      type: object
+      properties:
+        resource:
+          type: object
+          description: Opaque resource specification forwarded to the session backend.
+
+    SessionResponse:
+      type: object
+      required:
+        - id
+        - status
+      properties:
+        id:
+          type: string
+          description: Opaque session identifier allocated by the backend.
+        status:
+          type: string
+          enum:
+            - CREATING
+          description: Always CREATING immediately after acceptance.
+        spec:
+          type: object
+          description: Echo of the resource spec (when provided).
+
+    PoolUtilization:
+      type: object
+      required:
+        - cpu_pct
+        - mem_pct
+        - gpu_pct
+      properties:
+        cpu_pct:
+          type: number
+          format: double
+          description: CPU utilization percentage (0–100).
+        mem_pct:
+          type: number
+          format: double
+          description: Memory utilization percentage (0–100).
+        gpu_pct:
+          type: number
+          format: double
+          description: GPU utilization percentage (0–100).
