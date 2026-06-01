@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 43
-**Last modified:** 2026-06-01T13:52:26Z
+**Revision:** 44
+**Last modified:** 2026-06-01T13:53:27Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `2f27ac9` | Foundation wave 5: 5 control-plane streams (gateway/lock/wireguard/node-registry proven; leader+swim+node-watch WIP) |
 | `8f570cb` | fix(pkg/infra): isolate VMSpawn integration tests against deterministic vm-1 collision |
 | `23668fa` | Foundation wave 4 + parity: mark 10 items Completed (HXC-1014/1075-1083) |
 | `44db918` | Foundation wave 4 + cross-platform parity: 9 real-infra items + macOS GPU/resources + real VMSSH — integration-proven |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `909d107` | Disable all active CI per operator directive: park race.yml in disabled/ |
 | `7cc8147` | Foundation wave 3a: mark 6 items Completed (HXC-1019/1022/1023/1025/1029/1038) |
 | `32feec3` | Foundation wave 3a: real fixes for lock leak + build sync/cancel + security/wasm coverage |
-| `930a7ac` | Foundation wave 2: mark 30 items Completed (HXC-1039..1041/1046..1061/1064..1074) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `8f570cb` |
-| **Timestamp** | 2026-06-01T13:52:26Z |
+| **Commit** | `2f27ac9` |
+| **Timestamp** | 2026-06-01T13:53:27Z |
 
 ## §3: Active Work
 

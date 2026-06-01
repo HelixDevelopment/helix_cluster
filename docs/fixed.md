@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 13
-**Last modified:** 2026-06-01T13:04:05Z
+**Revision:** 14
+**Last modified:** 2026-06-01T13:53:26Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **100**.
+Total completed: **105**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -108,5 +108,10 @@ Total completed: **100**.
 | HXC-1081 | Feature | P0 | Implement optimistic-concurrency versioning for scheduler pool | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-1082 | Feature | P1 | Implement HTCondor ClassAds matching in scheduler (pkg/classads) | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-1083 | Feature | P1 | Implement gang scheduling and preemption in scheduler | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1087 | Feature | P0 | Make node registry etcd-backed and cross-process shared (internal/node) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1089 | Feature | P0 | Implement WireGuard mesh config-gen and key rotation (pkg/wireguard) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1091 | Feature | P0 | Wire API gateway reverse proxy with prefix routing and /health (internal/gateway) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1092 | Feature | P0 | Add JWT/RBAC auth middleware to API gateway (internal/gateway) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
+| HXC-1094 | Feature | P0 | Implement distributed lock primitives over etcd (pkg/lock) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
