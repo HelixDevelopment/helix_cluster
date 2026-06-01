@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 11
-**Last modified:** 2026-06-01T11:29:04Z
+**Revision:** 12
+**Last modified:** 2026-06-01T12:11:50Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **83**.
+Total completed: **90**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -34,10 +34,16 @@ Total completed: **83**.
 | HXC-1007 | Feature | P0 | Prove etcd distributed Lock mutual exclusion (highest-risk path) | dbed10c |
 | HXC-1008 | Task | P2 | Add mutation-paired etcd New() default-timeout injection test | dbed10c |
 | HXC-1009 | Task | P2 | Prove etcd error-wrapping on dead endpoint | dbed10c |
+| HXC-1010 | Feature | P0 | Replace pkg/infra map-echo orchestrator with real service Boot via testcontainers | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
+| HXC-1011 | Feature | P0 | Make pkg/infra Health probe real services and report false on failure | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
+| HXC-1012 | Feature | P1 | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
+| HXC-1013 | Feature | P1 | Make pkg/infra Scale create real replicas verified via runtime query | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
+| HXC-1015 | Feature | P2 | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1016 | Feature | P0 | Add EtcdLocker integration tests against real etcd (block/acquire/lease) | dbed10c |
 | HXC-1017 | Bug | P0 | Rewrite TestMemoryLockerConcurrent to detect a broken lock without -race | dbed10c |
 | HXC-1018 | Task | P2 | Add explicit block-then-acquire ordering test for MemoryLocker | dbed10c |
 | HXC-1019 | Bug | P2 | Characterize or fix MemoryLocker.Lock context-cancellation goroutine leak | 32feec3 |
+| HXC-1020 | Feature | P0 | Wire a real Builder behind pkg/build Service and prove image is pullable | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1021 | Bug | P1 | Drive pkg/build StateFailed via a genuine build failure not the 'fail' sentinel | dbed10c |
 | HXC-1022 | Bug | P1 | Make pkg/build List/Concurrent tests Start() the service and assert terminal states | 32feec3 |
 | HXC-1023 | Task | P2 | Replace time.Sleep polling in pkg/build with completion sync and add state-machine mutation tests | 32feec3 |
@@ -45,6 +51,7 @@ Total completed: **83**.
 | HXC-1025 | Task | P2 | Cover pkg/build cancel-mid-flight branch sets StateCancelled | 32feec3 |
 | HXC-1026 | Feature | P0 | Add real mTLS handshake test for pkg/security (valid client succeeds, no/foreign cert rejected) | dbed10c |
 | HXC-1027 | Bug | P1 | Assert MinVersion==TLS13 on the client TLS path in pkg/security | dbed10c |
+| HXC-1028 | Feature | P0 | Locate/build production Vault client and add dev-Vault integration test (KVv2 + PKI) | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1029 | Task | P3 | Replace pkg/security non-nil-only TestNewTLSConfigBuilder with meaningful assertion | 32feec3 |
 | HXC-1030 | Bug | P1 | Verify pkg/hxcregistry item_history audit-sink rows after Create/Update | dbed10c |
 | HXC-1031 | Bug | P2 | Assert exact and stable ComputeHeadingHash value in pkg/hxcregistry | dbed10c |

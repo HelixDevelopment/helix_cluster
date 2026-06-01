@@ -1,30 +1,23 @@
 # Issues
 
-**Revision:** 11
-**Last modified:** 2026-06-01T11:29:04Z
+**Revision:** 12
+**Last modified:** 2026-06-01T12:11:50Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **557**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **550**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (13 active)
+## Foundation (anti-bluff) (6 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1010 | Feature | P0 | Queued | Replace pkg/infra map-echo orchestrator with real service Boot via testcontainers |
-| HXC-1011 | Feature | P0 | Queued | Make pkg/infra Health probe real services and report false on failure |
-| HXC-1020 | Feature | P0 | Queued | Wire a real Builder behind pkg/build Service and prove image is pullable |
-| HXC-1028 | Feature | P0 | Queued | Locate/build production Vault client and add dev-Vault integration test (KVv2 + PKI) |
 | HXC-016 | Task | P1 | Queued |  |
 | HXC-017 | Task | P1 | Queued |  |
 | HXC-018 | Task | P1 | Queued |  |
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
-| HXC-1012 | Feature | P1 | Queued | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps |
-| HXC-1013 | Feature | P1 | Queued | Make pkg/infra Scale create real replicas verified via runtime query |
 | HXC-1014 | Feature | P1 | Queued | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end |
-| HXC-1015 | Feature | P2 | Queued | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect |
 
 ## MVP (71 active)
 

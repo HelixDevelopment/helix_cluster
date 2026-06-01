@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 11 <strong>Last modified:</strong>
-2026-06-01T11:29:04Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 12 <strong>Last modified:</strong>
+2026-06-01T12:11:50Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>83</strong>.</p>
+<p>Total completed: <strong>90</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -373,6 +373,46 @@ path)</td>
 <td>dbed10c</td>
 </tr>
 <tr>
+<td>HXC-1010</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Replace pkg/infra map-echo orchestrator with real service Boot via
+testcontainers</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
+</tr>
+<tr>
+<td>HXC-1011</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Make pkg/infra Health probe real services and report false on
+failure</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
+</tr>
+<tr>
+<td>HXC-1012</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Make pkg/infra Logs capture real sink-side output honoring
+tail/since/timestamps</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
+</tr>
+<tr>
+<td>HXC-1013</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Make pkg/infra Scale create real replicas verified via runtime
+query</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
+</tr>
+<tr>
+<td>HXC-1015</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Make pkg/infra VMSimulateFailure/VMSimulatePartition assert
+observable network effect</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
+</tr>
+<tr>
 <td>HXC-1016</td>
 <td>Feature</td>
 <td>P0</td>
@@ -402,6 +442,14 @@ path)</td>
 <td>Characterize or fix MemoryLocker.Lock context-cancellation goroutine
 leak</td>
 <td>32feec3</td>
+</tr>
+<tr>
+<td>HXC-1020</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Wire a real Builder behind pkg/build Service and prove image is
+pullable</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
 </tr>
 <tr>
 <td>HXC-1021</td>
@@ -456,6 +504,14 @@ succeeds, no/foreign cert rejected)</td>
 <td>P1</td>
 <td>Assert MinVersion==TLS13 on the client TLS path in pkg/security</td>
 <td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1028</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Locate/build production Vault client and add dev-Vault integration
+test (KVv2 + PKI)</td>
+<td>85ee85e85f221075dfc5f0304e3577e1df5bc930</td>
 </tr>
 <tr>
 <td>HXC-1029</td>
