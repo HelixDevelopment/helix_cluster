@@ -314,6 +314,14 @@ type ControlModeAttach struct {
 	outputBuf []byte
 	bufMu     sync.Mutex
 	bufCond   *sync.Cond
+	// deliverDone is set true (under bufMu) when the deliver goroutine's range
+	// over the subscription channel EXITS — i.e. the channel is closed AND every
+	// buffered event has been drained into outputBuf. Read must only return EOF
+	// once this is true (or closed), never merely when cs.Done() fires: the pump
+	// closes cs.done right after %exit, but events it already fanned out may still
+	// be sitting in the channel undrained — EOFing on cs.Done() loses them.
+	deliverDone bool
+	closed      bool
 
 	sub <-chan ControlEvent
 
@@ -346,8 +354,10 @@ func (cma *ControlModeAttach) deliver() {
 			cma.bufMu.Unlock()
 		}
 	}
-	// Channel closed: signal any blocked Read.
+	// Channel closed AND fully drained: mark done and wake any blocked Read so
+	// it returns EOF only now that no further pane bytes can arrive.
 	cma.bufMu.Lock()
+	cma.deliverDone = true
 	cma.bufCond.Broadcast()
 	cma.bufMu.Unlock()
 }
@@ -358,11 +368,12 @@ func (cma *ControlModeAttach) Read(p []byte) (int, error) {
 	cma.bufMu.Lock()
 	defer cma.bufMu.Unlock()
 	for len(cma.outputBuf) == 0 {
-		// Check if the session is done and we have nothing more.
-		select {
-		case <-cma.cs.Done():
+		// EOF only once the deliver goroutine has fully drained the (closed)
+		// subscription into outputBuf, or this attach was explicitly closed.
+		// Do NOT EOF merely on cs.Done(): undrained pane bytes may still be in
+		// flight in the subscription channel.
+		if cma.deliverDone || cma.closed {
 			return 0, io.EOF
-		default:
 		}
 		cma.bufCond.Wait()
 	}
@@ -382,8 +393,9 @@ func (cma *ControlModeAttach) Write(p []byte) (int, error) {
 // Close releases the ControlModeAttach without closing the underlying session.
 func (cma *ControlModeAttach) Close() error {
 	cma.once.Do(func() {
-		// Wake any blocked Read so it can detect Done.
+		// Mark closed and wake any blocked Read so it returns EOF promptly.
 		cma.bufMu.Lock()
+		cma.closed = true
 		cma.bufCond.Broadcast()
 		cma.bufMu.Unlock()
 	})

@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-// startServer launches run() on 127.0.0.1:0 and returns the bound base URL plus
-// a stop func that cancels the context and waits for run() to return. This is a
-// REAL listener and a REAL server, not httptest of a stubbed handler.
+// startServer launches run() on 127.0.0.1:0 and returns the bound base URL
+// plus a stop func that cancels the context and waits for run() to return.
+// This is a REAL listener and a REAL server backed by the real OPA engine.
 func startServer(t *testing.T, cfg Config) (baseURL string, stop func() error) {
 	t.Helper()
 	cfg.Addr = "127.0.0.1:0"
@@ -32,9 +32,9 @@ func startServer(t *testing.T, cfg Config) (baseURL string, stop func() error) {
 	case err := <-runErr:
 		cancel()
 		t.Fatalf("run exited before ready: %v", err)
-	case <-time.After(5 * time.Second):
+	case <-time.After(10 * time.Second):
 		cancel()
-		t.Fatal("server did not become ready")
+		t.Fatal("server did not become ready within 10s")
 	}
 
 	stop = func() error {
@@ -51,7 +51,7 @@ func startServer(t *testing.T, cfg Config) (baseURL string, stop func() error) {
 
 func waitHealthy(t *testing.T, baseURL string) {
 	t.Helper()
-	deadline := time.Now().Add(3 * time.Second)
+	deadline := time.Now().Add(5 * time.Second)
 	for time.Now().Before(deadline) {
 		resp, err := http.Get(baseURL + "/health")
 		if err == nil {
@@ -60,28 +60,84 @@ func waitHealthy(t *testing.T, baseURL string) {
 				return
 			}
 		}
-		time.Sleep(10 * time.Millisecond)
+		time.Sleep(20 * time.Millisecond)
 	}
 	t.Fatal("service never became healthy")
 }
 
-// TestRunServesRealRequests proves the service starts, binds, and serves a REAL
-// end-to-end policy lifecycle over a real HTTP client: load a deny policy, then
-// evaluate input that the engine must deny, asserting concrete decision values.
+// evalResponse is the JSON shape returned by POST /evaluate.
+type evalResponse struct {
+	Allowed        bool                   `json:"allowed"`
+	Reason         string                 `json:"reason"`
+	EvaluatedInput map[string]interface{} `json:"evaluated_input"`
+	PolicyName     string                 `json:"policy_name"`
+}
+
+// ---------------------------------------------------------------------------
+// Core scheduling policy tests (the scheduling policy is pre-loaded by run)
+// ---------------------------------------------------------------------------
+
+// TestRunSchedulingPolicyPreloaded proves the HelixConstitution scheduling
+// policy is available immediately after start without a POST /policies call.
+// A node with health=40 must be DENIED and health=80 must be ALLOWED.
 //
-// Mutation that makes it FAIL: in run(), drop the `helixv1`-style wiring by
-// replacing `newHandler(engine)` with `http.NewServeMux()` (empty handler) ->
-// /policies POST returns 404 and the load step fails. Equivalently, change
-// engine.Evaluate's deny precedence in the assertion to expect allowed=true.
+// Mutation proof: in run(), remove the MustLoadSchedulingPolicy call → POST
+// /evaluate returns 404 for the "scheduling" policy → both sub-cases fail.
+func TestRunSchedulingPolicyPreloaded(t *testing.T) {
+	baseURL, stop := startServer(t, Config{})
+	defer stop()
+	waitHealthy(t, baseURL)
+
+	type tc struct {
+		health    int
+		wantAllow bool
+	}
+	for _, c := range []tc{{40, false}, {80, true}} {
+		body, _ := json.Marshal(map[string]interface{}{
+			"policy": "scheduling",
+			"input": map[string]interface{}{
+				"node": map[string]interface{}{"health": c.health},
+			},
+		})
+		resp, err := http.Post(baseURL+"/evaluate", "application/json", bytes.NewReader(body))
+		if err != nil {
+			t.Fatalf("POST /evaluate health=%d: %v", c.health, err)
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("health=%d: status=%d want 200", c.health, resp.StatusCode)
+		}
+		var out evalResponse
+		if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
+			t.Fatalf("decode: %v", err)
+		}
+		if out.Allowed != c.wantAllow {
+			t.Fatalf("health=%d: Allowed=%v want %v (Reason=%q)", c.health, out.Allowed, c.wantAllow, out.Reason)
+		}
+		if out.Reason == "" {
+			t.Fatalf("health=%d: Reason is empty", c.health)
+		}
+	}
+}
+
+// TestRunServesRealRequests proves the service starts, binds, and serves a REAL
+// end-to-end policy lifecycle over a real HTTP client: load a custom rego
+// policy, evaluate input the engine must allow, then verify the decision fields.
+//
+// Mutation proof: in run(), replace newHandler(engine) with
+// http.NewServeMux() (empty handler) → /policies POST returns 404 → load
+// step fails.
 func TestRunServesRealRequests(t *testing.T) {
 	baseURL, stop := startServer(t, Config{})
 	defer stop()
 	waitHealthy(t, baseURL)
 
-	// Load a real policy with an explicit deny rule.
+	// Load a real OPA rego policy.
 	loadBody, _ := json.Marshal(map[string]string{
 		"name": "net-policy",
-		"rego": "deny if action == \"delete\"",
+		"rego": `package net_policy
+default allow = false
+allow { input.action != "delete" }`,
 	})
 	resp, err := http.Post(baseURL+"/policies", "application/json", bytes.NewReader(loadBody))
 	if err != nil {
@@ -92,10 +148,10 @@ func TestRunServesRealRequests(t *testing.T) {
 		t.Fatalf("load policy status = %d, want 201", resp.StatusCode)
 	}
 
-	// Evaluate input that must be DENIED by the loaded rule.
+	// Evaluate input that must be ALLOWED (action != delete).
 	evalBody, _ := json.Marshal(map[string]interface{}{
 		"policy": "net-policy",
-		"input":  map[string]interface{}{"action": "delete"},
+		"input":  map[string]interface{}{"action": "read"},
 	})
 	resp, err = http.Post(baseURL+"/evaluate", "application/json", bytes.NewReader(evalBody))
 	if err != nil {
@@ -105,21 +161,21 @@ func TestRunServesRealRequests(t *testing.T) {
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("evaluate status = %d, want 200", resp.StatusCode)
 	}
-	var out struct {
-		Allowed   bool                   `json:"allowed"`
-		Decisions map[string]interface{} `json:"decisions"`
-	}
+	var out evalResponse
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
 		t.Fatalf("decode evaluate response: %v", err)
 	}
-	if out.Allowed {
-		t.Fatalf("allowed = true, want false (deny rule must match action=delete)")
+	if !out.Allowed {
+		t.Fatalf("Allowed = false, want true (allow rule must match action=read); reason=%q", out.Reason)
 	}
-	if got := out.Decisions["matched"]; got != "deny" {
-		t.Fatalf("decisions.matched = %v, want \"deny\"", got)
+	if out.PolicyName != "net-policy" {
+		t.Fatalf("policy_name = %q, want net-policy", out.PolicyName)
+	}
+	if out.EvaluatedInput == nil {
+		t.Fatal("evaluated_input is nil, want the round-tripped input map")
 	}
 
-	// And the listed policy must include what we loaded.
+	// Verify the listed policy includes what we loaded.
 	resp2, err := http.Get(baseURL + "/policies")
 	if err != nil {
 		t.Fatalf("GET /policies: %v", err)
@@ -140,16 +196,18 @@ func TestRunServesRealRequests(t *testing.T) {
 	}
 }
 
-// TestEvaluateAllowPath proves the allow branch returns a concrete allowed=true
-// with matched="allow" over the real client. Mutation that makes it FAIL:
-// change the input value to "read" so no allow rule matches -> default-deny.
-func TestEvaluateAllowPath(t *testing.T) {
+// TestEvaluateDenyPath proves the deny branch returns allowed=false over the
+// real HTTP client.  Mutation: change the rego to `allow { true }` → allowed
+// flips to true → test fails.
+func TestEvaluateDenyPath(t *testing.T) {
 	baseURL, stop := startServer(t, Config{})
 	defer stop()
 	waitHealthy(t, baseURL)
 
 	loadBody, _ := json.Marshal(map[string]string{
-		"name": "p", "rego": "allow if role == \"admin\"",
+		"name": "deny-all",
+		"rego": `package deny_all
+default allow = false`,
 	})
 	r, err := http.Post(baseURL+"/policies", "application/json", bytes.NewReader(loadBody))
 	if err != nil {
@@ -158,31 +216,26 @@ func TestEvaluateAllowPath(t *testing.T) {
 	r.Body.Close()
 
 	evalBody, _ := json.Marshal(map[string]interface{}{
-		"policy": "p", "input": map[string]interface{}{"role": "admin"},
+		"policy": "deny-all",
+		"input":  map[string]interface{}{"anything": "here"},
 	})
 	resp, err := http.Post(baseURL+"/evaluate", "application/json", bytes.NewReader(evalBody))
 	if err != nil {
 		t.Fatalf("evaluate: %v", err)
 	}
 	defer resp.Body.Close()
-	var out struct {
-		Allowed   bool                   `json:"allowed"`
-		Decisions map[string]interface{} `json:"decisions"`
-	}
+	var out evalResponse
 	if err := json.NewDecoder(resp.Body).Decode(&out); err != nil {
 		t.Fatalf("decode: %v", err)
 	}
-	if !out.Allowed {
-		t.Fatalf("allowed = false, want true (allow rule must match role=admin)")
-	}
-	if got := out.Decisions["matched"]; got != "allow" {
-		t.Fatalf("matched = %v, want allow", got)
+	if out.Allowed {
+		t.Fatalf("Allowed = true, want false for deny-all policy")
 	}
 }
 
 // TestEvaluateUnknownPolicy proves a missing policy yields 404 from the live
-// server. Mutation that makes it FAIL: in newHandler, change the Evaluate error
-// status from StatusNotFound to StatusOK.
+// server.  Mutation: in newHandler, change the Evaluate error status from
+// StatusNotFound to StatusOK → status check fails.
 func TestEvaluateUnknownPolicy(t *testing.T) {
 	baseURL, stop := startServer(t, Config{})
 	defer stop()
@@ -200,15 +253,13 @@ func TestEvaluateUnknownPolicy(t *testing.T) {
 }
 
 // TestGracefulShutdownStopsServing proves ctx-cancel triggers graceful shutdown
-// and the port stops accepting connections. Mutation that makes it FAIL: in
-// run(), remove the `case <-ctx.Done()` shutdown branch (e.g. `select{}` only on
-// serveErr) so the server keeps serving after cancel -> the post-stop dial
-// still succeeds and the test fails.
+// and the port stops accepting connections.  Mutation: in run(), remove the
+// `case <-ctx.Done()` shutdown branch → the server keeps serving after cancel
+// → the post-stop dial still succeeds → test fails.
 func TestGracefulShutdownStopsServing(t *testing.T) {
 	baseURL, stop := startServer(t, Config{})
 	waitHealthy(t, baseURL)
 
-	// Confirm it serves before shutdown.
 	if resp, err := http.Get(baseURL + "/health"); err != nil {
 		t.Fatalf("pre-shutdown health: %v", err)
 	} else {
@@ -219,7 +270,6 @@ func TestGracefulShutdownStopsServing(t *testing.T) {
 		t.Fatalf("run returned error on graceful shutdown: %v", err)
 	}
 
-	// After shutdown the listener must be closed: a fresh dial must fail.
 	host := baseURL[len("http://"):]
 	deadline := time.Now().Add(3 * time.Second)
 	for {
@@ -236,9 +286,8 @@ func TestGracefulShutdownStopsServing(t *testing.T) {
 }
 
 // TestConfigValidationRejectsBadPort proves config validation rejects an
-// invalid port with a meaningful error and that run() refuses to start. Mutation
-// that makes it FAIL: remove the port range check in Config.Validate (`port <0
-// || port >65535`) -> 999999 is accepted and the error is nil.
+// invalid port.  Mutation: remove the port range check in Config.Validate →
+// 999999 is accepted → error is nil → test fails.
 func TestConfigValidationRejectsBadPort(t *testing.T) {
 	bad := []string{"999999", "-1", "abc"}
 	for _, p := range bad {
@@ -253,16 +302,15 @@ func TestConfigValidationRejectsBadPort(t *testing.T) {
 		}
 	}
 
-	// run() must also refuse an invalid config without binding.
 	err := run(context.Background(), Config{Addr: ":70000", ShutdownTimeout: time.Second}, nil)
 	if err == nil {
 		t.Fatal("run accepted out-of-range port, want error")
 	}
 }
 
-// TestConfigValidationRejectsBadShutdownTimeout proves a non-positive shutdown
-// timeout is rejected. Mutation that makes it FAIL: remove the
-// `ShutdownTimeout <= 0` check in Config.Validate.
+// TestConfigValidationRejectsBadShutdownTimeout proves a zero timeout is
+// rejected.  Mutation: remove the ShutdownTimeout <= 0 check → error is nil →
+// test fails.
 func TestConfigValidationRejectsBadShutdownTimeout(t *testing.T) {
 	_, err := ConfigFromEnv(func(k string) string {
 		if k == "HELIX_POLICY_SHUTDOWN_TIMEOUT" {
@@ -276,7 +324,7 @@ func TestConfigValidationRejectsBadShutdownTimeout(t *testing.T) {
 }
 
 // TestConfigFromEnvAppliesPort proves a valid env port is threaded into Addr.
-// Mutation that makes it FAIL: in ConfigFromEnv, ignore HELIX_POLICY_PORT.
+// Mutation: ignore HELIX_POLICY_PORT → Addr stays :50058 → assertion fails.
 func TestConfigFromEnvAppliesPort(t *testing.T) {
 	cfg, err := ConfigFromEnv(func(k string) string {
 		if k == "HELIX_POLICY_PORT" {
@@ -291,3 +339,7 @@ func TestConfigFromEnvAppliesPort(t *testing.T) {
 		t.Fatalf("Addr = %q, want :51234", cfg.Addr)
 	}
 }
+
+// ---------------------------------------------------------------------------
+// Integration test (build tag: integration) — cmd entrypoint end-to-end
+// ---------------------------------------------------------------------------

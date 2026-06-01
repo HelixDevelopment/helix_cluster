@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 52
-**Last modified:** 2026-06-01T16:33:29Z
+**Revision:** 53
+**Last modified:** 2026-06-01T17:10:26Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `51cea15` | Foundation wave 8: mark 5 items Completed (HXC-1108/1109/1118/1120/1121) — integration-proven vs real NATS/Kafka/HTTP |
 | `6c825df` | Foundation wave 8: NATS JetStream stream-config (5 streams + EnsureStreams), Kafka topic-config (partitions/replication/retention + EnsureTopics), HelixQA challenge runner + DST chaos/session-recovery harness, gateway REST surface (/v1/sessions, /v1/pool/utilization) + OpenAPI 3.0 — integration-proven vs real NATS/Kafka/HTTP |
 | `479efb5` | Foundation wave 7: mark 9 items Completed (HXC-1101/1102/1103/1105/1106/1107/1114/1115/1133) — integration-proven vs real tmux/etcd/postgres |
 | `e12003a` | Foundation wave 7: session WS-vertical (htmux attach+PTY-over-WS+msgpack envelope), e2ee ML-KEM record + sw-attestation, RBAC scopes, ratelimit token-bucket + etcd key namespace, postgres 15-table primary schema — integration-proven (real tmux/etcd/postgres); gate fixed tmux-CC subscribe race + pg applier host-path-in-container bug |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `4d0ac66` | fix(swim,leader,node): resolve Wave 5 deferred — real-dep integration now green |
 | `8184725` | Foundation wave 5: mark 5 items Completed (HXC-1087/1089/1091/1092/1094); 1086/1088/1093 stay Queued (integration WIP) |
 | `2f27ac9` | Foundation wave 5: 5 control-plane streams (gateway/lock/wireguard/node-registry proven; leader+swim+node-watch WIP) |
-| `8f570cb` | fix(pkg/infra): isolate VMSpawn integration tests against deterministic vm-1 collision |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `6c825df` |
-| **Timestamp** | 2026-06-01T16:33:29Z |
+| **Commit** | `51cea15` |
+| **Timestamp** | 2026-06-01T17:10:26Z |
 
 ## §3: Active Work
 

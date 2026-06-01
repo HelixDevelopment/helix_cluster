@@ -17,10 +17,11 @@ import (
 // CLAUDE-2 compliance: this replaces proc_mock.go for darwin so macOS no
 // longer returns fabricated data. Every value returned reflects real hardware.
 type DarwinReader struct {
-	// sysctlFn and vmStatFn are injectable for unit-test fixture replay.
+	// sysctlFn, vmStatFn and topFn are injectable for unit-test fixture replay.
 	// In production they are left nil and the real system tools are called.
 	sysctlFn func(key string) (string, error)
 	vmStatFn func() (string, error)
+	topFn    func() (string, error)
 }
 
 // NewDarwinReader creates a DarwinReader backed by real sysctl / vm_stat.
@@ -65,6 +66,84 @@ func (r *DarwinReader) vmStat() (string, error) {
 	return string(out), nil
 }
 
+// errNoCPUSampler is returned by topCPU in fixture mode (sysctl faked but no
+// top fake injected) so ReadCPUInfo leaves UsedCores at 0 without shelling to
+// the real `top` — keeping fixture-based unit tests hermetic.
+var errNoCPUSampler = fmt.Errorf("darwin: no CPU sampler in fixture mode")
+
+// topCPU runs "top -l 2 -n 0" and returns the raw output. The second sample is
+// computed over a real ~1s interval, so its "CPU usage:" line reflects actual
+// utilization (the first sample is since-boot and useless for a point reading).
+func (r *DarwinReader) topCPU() (string, error) {
+	if r.topFn != nil {
+		return r.topFn()
+	}
+	if r.sysctlFn != nil {
+		// Fixture mode without an injected top sampler: do not touch real `top`.
+		return "", errNoCPUSampler
+	}
+	out, err := exec.Command("top", "-l", "2", "-n", "0").Output()
+	if err != nil {
+		return "", fmt.Errorf("top -l 2 -n 0: %w", err)
+	}
+	return string(out), nil
+}
+
+// readUsedCores returns the number of busy logical cores (utilizationFraction *
+// ncpu) sampled from `top`. Best-effort: callers treat an error as "utilization
+// unavailable" and leave UsedCores at 0 rather than failing the whole read.
+func (r *DarwinReader) readUsedCores(ncpu int) (float64, error) {
+	out, err := r.topCPU()
+	if err != nil {
+		return 0, err
+	}
+	busyPct, err := parseTopCPUBusy(out)
+	if err != nil {
+		return 0, err
+	}
+	return busyPct / 100.0 * float64(ncpu), nil
+}
+
+// parseTopCPUBusy parses macOS `top -l 2` output and returns the busy CPU
+// percentage (100 - idle) from the LAST "CPU usage:" line, e.g.
+//
+//	CPU usage: 6.66% user, 13.33% sys, 80.00% idle
+//
+// returns 19.99. Uses the last occurrence because `top -l 2` prints two
+// samples and only the second reflects a real interval delta.
+func parseTopCPUBusy(raw string) (float64, error) {
+	var lastLine string
+	scanner := bufio.NewScanner(strings.NewReader(raw))
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if strings.HasPrefix(line, "CPU usage:") {
+			lastLine = line
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return 0, fmt.Errorf("top scan: %w", err)
+	}
+	if lastLine == "" {
+		return 0, fmt.Errorf("top: no 'CPU usage:' line found")
+	}
+	// Find the token immediately preceding "% idle".
+	idx := strings.Index(lastLine, "% idle")
+	if idx < 0 {
+		return 0, fmt.Errorf("top: no idle field in %q", lastLine)
+	}
+	prefix := strings.TrimSpace(lastLine[:idx])
+	fields := strings.Fields(prefix)
+	idleTok := fields[len(fields)-1]
+	idle, err := strconv.ParseFloat(idleTok, 64)
+	if err != nil {
+		return 0, fmt.Errorf("top: parse idle %q: %w", idleTok, err)
+	}
+	if idle < 0 || idle > 100 {
+		return 0, fmt.Errorf("top: idle %.2f out of range", idle)
+	}
+	return 100.0 - idle, nil
+}
+
 // Read implements Reader. It populates CPU and Memory from real macOS
 // facilities. GPU is left zero (handled by DarwinGPUReader separately).
 func (r *DarwinReader) Read(nodeID string) (NodeResources, error) {
@@ -106,10 +185,17 @@ func (r *DarwinReader) ReadCPUInfo() (CPUInfo, error) {
 		model, _ = r.sysctl("hw.model")
 	}
 
-	return CPUInfo{
+	info := CPUInfo{
 		Cores: ncpu,
 		Model: model,
-	}, nil
+	}
+	// Best-effort live utilization via `top`. In fixture mode (sysctl faked, no
+	// top fake) this returns errNoCPUSampler and UsedCores stays 0; in production
+	// it reflects real busy cores so callers (metrics collector) see true CPU%.
+	if used, err := r.readUsedCores(ncpu); err == nil {
+		info.UsedCores = used
+	}
+	return info, nil
 }
 
 // ReadMemInfo reads real memory statistics from macOS.

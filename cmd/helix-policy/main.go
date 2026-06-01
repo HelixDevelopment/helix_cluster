@@ -3,10 +3,13 @@
 // NOTE ON TRANSPORT: unlike the gRPC control-plane services (e.g.
 // helix-scheduler), this service exposes its policy engine over HTTP/JSON.
 // There is intentionally no PolicyService in api/v1 and internal/policy.Engine
-// is a plain in-process engine, not a gRPC server. The refactor below keeps the
-// real HTTP transport but introduces a testable seam (Config + run) so the
-// service can be started on an ephemeral port, exercised by a real HTTP client,
-// and shut down gracefully under test.
+// is a plain in-process engine, not a gRPC server.  The service starts with the
+// HelixConstitution scheduling policy pre-loaded and accepts additional policies
+// via the /policies POST endpoint.
+//
+// The testable seam is Config + run: tests start the server on an ephemeral
+// port, exercise it with a real HTTP client, and stop it via context
+// cancellation.
 package main
 
 import (
@@ -28,7 +31,7 @@ import (
 
 // Config holds the validated runtime configuration for the policy service.
 type Config struct {
-	// Addr is the TCP listen address (host:port). A ":0" port binds an
+	// Addr is the TCP listen address (host:port).  A ":0" port binds an
 	// ephemeral port, which is used by tests.
 	Addr string
 
@@ -46,8 +49,7 @@ func DefaultConfig() Config {
 }
 
 // ConfigFromEnv builds a Config from process environment, applying defaults and
-// validating the result. It returns an error (never log.Fatal) so callers and
-// tests can react to bad input.
+// validating the result.
 func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	cfg := DefaultConfig()
 	if port := getenv("HELIX_POLICY_PORT"); port != "" {
@@ -66,8 +68,7 @@ func ConfigFromEnv(getenv func(string) string) (Config, error) {
 	return cfg, nil
 }
 
-// Validate rejects clearly-bad configuration. The port must be present and a
-// number in the valid TCP range (0 is allowed and means "ephemeral").
+// Validate rejects clearly-bad configuration.
 func (c Config) Validate() error {
 	if c.Addr == "" {
 		return errors.New("listen address is empty")
@@ -92,15 +93,17 @@ func (c Config) Validate() error {
 	return nil
 }
 
-// newHandler builds the HTTP routes backed by the given policy engine. It is
-// exported to the package so tests can mount it directly if desired, but run()
-// uses it for the live server.
+// newHandler builds the HTTP routes backed by the given policy engine.
 func newHandler(engine *policy.Engine) http.Handler {
 	mux := http.NewServeMux()
+
+	// GET  /policies        — list loaded policy names
+	// POST /policies        — load a new policy (name + rego in JSON body)
 	mux.HandleFunc("/policies", func(w http.ResponseWriter, r *http.Request) {
 		switch r.Method {
 		case http.MethodGet:
 			writeJSON(w, http.StatusOK, engine.ListPolicies())
+
 		case http.MethodPost:
 			var req struct {
 				Name string `json:"name"`
@@ -110,15 +113,21 @@ func newHandler(engine *policy.Engine) http.Handler {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := engine.LoadPolicy(req.Name, req.Rego); err != nil {
+			if err := engine.LoadPolicy(r.Context(), req.Name, req.Rego); err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
 			w.WriteHeader(http.StatusCreated)
+
 		default:
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
 		}
 	})
+
+	// POST /evaluate — evaluate a loaded policy against a JSON input document.
+	//
+	// Request:  {"policy": "<name>", "input": {...}}
+	// Response: {"allowed": <bool>, "reason": "<string>", "evaluated_input": {...}}
 	mux.HandleFunc("/evaluate", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
@@ -132,19 +141,24 @@ func newHandler(engine *policy.Engine) http.Handler {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		allowed, decisions, err := engine.Evaluate(req.Policy, req.Input)
+		dec, err := engine.Evaluate(r.Context(), req.Policy, req.Input)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusNotFound)
 			return
 		}
 		writeJSON(w, http.StatusOK, map[string]interface{}{
-			"allowed":   allowed,
-			"decisions": decisions,
+			"allowed":         dec.Allow,
+			"reason":          dec.Reason,
+			"evaluated_input": dec.EvaluatedInput,
+			"policy_name":     dec.PolicyName,
 		})
 	})
+
+	// GET /health — liveness probe.
 	mux.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]string{"status": "healthy"})
 	})
+
 	return mux
 }
 
@@ -155,16 +169,17 @@ func writeJSON(w http.ResponseWriter, status int, v interface{}) {
 }
 
 // run starts the policy HTTP server bound to cfg.Addr and serves until ctx is
-// cancelled (or SIGINT/SIGTERM if main wires them into ctx), at which point it
-// performs a bounded graceful shutdown. The optional ready callback is invoked
-// once the listener is bound, with the resolved address (so tests can dial the
-// real ephemeral port). run propagates errors instead of calling os.Exit.
+// cancelled, at which point it performs a bounded graceful shutdown.
 func run(ctx context.Context, cfg Config, ready func(addr net.Addr)) error {
 	if err := cfg.Validate(); err != nil {
 		return fmt.Errorf("invalid config: %w", err)
 	}
 
 	engine := policy.NewEngine()
+	// Pre-load the HelixConstitution scheduling policy so it is immediately
+	// available without a separate /policies POST.
+	policy.MustLoadSchedulingPolicy(engine)
+
 	server := &http.Server{Handler: newHandler(engine)}
 
 	lis, err := net.Listen("tcp", cfg.Addr)
@@ -192,11 +207,9 @@ func run(ctx context.Context, cfg Config, ready func(addr net.Addr)) error {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), cfg.ShutdownTimeout)
 		defer cancel()
 		if err := server.Shutdown(shutdownCtx); err != nil {
-			// Force-close on timeout so the listener is always released.
 			_ = server.Close()
 			return fmt.Errorf("graceful shutdown: %w", err)
 		}
-		// Drain the serve goroutine result (ErrServerClosed maps to nil).
 		<-serveErr
 		return nil
 	case err := <-serveErr:

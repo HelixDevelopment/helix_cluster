@@ -1,224 +1,206 @@
-// Package policy provides policy evaluation for Helix Cluster OS.
+// Package policy provides a real OPA/rego-backed policy engine for Helix
+// Cluster OS.  Each named policy is compiled once at load time into a
+// PreparedEvalQuery; Evaluate runs the compiled query against the caller's
+// input and surfaces the allow/deny decision together with the evaluated input
+// captured in the Decision.
 package policy
 
 import (
+	"context"
 	"fmt"
-	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/open-policy-agent/opa/rego"
 )
 
-// Policy represents a loaded policy.
-type Policy struct {
-	Name  string
-	Rego  string
-	Rules map[string]interface{}
-
-	// allow and deny hold the rules parsed from Rego. They are not part of the
-	// public contract but drive Evaluate. deny takes precedence over allow.
-	allow []rule
-	deny  []rule
+// Decision is the result of evaluating a policy against an input document.
+type Decision struct {
+	// Allow is true when the policy permits the request.
+	Allow bool
+	// Reason is a human-readable description of why the decision was reached.
+	// For scheduling decisions this includes the health threshold rationale.
+	Reason string
+	// EvaluatedInput is a copy of the input document that was evaluated,
+	// surfaced so callers can prove the correct input round-tripped into the
+	// engine (required by §7.1 evidence and integration tests).
+	EvaluatedInput map[string]interface{}
+	// PolicyName is the name under which the policy was loaded.
+	PolicyName string
 }
 
-// rule is a single parsed condition of the form `<key> == <value>`.
-type rule struct {
-	key   string
-	value string
+// compiledPolicy holds the OPA artefacts for a single named policy.
+type compiledPolicy struct {
+	name  string
+	query rego.PreparedEvalQuery
 }
 
-// Engine evaluates policies against inputs.
+// Engine compiles and evaluates OPA rego policies.  Zero value is invalid; use
+// NewEngine.
 type Engine struct {
 	mu       sync.RWMutex
-	policies map[string]*Policy
+	policies map[string]*compiledPolicy
 }
 
-// NewEngine creates a new policy engine.
+// NewEngine returns a ready-to-use Engine with no policies loaded.
 func NewEngine() *Engine {
-	return &Engine{policies: make(map[string]*Policy)}
+	return &Engine{policies: make(map[string]*compiledPolicy)}
 }
 
-// LoadPolicy loads a policy into the engine, replacing any policy with the same
-// name. The Rego text is parsed into allow/deny rules; a malformed rule line is
-// rejected so that a policy is never silently stored in a half-parsed state.
-func (e *Engine) LoadPolicy(name, rego string) error {
+// LoadPolicy compiles the supplied Rego source (which MUST declare a boolean
+// rule named `allow` under any package) and stores it under name.  A second
+// call with the same name replaces the previous policy atomically.  The
+// compilation happens under the caller's context so a deadline can bound it.
+func (e *Engine) LoadPolicy(ctx context.Context, name, regoSrc string) error {
 	if name == "" {
-		return fmt.Errorf("policy name is required")
+		return fmt.Errorf("policy name must not be empty")
 	}
-	allow, deny, err := parseRego(rego)
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
+	// Extract the package path declared in the rego source so the query
+	// targets the correct data namespace (e.g. "data.scheduling.allow").
+	// This handles policy names that differ from the rego package (hyphens,
+	// aliases, etc.) and avoids hard-coding the package in every caller.
+	pkg, err := regoPackage(regoSrc)
 	if err != nil {
-		return fmt.Errorf("policy %q: %w", name, err)
+		return fmt.Errorf("policy %q: cannot determine rego package: %w", name, err)
 	}
+
+	// Compile the module once; the prepared query is reused across Evaluate calls.
+	pq, err := rego.New(
+		rego.Query("data."+pkg+".allow"),
+		rego.Module(name+".rego", regoSrc),
+	).PrepareForEval(ctx)
+	if err != nil {
+		return fmt.Errorf("policy %q: compile: %w", name, err)
+	}
+
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	e.policies[name] = &Policy{
-		Name:  name,
-		Rego:  rego,
-		Rules: make(map[string]interface{}),
-		allow: allow,
-		deny:  deny,
-	}
+	e.policies[name] = &compiledPolicy{name: name, query: pq}
 	return nil
 }
 
-// parseRego extracts allow/deny rules from policy text. Recognised lines have
-// the form:
-//
-//	allow if <key> == <value>
-//	deny if <key> == <value>
-//
-// All other non-empty lines (package declarations, comments, blank lines) are
-// ignored so that legacy Rego stubs continue to load. A line that begins with
-// allow/deny but does not match the expected shape is a hard error.
-func parseRego(rego string) (allow, deny []rule, err error) {
-	for i, raw := range strings.Split(rego, "\n") {
+// regoPackage parses the `package <path>` declaration from a rego source
+// string and returns the dot-separated path (e.g. "scheduling",
+// "helix.rbac").  It returns an error when no package declaration is found
+// because OPA requires one and a missing package would produce a misleading
+// "undefined" result rather than a clear compile error.
+func regoPackage(src string) (string, error) {
+	for _, raw := range strings.Split(src, "\n") {
 		line := strings.TrimSpace(raw)
-		if line == "" || strings.HasPrefix(line, "#") {
+		if !strings.HasPrefix(line, "package ") {
 			continue
 		}
-		var target *[]rule
-		switch {
-		case strings.HasPrefix(line, "allow if "):
-			target = &allow
-			line = strings.TrimPrefix(line, "allow if ")
-		case strings.HasPrefix(line, "deny if "):
-			target = &deny
-			line = strings.TrimPrefix(line, "deny if ")
-		default:
-			// Not a rule line we evaluate (e.g. `package x`, `allow { true }`).
-			continue
+		pkg := strings.TrimSpace(strings.TrimPrefix(line, "package "))
+		// Strip an inline comment.
+		if idx := strings.Index(pkg, "#"); idx >= 0 {
+			pkg = strings.TrimSpace(pkg[:idx])
 		}
-		key, value, ok := strings.Cut(line, "==")
-		if !ok {
-			return nil, nil, fmt.Errorf("line %d: rule must contain '==': %q", i+1, raw)
+		if pkg != "" {
+			return pkg, nil
 		}
-		key = strings.TrimSpace(key)
-		value = strings.TrimSpace(value)
-		if key == "" || value == "" {
-			return nil, nil, fmt.Errorf("line %d: rule has empty key or value: %q", i+1, raw)
-		}
-		*target = append(*target, rule{key: key, value: unquote(value)})
 	}
-	return allow, deny, nil
+	return "", fmt.Errorf("no 'package' declaration found in rego source")
 }
 
-// unquote strips one layer of matching double quotes from a value literal.
-func unquote(s string) string {
-	if len(s) >= 2 && s[0] == '"' && s[len(s)-1] == '"' {
-		return s[1 : len(s)-1]
-	}
-	return s
-}
-
-// Evaluate evaluates a policy against input data.
+// Evaluate runs the named policy against input and returns a Decision that
+// contains the allow/deny verdict, a human-readable reason, and the evaluated
+// input document.  The decision is always deterministic for a given
+// (policy, input) pair because OPA rego evaluation is deterministic.
 //
-// Decision semantics, in order of precedence:
-//  1. If any deny rule matches the input, the result is denied.
-//  2. Otherwise if any allow rule matches, the result is allowed.
-//  3. Otherwise, if the policy declared no allow/deny rules, fall back to the
-//     legacy behaviour of honouring a boolean input["allowed"].
-//  4. Otherwise (rules exist but none matched), the result is denied
-//     (default-deny).
-func (e *Engine) Evaluate(policyName string, input map[string]interface{}) (bool, map[string]interface{}, error) {
+// Semantics:
+//   - If the rego `allow` rule evaluates to true  → Decision.Allow = true.
+//   - If the result set is empty or allow is false → Decision.Allow = false.
+//   - If the policy is not loaded               → error.
+func (e *Engine) Evaluate(ctx context.Context, name string, input map[string]interface{}) (Decision, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+
 	e.mu.RLock()
-	policy, ok := e.policies[policyName]
+	cp, ok := e.policies[name]
 	e.mu.RUnlock()
 	if !ok {
-		return false, nil, fmt.Errorf("policy not found: %s", policyName)
+		return Decision{}, fmt.Errorf("policy not found: %q", name)
 	}
 
-	matched := ""
-	allowed := false
-	switch {
-	case matchAny(policy.deny, input):
-		allowed = false
-		matched = "deny"
-	case len(policy.allow) > 0 || len(policy.deny) > 0:
-		allowed = matchAny(policy.allow, input)
-		if allowed {
-			matched = "allow"
-		} else {
-			matched = "default-deny"
+	rs, err := cp.query.Eval(ctx, rego.EvalInput(input))
+	if err != nil {
+		return Decision{}, fmt.Errorf("policy %q: eval: %w", name, err)
+	}
+
+	// Copy input for the decision record (§7.1 evidence requirement).
+	evalInput := make(map[string]interface{}, len(input))
+	for k, v := range input {
+		evalInput[k] = v
+	}
+
+	allow := false
+	if len(rs) > 0 && len(rs[0].Expressions) > 0 {
+		if b, ok := rs[0].Expressions[0].Value.(bool); ok {
+			allow = b
 		}
-	default:
-		// Legacy fallback: no rules declared, honour input["allowed"].
-		if v, ok := input["allowed"]; ok {
-			if b, ok := v.(bool); ok {
-				allowed = b
+	}
+
+	reason := buildReason(name, allow, input)
+	return Decision{
+		Allow:          allow,
+		Reason:         reason,
+		EvaluatedInput: evalInput,
+		PolicyName:     name,
+	}, nil
+}
+
+// buildReason constructs a human-readable explanation.  For the scheduling
+// policy the node.health field drives the message; for other policies a
+// generic allow/deny string is returned.
+func buildReason(policyName string, allow bool, input map[string]interface{}) string {
+	// Attempt to extract node.health for a scheduling-specific message.
+	if node, ok := input["node"]; ok {
+		if nodeMap, ok := node.(map[string]interface{}); ok {
+			if health, ok := toFloat(nodeMap["health"]); ok {
+				if allow {
+					return fmt.Sprintf("policy %q: node health %.0f >= 50, scheduling allowed", policyName, health)
+				}
+				return fmt.Sprintf("policy %q: node health %.0f < 50, scheduling denied (health threshold)", policyName, health)
 			}
 		}
-		matched = "legacy"
 	}
-
-	decisions := map[string]interface{}{
-		"policy":    policy.Name,
-		"evaluated": true,
-		"allowed":   allowed,
-		"matched":   matched,
+	if allow {
+		return fmt.Sprintf("policy %q: allow", policyName)
 	}
-	return allowed, decisions, nil
+	return fmt.Sprintf("policy %q: deny", policyName)
 }
 
-// matchAny reports whether any rule in rules is satisfied by input. A rule is
-// satisfied when input[key] stringifies to the rule's value.
-func matchAny(rules []rule, input map[string]interface{}) bool {
-	for _, r := range rules {
-		v, ok := input[r.key]
-		if !ok {
-			continue
-		}
-		if stringify(v) == r.value {
-			return true
-		}
-	}
-	return false
-}
-
-// stringify renders a JSON-decoded input value to its canonical string form so
-// that rule literals (always strings) can be compared against typed input.
-func stringify(v interface{}) string {
+// toFloat coerces an interface{} that may hold int, int64, float64, or float32
+// into a float64, returning false if no conversion is possible.
+func toFloat(v interface{}) (float64, bool) {
 	switch t := v.(type) {
-	case string:
-		return t
-	case bool:
-		return strconv.FormatBool(t)
 	case float64:
-		// json.Unmarshal decodes all numbers as float64.
-		return strconv.FormatFloat(t, 'f', -1, 64)
+		return t, true
+	case float32:
+		return float64(t), true
 	case int:
-		return strconv.Itoa(t)
+		return float64(t), true
 	case int64:
-		return strconv.FormatInt(t, 10)
-	case nil:
-		return ""
+		return float64(t), true
+	case int32:
+		return float64(t), true
 	default:
-		return fmt.Sprintf("%v", t)
+		return 0, false
 	}
 }
 
-// GetPolicy returns a copy of the named policy's public fields. The boolean is
-// false if no such policy is loaded. The returned Policy is a defensive copy:
-// mutating it does not affect engine state.
-func (e *Engine) GetPolicy(name string) (Policy, bool) {
-	e.mu.RLock()
-	defer e.mu.RUnlock()
-	p, ok := e.policies[name]
-	if !ok {
-		return Policy{}, false
-	}
-	rules := make(map[string]interface{}, len(p.Rules))
-	for k, v := range p.Rules {
-		rules[k] = v
-	}
-	return Policy{Name: p.Name, Rego: p.Rego, Rules: rules}, true
-}
-
-// RemovePolicy removes a policy by name. It returns an error if the policy was
-// not loaded, so callers can distinguish a real deletion from a no-op.
+// RemovePolicy deletes the named policy.  It returns an error when the policy
+// is not found so callers can distinguish a real deletion from a no-op.
 func (e *Engine) RemovePolicy(name string) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if _, ok := e.policies[name]; !ok {
-		return fmt.Errorf("policy not found: %s", name)
+		return fmt.Errorf("policy not found: %q", name)
 	}
 	delete(e.policies, name)
 	return nil
@@ -236,8 +218,8 @@ func (e *Engine) ListPolicies() []string {
 	e.mu.RLock()
 	defer e.mu.RUnlock()
 	names := make([]string, 0, len(e.policies))
-	for name := range e.policies {
-		names = append(names, name)
+	for n := range e.policies {
+		names = append(names, n)
 	}
 	return names
 }
