@@ -1,0 +1,59 @@
+context: tracked_docs
+description: >
+  HelixCluster constitution-tracked documents (§11.4.44/§11.4.65). Each canonical
+  Markdown source derives html + pdf + docx exports into docs/export/. Driven by the
+  docs_chain engine (§11.4.106) — supersedes the ad-hoc scripts/docs/generate.sh.
+nodes:
+  # --- continuation (§12.10) ---
+  cont_md:   { kind: markdown, path: docs/continuation.md }
+  cont_html: { kind: html,     path: docs/export/continuation.html }
+  cont_pdf:  { kind: pdf,      path: docs/export/continuation.pdf }
+  cont_docx: { kind: docx,     path: docs/export/continuation.docx }
+  # --- issues (§11.4.93 single source of truth — markdown view) ---
+  iss_md:    { kind: markdown, path: docs/issues.md }
+  iss_html:  { kind: html,     path: docs/export/issues.html }
+  iss_pdf:   { kind: pdf,      path: docs/export/issues.pdf }
+  iss_docx:  { kind: docx,     path: docs/export/issues.docx }
+  # --- issues_summary (§11.4.12) ---
+  issum_md:   { kind: markdown, path: docs/issues_summary.md }
+  issum_html: { kind: html,     path: docs/export/issues_summary.html }
+  issum_pdf:  { kind: pdf,      path: docs/export/issues_summary.pdf }
+  issum_docx: { kind: docx,     path: docs/export/issues_summary.docx }
+  # --- fixed (§11.4.19) ---
+  fx_md:    { kind: markdown, path: docs/fixed.md }
+  fx_html:  { kind: html,     path: docs/export/fixed.html }
+  fx_pdf:   { kind: pdf,      path: docs/export/fixed.pdf }
+  fx_docx:  { kind: docx,     path: docs/export/fixed.docx }
+  # --- fixed_summary (§11.4.53) ---
+  fxsum_md:   { kind: markdown, path: docs/fixed_summary.md }
+  fxsum_html: { kind: html,     path: docs/export/fixed_summary.html }
+  fxsum_pdf:  { kind: pdf,      path: docs/export/fixed_summary.pdf }
+  fxsum_docx: { kind: docx,     path: docs/export/fixed_summary.docx }
+  # --- HXC_REGISTRY ---
+  reg_md:    { kind: markdown, path: docs/HXC_REGISTRY.md }
+  reg_html:  { kind: html,     path: docs/export/HXC_REGISTRY.html }
+  reg_pdf:   { kind: pdf,      path: docs/export/HXC_REGISTRY.pdf }
+  reg_docx:  { kind: docx,     path: docs/export/HXC_REGISTRY.docx }
+edges:
+  - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
+  - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
+  - { type: derive-from, from: cont_md,  to: cont_docx, transform: md2docx }
+  - { type: derive-from, from: iss_md,   to: iss_html,  transform: md2html }
+  - { type: derive-from, from: iss_html, to: iss_pdf,   transform: html2pdf }
+  - { type: derive-from, from: iss_md,   to: iss_docx,  transform: md2docx }
+  - { type: derive-from, from: issum_md,   to: issum_html, transform: md2html }
+  - { type: derive-from, from: issum_html, to: issum_pdf,  transform: html2pdf }
+  - { type: derive-from, from: issum_md,   to: issum_docx, transform: md2docx }
+  - { type: derive-from, from: fx_md,   to: fx_html,  transform: md2html }
+  - { type: derive-from, from: fx_html, to: fx_pdf,   transform: html2pdf }
+  - { type: derive-from, from: fx_md,   to: fx_docx,  transform: md2docx }
+  - { type: derive-from, from: fxsum_md,   to: fxsum_html, transform: md2html }
+  - { type: derive-from, from: fxsum_html, to: fxsum_pdf,  transform: html2pdf }
+  - { type: derive-from, from: fxsum_md,   to: fxsum_docx, transform: md2docx }
+  - { type: derive-from, from: reg_md,   to: reg_html,  transform: md2html }
+  - { type: derive-from, from: reg_html, to: reg_pdf,   transform: html2pdf }
+  - { type: derive-from, from: reg_md,   to: reg_docx,  transform: md2docx }
+transforms:
+  md2html:  { builtin: pandoc-html }
+  html2pdf: { builtin: weasyprint-pdf }
+  md2docx:  { builtin: pandoc-docx }

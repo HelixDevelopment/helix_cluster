@@ -80,3 +80,6 @@ qa-results/docs_chain/
 # stale root-level test binaries (§11.4.30)
 /e2e.test
 /jwt.test
+
+# built engine binaries (docs_chain etc.)
+/bin/

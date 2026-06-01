@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 26
-**Last modified:** 2026-06-01T09:28:08Z
+**Revision:** 27
+**Last modified:** 2026-06-01T09:36:01Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `4554e9a` | Phase 0 enabling: integrate constitution upstream (§11.4.106 Docs Chain + workable-items DB), add docs_chain + helixqa submodules, purge stale test binaries, gitignore docs_chain runtime |
 | `279bce8` | Bump security submodule -> fb1f3ce (Phase 8C e2ee interop + gpuattest spot-check/seal) |
 | `f73806e` | Phase 8C gaps: model-integrity gate, attestation-gated admission, GPU class model, fiber stake admission, inference proxy (PCS-6/CLAUDE-1) |
 | `31c4490` | Phase 8B gaps: GPU pool manager, cost broker, burst hysteresis, local GPU TCO, provider adapter (PCS-6/CLAUDE-1) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `0d543b0` | Phase 5 gaps: device tier classifier, tier+power scheduler plugin, trust registry, cloudspot preemption, inference router (PCS-6/CLAUDE-1) |
 | `7a58d0b` | Phase 4 gaps: 26 chaos faults, SWIM SimTransport DST, Welch regression detector, device provisioner, wasm capability sandbox (PCS-6/CLAUDE-1) |
 | `2e70be1` | Phase 3 gaps: classads scheduler plugin, S3 storage backend (SigV4), OTLP/HTTP trace exporter (PCS-6/CLAUDE-1) |
-| `8d12a12` | Phase 2 gaps: console boot FSM, real STUN + WG key-rotation overlap, session checkpoint migration, DRM GPU reader (PCS-6/CLAUDE-1) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `279bce8` |
-| **Timestamp** | 2026-06-01T09:28:08Z |
+| **Commit** | `4554e9a` |
+| **Timestamp** | 2026-06-01T09:36:01Z |
 
 ## §3: Active Work
 

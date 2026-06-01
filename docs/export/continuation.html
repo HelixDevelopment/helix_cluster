@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 5 <strong>Last modified:</strong>
-2026-05-30T19:36:43Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 27 <strong>Last modified:</strong>
+2026-06-01T09:36:01Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -264,49 +264,59 @@ Work (last 10 commits)</h2>
 </thead>
 <tbody>
 <tr>
-<td><code>08b4f32</code></td>
-<td>noop</td>
+<td><code>4554e9a</code></td>
+<td>Phase 0 enabling: integrate constitution upstream (§11.4.106 Docs
+Chain + workable-items DB), add docs_chain + helixqa submodules, purge
+stale test binaries, gitignore docs_chain runtime</td>
 </tr>
 <tr>
-<td><code>a5425cf</code></td>
-<td>docs: Log HXC-902 and HXC-903 as completed in fixed.md</td>
+<td><code>279bce8</code></td>
+<td>Bump security submodule -&gt; fb1f3ce (Phase 8C e2ee interop +
+gpuattest spot-check/seal)</td>
 </tr>
 <tr>
-<td><code>41734c5</code></td>
-<td>noop</td>
+<td><code>f73806e</code></td>
+<td>Phase 8C gaps: model-integrity gate, attestation-gated admission,
+GPU class model, fiber stake admission, inference proxy
+(PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>861c179</code></td>
-<td>docs: Documentation chain infrastructure — §11.4.44 compliant
-revision headers, HTML/PDF exports, verify gate</td>
+<td><code>31c4490</code></td>
+<td>Phase 8B gaps: GPU pool manager, cost broker, burst hysteresis,
+local GPU TCO, provider adapter (PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>9982c59</code></td>
-<td>MVP Phase 2-3: Scheduler, Resource Aggregator, Session Backends</td>
+<td><code>8b04418</code></td>
+<td>Phase 8 gaps: chutes inference client+SSE+crypto seams, marketplace
+adapter+scorer, GPU dual-class reservation (PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>f7dd99e</code></td>
-<td>docs: MVP implementation progress tracker</td>
+<td><code>ded59ff</code></td>
+<td>Phase 7 gaps: hashslot CRC16, largest-subcluster voting, SLURM
+backfill, health startup tier, N+K admission, BOINC trust
+(PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>35de8ef</code></td>
-<td>Anti-bluff follow-up: Fix 8 stub packages + mutation tests for 15
-packages</td>
+<td><code>a31c0de</code></td>
+<td>Phase 6 gaps: HLC, CRDTs+merkle anti-entropy, federation cell
+registry/FSM, SWIM phi-accrual (PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>9aaeb9f</code></td>
-<td>Anti-bluff audit follow-up: Real JWT implementation + mutation tests
-for 6 packages</td>
+<td><code>0d543b0</code></td>
+<td>Phase 5 gaps: device tier classifier, tier+power scheduler plugin,
+trust registry, cloudspot preemption, inference router
+(PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>e20c3ef</code></td>
-<td>Constitution §7 + §11.4.102: Add inheritance verification gate +
-paired mutation test + anti-bluff audit</td>
+<td><code>7a58d0b</code></td>
+<td>Phase 4 gaps: 26 chaos faults, SWIM SimTransport DST, Welch
+regression detector, device provisioner, wasm capability sandbox
+(PCS-6/CLAUDE-1)</td>
 </tr>
 <tr>
-<td><code>2e861d1</code></td>
-<td>chore: cascade Helix Constitution inheritance pointers to all
-submodules</td>
+<td><code>2e70be1</code></td>
+<td>Phase 3 gaps: classads scheduler plugin, S3 storage backend (SigV4),
+OTLP/HTTP trace exporter (PCS-6/CLAUDE-1)</td>
 </tr>
 </tbody>
 </table>
@@ -325,16 +335,21 @@ submodules</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>08b4f32</code></td>
+<td><code>4554e9a</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-05-30T19:35:52Z</td>
+<td>2026-06-01T09:36:01Z</td>
 </tr>
 </tbody>
 </table>
 <h2 id="active-work">§3: Active Work</h2>
 <table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 35%" />
+<col style="width: 40%" />
+</colgroup>
 <thead>
 <tr>
 <th>HXC</th>
@@ -344,15 +359,77 @@ submodules</td>
 </thead>
 <tbody>
 <tr>
-<td>HXC-016</td>
-<td>Phase 4 Build Service</td>
-<td>Queued</td>
+<td>HXC-922</td>
+<td>Node service, advisory locks, chaos tests, docs</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-921</td>
+<td>Web UI, K8s/Helm, integration, E2E, benchmarks</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-920</td>
+<td>Health, security, build, wireguard services</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-919</td>
+<td>htmux, messaging, GPU, WASM, storage, build manifest</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-918</td>
+<td>Wire scheduler/session gRPC to real backends, etcd discovery</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-916</td>
+<td>Stub expansion (config, retry, ratelimit, validator, build
+cache)</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-914</td>
+<td>LLM, policy, setup, distributed lock</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-913</td>
+<td>Health, security, ClassAds parser</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-912</td>
+<td>Gateway, helixd, helix-agent</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-911</td>
+<td>Scheduler, Session gRPC services</td>
+<td>✅ Done</td>
+</tr>
+<tr>
+<td>HXC-910</td>
+<td>Console, security, testing infra</td>
+<td>✅ Done</td>
 </tr>
 </tbody>
 </table>
 <h2 id="next-planned-work">§4: Next Planned Work</h2>
+<p>All MVP, Phase 2, Phase 3, and Phase 4 are <strong>COMPLETE</strong>.
+Potential future enhancements:</p>
 <ol type="1">
-<li>Phase 4 Build Service</li>
+<li><strong>Performance optimization</strong> — Profile and optimize hot
+paths</li>
+<li><strong>Multi-region support</strong> — Cross-region cluster
+federation</li>
+<li><strong>GPU scheduling v2</strong> — Multi-GPU, fractional GPU
+allocation</li>
+<li><strong>Web UI real-time</strong> — WebSocket integration for live
+updates</li>
+<li><strong>Operator pattern</strong> — Kubernetes operator for cluster
+management</li>
 </ol>
 <h2 id="known-issues-blockers">§5: Known Issues / Blockers</h2>
 <ul>
@@ -360,6 +437,22 @@ submodules</td>
 </ul>
 <h2 id="quick-commands">§6: Quick Commands</h2>
 <div class="sourceCode" id="cb1"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test ./pkg/... <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1</span></code></pre></div>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Run all tests (requires GOWORK due to workspace modules)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="va">GOWORK</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/go.work <span class="ex">go</span> test ./... <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Build all binaries</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="va">GOWORK</span><span class="op">=</span><span class="va">$(</span><span class="bu">pwd</span><span class="va">)</span>/go.work <span class="ex">go</span> build ./cmd/...</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Build web UI</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run build</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Render Helm chart</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="ex">helm</span> template helix-cluster deploy/helm/</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Run benchmarks</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test <span class="at">-bench</span><span class="op">=</span>. ./test/benchmark</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Run chaos tests</span></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1 ./test/chaos</span></code></pre></div>
 </body>
 </html>

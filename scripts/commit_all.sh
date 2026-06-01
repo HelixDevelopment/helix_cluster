@@ -49,6 +49,17 @@ else
     echo "  docs/update_continuation.sh not found — skipping continuation update"
 fi
 
+# 1d. Docs Chain mechanical sync + verify gate (Constitution §11.4.106)
+#     Regenerates every registered export from its canonical source, then gates
+#     on byte-stable in-sync. Supersedes ad-hoc generate.sh export sync.
+echo "[1d/8] Docs Chain sync + verify..."
+if [ -d "${PROJECT_ROOT}/docs_chain/cmd/docs_chain" ] && [ -d "${PROJECT_ROOT}/.docs_chain/contexts" ]; then
+    bash "${PROJECT_ROOT}/scripts/docs/run_docs_chain.sh" sync --all || { echo "Docs Chain sync failed."; exit 1; }
+    bash "${PROJECT_ROOT}/scripts/docs/run_docs_chain.sh" verify --all || { echo "Docs Chain verify (drift) failed."; exit 1; }
+else
+    echo "  docs_chain submodule or .docs_chain/contexts absent — skipping (§11.4.3 SKIP-with-reason)"
+fi
+
 # 2. Stage all changes
 echo "[2/8] Staging changes..."
 git add -A
