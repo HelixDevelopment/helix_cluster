@@ -1,0 +1,712 @@
+[
+  {
+    "title": "Implement NATS/JetStream client wrapper (pkg/events)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Real NATS/JetStream publish/subscribe client wrapping digital.vasic.eventbus/pkg/nats, providing the control-plane messaging backbone every service depends on. Must support JetStream stream administration (HELIX_NODES, HELIX_SESSIONS, HELIX_SCHEDULER, HELIX_HEALTH, HELIX_ALERTS) with subject convention {domain}.{entity_id}.{action}.",
+    "closure_criteria": "Boot a real NATS+JetStream container via brokertest StartNATS; publish a NodeEvent on subject nodes.<uuid>.heartbeat and assert a subscriber receives the identical payload within the round-trip window; capture the broker stream-info log and the per-run UUID of the published message as sink-side evidence.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-1", "mvp/PHASE_MVP_ROADMAP.md#6 P0-1", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.4.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement etcd client wrapper (pkg/etcd)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Real go.etcd.io/etcd/client/v3 wrapper with concurrency primitives backing the discovery backend and distributed locks. Must expose the /clusteros key namespace (nodes/, sessions/, scheduler/, security/, config/, locks/) and the key-builder constants (NodeKey, SessionKey, SchedulerPoolKey, LockSchedulerKey).",
+    "closure_criteria": "Boot a real etcd container via brokertest StartEtcd; Put a node descriptor under /clusteros/nodes/<uuid>, Get it back from a second client, and assert byte-equality; capture etcd revision number before/after and the per-run UUID as sink-side evidence.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-2", "mvp/PHASE_MVP_ROADMAP.md#6 P0-2", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.2.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement etcd discovery backend (pkg/discovery)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Service registry backed by etcd with lease + keepalive + put/delete on the clientv3 interface, providing TTL-bounded registration with pluggable backends consumed by the API gateway and scheduler.",
+    "closure_criteria": "Register a service with a lease against real etcd; observe the keepalive renewing the lease; stop keepalive and assert the key disappears within TTL via a watching client; capture the lease-id and expiry timestamps with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#etcd discovery backend", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/discovery"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement real Kafka producer/consumer (pkg/pubsub)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Replace the in-memory map-of-channels Broker with a real Kafka client (segmentio/kafka-go or franz-go) implementing Publish(topic,key,value) and Subscribe(topic,group) with at-least-once delivery, idempotent acks=all producer, and offset commit. Keep in-memory impl behind the same interface for unit tests. Backs helix.audit.events and the event-stream topics.",
+    "closure_criteria": "Against a real Kafka broker, publish N keyed messages, consume across 2 consumer-group members, and assert every key is delivered exactly to one consumer; capture consumer-group offset-commit log lines and per-run UUID. Mutation: skipping offset commit must break the no-redelivery assertion.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-3", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 3", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.4.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement cgroups v2 + /proc resource reader (pkg/resources)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Real cgroup-v2 filesystem parsing and /proc reader aggregating CPU/memory (and GPU) availability, feeding the scheduler with real resource data. Includes golden testdata for cgroup-v2 files.",
+    "closure_criteria": "Parse a fixture cgroup-v2 tree and /proc snapshot, assert reported millicores and memory bytes match the golden values; on a real Linux host read live /proc and emit a ResourceSnapshot whose memory total matches `free -b`; capture the snapshot JSON with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-4", "mvp/PHASE_MVP_ROADMAP.md#6 P0-4", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.6"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Omega-model scheduler core (pkg/scheduler, internal/scheduler)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Shared-state Omega scheduler with filter/score/bind pipeline, optimistic-concurrency versioning over the etcd resource pool revision, cost-aware GPU placement, and gang scheduling with preemption. Job placement is an MVP blocker.",
+    "closure_criteria": "Submit 10 ScheduleRequests with ClassAds requirements; assert each lands on a node satisfying CPU/mem/GPU constraints and that a stale-revision bind is rejected and retried; capture the binding records (session->node) and decision latency per request with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-5", "mvp/PHASE_MVP_ROADMAP.md#6 P0-5", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement optimistic-concurrency versioning for scheduler pool",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "ScheduleOptimistic path with monotonic pool revision counter (scheduler/pool/revision) so concurrent binders detect conflicts and retry, preventing double-allocation under concurrent submissions.",
+    "closure_criteria": "Run two concurrent binders racing for the last GPU; assert exactly one succeeds and the loser retries against the bumped revision; capture both revision values before/after and the conflict-retry log with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "stress"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-5", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.2", "mvp/PHASE_MVP_ROADMAP.md#7 Omega scheduler race conditions"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement HTCondor ClassAds matching in scheduler (pkg/classads)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "ClassAds expression evaluator supporting bilateral requirements/rank matching (e.g. TARGET.CPU >= 4000) used by the scheduler to match workload requirements against node advertisements.",
+    "closure_criteria": "Evaluate a requirements expression against a set of node ClassAds; assert only matching nodes pass the filter and rank ordering matches the rank expression; capture the matched-node list and computed ranks with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.2", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#SchedulerService", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/classads"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement gang scheduling and preemption in scheduler",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Gang scheduling (all-or-nothing co-placement of a job group) and priority-based preemption so higher-priority work can evict lower-priority sessions per the cost_gpu/gang_preempt logic.",
+    "closure_criteria": "Submit a gang requiring N slots when only N-1 free; assert no partial placement; then submit a high-priority job and assert a lower-priority session is preempted and rescheduled; capture preemption event and resulting bindings with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-5", "mvp/helix_cluster_research/report/chapter05_execution_modes.md#5.3 Priority Management and Preemption"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Upgrade the tmux backend Attach to tmux control mode (-CC), parsing %output/%begin/%end notifications into structured events so the session service can multiplex panes and forward PTY bytes. Current impl only shells to tmux for create/attach without control-mode or byte forwarding.",
+    "closure_criteria": "Create a session, send a command, and assert a parsed %output event contains the command's stdout; capture the structured event log with the command output and per-run UUID. Mutation: ignoring %output frames must fail the assertion.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-6", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 6", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.7"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement CRDT session state and lifecycle (create/attach/migrate)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "CRDT-backed distributed session state with lifecycle operations (CREATING->RUNNING->MIGRATING->PAUSED->TERMINATED), windows/panes model, and routing table. Provides the backend-agnostic SessionBackend contract.",
+    "closure_criteria": "Create a session via SessionService.CreateSession, mutate window/pane CRDT state on two nodes concurrently, and assert both converge to the same document; capture the merged CRDT state and lifecycle transitions with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/session", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.7.2", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement real Node gRPC handlers serving helixv1 Node API (internal/node)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "gRPC server serving the generated helixv1 NodeService (Join, Heartbeat, Leave, GetNode, ListNodes, WatchNodes) wiring SWIM+WireGuard and the resource probe so nodes register and report resources.",
+    "closure_criteria": "Start helix-node, call Join then Heartbeat with a health score and resource usage; assert GetNode reflects the reported resources and a WatchNodes stream emits a JOINED event; capture the gRPC responses and emitted event with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-7", "mvp/PHASE_MVP_ROADMAP.md#6 P0-7", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#NodeService"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Make node registry etcd-backed and cross-process shared (internal/node)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Persist RegisterNode/UpdateNodeStatus into pkg/etcd with lease-bound keys (TTL = heartbeat window) and read ListNodes from etcd so two helix-node processes see each other, replacing the process-local in-memory map lost on restart.",
+    "closure_criteria": "Register on instance A; ListNodes on instance B returns it; stop A's keepalive and assert A's entry expires within TTL on B; capture B's node list before/after expiry with per-run UUID. Mutation: never attaching the lease must break the expiry assertion.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-7", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SWIM gossip membership and failure detection (pkg/swim)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "SWIM gossip over real UDP transport with suspicion mechanism, phi-accrual failure detection, and prober, driving node lifecycle JOINING->ACTIVE->SUSPECT->FAILED.",
+    "closure_criteria": "Form a two-node SWIM group over real UDP; kill one node's process and assert the survivor marks it SUSPECT then FAILED within the configured window (<5s exit gate); capture the survivor's membership-state transition log with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "performance"],
+    "source_refs": ["mvp/GAP_AUDIT.md#SWIM gossip", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.1", "mvp/PHASE_MVP_ROADMAP.md#8 SWIM failure detection"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement WireGuard mesh config-gen and key rotation (pkg/wireguard)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "WireGuard mesh peer config generation and key rotation producing valid peer configs (pubkey, allowed_ips) for the encrypted inter-node mesh on UDP 51820.",
+    "closure_criteria": "Generate mesh configs for 3 peers; bring up real wg interfaces in a netns topology and assert peer-to-peer ICMP succeeds; rotate a key and assert connectivity re-establishes; capture wg show handshake timestamps with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-8", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.4.4", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/wireguard"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement WireGuard NAT traversal / STUN hole-punch (pkg/wireguard)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Replace the placeholder STUN-like nat_traversal.go with a real STUN client and UDP hole-punching so nodes behind NAT join the full mesh, with STUN/TURN relay fallback and hole-punch timeout.",
+    "closure_criteria": "Across a multi-host NAT topology with a STUN/TURN relay, two NATed nodes establish a direct WireGuard tunnel via hole-punch; assert end-to-end mesh packet delivery; capture discovered external endpoints and handshake with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "chaos", "security"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-8", "mvp/GAP_AUDIT.md#DEFERRED WireGuard NAT traversal", "mvp/PHASE_MVP_ROADMAP.md#7 WireGuard NAT traversal fragility"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Wire API gateway reverse proxy with prefix routing and /health (internal/gateway)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Reverse proxy with prefix routing to downstream services, /health endpoint, and graceful shutdown as the external ingress for CLI and Web UI.",
+    "closure_criteria": "Start helix-gateway with a registered backend; issue a request to /api/v1/scheduler/ and assert it is proxied to the scheduler returning its response; hit /health and assert 200; capture proxied request/response pair with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-9", "mvp/PHASE_MVP_ROADMAP.md#6 P0-9", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Add JWT/RBAC auth middleware to API gateway (internal/gateway)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Wrap the reverse-proxy handler with pkg/middleware + pkg/jwt: reject requests lacking a valid Bearer token (401), inject verified claims, and enforce internal/security scopes per route prefix. Currently no auth is wired despite pkg/jwt and pkg/middleware existing.",
+    "closure_criteria": "Request /api/v1/scheduler/ with no/invalid/expired token returns 401; valid token with correct scope is proxied and returns 200; capture the 401 and 200 response codes with the decoded claim subject and per-run UUID. Mutation: making the verifier always return nil error must flip the unauthorized cases to passing.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#P0-9", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 2", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement leader election with fencing tokens (pkg/leader)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Distributed leader election with lease registry, fencing tokens, epoch counter, and staleness detection with TTL failover for all control-plane services.",
+    "closure_criteria": "Elect a leader among 3 candidates; kill the leader and assert a new leader is elected with a higher epoch/fencing token; assert a stale write carrying the old fencing token is rejected; capture both fencing tokens and the rejection with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Leader election + fencing", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/leader", "mvp/PHASE_MVP_ROADMAP.md#7 Split-brain"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement distributed lock primitives over etcd (pkg/lock)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "etcd-backed distributed lock for critical sections (scheduler mutex, per-session migration lock, config change lock).",
+    "closure_criteria": "Two processes contend for the same lock key on real etcd; assert mutual exclusion (only one holds at a time) and that lock release unblocks the waiter; capture lock-acquire/release ordering with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "stress"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Distributed lock", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/lock"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Postgres-backed internal artifact registry (pkg/hxcregistry)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Internal image/artifact registry client backed by Postgres with schema.sql, used by the node agent and build service for content-addressed artifacts.",
+    "closure_criteria": "Against a real Postgres container, register an artifact (name, sha256, size), look it up by content hash, and assert the stored row matches; capture the inserted row and CAS lookup result with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Internal artifact registry", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#Table 13 build_artifacts"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GPU resource probe with /proc parser (internal/gpu)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Real /proc/driver/nvidia/gpus parser (detectGPUsReal) with mock fallback (detectGPUsMock) on non-Linux/no-GPU, plus GPU allocation and monitoring, fulfilling the GPU scheduling pillar.",
+    "closure_criteria": "On a real NVIDIA host, enumerate GPUs and assert model/memory match nvidia-smi; allocate a GPU to a session and assert status transitions AVAILABLE->ALLOCATED; capture the device list and allocation record with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#GPU resource probe", "mvp/PHASE_MVP_ROADMAP.md#6 P1-10", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Define vendor-agnostic GPUBackend interface and registry (internal/gpu)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Unified GPUBackend interface (DetectDevices, GetDeviceStatus, Execute, ExecuteDistributed, AllocateMemory/FreeMemory, EnableMPS/DisableMPS, GetMetrics) with a BackendRegistry that AutoDetects available vendor libraries (CUDA/ROCm/oneAPI/MLX/SYCL).",
+    "closure_criteria": "Run AutoDetect on a host with one GPU library present; assert exactly the corresponding backend registers and BackendFor returns it while absent vendors return ErrNoBackend; capture the registered-backend map with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.6.2", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.6.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GPU sharing modes (MPS, time-slice, MIG, exclusive)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "GPU sharing controls: ShareExclusive, ShareMPS (NVIDIA Multi-Process Service), ShareTimeSlice (temporal multiplexing), and ShareMIG (Multi-Instance GPU), exposed via EnableMPS/DisableMPS and request Sharing field.",
+    "closure_criteria": "On a real GPU, enable MPS with a fraction and run two concurrent workloads; assert both make progress under MPS and that disabling MPS restores exclusive behavior; capture nvidia-smi process list before/after with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "performance"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.4 GPU Sharing Modes", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.6.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Build Service orchestrator and worker pool (internal/build)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Build orchestrator, worker-pool, state-machine (QUEUED->SCHEDULED->RUNNING->COMPLETED/FAILED) and cache layer for batch build jobs. Currently the orchestration logic is real but the build execution itself is simulated.",
+    "closure_criteria": "Submit a build job; assert it transitions through the state machine and produces a build_jobs row with cache_hit_ratio and artifact references; capture the job state transitions and artifact list with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Build Service", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#Table 12 build_jobs"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement real Bazel RBE build execution (internal/build)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Replace the simulated runBuild (time.After then fake ImageTag) with real remote build execution: Bazel Remote Build Execution protocol server, Buildbarn-compatible CAS, and distcc/icecream worker pool dispatching real toolchain commands across the node pool. Backs the AOSP build demo.",
+    "closure_criteria": "Dispatch a Bazel RBE build across at least 4 nodes; assert real compiled artifacts are produced and the work is spread across the node pool (>=4 nodes utilized exit gate); capture per-node task counts and output artifact hashes with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Build Service", "mvp/GAP_AUDIT.md#DEFERRED Bazel RBE", "mvp/PHASE_MVP_ROADMAP.md#6 P1-11", "mvp/PHASE_MVP_ROADMAP.md#8 AOSP build dispatch", "mvp/helix_cluster_research/report/chapter05_execution_modes.md#5.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement e2ee transport record protocol (security/pkg/e2ee)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "AES-256-GCM AEAD record protocol over ML-KEM-style key encapsulation with Seal/Open and nonce discipline, providing end-to-end encrypted transport.",
+    "closure_criteria": "Seal a payload, Open it on the peer and assert plaintext equality; tamper one byte of ciphertext and assert Open fails the authentication tag check; capture the tamper-rejection error and per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["mvp/GAP_AUDIT.md#e2ee transport", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.6"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement software-rooted attestation (security/pkg/attestation)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "ed25519 sign/verify of measurement documents with nonce binding, explicitly documented as software-rooted (not hardware TDX/SGX/NVIDIA). Honest contract; hardware root deferred.",
+    "closure_criteria": "Sign a measurement doc with a fresh nonce, verify it on the relying party, and assert a replayed (old-nonce) or mutated doc is rejected; capture the verify outcome for valid vs replayed with per-run UUID.",
+    "required_test_types": ["unit", "security"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Attestation", "mvp/GAP_AUDIT.md#DEFERRED Hardware-rooted attestation"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement RBAC scopes and identity bindings (internal/security)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Scope-based authorization with identity bindings and a policy enforcer (authorize_rbac, scopes), defining scopes such as node:read/write, session:read/write, pool:read, schedule:write, advisory:admin.",
+    "closure_criteria": "Authorize a request whose identity holds session:write against a session-mutating route and assert ALLOW; authorize an identity lacking the scope and assert DENY; capture both decisions with the evaluated scope set and per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["mvp/GAP_AUDIT.md#RBAC scopes / identity", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SPIFFE/SPIRE SVID issuance and mTLS identity (internal/security)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "SPIFFE/SPIRE identity provisioning issuing X.509 SVIDs used for mandatory mTLS between services, with certificate lifecycle management and Zero Trust enforcement.",
+    "closure_criteria": "Issue an SVID for a workload, establish an mTLS gRPC connection between two services authenticated by their SPIFFE IDs, and assert a peer presenting no/invalid SVID is rejected; capture the negotiated peer SPIFFE IDs and the rejection with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "security", "e2e"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#6 P1-13", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.6.3", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement htmux CLI raw-mode terminal client (cmd/htmux)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "htmux CLI with real raw-mode terminal handling and a dial seam to the session service; must stream remote session I/O once the server streaming endpoint exists.",
+    "closure_criteria": "Run `htmux new` and `htmux attach` against a live session service; type a command and assert its output renders in the local terminal within the round-trip window; capture a terminal recording/log of the echoed output with per-run UUID.",
+    "required_test_types": ["unit", "e2e", "ui", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#htmux CLI", "mvp/PHASE_MVP_ROADMAP.md#5.1 L7 htmux"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement session I/O PTY-over-WebSocket forwarding (cmd/helix-session)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add a StreamSession/attach handler that bridges a tmux pane's PTY to a WebSocket: spawn tmux -CC (or pipe-pane), copy bytes bidirectionally between the PTY fd and the WS conn using pkg/websocket, and propagate resize. Wire htmux/terminal.go to dial it. This is the missing path blocking the remote-attach exit gate.",
+    "closure_criteria": "Over a loopback WebSocket, write \"echo hi\\n\" to the client side and assert \"hi\" echoes back within 1s round-trip (MVP exit gate); capture the WS frame log showing input then output with per-run UUID. Mutation: dropping the server->client copy goroutine must make the test hang/fail.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "performance", "challenge(HelixQA)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Session I/O WebSocket forwarding", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 1", "mvp/PHASE_MVP_ROADMAP.md#8 Remote session attach", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement WebSocket envelope and MessagePack framing (pkg/websocket)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Binary-framed MessagePack WebSocket envelope (Type, PaneID, Timestamp, Payload) with message types Output/Input/Resize/Heartbeat/SessionEvt/Error for session I/O, node-watch, and pool-watch streams.",
+    "closure_criteria": "Encode an Output envelope, send over a real WS upgrade, decode on the peer and assert field round-trip equality including PaneID and Timestamp; capture the decoded envelope and per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.3", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/websocket"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement HelixQA live-service Challenge runner (cmd/helix-test)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a `challenge` subcommand that boots a service (or compose stack), drives the real endpoint, and writes captured sink-side evidence (response/log/metric) to an artifact dir, exiting non-zero on mismatch. Wire 3-5 challenges/ dirs to it. Fulfills the CLAUDE-1 end-user-proof mandate.",
+    "closure_criteria": "Run a challenge against a live endpoint; assert it produces an evidence file containing the expected sink line and exits zero; capture the evidence artifact path and per-run UUID. Mutation: pointing the challenge at a wrong endpoint must make the runner exit non-zero and write a failure record.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)", "automation"],
+    "source_refs": ["mvp/GAP_AUDIT.md#HelixQA Challenge runner", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 5", "mvp/PHASE_MVP_ROADMAP.md#6 P1-12", "mvp/PHASE_MVP_ROADMAP.md#8 HelixQA Challenge pass rate"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement deterministic-sim, chaos, and device-sim test harness (cmd/helix-test)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Test harness running deterministic simulation (DST), chaos fault injection, and device simulation modes for the cluster.",
+    "closure_criteria": "Run a chaos scenario killing a node mid-session and assert the cluster recovers (session rescheduled, membership reconverges); capture the recovery timeline log with per-run UUID.",
+    "required_test_types": ["chaos", "automation", "ddos", "stress"],
+    "source_refs": ["mvp/GAP_AUDIT.md#HelixQA Challenge runner", "mvp/helix_cluster_research/report/chapter07_testing_strategy.md#7.3 Chaos Engineering"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Wire Prometheus /metrics endpoint uniformly across all services (cmd/helix-*)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Mount pkg/metrics /metrics on every binary's HTTP/gRPC server so all 14 services expose helix_* counters/histograms; helpers exist but are not uniformly wired/scraped.",
+    "closure_criteria": "Hit each command's /metrics endpoint and assert a helix_* counter increments after one request; load a Grafana dashboard scraping all services and assert no gaps; capture the dashboard screenshot and a before/after counter value with per-run UUID. Mutation: dropping a handler's .Inc() must fail the increment assertion.",
+    "required_test_types": ["unit", "integration(real-svc)", "automation", "ui"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Prometheus metrics / tracing", "mvp/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS 7", "mvp/PHASE_MVP_ROADMAP.md#6 P1-15", "mvp/PHASE_MVP_ROADMAP.md#8 Prometheus metrics live"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Wire Jaeger/OTel trace-ID propagation across services (pkg/tracing)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "UUID trace-ID propagation with OpenTelemetry integration so a request crossing gateway->scheduler->session carries one trace, satisfying the observability gate.",
+    "closure_criteria": "Issue an end-to-end request and assert a single trace with spans from gateway, scheduler, and session appears in Jaeger; capture the Jaeger trace screenshot/JSON showing the linked spans with the trace UUID as the per-run identifier.",
+    "required_test_types": ["integration(real-svc)", "e2e", "automation", "ui"],
+    "source_refs": ["mvp/GAP_AUDIT.md#Prometheus metrics / tracing", "mvp/PHASE_MVP_ROADMAP.md#6 P1-16", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/tracing"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Mount the gRPC health protocol on every binary so liveness/readiness is queryable cluster-wide.",
+    "closure_criteria": "Query each service's gRPC health endpoint and assert SERVING; stop a dependency and assert the dependent reports NOT_SERVING; capture the health responses before/after with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "automation"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/health", "mvp/PHASE_MVP_ROADMAP.md#5.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Remove dangling pkg/gpuattest placeholder and reuse security/pkg/gpuattest",
+    "type": "Bug",
+    "priority": "P2",
+    "description": "The local pkg/gpuattest/ directory is empty while the real implementation lives at security/pkg/gpuattest/package.go; remove the dangling placeholder and route callers to the real package.",
+    "closure_criteria": "Build the module and assert no import references the empty local package; a GPU attestation call resolves to security/pkg/gpuattest and verifies a measurement; capture the build output and a successful verify with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/GAP_AUDIT.md#GPU attestation glue"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Provision PostgreSQL primary schema with 15 tables, indexes, and triggers",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Author the authoritative Postgres 16+ schema: 15 tables (nodes, gpu_devices, sessions, session_windows, session_panes, reservations, migration_history, audit_log partitioned, users, health_snapshots, llm_advisories, build_jobs, build_artifacts, network_policies, cluster_config) with CHECK constraints, 53 indexes, the helix_update_updated_at_column trigger, and the immutable helix_audit_trigger.",
+    "closure_criteria": "Apply the migration to a real Postgres container; insert and update a nodes row and assert updated_at auto-bumps and an audit_log entry is written by the trigger; query a CHECK violation is rejected; capture the audit row and constraint error with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.2.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Define etcd key namespace and key-builder constants (pkg/etcd)",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Define the /clusteros hierarchical key namespace (nodes/, sessions/, scheduler/, security/, config/, locks/) and the Go key-builder helpers (NodeKey, NodeStatusKey, NodeHeartbeatKey, SessionKey, SessionRoutingKey, SchedulerPoolKey, SchedulerQueueKey, LockSchedulerKey).",
+    "closure_criteria": "Generate keys via the builders and assert they match the documented layout exactly; write/read a value at each top-level prefix on real etcd and assert retrieval; capture the produced key strings with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.2.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Define Redis cache, routing, and rate-limit key structure (pkg/storage)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Redis Cluster L2 cache, pub/sub backbone, and rate-limit store using the clusteros: namespace: session state/routing/windows/panes, node resources/health/metrics, gpu status/metrics, cache pool/capabilities (with TTLs), token-bucket rate-limit hashes, and pub/sub channels (events:nodes/sessions/scheduler/alerts).",
+    "closure_criteria": "Against a real Redis, write a session routing hash with TTL, read it back from another client before TTL, and assert expiry after TTL; publish a NodeEvent on clusteros:events:nodes and assert a subscriber receives it; capture key TTL and the received message with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.2.3", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/storage"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Define and generate proto service stubs (node/session/scheduler/health/auth)",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Manage .proto definitions with buf and generate Go (and Zig/Python) stubs for NodeService, SessionService, SchedulerService, HealthService, AdvisoryService including all messages (JoinRequest/Response, HeartbeatRequest, IOEvent, ScheduleRequest/Response, MigrateSessionRequest, etc.).",
+    "closure_criteria": "Run buf generate and assert the helixv1 Go stubs compile and a round-trip marshal/unmarshal of CreateSessionRequest preserves all fields; capture the generated file list and the round-trip diff with per-run UUID.",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.2", "mvp/PHASE_MVP_ROADMAP.md#5.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement REST API surface on API Gateway with OpenAPI 3.0",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Versioned REST surface (HTTPS 8443) for Nodes, Sessions, Windows, Resources/pool/schedule, Health, and Advisories endpoint groups with OpenAPI 3.0 docs and per-group authZ scopes; e.g. POST /v1/sessions returns 201 with a created session and GET /v1/pool/utilization returns pool stats.",
+    "closure_criteria": "POST /v1/sessions with a resource spec and assert a 201 with a session id and status CREATING; GET /v1/pool/utilization and assert numeric utilization fields; capture both HTTP exchanges with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.3.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Avro event schemas and schema-validated routing (Event Bus)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Apache Avro schemas for NodeEvent, SessionEvent, SchedulerEvent, and AuditEvent with backward/forward-compatible evolution, plus schema-validated event routing in the Event Bus service.",
+    "closure_criteria": "Serialize a SessionEvent with Avro, evolve the schema by adding a defaulted field, and assert an old consumer still deserializes the new payload and a new consumer reads an old payload; capture both decode results with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.4.1", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Configure Kafka topics with partitions/replication/retention",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Create the durable Kafka 4.0 (KRaft) topics with specified partitions/replication/retention/compression: helix.audit.events, helix.node.events, helix.session.events, helix.scheduler.events, helix.metrics.raw, helix.llm.advisories, helix.build.events.",
+    "closure_criteria": "Apply topic configuration to a real Kafka cluster and assert describe-topics returns the expected partition count, replication factor, and retention for each topic; capture the kafka describe output with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "automation"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS)",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Administer the JetStream streams with subjects, retention (Limits), max-age, and replicas as specified: HELIX_NODES (nodes.>), HELIX_SESSIONS (sessions.>), HELIX_SCHEDULER (scheduler.>), HELIX_HEALTH (health.>), HELIX_ALERTS (alerts.>).",
+    "closure_criteria": "Create the streams on real NATS and assert stream-info returns the expected subjects, max-age, and replica count; publish to each subject and assert the message count increments; capture stream-info output with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "automation"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.4.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Cap'n Proto zero-copy serialization for control-plane (pkg/serde)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Cap'n Proto as default wire format for internal control-plane messages (NATS payloads, ZeroMQ frames, etcd values) enabling zero-copy deserialization of Node and related structs.",
+    "closure_criteria": "Marshal a Node struct to Cap'n Proto and DeserializeNode it back as a zero-copy view; assert field equality and that no heap allocation occurs for field access (benchmark allocs/op == 0 on the read path); capture the bench allocs and per-run UUID.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.5.2", "mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/serde"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement FlatBuffers serialization for GPU compute payloads",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "FlatBuffers (TensorDesc, ComputeTask) for GPU compute payloads with C/CUDA interop, using a pooled flatbuffers.Builder from sync.Pool to eliminate GC pressure on the hot path.",
+    "closure_criteria": "Serialize a ComputeTask with inputs/outputs and deserialize in a C consumer harness asserting tensor dimensions match; benchmark the pooled builder shows reduced allocs vs unpooled; capture bench output with per-run UUID.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.5.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement ZeroMQ message patterns for internal data planes",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Four ZeroMQ patterns: ROUTER-DEALER (scheduler->node task distribution with correlation IDs), PUB-SUB (event broadcast), PUSH-PULL (log aggregation, at-least-once with consumer ack), REQ-REP (sync health probes with timeout+backoff), with Curve25519-encrypted ZMTP and 24h key rotation.",
+    "closure_criteria": "Distribute tasks ROUTER->DEALER and assert correlated replies return; push logs and assert fair-queued at-least-once delivery with ack; capture correlation-id matched request/reply pairs with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "stress", "security"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.5.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Setup Wizard single-command node onboarding (cmd, BASH+Go)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Single-command (curl | bash) node onboarding: hardware auto-detection, driver installation, WireGuard mesh auto-formation, and ephemeral lifecycle, fulfilling the Flawless Setup principle.",
+    "closure_criteria": "Run the onboarding command on a fresh node and assert it auto-detects hardware, joins the WireGuard mesh, and registers in etcd visible to an existing node within the formation window; capture the wizard transcript and the new node appearing in ListNodes with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "ux", "challenge(HelixQA)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1 Setup Wizard", "mvp/PHASE_MVP_ROADMAP.md#3 Ph 8", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.1.12"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement LLM Brain advisory engine with LLMsVerifier gate (internal/llm)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "RAG-powered advisory engine producing MIGRATION/SCALING/CONFIG/ALERT/OPTIMIZATION advisories with chain-of-thought rationale, confidence and risk_level, constitutional-constraint validation, and a mandatory LLMsVerifier gate; advisory-only, never binding alone.",
+    "closure_criteria": "Generate an advisory; assert it is persisted PENDING with rationale and confidence, is never auto-applied without approval for non-LOW risk, and that the LLMsVerifier rejects a hallucinated/unsafe action; capture the advisory record and verifier rejection with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.6", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#Table 11 llm_advisories", "mvp/PHASE_MVP_ROADMAP.md#6 P2-19"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement OPA/WASM Policy Engine with HelixConstitution enforcement",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Open Policy Agent (OPA/WASM) evaluation enforcing HelixConstitution rules, RBAC, and auto-approval logic for low-risk advisories (e.g., prevent scheduling on nodes with health score < 50).",
+    "closure_criteria": "Submit a scheduling decision targeting a node with health < 50 and assert the policy denies it; submit to a healthy node and assert allow; capture both policy decisions with the evaluated input and per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.6.5", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1 Policy Engine", "mvp/PHASE_MVP_ROADMAP.md#4.2 internal/policy"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Health Monitor with eBPF probes and LSTM failure prediction",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Health Monitor ingesting eBPF probes and Prometheus TSDB, computing composite 0-100 health scores (cpu/memory/disk/network/gpu/temperature/services), LSTM failure prediction, anomaly detection, and self-healing action dispatch at 15s resolution.",
+    "closure_criteria": "Feed a degrading metric stream and assert the overall_score drops below 50 and a FailurePrediction is emitted ahead of simulated failure; assert a self-healing action is dispatched; capture the health_snapshot rows and prediction with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.5", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#Table 10 health_snapshots"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement CRIU/DMTCP-based session live migration orchestration",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Migrator coordinating session migration: acquire migration lock, validate target capacity, SIGSTOP freeze, backend checkpoint (CRIU/DMTCP/RESTART/LIVE), stream image via Arrow Flight, restore on target, update routing, SIGCONT resume, and record migration_history with rollback on failure.",
+    "closure_criteria": "Migrate a running interactive session A->B; assert the process state restores and the client reconnects transparently with output continuity; on injected restore failure assert rollback resumes on source; capture migration_history row (freeze/transfer durations) with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "benchmark"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.7.5", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.3.3", "mvp/GAP_AUDIT.md#DEFERRED CRIU", "mvp/PHASE_MVP_ROADMAP.md#6 P2-18"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Zellij and GNU screen session backends",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Additional SessionBackend implementations: Zellij (built-in CRDT, distributed panes, native live migration) and GNU screen (DMTCP fallback), selectable via the BackendFactory preference chain.",
+    "closure_criteria": "Create a session on the Zellij backend with distributed panes across two nodes and assert pane output renders from both; create a screen session and assert basic attach/detach works; capture the backend type and pane outputs with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.7.3", "mvp/PHASE_MVP_ROADMAP.md#6 P2-17"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Backup Service performing etcd snapshot scheduling, PostgreSQL WAL archival, Ceph RADOS checkpoint streaming, and cross-region replication.",
+    "closure_criteria": "Trigger an etcd snapshot and a Postgres WAL archive; restore into a fresh instance and assert the cluster state matches the source (node/session rows present); capture the restored row counts vs source with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1 Backup Service"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Metrics Collector node scrape endpoint and GPU metrics aggregation",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Per-node Prometheus scrape endpoint parsing cgroup /proc and aggregating GPU metrics (NVML/rocSM/Level Zero) at 15s resolution for the Metrics Collector service.",
+    "closure_criteria": "Scrape the collector endpoint and assert it returns per-node CPU/mem and (where present) GPU utilization metrics matching the resource reader; capture the scrape payload with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1 Metrics Collector"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement token-bucket rate limiter for API gateway (pkg/ratelimit)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Token-bucket rate limiter with per-user and global buckets (clusteros:ratelimit:{user_id}, clusteros:ratelimit:global) enforced at the API gateway.",
+    "closure_criteria": "Drive requests above a per-user limit and assert the limiter returns 429 after the bucket empties, then recovers after refill; capture the 429 response and bucket token counts before/after with per-run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "ddos", "stress"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#4.1 pkg/ratelimit", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.2.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Vault secret injection and rotation for all services",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "All services consume Vault-injected credentials with secret rotation via the Security Manager, satisfying the operability secrets exit gate.",
+    "closure_criteria": "Boot a service with Vault-injected creds and assert it authenticates to its dependency; rotate the secret and assert the service picks up the new credential without downtime; capture `vault kv get` versions before/after with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Vault secrets accessible", "mvp/GAP_AUDIT.md#DEFERRED Vault secret rotation", "mvp/helix_cluster_research/report/chapter04_component_specifications.md#4.1 Security Manager"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement two-node cluster formation end-to-end (exit gate)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Integrate SWIM + WireGuard + etcd registry + leader election so two real nodes join automatically and stay coherent, the primary Cluster Formation pillar and MVP exit gate.",
+    "closure_criteria": "Boot two real helix-node processes; assert they discover each other and form a coherent cluster (both appear in each other's ListNodes) in under 60s; capture each node's membership view and formation timestamp with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "challenge(HelixQA)"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Two-node cluster formation", "mvp/PHASE_MVP_ROADMAP.md#2 Four Pillars"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement session-create end-to-end path (htmux new exit gate)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Wire the full CLI->gateway->session service->tmux backend path so `htmux new` creates a session in under 3s, the Distributed Sessions pillar exit gate.",
+    "closure_criteria": "Run `htmux new` against the live stack and assert a session is created and visible (RUNNING) within 3s; capture the session record and the elapsed time with per-run UUID.",
+    "required_test_types": ["e2e", "performance", "challenge(HelixQA)"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Session create", "mvp/PHASE_MVP_ROADMAP.md#2 Four Pillars"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Benchmark job scheduling decision latency under 100ms (exit gate)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Performance benchmark proving the Omega scheduler places jobs with a decision latency under 100ms each across a batch of submissions.",
+    "closure_criteria": "Submit 10 jobs and assert each is placed correctly with per-decision latency under 100ms; capture the latency histogram and the placement correctness summary with per-run UUID.",
+    "required_test_types": ["benchmark", "performance"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Job scheduling decision", "mvp/helix_cluster_research/report/chapter07_testing_strategy.md#7.5 Scheduling Benchmarks"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Achieve greater than 60% line coverage across pkg/ via real (non-mock) tests and ensure every pkg has a paired mutation test per Constitution 1.1, scanned automatically.",
+    "closure_criteria": "Run go test -cover and assert pkg/ aggregate line coverage > 60% from non-mock-only tests; run the mutation scan and assert every pkg has at least one mutation that flips a test to failing; capture the coverage report and mutation-scan summary with per-run UUID.",
+    "required_test_types": ["unit", "automation", "challenge(HelixQA)"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Test coverage", "mvp/PHASE_MVP_ROADMAP.md#8 Mutation test coverage", "mvp/helix_cluster_research/report/chapter07_testing_strategy.md#7.2 Mutation Testing"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author TLA+ specifications for consensus and scheduling concurrency",
+    "type": "Research",
+    "priority": "P2",
+    "description": "TLA+ models for membership/consensus and the optimistic scheduling protocol, model-checking safety properties (no double-allocation, no split-brain) to de-risk concurrency.",
+    "closure_criteria": "Run the TLC model checker on the scheduling spec and assert the safety invariant (no resource double-bind) holds across the explored state space with zero counterexamples; capture the TLC output and invariant result with per-run UUID.",
+    "required_test_types": ["automation"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter07_testing_strategy.md#7.4 Formal Verification", "mvp/PHASE_MVP_ROADMAP.md#7 Omega scheduler race conditions"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Publish v1.0.0-dev-mvp release across all modules with packaging",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Tag v1.0.0-dev-mvp on all modules with go.work verification and produce Debian/Homebrew/Docker packages plus operator docs (Phase 8 Polish & Release).",
+    "closure_criteria": "Run go.work verify clean, tag v1.0.0-dev-mvp on every module, and install one packaged artifact (e.g., Docker image) that boots a node successfully; capture the git tags, go.work verify output, and the running container with per-run UUID.",
+    "required_test_types": ["automation", "e2e"],
+    "source_refs": ["mvp/PHASE_MVP_ROADMAP.md#8 Release tag published", "mvp/PHASE_MVP_ROADMAP.md#3 Ph 8"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement interactive-mode AI CLI agent resource provisioning",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Interactive Mode provisioning for AI CLI agents (Claude Code, Kimi Code): parallel agent scheduling, context sharing/coordination between agents, GPU scheduling for model inference, and token management/rate limiting.",
+    "closure_criteria": "Launch multiple AI agent sessions; assert each receives its provisioned CPU/GPU and that token rate limits are enforced per agent; capture per-agent resource allocations and a rate-limit event with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter05_execution_modes.md#5.2", "mvp/helix_cluster_research/research/clusteros_dim14_ai_cli_agents.md"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement hybrid mode switching and batch/interactive resource sharing",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Seamless switching between Batch (AOSP build) and Interactive (AI agent) modes within sessions, with resource sharing and priority management/preemption between the two classes.",
+    "closure_criteria": "Run a batch build and an interactive session concurrently; raise interactive priority and assert batch work is throttled/preempted to free resources, then resumes when interactive load drops; capture the resource-share timeline with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "stress", "performance"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter05_execution_modes.md#5.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement distcc/icecream distributed C/C++ compilation and ccache layer",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "distcc/icecream distributed C/C++ compilation worker pool with ccache/sccache compiler caching and linker acceleration for the AOSP four-layer compilation pipeline.",
+    "closure_criteria": "Run a C/C++ build distributed across worker nodes with a warm ccache; assert compilation is offloaded to remote workers and cache hits reduce rebuild time on a second run; capture the distcc host distribution and ccache hit ratio with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "scaling", "performance"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter05_execution_modes.md#5.1", "mvp/helix_cluster_research/research/clusteros_dim13_aosp_builds.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement WireGuard mesh network policies (segmentation)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Network policy engine over the WireGuard mesh (network_policies table): label-selector source/dest, allowed ports, ALLOW/DENY action with priority, controlling inter-node traffic segmentation.",
+    "closure_criteria": "Apply a DENY policy between two label-selected node groups and assert traffic on the matched ports is blocked while an ALLOW policy permits it; capture connection success/failure for both with per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["mvp/helix_cluster_research/report/chapter04_component_specifications.md#Table 14 network_policies", "mvp/helix_cluster_research/report/chapter03_system_architecture.md#3.4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author MVP architecture and component-specification documentation artifacts",
+    "type": "Docs",
+    "priority": "P2",
+    "description": "Maintain the MVP architecture blueprint, seven-layer stack diagram, service communication matrix (Mermaid), and component specifications (schemas, APIs, interfaces) as living docs aligned to the implementation.",
+    "closure_criteria": "Render the docs site and assert the service communication Mermaid diagram and the 15-table schema reference build without errors and match the deployed proto/schema versions; capture the rendered diagram and a schema-vs-doc diff (empty) with per-run UUID.",
+    "required_test_types": ["automation"],
+    "source_refs": ["mvp/CLUSTER_OS_ARCHITECTURE.md", "mvp/HELIX_CLUSTER_OS_COMPLETE_REPORT.md", "mvp/helix_cluster_research/report/chapter03_system_architecture.md", "mvp/helix_cluster_research/report/chapter04_component_specifications.md"],
+    "decoupling_candidate": false
+  }
+]

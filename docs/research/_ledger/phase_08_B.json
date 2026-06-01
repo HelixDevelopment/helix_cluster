@@ -1,0 +1,682 @@
+[
+  {
+    "title": "Define pkg/pool GPUProvider interface as single integration seam",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/pool with the GPUProvider interface (Name() string, Tier() Tier, Probe(ctx)(Capacity,error), Submit(ctx,WorkloadRequest)(Result,error), Healthy(ctx) bool) plus value types VirtualGPU, WorkloadRequest, Capacity, Result. This is the one abstraction every provider plugs into; pure Go, no network calls, context-cancellable. Adding a new provider must require only one new pkg/provider/<name> implementation and a values entry with no changes to the pool, burst, or scheduler.",
+    "closure_criteria": "Run a Go program that registers a FakeProvider against the real pkg/pool interface and prints provider Name/Tier/Capacity for run-UUID; before: no pkg/pool package exists (build fails); after: `go doc pkg/pool.GPUProvider` lists the five methods and a logged probe shows the fake provider's reported Capacity for that UUID.",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:53-56", "phase_08_B/PHASE_8B_ROADMAP.md:102", "phase_08_B/PHASE_8B_ROADMAP.md:186"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement GPUTier type with priority ordering (Local..Decentralized)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement the GPUTier enum (TierLocal=1, TierRemoteProxy=2, TierCloud=3, TierDecentralized=4) with String() and Priority() methods so the pool sorts providers deterministically by ascending tier priority. Local owned hardware is highest priority; decentralized (Chutes/io.net/Akash) is elastic burst lowest.",
+    "closure_criteria": "Run a test binary that prints the sorted tier order for a mixed provider set for run-UUID; before: no tier concept (internal/gpu has zero tier concepts); after: log shows local,remote-proxy,cloud,decentralized in that exact order and GPUTier.String() returns the human label.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:230-251", "phase_08_B/PHASE_8B_ROADMAP.md:72-79"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement PoolManager registry with tier-ordered Allocate walk",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement PoolManager that registers providers, sorts by Tier priority, and on Allocate(req) walks tiers in order returning the first healthy provider with capacity. In-memory registry, deterministic ordering, RWMutex thread-safety, RegisterDevice/UnregisterDevice/GetPoolStatus.",
+    "closure_criteria": "With three registered fake providers (tiers 1/3/4) where tier-1 reports zero capacity and tier-3 healthy, Allocate returns the tier-3 provider's result; capture run-UUID alloc log. Before: no PoolManager exists; after: log shows tier-3 chosen and tier-1 skipped for saturation, with the allocation ID and chosen tier recorded.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:55-56", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:371-679"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement WorkloadSpec/GPUDevice/GPUAllocation/PoolStatus data structures",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Define the pool data model: GPUDevice (ID, Tier, Provider, Model, VRAMBytes, TFLOPSFP16, Location, CostPerHour, Labels, runtime state), WorkloadSpec (Type, GPUModel, GPUCount, MinVRAM, MaxLatencyMs, MaxCostHour, Duration, Priority, Labels, UserID, ProjectID), WorkloadType enum, GPUAllocation, PoolStatus, DeviceMetrics.",
+    "closure_criteria": "Run a JSON round-trip test marshaling a populated WorkloadSpec and GPUAllocation for run-UUID; before: types undefined; after: emitted JSON contains all documented fields (gpu_count, min_vram, max_cost_hour, tier, cost_hour) and re-unmarshals identically, logged with the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:253-353"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement candidate filtering (model/VRAM/cost/label selector)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement PoolManager.filterCandidates: skip unhealthy devices, match GPU model ('any' matches all), check available VRAM >= MinVRAM, enforce per-workload MaxCostHour, and apply label selector matching (e.g. tee=true). Returns only devices satisfying every constraint.",
+    "closure_criteria": "Submit a WorkloadSpec requiring tee=true and 40GB VRAM against a mixed device set for run-UUID; before: no filter; after: log shows only the TEE-labeled, sufficiently-large devices passed to the scheduler, and a device under MinVRAM or over MaxCostHour is excluded by name.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:627-678"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement global MaxCostPerHour budget cap on allocations",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Enforce a global cost-cap in PoolManager.Allocate: reject any allocation whose projected cost (current cost-per-hour + workload MaxCostHour) would exceed the configured maxCostPerHour, tracked via CostTracker. Configurable via WithMaxCostPerHour option.",
+    "closure_criteria": "Configure cap at $10/hr, run allocations until the next would breach it for run-UUID; before: no cap (over-budget allocations succeed); after: the breaching Allocate returns an explicit 'would exceed global cost cap' error logged with current+requested totals and the UUID, while under-budget allocations still succeed.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:480-492", "phase_08_B/PHASE_8B_ROADMAP.md:222"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement PriorityScheduler (tier then least-load then cost)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement pkg/pool/scheduler PriorityScheduler.Select sorting candidates by tier priority ascending, then utilization ascending, then cost ascending, returning the requested count. Default scheduler for the pool.",
+    "closure_criteria": "Select from candidates spanning two tiers and varying utilization for run-UUID; before: no scheduler; after: log shows local-tier least-utilized device chosen first and selection order matches tier>util>cost, recorded with the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:694-715", "phase_08_B/PHASE_8B_ROADMAP.md:103"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement CostAwareScheduler selecting cheapest GPUs meeting SLA",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement CostAwareScheduler.Select sorting candidates purely by CostPerHour ascending while still respecting the upstream filter (model/VRAM/latency). Routes workloads to the cheapest provider that meets the SLA, supporting the 50-90% cost-reduction goal.",
+    "closure_criteria": "Given candidates with known prices for run-UUID, Select returns the cheapest first; before: scheduler absent; after: log shows the lowest-cost device chosen and the selection cost recorded against the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:717-731", "phase_08_B/PHASE_8B_ROADMAP.md:103"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement LatencyAwareScheduler for inference routing",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement LatencyAwareScheduler.Select preferring local tier first then ordering by adapter-measured LatencyMs, for latency-sensitive inference workloads.",
+    "closure_criteria": "Select with two remote providers reporting different LatencyMs for run-UUID; before: no latency scheduler; after: log shows the lower-latency provider chosen after local, with measured latency logged against the UUID.",
+    "required_test_types": ["unit", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:733-752", "phase_08_B/PHASE_8B_ROADMAP.md:103"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement HealthMonitor with 30s checks and auto-failover trigger",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement pkg/pool HealthMonitor running periodic (default 30s) checks: local devices via NVML, remote devices via adapter.HealthCheck with 10s timeout. Flip device Healthy state, log transitions, and invoke handleFailure to mark affected allocations for migration when a device goes unhealthy.",
+    "closure_criteria": "Run the monitor against a fake provider toggled unhealthy mid-run for run-UUID; before: no health wiring; after: log shows 'GPU device went unhealthy' with provider+error then 'recovered' on restore, and affected allocation IDs flagged, all stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:768-869", "phase_08_B/PHASE_8B_ROADMAP.md:117"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement internal/costbroker ComputeBroker weighted scorer",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement internal/costbroker ComputeBroker: given []ProviderSignal{Price,Availability,Latency,Throughput} compute score = 0.30*priceScore + 0.30*availability + 0.20*latencyScore + 0.20*throughput (price/latency inverted+normalized to [0,1]). Expose Rank() returning stable descending ordering and enforce a hard MaxCostPerHour cap dropping over-budget providers. Pure/stateless so callable every 60s.",
+    "closure_criteria": "Rank a cheap-slow vs expensive-fast provider with documented weights for run-UUID; before: no broker; after: log prints the exact ranking and confirms a provider above MaxCostPerHour is excluded, recorded with the UUID. Mutation: changing a weight constant flips the logged order.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:58-61", "phase_08_B/PHASE_8B_ROADMAP.md:118", "phase_08_B/PHASE_8B_ROADMAP.md:69"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement ComputeBroker 60s re-scoring loop with price-spike guard",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Wire a caller that re-runs ComputeBroker.Rank every 60 seconds against fresh injected provider signals so provider price spikes are detected and routing shifts away within one cycle. Apply a 10% discount to providers where HelixCluster already has idle owned capacity (Phase 8 bridge, prevents double-spend).",
+    "closure_criteria": "Inject a price spike for the current top provider for run-UUID; before: ranking static; after: within one 60s cycle the log shows the spiked provider demoted below a cheaper alternative and the idle-capacity discount applied, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:222", "phase_08_B/PHASE_8B_ROADMAP.md:170-176"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/burst BurstController MONITOR->SPILL->RECOVER hysteresis",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement a clock-injectable state machine: input utilization sample [0,1]; >=0.90 enters SPILL emitting a spill event; only returns to MONITOR when utilization falls to <=0.63 (hysteresis, no flapping). Expose Observe(util)(Transition,[]Event) and State(). Caller drives ticks; fully deterministic.",
+    "closure_criteria": "Feed 0.5->0.95->0.80->0.62 for run-UUID; before: no burst package; after: log shows exactly one SPILL at 0.95 and one RECOVER at 0.62 with 0.80 staying SPILL, stamped with the UUID. Mutation: collapsing thresholds to a single 0.90 makes 0.80 wrongly recover and fails the assertion.",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:63-66", "phase_08_B/PHASE_8B_ROADMAP.md:70", "phase_08_B/PHASE_8B_ROADMAP.md:190"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement BurstController utilization RingBuffer moving average",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the RingBuffer (60-sample default) feeding the BurstController so spill/recover decisions use a moving average rather than instantaneous spikes, plus the 10-minute drain-duration and 5-minute cooldown timers from the StateLocalOnly/StateBurstActive/StateDraining loop.",
+    "closure_criteria": "Feed a noisy utilization stream with a single transient 0.95 spike for run-UUID; before: no smoothing; after: log shows the averaged value never crosses 0.90 from one spike so no false burst fires, and a sustained high stream does fire, recorded with the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2457-2549", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement BurstController activateBurst capacity estimation + allocation",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement activateBurst: estimateNeededCapacity from excess utilization, select a provider via CostRouter, build a burst WorkloadSpec (labels burst=true), allocate via PoolManager, and track BurstAllocation records. Implement startDrain/drainComplete to release burst allocations when utilization recovers.",
+    "closure_criteria": "Drive local utilization above 0.90 for run-UUID; before: no spillover; after: log shows a burst allocation created on the chosen remote provider with gpu_count and cost_hour, and on recovery 'Burst allocation released' for each, all stamped with the UUID. Burst trigger occurs within 5s of saturation.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "stress"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2551-2629", "phase_08_B/PHASE_8B_ROADMAP.md:236"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/burst CostRouter per-workload-type provider scoring",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement CostRouter.SelectProvider scoring providers (cost, latency, reliability) with per-workload-type weights (inference 0.30/0.40/0.30, training 0.50/0.20/0.30, batch 0.60/0.10/0.30, hpc 0.20/0.50/0.30), honoring RequireTEE and MaxCostHour/MaxLatencyMs filters, with an AWS-spot fallback when no candidate qualifies.",
+    "closure_criteria": "Route an inference vs a training request over the same provider table for run-UUID; before: no router; after: log shows latency-weighted pick for inference and cost-weighted pick for training, and a RequireTEE request returns only a TEE provider, recorded with the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2634-2757", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement 5-tier fallback chain Chutes->io.net->RunPod->AWS",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the burst fallback chain so a rate-limited or failed provider cascades to the next tier (Chutes -> io.net -> RunPod -> AWS), honoring HTTP-429 with exponential backoff, mitigating Chutes API rate limits under burst load.",
+    "closure_criteria": "Inject a 429/failure on the primary provider for run-UUID; before: single-provider failure aborts the workload; after: log shows the request cascading through the fallback chain and succeeding on the next healthy provider within failover SLA (<10s), stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md", "phase_08_B/PHASE_8B_ROADMAP.md:217", "phase_08_B/PHASE_8B_ROADMAP.md:237"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement QoS tiers (real-time, interactive, batch, best-effort)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement QoS tier classification in the burst router so workloads are routed and preempted by class: real-time, interactive, batch, best-effort, mapping each to appropriate provider/latency targets.",
+    "closure_criteria": "Submit one workload per QoS class for run-UUID; before: no QoS distinction; after: log shows each class routed to its target tier (real-time to lowest-latency, best-effort to cheapest spot) with the class label recorded against the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/provider/chutes ChutesProvider OpenAI-compatible adapter",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement GPUProvider over an OpenAI-compatible /v1/chat/completions endpoint (base llm.chutes.ai/v1): configurable base URL + cpk_ Bearer API key, JSON request/response marshaling (ChatCompletionRequest/Response, Message, Usage), HTTP-429 honoring with capped exponential backoff and fallback models, context deadline propagation, and a Healthy probe via GET /models. HTTP client injectable for httptest.",
+    "closure_criteria": "Drive against an httptest.Server returning 429 once then 200 with a known completion for run-UUID; before: no chutes adapter; after: log shows the adapter retried, backoff applied via injected clock, and returned the parsed completion content, stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:68-71", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1666-1907", "phase_08_B/PHASE_8B_ROADMAP.md:104"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Chutes retryWithFallback across fallback models on 429",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement ChutesProvider.retryWithFallback iterating configured fallback models (e.g. DeepSeek-V3, MiniMax-M2.5-TEE, Qwen3-32B-TEE) with exponential backoff when the primary model is rate-limited, returning the first successful completion or an exhaustion error.",
+    "closure_criteria": "Have the primary model return 429 and a fallback return 200 for run-UUID; before: 429 aborts; after: log shows 'rate limited, trying fallback model' with the fallback name and a successful completion returned, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1781-1816"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Chutes GetBalance USD balance monitor",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement ChutesProvider.GetBalance querying the Chutes management API (api.chutes.ai/users/me) for current USD credit balance, plus a balance monitor that can warn/halt bursting when credits run low.",
+    "closure_criteria": "Query balance against an httptest stub returning a known balance for run-UUID; before: no balance visibility; after: log prints the parsed USD balance and a low-balance threshold warning fires below the configured floor, stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1818-1840", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec01.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Chutes streaming (SSE) chat-completion variant",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement a streaming variant of the Chutes chat-completion call that consumes the OpenAI-compatible SSE token stream and surfaces incremental tokens to the caller, for low-latency interactive inference.",
+    "closure_criteria": "Stream a completion from an httptest SSE server for run-UUID; before: only blocking completion; after: log shows incremental token chunks received and reassembled into the full completion, with first-token latency recorded against the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec01.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/provider/ionet IONetProvider Ray cluster adapter",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement IONetProvider over the io.net REST API (cloud.io.net/api/v1): DeployCluster (gpu_type, gpu_count, region, image, command, env), HealthCheck on the active cluster, and GPUProvider interface methods, targeting multi-GPU training bursts (second-cheapest tier, ~$1.49-2.20/H100).",
+    "closure_criteria": "Deploy and health-check a cluster against an httptest server for run-UUID; before: no io.net adapter; after: log shows cluster_id returned from DeployCluster and a healthy status from the cluster check, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:26", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1909-2023", "phase_08_B/PHASE_8B_ROADMAP.md:105"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/provider/runpod RunPodProvider serverless + warm pool",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement RunPodProvider serverless GPU adapter with warm-pool pre-warming / FlashBoot provisioning to achieve <15s cold-start for inference overflow, implementing the GPUProvider interface over RunPod's API.",
+    "closure_criteria": "Allocate against a warm pool stub for run-UUID; before: no runpod adapter; after: log shows a serverless GPU acquired with measured cold-start under 15s for the warm-pool path, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:27", "phase_08_B/PHASE_8B_ROADMAP.md:106", "phase_08_B/PHASE_8B_ROADMAP.md:197"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/provider/aws AWSProvider EC2 Spot adapter",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement AWSProvider over EC2 (aws-sdk-go-v2): ProvisionInstance selecting GPU instance type (p5.48xlarge H100, p4de.24xlarge A100, g5 A10G) with Spot market options, instance tagging, waitForInstance, HealthCheck via DescribeInstances, and GPUProvider interface methods.",
+    "closure_criteria": "Provision against a mocked EC2 endpoint / sandbox for run-UUID; before: no AWS adapter; after: log shows a Spot instance request with the correct instance type for the requested GPU model and a running-state confirmation, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:28", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1455-1616", "phase_08_B/PHASE_8B_ROADMAP.md:107"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement AWS Spot 2-minute interrupt -> CRIU/S3 checkpoint failover",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement Spot-interruption handling: on the 2-minute preemption warning, CRIU-checkpoint the workload to S3 and trigger BurstController failover to Chutes/RunPod so in-flight work is not lost.",
+    "closure_criteria": "Inject a simulated Spot interruption notice for run-UUID; before: workload lost on preemption; after: log shows checkpoint written to S3 and the workload resumed on a fallback provider, with continuity confirmed against the UUID.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:91", "phase_08_B/PHASE_8B_ROADMAP.md:220", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Document GCP and Azure provider adapter patterns",
+    "type": "Docs",
+    "priority": "P3",
+    "description": "Document the GCP (compute_v1.InstancesClient, a2/a3-highgpu) and Azure (armcompute.VirtualMachinesClient, NC/ND series) provider-adapter patterns implementing GPUProvider with spot/preemptible support (60-91% savings), as extension points for the cloud tier.",
+    "closure_criteria": "Produce a doc artifact with run-UUID in its changelog; before: no GCP/Azure adapter guidance; after: the rendered doc shows the SDK client, instance families, and spot config for each, reviewable as the canonical extension recipe tagged with the UUID.",
+    "required_test_types": ["challenge(HelixQA)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1618-1625"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/local LocalGPURegistrar with TCO effective-cost",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Wrap internal/gpu.Manager inventory and emit VirtualGPU entries tagged Tier=Local with an effective $/hr from a TCO model: effectiveCost = (capexAmortizedPerHour + powerWatts*pricePerKWh/1000) / utilizationFactor, all inputs from config. Register the local tier into pkg/pool.PoolManager (precondition for spillover).",
+    "closure_criteria": "Given fixed GPU count and config (capex, watts, kWh price, util) for run-UUID; before: no TCO/tier registration (internal/gpu is local-only); after: log shows the computed effective $/hr equals the hand-derived constant and exactly N Tier=Local VirtualGPUs registered, recorded with the UUID. Mutation: dropping the power term fails the numeric assertion.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:73-76", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:882-997", "phase_08_B/PHASE_8B_ROADMAP.md:111"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement LocalGPURegistrar nvidia-smi discovery + GPU classification",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement DiscoverGPUs via nvidia-smi --query-gpu (index,name,memory.total,utilization,temperature,power) and classifyGPU mapping names to model+TFLOPS (RTX4090 82.6, RTX5090 117.8, A100-80GB 312, H100-80GB 989, H200, L40S 91.6), building Tier=Local GPUDevice records.",
+    "closure_criteria": "Run discovery against a real or stubbed nvidia-smi output for run-UUID; before: no discovery in pkg/local; after: log lists discovered GPUs with correct model, VRAM bytes, and TFLOPS for each, stamped with the UUID; an unknown card name maps to model 'unknown'.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:905-997"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Expose security ML-KEM-768 E2EE Session/Transport as pkg/e2ee",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Surface the existing security/pkg/e2ee ML-KEM-768 (FIPS 203) + HKDF + AES-256-GCM Session and framed Transport (14 tests in the submodule) as a first-class pkg/e2ee usable by providers. Crypto core is real but not exposed nor wired anywhere.",
+    "closure_criteria": "Run an encrypt/decrypt round-trip through pkg/e2ee Session for run-UUID; before: crypto lives only in the security submodule, unreferenced by pkg/internal/cmd; after: a pkg/e2ee consumer encrypts a payload and the framed Transport decrypts it identically, logged with the UUID and the negotiated KEM ciphertext length.",
+    "required_test_types": ["unit", "security", "benchmark"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:29", "phase_08_B/PHASE_8B_ROADMAP.md:108"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/e2ee E2EEProxy outbound remote-GPU traffic proxy",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement a transparent local reverse proxy that adds post-quantum E2EE (ML-KEM-768 encapsulation + HKDF-SHA256 + ChaCha20-Poly1305/AES-GCM) to outbound /v1/chat/completions traffic: director encrypts request body and sets X-E2EE headers, modifyResponse decrypts; InstanceCache caches per-GPU-instance ML-KEM pubkeys with TTL. Today only an io.ReadWriter framing layer exists with no listener/dial/proxy.",
+    "closure_criteria": "Route a chat request through the proxy to an echo TEE stub for run-UUID; before: no proxy/listener exists; after: a tcpdump capture of the proxied connection shows only ciphertext (no plaintext prompt) yet the client receives the correct decrypted completion, evidence stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "e2e"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:30", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2070-2283", "phase_08_B/PHASE_8B_ROADMAP.md:188"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/e2ee GraValVerifier provider admission gate",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Wire the software GraVal Verifier/Prover (RegisterDevice/Challenge/Verify, 13 tests in security/pkg/gpuattest) as a provider-admission gate: a remote GPU must pass GraVal proof-of-GPU before the PoolManager admits it, applying the label graval.verified=true required before scheduling. Eliminates fake-GPU fraud.",
+    "closure_criteria": "Attempt to admit a provider that fails the GraVal challenge for run-UUID; before: no admission gate (gpuattest is unwired); after: log shows the failing provider rejected (no graval.verified label, never scheduled) and a passing provider admitted with graval.verified=true, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:31", "phase_08_B/PHASE_8B_ROADMAP.md:200", "phase_08_B/PHASE_8B_ROADMAP.md:223"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/e2ee TDX AttestationVerifier for sensitive workloads",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement TDXAttestationVerifier.VerifyAttestation: verify TDX quote signature (Intel DCAP), reject debug-mode quotes, verify report_data == SHA256(nonce||e2e_pubkey) (anti-MITM), check measurement registers against expected Chutes runtime, and verify NVIDIA GPU attestation when present. Gate routing of tee=true labeled workloads. Real-quote enforcement requires TDX hardware (software ed25519 stand-in exists).",
+    "closure_criteria": "Submit a tee=true workload to a provider whose attestation report_data is tampered for run-UUID; before: no attestation gate; after: log shows the verifier rejecting with 'report_data mismatch - possible MITM' and a valid-quote provider accepted, evidence stamped with the UUID.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:32", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2287-2370", "phase_08_B/PHASE_8B_ROADMAP.md:207"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement key rotation CronJob + HSM integration for E2EE keys",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement scheduled rotation of E2EE/identity keys via a Kubernetes CronJob with HSM-backed key storage, for operational hygiene of the post-quantum key material.",
+    "closure_criteria": "Trigger a rotation cycle for run-UUID; before: keys static/manual; after: log shows the old key retired and a new HSM-stored key activated, and a subsequent E2EE handshake succeeds with the new key, recorded with the UUID.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:93", "phase_08_B/PHASE_8B_ROADMAP.md:208"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/proxy CUDA API interceptor + memory staging",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement CUDAMemoryManager intercepting cudaMalloc/cudaFree/cudaMemcpyH2D/D2H: pinned local staging buffer, local-vaddr->RemoteAllocation mapping, and forwarding to a provider adapter over the network (memory staging: local buffer -> network transfer -> remote VRAM). Enables raw CUDA workloads on remote GPUs beyond inference APIs. Requires CUDA driver shimming (DEFERRED to GPU host).",
+    "closure_criteria": "Run a cudaMalloc->H2D->kernel->D2H sequence against a remote GPU stub for run-UUID; before: no proxy package; after: log shows the local pointer mapped to a remote handle and a host buffer round-tripped through remote VRAM with byte-identical result, stamped with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:34", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1084-1235", "phase_08_B/PHASE_8B_ROADMAP.md:198"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Define gpu_proxy.proto gRPC GPUProvider kernel-dispatch service",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Define the proto/gpu_proxy.proto gRPC service (AllocateMemory, FreeMemory, CopyHostToDevice, CopyDeviceToHost, CopyDeviceToDevice, LaunchKernel, GetDeviceInfo, HealthCheck, StreamMetrics) plus all request/response messages (AllocRequest/Response, H2D/D2H, KernelLaunchRequest with grid/block dims, DeviceInfo, MIGProfile, MetricsResponse) for remote CUDA kernel forwarding.",
+    "closure_criteria": "Compile the proto with buf and round-trip a LaunchKernel call against a stub gRPC server for run-UUID; before: no gpu_proxy proto; after: generated Go stubs build and a kernel launch returns success+execution_time_us, logged with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1239-1366", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec02.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement virtual /dev/nvidia* device creation proxying to remote GPU",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement VirtualGPUDevice (CreateVirtualDevice) creating virtual /dev/helixcluster-nvidia* entries that expose remote GPUs as local devices, mapping local streams/events to remote handles and synthesizing CUDA DeviceProperties from provider GetDeviceInfo. Requires kernel module/FUSE on a Linux GPU host (DEFERRED).",
+    "closure_criteria": "Create a virtual device backed by a remote stub for run-UUID; before: no virtual device; after: a CUDA app querying device properties sees the remote model/VRAM through the virtual /dev node, with the device path and properties logged against the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1370-1443", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec02.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement workload-suitability classifier (HPC local vs inference remote)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement a workload classifier routing fine-grained HPC (latency-sensitive) to local GPUs or InfiniBand-equipped providers, and inference/training/rendering (latency-tolerant, batchable) to remote tiers, mitigating the 100-500us/kernel gRPC proxy overhead risk.",
+    "closure_criteria": "Submit an HPC workload and an inference workload for run-UUID; before: no classifier (HPC could route to a high-latency proxy); after: log shows HPC pinned to local/InfiniBand and inference allowed to remote, with the routing decision and rationale recorded against the UUID.",
+    "required_test_types": ["unit", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec02.md", "phase_08_B/PHASE_8B_ROADMAP.md:218"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement cmd/gpu-pool-manager HTTP+gRPC front-end binary",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build the cmd/gpu-pool-manager binary exposing pkg/pool.PoolManager: POST /allocate (WorkloadRequest -> chosen provider+result), GET /providers (registered providers + tier + health), GET /healthz, plus gRPC AllocateWorkload/ReleaseWorkload/GetPoolStatus/GetDeviceMetrics/UpdateSchedulerPolicy. Wires pool + costbroker + local registrar with graceful shutdown; no business logic in the binary.",
+    "closure_criteria": "httptest the handler with two fake providers for run-UUID; before: binary absent from cmd/; after: POST /allocate returns the tier-correct provider as JSON and GET /providers lists both with health, captured with the UUID. Mutation: ignoring tier ordering returns the wrong provider and fails the JSON assertion.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:78-81", "phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:205-215", "phase_08_B/PHASE_8B_ROADMAP.md:124"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement cmd/burst-controller utilization-driven binary",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build the cmd/burst-controller binary that monitors pool utilization and drives the MONITOR->SPILL->RECOVER cycle via pkg/burst, connecting to the pool manager and emitting spill/recover events with graceful shutdown.",
+    "closure_criteria": "Run the binary against a pool reporting >90% utilization for run-UUID; before: binary absent from cmd/; after: process logs the SPILL transition and a burst allocation request, then RECOVER when utilization drops, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "scaling"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:39", "phase_08_B/PHASE_8B_ROADMAP.md:125"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement cmd/e2ee-proxy transparent ML-KEM-768 proxy binary",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build the cmd/e2ee-proxy binary serving the pkg/e2ee E2EEProxy as a transparent local proxy for outbound remote-GPU traffic, configurable target URL + API key, with graceful shutdown.",
+    "closure_criteria": "Start the binary and route a chat request through it for run-UUID; before: binary absent from cmd/; after: the upstream capture shows ciphertext-only payloads and the client receives the correct decrypted response, evidence stamped with the UUID.",
+    "required_test_types": ["integration(real-svc)", "security", "e2e"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:40", "phase_08_B/PHASE_8B_ROADMAP.md:126"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add ProviderAdapter registration hooks to pkg/gpu",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Extend pkg/gpu with ProviderAdapter registration hooks so external provider adapters register into the GPU layer (roadmap names pkg/gpu; only internal/gpu exists today with no adapter hooks).",
+    "closure_criteria": "Register a fake adapter through the pkg/gpu hook for run-UUID; before: no adapter hooks in pkg/gpu; after: the registered adapter appears in the GPU layer's provider listing and is reachable by the pool, logged with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:41", "phase_08_B/PHASE_8B_ROADMAP.md:132"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add GPUTier-aware filter predicate to pkg/scheduler",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/scheduler with a GPUTier-aware filter predicate so the cluster scheduler can prefer/exclude tiers; currently pkg/scheduler/cost_gpu.go filters on GPU count only with no tier predicate.",
+    "closure_criteria": "Schedule a workload constrained to Tier<=Cloud for run-UUID; before: scheduler ignores tier; after: log shows decentralized-tier candidates excluded by the predicate and an in-tier candidate selected, recorded with the UUID.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:43", "phase_08_B/PHASE_8B_ROADMAP.md:134"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add GPU-tier utilization/cost/provider-health metrics to pkg/metrics",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/metrics with GPU-tier utilization, cost-per-hour, and provider-health gauges (currently only generic metrics exist). These feed the Prometheus dashboards and the BurstChallenge sink-side evidence.",
+    "closure_criteria": "Scrape /metrics during a burst for run-UUID; before: no tier/cost/provider gauges; after: the scrape exposes gpu_tier_utilization, gpu_cost_per_hour, and provider_health series with non-zero values during the burst, captured with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:42", "phase_08_B/PHASE_8B_ROADMAP.md:133"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Register virtual GPU devices into internal/node cluster resource model",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend internal/node to register virtual (remote-backed) GPU devices into the cluster resource model so remote GPUs appear as schedulable cluster resources alongside local ones.",
+    "closure_criteria": "Register a virtual GPU and query node capacity for run-UUID; before: only local devices in the resource model; after: the node's advertised GPU capacity includes the virtual device and a workload can be scheduled onto it, logged with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:135"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Integrate GraValVerifier into pkg/security provider admission",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Integrate the GraValVerifier into pkg/security's admission path so provider admission is gated centrally through the security package, sharing the verifier with Phase 8 forward use.",
+    "closure_criteria": "Admit a provider via the pkg/security path for run-UUID; before: GraVal not invoked from pkg/security; after: log shows the security admission call running the GraVal proof and stamping graval.verified before the pool accepts the provider, recorded with the UUID.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:135", "phase_08_B/PHASE_8B_ROADMAP.md:166"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement @helix.task Go decorator/SDK with lifecycle hooks",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement the @helix.task task-deployment SDK (adapted from @chute.cord): TaskConfig (gpu, gpu_count, min_vram, priority, max_cost_hour, max_latency_ms, tee, burst_on_overflow) -> WorkloadSpec, a client that submits to the pool manager and executes local vs remote, plus lifecycle hooks on_startup/on_shutdown/on_error. Roadmap names a Go decorator pattern.",
+    "closure_criteria": "Decorate a function with @helix.task(tee=true) and invoke it for run-UUID; before: no SDK; after: log shows the task submitted to the pool, routed (local or decentralized), executed, and released, with on_startup/on_error hooks firing, recorded with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2776-2914", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec04.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement intelligent ModelRouter (latency/throughput/cost/tee/balanced)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement the ModelRouter that tracks per-model performance (TTFT, TPS, error-rate, cost-per-1M, TEE flag) and selects an optimal model per strategy (latency, throughput, cost, tee, balanced), with report_metrics feedback and a routing table, adapting Chutes default:latency/default:throughput routing for the burst tier.",
+    "closure_criteria": "Register multiple models and route under each strategy for run-UUID; before: no router; after: log shows latency strategy picking the lowest-TTFT model and cost strategy the cheapest, an unhealthy model excluded, recorded against the UUID.",
+    "required_test_types": ["unit", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:2916-3034", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec01.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement local vLLM + SGLang serving stack deployment",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Deploy the local inference serving stack (vLLM + SGLang, with SageAttention/TurboDiffusion options) as a GPU-node DaemonSet with prefix caching, gpu-memory-utilization 0.90, liveness/readiness probes, and a gpu-metrics-exporter sidecar reporting to the pool manager.",
+    "closure_criteria": "Deploy the DaemonSet and send an inference request to a local node for run-UUID; before: no local serving stack; after: vLLM /health is ready and a completion is returned from the local tier with the metrics exporter reporting utilization to the pool, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:1000-1072", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec04.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GPU-proxy DaemonSet advertising virtual nvidia.com/gpu",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the GPU proxy as a Kubernetes DaemonSet that registers virtual nvidia.com/gpu resources backed by remote providers, so standard Kubernetes GPU scheduling transparently consumes proxied remote GPUs.",
+    "closure_criteria": "Deploy the DaemonSet and request nvidia.com/gpu on a non-GPU node for run-UUID; before: only physical GPUs advertised; after: kubectl shows the node advertising virtual nvidia.com/gpu and a pod requesting one is scheduled and runs against the remote backend, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec02.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement bittencert blockchain-backed X.509 identity",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Adopt bittencert blockchain-backed X.509 certificates for node/provider identity in the semi-trusted tiers, binding cluster identity to verifiable certificates.",
+    "closure_criteria": "Issue and validate a bittencert identity for a node for run-UUID; before: no blockchain-backed identity; after: log shows the X.509 cert issued, its chain validated against the blockchain anchor, and a peer accepting the identity, recorded with the UUID.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec04.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement KEDA queue-depth/custom-metric autoscaling",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Configure KEDA to scale workloads on queue depth and custom GPU metrics, complementing the BurstController hysteresis as the Kubernetes-native scale trigger.",
+    "closure_criteria": "Inject queue backlog above the KEDA threshold for run-UUID; before: no KEDA scaling; after: kubectl/log shows replica count scaling up on backlog and back down when drained, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "scaling"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement predictive scaling forecast to pre-warm before peaks",
+    "type": "Research",
+    "priority": "P3",
+    "description": "Implement a prediction engine (moving average + trend forecast) that forecasts capacity saturation ahead of time ('capacity exceeded in N minutes') so burst capacity is pre-warmed before demand spikes.",
+    "closure_criteria": "Replay a rising utilization trace for run-UUID; before: only reactive bursting; after: log shows a forecast firing a pre-warm allocation before the threshold is actually crossed, with the lead-time recorded against the UUID.",
+    "required_test_types": ["unit", "performance"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement CRIU GPU-context checkpoint/restore + graceful degradation",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement CRIU checkpointing and CUDA-context (GPU state) serialization for transparent workload migration within the 2-minute Spot window, plus graceful degradation (reduce model size when no capacity is available).",
+    "closure_criteria": "Checkpoint and restore a running GPU workload across providers for run-UUID; before: no checkpoint path; after: log shows CUDA context serialized, restored on a new provider with state intact, and a degraded smaller model served when capacity is exhausted, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec05.md", "phase_08_B/PHASE_8B_ROADMAP.md:220"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement chutes-dropzone self-hosted gateway integration",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Provide a self-hosted gateway (chutes-dropzone pattern) as a standalone Docker deployment so HelixCluster can front Chutes traffic through a local gateway endpoint.",
+    "closure_criteria": "Run the gateway container and proxy an inference call for run-UUID; before: no gateway; after: the gateway container serves a completion proxied to Chutes and logs the request, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec01.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement TCO calculator for hybrid own+burst economic model",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement the 3-year TCO calculator (GPUProfile, FacilityCosts with electricity/colo/PUE/overhead, ClusterConfig with target utilization, staff, maintenance, idle revenue) computing hardware/power/colo/staff/maintenance costs, net TCO, monthly equivalent, cost-per-gpu-month, and effective cost-per-hour, supporting the 50% owned + 30% reserved + 20% spot hybrid model.",
+    "closure_criteria": "Compute TCO for a documented 100-GPU config for run-UUID; before: no calculator; after: output reports effective $/hr and monthly TCO within the $8,000-15,000 target band for the hand-checked config, recorded with the UUID. Mutation: dropping the power term changes the reported $/hr.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/HELIXCLUSTER_PHASE8B_REVERSE_ARCHITECTURE.md:3043-3150", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec03.md", "phase_08_B/PHASE_8B_ROADMAP.md:243"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement CostTracker monthly cost report vs AWS on-demand",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the CostTracker producing a monthly cost report (per-provider spend, blended $/hr) that quantifies the 50-90% cost reduction vs AWS on-demand for H100-equivalent load and feeds the global budget cap.",
+    "closure_criteria": "Run a simulated month of allocations for run-UUID; before: no cost reporting; after: the report shows blended cost-per-hour and a computed % reduction vs the AWS on-demand baseline within the 50-90% target, captured with the UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:238", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec03.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Author Helm chart for Phase 8B GPU pool + burst deployment",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Author the Helm chart (Chart.yaml, values.yaml, templates for gpu-pool-manager, burst-controller, e2ee-proxy) so a single helm install deploys the Phase 8B stack with per-provider values entries (the extension seam for adding providers).",
+    "closure_criteria": "helm install the chart into a test cluster for run-UUID; before: no 8B chart under deploy/; after: all three deployments roll out Ready and a values-driven provider entry registers into the pool, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:44", "phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec06.md", "phase_08_B/PHASE_8B_ROADMAP.md:199"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Author Docker Compose development stack for Phase 8B",
+    "type": "Task",
+    "priority": "P2",
+    "description": "Author the Docker Compose dev stack wiring gpu-pool-manager, burst-controller, e2ee-proxy, and provider stubs for local development without a Kubernetes cluster.",
+    "closure_criteria": "docker compose up the dev stack for run-UUID; before: no compose stack; after: all services come up healthy and a POST /allocate against the local pool manager returns a provider, captured with the UUID.",
+    "required_test_types": ["integration(real-svc)"],
+    "source_refs": ["phase_08_B/HelixCluster_Phase_8B/helixcluster_phase8b_sec06.md", "phase_08_B/PHASE_8B_ROADMAP.md:88"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Build Prometheus/Grafana Phase 8B tier-utilization + cost dashboards",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Build Prometheus scrape config and Grafana dashboards visualizing GPU tier utilization, provider switch events, cost-per-hour changes, and provider health during burst, providing operator visibility and the sink-side burst evidence.",
+    "closure_criteria": "Run a load test and open the dashboard for run-UUID; before: no 8B dashboards; after: a captured Grafana screenshot shows the tier-utilization spike, a provider-switch event, and the cost-per-hour change during the burst, evidence stamped with the UUID.",
+    "required_test_types": ["integration(real-svc)", "ui"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:44", "phase_08_B/PHASE_8B_ROADMAP.md:199", "phase_08_B/PHASE_8B_ROADMAP.md:255"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement HelixQA BurstChallenge saturate+failover exit gate",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Implement the mandatory HelixQA BurstChallenge: saturate the local GPU tier, inject a provider failure, verify automatic failover to the next tier within SLA, and assert the user receives correct inference results throughout. Mandatory CLAUDE-1 exit gate; absent today.",
+    "closure_criteria": "Run the Challenge for run-UUID; before: no burst/failover challenge in challenges/; after: a HelixQA Challenge PASS log shows local saturation, injected provider failure, failover within SLA, and correct inference output preserved end-to-end, stamped with the UUID.",
+    "required_test_types": ["challenge(HelixQA)", "chaos", "e2e"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:45", "phase_08_B/PHASE_8B_ROADMAP.md:254"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement E2E helix submit -> saturate -> route-to-Chutes demo",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Implement the mandatory end-to-end user test: a user submits a workload via helix submit, local GPUs are artificially saturated, the workload automatically routes to Chutes, and the correct output is returned to the user. Mandatory CLAUDE-1 gate; no remote routing path exists today.",
+    "closure_criteria": "Record the demo for run-UUID; before: no remote routing (no provider client exists); after: a screen capture shows helix submit, local saturation, automatic Chutes routing, and the correct response delivered to the user, evidence stamped with the UUID.",
+    "required_test_types": ["e2e", "ux", "challenge(HelixQA)"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:46", "phase_08_B/PHASE_8B_ROADMAP.md:253"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Stand up real-provider CI integration (Chutes/io.net/RunPod)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Stand up CI that exercises every ProviderAdapter against the real provider endpoint (Chutes sandbox, io.net staging, RunPod test account) — mandatory 'no mock-only' CLAUDE-1 gate; no provider client to integration-test exists today.",
+    "closure_criteria": "Run the CI job for run-UUID; before: no live provider tests; after: the CI log shows a live HTTP 200 from each real provider API with a successful round-trip, archived with the UUID.",
+    "required_test_types": ["integration(real-svc)", "automation"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:47", "phase_08_B/PHASE_8B_ROADMAP.md:252"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Capture E2EE usability evidence: tee=true encrypted-traffic gate",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Validate the E2EE usability gate: a user sending a tee=true labeled workload receives correct output while a traffic capture confirms all payloads are encrypted (no plaintext in the network dump). Mandatory CLAUDE-1 sink-side gate.",
+    "closure_criteria": "Send a tee=true workload through the e2ee-proxy for run-UUID; before: no encrypted outbound path; after: a Wireshark/tcpdump capture shows no plaintext prompt while the user receives the correct decrypted output, with decryption confirmation stamped with the UUID.",
+    "required_test_types": ["security", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:256"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Benchmark ML-KEM-768 E2EE handshake latency (<1ms target)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Add a Go benchmark proving the ML-KEM-768 handshake completes under the <1ms target and the end-to-end E2EE encryption overhead stays under 3% throughput penalty (with vs without proxy).",
+    "closure_criteria": "Run the benchmark for run-UUID; before: no handshake benchmark; after: the benchmark report shows median handshake <1ms and proxy throughput penalty <3%, captured with the UUID.",
+    "required_test_types": ["benchmark", "performance", "security"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:234", "phase_08_B/PHASE_8B_ROADMAP.md:241"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Run inference p99 <500ms load test via Chutes (1000 requests)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Run a 1,000-request integration load test asserting remote inference via Chutes meets p99 <500ms, validating the burst-tier latency KPI.",
+    "closure_criteria": "Execute the 1000-request load test for run-UUID; before: no latency KPI evidence; after: the report shows measured p99 < 500ms over 1000 real requests, archived with the UUID.",
+    "required_test_types": ["performance", "integration(real-svc)", "scaling"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:235"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Run 48-hour load test and 7-day soak (>99.9% success)",
+    "type": "Task",
+    "priority": "P2",
+    "description": "Run the 48-hour load test and 7-day soak test asserting >99.9% request success rate over the burst+failover paths, validating the production-hardening SLA KPI. Requires sustained real GPU infra (DEFERRED until fleet available).",
+    "closure_criteria": "Run the soak for run-UUID; before: no soak evidence; after: the continuous load-test report shows >99.9% success over the 7-day window with provider failovers handled, archived with the UUID.",
+    "required_test_types": ["stress", "scaling", "chaos"],
+    "source_refs": ["phase_08_B/GAP_AUDIT.md:92", "phase_08_B/PHASE_8B_ROADMAP.md:242", "phase_08_B/PHASE_8B_ROADMAP.md:209"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Run chaos suite for provider failover and DDoS resilience",
+    "type": "Task",
+    "priority": "P2",
+    "description": "Run a chaos-engineering suite killing active adapters and flooding the pool manager to verify failover within <10s and resilience of the allocation API under load.",
+    "closure_criteria": "Execute the chaos+flood suite for run-UUID; before: no chaos coverage; after: logs show failover completing within 10s of an adapter kill and the allocate API staying responsive under flood, archived with the UUID.",
+    "required_test_types": ["chaos", "ddos", "stress"],
+    "source_refs": ["phase_08_B/PHASE_8B_ROADMAP.md:237", "phase_08_B/PHASE_8B_ROADMAP.md:209"],
+    "decoupling_candidate": true
+  }
+]

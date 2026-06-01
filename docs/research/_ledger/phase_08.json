@@ -1,0 +1,662 @@
+[
+  {
+    "title": "Implement pkg/chutes Chutes OpenAI-compatible API Client (non-streaming)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/chutes/client.go: a Client wrapping net/http targeting a configurable base URL (CHUTES_BASE_URL, default https://llm.chutes.ai/v1) with a cpk_ bearer token from env, exposing CreateChatCompletion(ctx, ChatCompletionRequest) over the OpenAI /chat/completions schema. Must set Authorization: Bearer <token> and Content-Type headers, honor context deadline (default 120s), decode ChatCompletionResponse, and surface typed retriable errors for 429/5xx. Functional-options pattern (WithBaseURL, WithHTTPClient, WithE2EEProxy).",
+    "closure_criteria": "Run a live or testnet ChatCompletion against an httptest.Server speaking OpenAI JSON (and against real https://llm.chutes.ai/v1 with a cpk_ key per CLAUDE-1): capture request headers showing Authorization: Bearer cpk_..., before-state (no response) -> after-state (assistant message + token usage) with a per-run UUID logged; verify mutation (dropping the Authorization header) makes the test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #1)", "phase_08/PHASE_8_ROADMAP.md §4.1,§6 P1#6", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.2.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Chutes API client fallback-model chain on retriable failure",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a fallback-model chain ([]string tried in order on retriable failure) to the Chutes API client, e.g. DeepSeek-V3 -> Qwen2.5-72B -> Llama-3.1-70B, advancing to the next model when a model returns a retriable error (503/429/5xx).",
+    "closure_criteria": "Against an httptest.Server where the first model returns 503 and the second returns 200, capture log/UUID showing first-model failure then second-model success and surfaced assistant message; mutation removing fallback-advance logic makes the multi-model test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #1)", "phase_08/PHASE_8_ROADMAP.md §7 Risk (Chutes rate limiting), §8", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SSE streaming decoder for Chutes chat completions",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/chutes/stream.go: StreamChatCompletion(ctx, req) returning (<-chan ChatCompletionResponse, <-chan error) that parses text/event-stream (data: {json}\\n\\n), skips non-data lines, terminates on data: [DONE], emits incremental Delta tokens, bounds line length, and cancels cleanly on ctx done. Sets Accept: text/event-stream header.",
+    "closure_criteria": "Feed a 5-chunk SSE script via httptest.Server (and validate against real Chutes streaming per CLAUDE-1): capture reassembled text equal to expected with per-run UUID, confirm [DONE] closes the channel and context-cancel stops mid-stream; mutation ignoring [DONE] makes channel-close test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #2)", "phase_08/PHASE_8_ROADMAP.md §3 8b", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.2.1 StreamChatCompletion"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Chutes API model-list and user-account/balance queries",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add client methods enumerating available models with TEE-capable and pricing metadata, and a user-account query against https://api.chutes.ai/users/me returning username and balance for earnings/balance tracking.",
+    "closure_criteria": "Query model list and /users/me against testnet/real API with a cpk_ key: capture JSON showing model entries (with TEE/price fields) and account balance with per-run UUID; before (unknown balance) -> after (balance retrieved) delta recorded.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.2.1", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.2 monitor-health.sh"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement model-router default-model resolution by strategy (latency/throughput/quality/cost)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement resolveDefaultModel mapping strategy to a model when request model is 'default'/empty: latency -> Llama-3.2-1B-Instruct, throughput -> DeepSeek-V3-0324, quality -> Llama-3.1-405B-Instruct, cost -> Qwen2.5-7B-Instruct. Lives in internal/llm router and/or pkg/chutes client.",
+    "closure_criteria": "Submit requests with each strategy and model='default': capture resolved model name in outbound request body per strategy with per-run UUID; before (model='default') -> after (concrete model id) delta logged; mutation swapping a mapping makes the strategy test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.2.1 resolveDefaultModel", "phase_08/PHASE_8_ROADMAP.md §4.2 internal/llm"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Wire E2EE inference envelope between pkg/chutes and security/pkg/e2ee",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/chutes/e2ee_proxy.go: a thin E2EEProxy that, for requests flagged TEERequired, performs the e2ee handshake (e2ee.NewInitiator/Respond/Complete), seals the request body and opens the response via e2ee.Session, sets X-E2EE-Enabled: true header, and writes a structured audit-log line (request id, sealed bool, byte counts). Consumes the already-shipped security/pkg/e2ee ML-KEM-768 primitive.",
+    "closure_criteria": "Round-trip a request body through initiator+responder sessions over an in-memory pipe: capture audit record with sealed=true, request id (per-run UUID), byte counts; assert recovered plaintext equals input and on-wire ciphertext != plaintext; mutation passing plaintext unsealed makes the ciphertext-difference assertion FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #3, line 27 PARTIAL e2ee)", "phase_08/PHASE_8_ROADMAP.md §4.1 pkg/e2ee, §8 (E2EE proxy audit log)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement gzip compression pipeline in E2EE inference envelope",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add gzip plaintext compression before AEAD sealing and decompression after opening in the E2EE proxy path, matching the roadmap's gzip compression pipeline for the ML-KEM-768 proxy (HKDF-SHA256 key derivation, AEAD encrypt).",
+    "closure_criteria": "Seal a large repetitive request body: capture on-wire ciphertext length smaller than plaintext length (compression delta) with per-run UUID and recovered plaintext byte-identical after decompress; mutation disabling gzip makes the size-reduction assertion FAIL.",
+    "required_test_types": ["unit", "security"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §4.1 pkg/e2ee (gzip compression pipeline)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.2 EncryptRequest"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Reconcile E2EE AEAD spec deviation (AES-256-GCM vs roadmap ChaCha20-Poly1305)",
+    "type": "Task",
+    "priority": "P2",
+    "description": "The shipped security/pkg/e2ee uses AES-256-GCM while roadmap/sec06 specify ChaCha20-Poly1305 (equivalent AEAD). Document the deviation decision or add a ChaCha20-Poly1305 cipher option so the implemented proxy matches the named spec, recording the rationale in the Applied Fixes table.",
+    "closure_criteria": "Produce a decision record (committed) plus, if implemented, a test sealing/opening with ChaCha20-Poly1305 round-tripping a payload with per-run UUID; before (AES-only) -> after (documented/selectable AEAD) delta captured.",
+    "required_test_types": ["unit", "security"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (line 27 AEAD deviation note)", "phase_08/PHASE_8_ROADMAP.md §2 Four Pillars (ML-KEM-768 + ChaCha20-Poly1305)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GraVal-style miner attestation handshake controller in pkg/chutes",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/chutes/attest.go consuming security/pkg/gpuattest: a Verifier-side RegisterAndChallenge(deviceID, key) + Admit(resp) flow and a Prover-side Attest(challenge) wrapping gpuattest.SoftwareProver/Verifier. Constant-time compare, single-use nonce, expiry, replay rejection. This is the integration seam to the deferred CUDA kernel.",
+    "closure_criteria": "Register N devices and run N attestations: capture admit/reject decisions and ErrResponseMismatch for a tampered response with per-run UUID; before (unregistered) -> after (admitted/rejected) state delta; mutation removing constant-time compare / always-admit makes the tampered-device test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #4, line 28 PARTIAL gpuattest)", "phase_08/PHASE_8_ROADMAP.md §6 P0#1 GraValVerifier", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GraValVerifier.BatchVerify concurrent attestation with pass-rate KPI",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement BatchVerify([]*GPUInfo) running VerifyGPU concurrently (sync.WaitGroup, mutex-guarded results map) and returning per-GPU AttestationResult plus an aggregate GraVal pass-rate float (the roadmap >99% KPI). Suitable for DaemonSet where all cards must attest before miner API accepts traffic.",
+    "closure_criteria": "Batch-verify a set of GPUInfo where all pass -> capture pass-rate == 1.0; tamper one -> capture reduced pass-rate and that device's Passed=false, each with per-run UUID; mutation reporting pass for a failed VRAM ratio makes the pass-rate test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "benchmark"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.1 BatchVerify", "phase_08/PHASE_8_ROADMAP.md §8 (GraVal attestation pass rate >99%)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GraVal VRAM-threshold (95%) gate in attestation",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement the VRAM measurement phase that requires available/total VRAM ratio >= GRAVAL_VRAM_THRESHOLD (0.95) before performing consecutive work; on shortfall return AttestationResult{Passed:false} and error 'VRAM x < threshold'. Reserve 5% headroom per risk mitigation.",
+    "closure_criteria": "Provide a GPU with VRAM ratio below 0.95 -> capture Passed=false + threshold error with per-run UUID; provide >=0.95 -> capture proceed-to-proof; before (untested) -> after (gated decision) delta; mutation removing the threshold branch makes the low-VRAM rejection test FAIL.",
+    "required_test_types": ["unit", "security"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.1 (VRAM 95% phase), §6.1 (GRAVAL_VRAM_THRESHOLD=0.95)", "phase_08/PHASE_8_ROADMAP.md §7 Risk (GraVal VRAM 95%)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement GraVal CUDA Proof-of-Consecutive-VRAM-Work kernel (DEFERRED, GPU)",
+    "type": "Research",
+    "priority": "P2",
+    "description": "Implement the real silicon-rooted GraVal kernel (OpenCL/clBLAS, 256 rounds of seeded matrix multiplication over GPU UUID/name/PCI bus/challenge producing a timing+memory signature; AES-256 key derivation binding GPU identity). Requires NVIDIA GPU + CUDA toolchain + libgraval-miner.so; software stand-in (security/pkg/gpuattest) exists. Pin libgraval-miner.so version, test each GPU SKU before fleet rollout.",
+    "closure_criteria": "On a real NVIDIA H100 node, run consecutive-VRAM-work proof and capture the derived AES-256 key hash + verification-time-ms with per-run UUID; before (no silicon proof) -> after (hardware-attested proof) delta; verify a non-matching GPU fails attestation.",
+    "required_test_types": ["integration(real-svc)", "security", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (DEFERRED, line 69)", "phase_08/PHASE_8_ROADMAP.md §7 Risk (GraVal CUDA dependency)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.5.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/chutes MinerController K3s deployment lifecycle",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/chutes/miner_controller.go: MinerController with k8s client, namespace, validators slice, GraValVerifier ref. DeployMiner(ctx, ChutesMinerConfig) executes nine sequential phases (ensureNamespace, deployPostgres, deployRedis, deployGraValBootstrap, deployMinerAPI, deployGepetto, deployRegistryProxy, NVIDIA GPU operator defer, waitForReady with 5-min timeout). Default validator points to 5Dt7HZ7Zpw4DppPxFM7Ke3Cm7sDAWhsZXmM5ZAmE7dSVJbcQ.",
+    "closure_criteria": "Deploy the miner stack against a real/testnet K3s cluster (envtest acceptable for unit, real cluster per CLAUDE-1): capture all deployments reaching Ready replicas within 5 min via kubectl get pods with per-run UUID; before (no namespace/pods) -> after (all Ready) delta captured; mutation skipping waitForReady makes the readiness gate test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#1 MISSING)", "phase_08/PHASE_8_ROADMAP.md §6 P0#1", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Define ChutesMinerConfig and ValidatorConfig data structures",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Define ChutesMinerConfig (NodeID, ValidatorHotkey, HourlyCostUSD, GPUShortRef, GPUCount, BittensorColdkey, BittensorHotkey, CacheMaxSizeGB, NodeSelector, TEEEnabled) and ValidatorConfig (Hotkey, Registry, API, Socket) plus DefaultValidators pointing to registry.chutes.ai / api.chutes.ai / wss://ws.chutes.ai.",
+    "closure_criteria": "Marshal/unmarshal a populated config from JSON and feed it to DeployMiner: capture round-trip JSON equality and that GPUShortRef/GPUCount propagate into K8s objects with per-run UUID; before (empty) -> after (validated config) delta.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1.1 (ChutesMinerConfig/ValidatorConfig)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy PostgreSQL StatefulSet for miner inventory tracking",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployPostgres: PostgreSQL 16-alpine StatefulSet with 100Gi local-path PVC, secrets-mounted credentials, 500m CPU / 1Gi memory requests, for chutes-miner inventory tracking.",
+    "closure_criteria": "Deploy on a real K3s cluster: capture bound 100Gi PVC and a psql connection succeeding with per-run UUID; before (no DB) -> after (queryable inventory schema) delta captured.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (PostgreSQL StatefulSet)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 postgres values"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy Redis pub/sub Deployment for miner event propagation",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployRedis: ephemeral Redis 7-alpine Deployment (no persistence) with LRU eviction capped at 256Mi, 100m CPU / 256Mi requests, serving as the miner pub/sub event bus.",
+    "closure_criteria": "Deploy on real K3s: publish/subscribe a test event and capture delivery with per-run UUID; before (no bus) -> after (event delivered) delta; verify LRU eviction config applied via CONFIG GET maxmemory-policy.",
+    "required_test_types": ["integration(real-svc)"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (Redis ephemeral), §6.4.1 redis values"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy GraVal bootstrap privileged DaemonSet for GPU attestation",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployGraValBootstrap: privileged DaemonSet with HostNetwork:true and SYS_ADMIN, mounting /dev/nvidia* and /usr/local/cuda from host, GRAVAL_VRAM_THRESHOLD=0.95, image chutesai/graval-bootstrap, 500m/512Mi requests and 2 CPU/2Gi limits so it cannot starve inference.",
+    "closure_criteria": "Deploy on a real GPU K3s node: capture DaemonSet pod Running on each GPU node and attestation log line with per-run UUID; before (unattested) -> after (attested) delta; verify resource limits applied via pod spec.",
+    "required_test_types": ["integration(real-svc)", "security", "e2e"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (GraVal DaemonSet)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy miner-api Deployment with NodePort 32000",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployMinerAPI: replicated (2) miner API Deployment exposing port 8080 internally and NodePort 32000 externally for HA, exposing /metrics with chutes_requests_total.",
+    "closure_criteria": "Deploy on real K3s: curl NodePort 32000 /metrics and capture chutes_requests_total counter with per-run UUID; before (unreachable) -> after (200 metrics) delta; kill one replica and confirm service still answers (HA).",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (miner API NodePort 32000), §6.6.2 monitor-health.sh"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy Gepetto strategy engine via ConfigMap-backed Deployment",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployGepetto: Gepetto Deployment mounting strategy code from a ConfigMap at /app/strategy/helix_gepetto.py to enable hot strategy reload via kubectl rollout restart without container rebuild; image chutesai/gepetto.",
+    "closure_criteria": "Deploy on real K3s, update the ConfigMap and rollout restart: capture new strategy code in the running pod (exec cat) with per-run UUID; before (old strategy) -> after (reloaded strategy) delta without rebuild.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (Gepetto ConfigMap), §6.1.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy registry-proxy host-network DaemonSet on port 30500",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "MinerController.deployRegistryProxy: host-network DaemonSet on port 30500 for authenticated Chutes registry image pulls from registry.chutes.ai.",
+    "closure_criteria": "Deploy on real K3s and pull an authenticated image through the proxy: capture successful pull/manifest fetch via proxy logs with per-run UUID; before (unauthenticated pull fails) -> after (authenticated pull succeeds) delta.",
+    "required_test_types": ["integration(real-svc)"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1 (registry proxy DaemonSet port 30500)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement custom HelixGepetto dual-resource arbitration strategy",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement HelixGepetto select_chutes(available_gpus, active_chutes, helix_load) load-aware reserve ratio: helix_load>0.8 reserve 1.0 (pause Chutes); >0.5 reserve 0.5; default 0.20; <0.2 reserve 0.05. Sort active bounty chutes by bounty_value desc. Mounted as ConfigMap helix_gepetto.py. Implements Table 6.1 allocation policy.",
+    "closure_criteria": "Drive select_chutes across load tiers (5%,30%,60%,85%): capture chutes_capacity per GPU matching the reserve schedule and zero capacity at >80% with per-run UUID via load-injection test; before (default reserve) -> after (load-adjusted reserve) delta; mutation removing the >0.8 branch makes the starvation test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "stress", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#3 MISSING)", "phase_08/PHASE_8_ROADMAP.md §6 P0#3, §7 Risk (Gepetto conflict)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.1.2 + Table 6.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement dual-workload capacity reservation in internal/gpu",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create internal/gpu/reservation.go extending Manager with ReserveForHelixPoW(fraction) and ChutesCapacity() Stats reporting only non-reserved remainder, plus a hard-cap rule: when reported Helix load > 80%, ChutesCapacity returns zero available (Gepetto starvation guard). In-memory, no scheduler rewrite.",
+    "closure_criteria": "Reserve 0.8 and set load 0.85 -> capture ChutesCapacity().Available == 0; set load 0.5 -> capture non-zero available; each with per-run UUID; before (full capacity) -> after (reserved capacity) delta; mutation removing the >80% hard-cap branch makes the starvation-guard test FAIL.",
+    "required_test_types": ["unit", "stress"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #6)", "phase_08/PHASE_8_ROADMAP.md §4.2 internal/gpu (dual-workload split)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement GraVal attestation hook in internal/gpu Manager",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend internal/gpu Manager with an attestation hook so a GPU must pass GraVal attestation (via pkg/chutes attest controller) before it is eligible for Chutes inference allocation; integrates the attestation seam absent today.",
+    "closure_criteria": "Mark a GPU unattested -> capture it excluded from Chutes-allocatable pool; attest it -> capture it becoming allocatable, each with per-run UUID; before (any GPU allocatable) -> after (only attested allocatable) delta; mutation skipping the attestation check makes the gate test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (internal/gpu GraVal hooks MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.2 internal/gpu (GraVal attestation hooks)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement MIG profile management in internal/gpu",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add MIG profile management exposing standardized vGPU tiers (vGPU-Small=1g.10gb, vGPU-Medium=2g.20gb, vGPU-Large=3g.40gb, 7g.80gb full) on H100/H200/B200; profiles fixed at instance creation, pre-configured at provisioning to avoid reconfiguration downtime.",
+    "closure_criteria": "On a real MIG-capable GPU node, create the standardized profiles and schedule a pod onto a 2g.20gb instance: capture nvidia-smi MIG listing and pod GPU isolation with per-run UUID; before (full GPU) -> after (partitioned instances) delta.",
+    "required_test_types": ["integration(real-svc)", "performance"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (internal/gpu MIG MISSING)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.2.1 + Table 7.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/bittensor wallet (coldkey/hotkey) and TAO balance",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/bittensor: Bittensor wallet abstraction managing coldkey/hotkey references and a TAO balance query against a subtensor node. Foundation for subnet registration. (No code references bittensor/coldkey/TAO today.)",
+    "closure_criteria": "Against a testnet subtensor, load a wallet and query TAO balance: capture coldkey/hotkey ss58 addresses and balance value with per-run UUID; before (no wallet) -> after (balance fetched) delta; verify against btcli/explorer per CLAUDE-1.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#2 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.1 pkg/bittensor, §6 P0#2", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec03.md §3.1.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Bittensor SN64 subnet registration flow",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement miner registration on Subnet 64 paying the registration TAO fee (typically <1 TAO, dynamic), producing an on-chain UID for the hotkey. Required before first TAO emission. (Subnet creation ~600 TAO is deferred to Phase 8B.)",
+    "closure_criteria": "On Bittensor testnet, register the hotkey on a subnet and capture the assigned UID via metagraph/btcli query with per-run UUID; before (unregistered, no UID) -> after (UID present on metagraph) delta; sink-side evidence via explorer per CLAUDE-1.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#2 MISSING; DEFERRED on-chain)", "phase_08/PHASE_8_ROADMAP.md §6 P0#2, §8 (nodes active on SN64)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec03.md §3.1.2,§3.4.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Yuma Consensus / metagraph weight queries in pkg/bittensor",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement metagraph queries and Yuma Consensus weight/incentive/dividend reads (stake-weighted median, clipping, ranks, trust, bonds EMA, dividends) so miners can read their consensus score and validators can interpret clipping dynamics.",
+    "closure_criteria": "Query a testnet subnet metagraph: capture the miner incentive vector and consensus weights for the registered UID with per-run UUID; before (no on-chain score) -> after (incentive share read) delta captured.",
+    "required_test_types": ["integration(real-svc)", "unit"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §4.1 pkg/bittensor (Yuma Consensus weight queries)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec03.md §3.1.1, Algorithm 3.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement child-hotkey delegation support in pkg/bittensor",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Support the Bittensor child-hotkey feature: delegate stake from a cold-stored parent hotkey to subnet-specific child hotkeys with governance-bounded take rates, reducing validator attack surface and enabling multi-subnet operation.",
+    "closure_criteria": "On testnet, set a child hotkey for a subnet and capture the on-chain childkey relationship + take rate via query with per-run UUID; before (single parent key) -> after (delegated child key) delta.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec03.md §3.2.2, §3.4.1 (Level 3)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement MarketplaceAdapter interface and Chutes adapter",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/marketplace: MarketplaceAdapter interface with Name(), GetCurrentPricing(ctx, gpuType), SubmitWork(ctx, WorkloadSpec), GetEarnings(ctx, period), HealthCheck(ctx), WithdrawEarnings(ctx, dest). Provide a ChutesAdapter returning deterministic Offer/PricingInfo (PriceUSD, AvailPct, LatencyMs, ThroughputTps, TEEAvailable). Define PricingInfo, WorkloadSpec, GPURequirements, WorkResult, EarningsReport, HealthStatus, GPUNode structs.",
+    "closure_criteria": "Register the Chutes adapter and call GetCurrentPricing + SubmitWork against testnet/fixture: capture returned Offer fields and a WorkResult with marketplace='chutes' and per-run UUID; before (no adapter) -> after (priced + submitted) delta; mutation breaking Name() routing makes the dispatch test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #5, P1#9 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.1 pkg/marketplace, §6 P1#9", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement UnifiedManager.RouteWorkload concurrent pricing + composite scoring",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement UnifiedManager (RWMutex-guarded adapter map, GPU node registry, RevenueOptimizer) and RouteWorkload: gather pricing from all adapters concurrently via goroutines, score with composite formula (price 30%, availability 30%, latency 20%, throughput 20%), submit to highest-scoring marketplace; fall back to sequential SubmitWork if no pricing. Apply TEE multiplier: 1.5x when TEERequired and TEEAvailable, 0.1x penalty when TEERequired and not available.",
+    "closure_criteria": "Feed 3 offers with known fields: capture the optimizer selecting the correct weighted winner with per-run UUID; set TEERequired and confirm the TEE multiplier flips the winner to the TEE-capable marketplace; before (unrouted) -> after (routed to winner) delta; mutation inverting a weight or dropping the TEE multiplier makes the winner-selection test FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (TOP GAP #5 scorer)", "phase_08/PHASE_8_ROADMAP.md §3 8c (composite scoring)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3.1 RouteWorkload/score, §6.3.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement RevenueOptimizer.OptimizeAllocation greedy GPU-to-marketplace assignment",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement RevenueOptimizer with per-GPU-type revenue coefficients (h100 4.50, a100 2.00, a6000 1.20, l40s 0.80, rtx4090 0.50) and OptimizeAllocation performing greedy GPU-to-marketplace assignment, giving TEE-enabled nodes a 2x boost for Chutes allocation.",
+    "closure_criteria": "Provide a mixed GPU fleet and adapter offers: capture the allocation map maximizing expected revenue, with TEE nodes biased to Chutes, and per-run UUID; before (unallocated) -> after (allocation plan) delta; mutation zeroing the TEE boost changes the allocation and FAILs the assertion.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3.2 (OptimizeAllocation), NewUnifiedManager coefficients"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement io.net marketplace adapter",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement an io.net (Solana, IO token) MarketplaceAdapter: pricing per-hour IO, Ray job deploy submission, Solana-tx withdraw, TLS transport, PoW+PoTL verification semantics per Table 6.2.",
+    "closure_criteria": "Call GetCurrentPricing and SubmitWork against io.net testnet/sandbox: capture an IO-denominated price and Ray job assignment with per-run UUID; before (no io.net route) -> after (workload submitted) delta; HealthCheck returns healthy.",
+    "required_test_types": ["integration(real-svc)", "unit"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#10 MISSING)", "phase_08/PHASE_8_ROADMAP.md §3 8c, §6 P2#10", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3 + Table 6.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Akash marketplace adapter",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement an Akash (Cosmos, AKT token) MarketplaceAdapter: reverse-auction AKT pricing, SDL manifest submission, Cosmos-tx withdraw, provider-reputation verification per Table 6.2.",
+    "closure_criteria": "Call pricing and SubmitWork against Akash testnet: capture a reverse-auction AKT bid and SDL deployment lease with per-run UUID; before (no Akash route) -> after (lease created) delta.",
+    "required_test_types": ["integration(real-svc)", "unit"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#10 MISSING)", "phase_08/PHASE_8_ROADMAP.md §3 8c, §6 P2#10", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3 + Table 6.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Salad marketplace adapter",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement a Salad (centralized, fiat/USD) MarketplaceAdapter: per-hour USD pricing, container deploy submission, PayPal payout withdraw, Falco-check verification, consumer-RTX GPU tier per Table 6.2.",
+    "closure_criteria": "Call pricing and SubmitWork against Salad sandbox: capture a USD per-hour price and container deployment id with per-run UUID; before (no Salad route) -> after (container deployed) delta.",
+    "required_test_types": ["integration(real-svc)", "unit"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#10 MISSING)", "phase_08/PHASE_8_ROADMAP.md §3 8c, §6 P2#10", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.3 + Table 6.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/economics RewardDistributor multi-token distribution",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create pkg/economics/distributor.go: RewardDistributor managing TAO/IO/AKT/RENDER token types with a participant registry (GPU count, uptime, balances). DistributeRewards applies treasury cut then reinvest cut then allocates remainder proportionally by participant share (default 70% participants / 20% treasury / 10% ops).",
+    "closure_criteria": "Distribute a known earnings map under a DistributionRule: capture per-participant token allocations summing correctly with treasury/reinvest splits and per-run UUID; before (undistributed pool) -> after (per-participant ledger) delta; mutation skipping the treasury cut makes the conservation/assertion FAIL.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 (per-H100 revenue via RewardDistributor)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.1 (RewardDistributor/DistributeRewards)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement RewardDistributor.GetParticipantROI and break-even tracking",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement GetParticipantROI(pid, ParticipantCosts, period): compute total USD earnings (token balances x oracle prices), total costs (electricity + depreciation + bandwidth + facility), net profit, annualized ROI percent, and break-even day estimate. Default token prices TAO 350, IO 2.50, AKT 3.00, RENDER 6.00.",
+    "closure_criteria": "Compute ROI for a participant with known balances and costs: capture ROIReport with ROIPercent and BreakEvenDays matching hand-calculated values and per-run UUID; before (unknown ROI) -> after (computed ROI) delta; unknown participant returns error.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.1 (GetParticipantROI/ROIReport)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Author helm/helixcluster-chutes base chart (values.yaml)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Author the unified helm/helixcluster-chutes chart with values.yaml across six sections: validators (endpoints), graval (image, vramThreshold 0.95, challengeRounds 256, supportedGPUs), gepetto (costOptimization, preferTEE, minBountyValue, helixReserveRatio 0.20), inference (sglang default + vllm args), tee (intel_tdx, sek8s, encryptedRoot, cosignAdmission), monitoring (grafana NodePort 30080, prometheus 30d/15s, watchtower 300s), postgres (100Gi local-path), redis (ephemeral), networking (WireGuard, Cilium/Hubble).",
+    "closure_criteria": "Run helm lint + helm template and deploy to a real K3s cluster: capture rendered manifests passing lint and pods reaching Ready with per-run UUID; before (no release) -> after (helm release deployed, helm status) delta captured.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#4 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.3, §6 P0#4", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author chute-deployment.yaml Helm template for inference pods",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Author helm/helixcluster-chutes/templates/chute-deployment.yaml: ranges over .Values.chutes generating per-model Deployments with nvidia.com/gpu limits, hostPath HF cache mount, graval-socket emptyDir, liveness/readiness/startup probes tuned for large model loading, conditional Intel TDX device mounts when TEE enabled, pod anti-affinity preventing identical-chute co-location, and GPU-type/VRAM node selectors.",
+    "closure_criteria": "helm template the chart with a sample chutes list and deploy to a real GPU node: capture a chute Deployment scheduled with the GPU limit and probes passing with per-run UUID; before (no chute pod) -> after (chute serving /health 200) delta.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author values-models.yaml with 8 pre-configured model deployments",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Author helm/helixcluster-chutes/values-models.yaml declaring 8 models: Llama-3.2-1B (vLLM), DeepSeek-V3 (SGLang, 8xH100, teeOnly), Llama-3.1-405B (SGLang), FLUX.1-schnell (Diffusers), FLUX.1-dev (Diffusers), BGE-large (TEI), Whisper-large-v3 (vLLM), Qwen3-32B/Qwen2.5-7B. Each with model id, engine, pinned image, gpuCount, concurrency, memory/cpu quotas, nodeSelector (GPU type/VRAM/TEE), engineArgs, replicas, optional teeOnly.",
+    "closure_criteria": "helm template -f values-models.yaml and deploy at least one model per class on real GPU nodes: capture each model pod Ready and answering an inference request, with per-run UUID; before (no models) -> after (8 model configs renderable, sampled ones serving) delta. Serving-proof on GPU nodes required per CLAUDE-1.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P1#8 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.3, §6 P1#8", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.3 + Table 6.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author scripts/chutes-node-prep.sh bare-metal node preparation",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Author scripts/chutes-node-prep.sh (a.k.a prepare-node.sh): checks system requirements (RAM>=VRAM, NVMe>=500GB, 8+ cores), installs NVIDIA driver 550 + CUDA 12.4 + Container Toolkit, deploys K3s v1.30.2 with NVIDIA runtime (--disable traefik --disable servicelb), labels node with GPU type/VRAM, optionally enables Intel TDX (intel-tdx-driver-dkms, modprobe tdx-guest), creates HF cache dir on NVMe, installs Bittensor, verifies GPU passthrough with a test pod.",
+    "closure_criteria": "Run on a real bare-metal GPU host: capture kubectl get node showing helixcluster.io/gpu/gpu-type labels and a test GPU pod succeeding (nvidia-smi) with per-run UUID; before (bare OS) -> after (K3s + NVIDIA runtime ready) delta in ~15-30 min.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#5 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.3, §6 P0#5", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.2 Script 1 + Table 6.5"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author scripts/chutes-miner-deploy.sh miner deployment + registration",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Author scripts/chutes-miner-deploy.sh (deploy-miner.sh): accepts node-id/coldkey/hotkey, creates K8s secrets for the Bittensor wallet and Chutes API key, deploys the unified Helm chart with tee.enabled and monitoring enabled (--wait --timeout 10m), waits for pods Ready, and registers the node with the Chutes network via the miner API.",
+    "closure_criteria": "Run on a prepared K3s GPU node: capture secret creation, helm release deployed, kubectl get pods all Running, and a successful Chutes-network registration response with per-run UUID; before (prepared node) -> after (registered miner) delta in ~5-10 min.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#5 MISSING)", "phase_08/PHASE_8_ROADMAP.md §4.3, §6 P0#5", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.2 Script 2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author scripts/chutes-health-monitor.sh observability + alerts",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Author scripts/chutes-health-monitor.sh (monitor-health.sh): queries GraVal attestation logs, miner API connectivity, GPU utilization (kubectl top), inference request rate (chutes_requests_total), and earnings (api.chutes.ai/users/me). Emits Prometheus-compatible metrics and alerts when attestation fails, GPU util <50%, or miner API unreachable >60s.",
+    "closure_criteria": "Run against a live miner: capture printed GraVal status, pod status, GPU util, request rate, and balance, plus a fired alert when miner API is killed, with per-run UUID; before (no health view) -> after (health snapshot + alert) delta.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#5 MISSING)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.2 Script 3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author scripts/chutes-verify.sh end-to-end verification",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Author scripts/chutes-verify.sh (verify-deployment.sh): runs an end-to-end inference test against https://llm.chutes.ai/v1 via the OpenAI SDK, validates E2EE decryption when enabled, and confirms TAO emissions for the registered hotkey via btcli subnet emissions --netuid 64.",
+    "closure_criteria": "Run against a registered miner with a real cpk_ key: capture 'TEST: PASSED' with model + response text and non-empty btcli emissions output for the hotkey, with per-run UUID; before (unverified) -> after (inference + on-chain emission confirmed) delta. On-chain evidence required per CLAUDE-1.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P0#5 MISSING; DEFERRED on-chain)", "phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 gate", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.6.2 Script 4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Wire internal/gateway to route internal AI requests through Chutes API client",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Integrate the Chutes API client into internal/gateway so HelixCluster internal AI requests are routed to Chutes inference, with the E2EE proxy wrapping requests flagged TEERequired. Replaces the internal/llm stub Inference with a real Chutes backend path.",
+    "closure_criteria": "Send an internal AI request through the gateway: capture it reaching Chutes (real/testnet) and returning a model response, with TEERequired requests showing X-E2EE-Enabled and an audit record, per-run UUID; before (stub synthetic response) -> after (real Chutes response) delta.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (internal/llm router MISSING, line 33)", "phase_08/PHASE_8_ROADMAP.md §5.3 (internal/gateway role), §4.2 internal/llm"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Replace internal/llm stub Inference with real model router (latency/throughput/quality/cost)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Replace the explicitly-stubbed internal/llm Manager.Inference (synthetic response) with a real router selecting models by latency/throughput/quality/cost, a streaming SSE handler, and an E2EE-transparent client wrapper, while preserving existing contract guards (must be registered+loaded, non-empty prompt).",
+    "closure_criteria": "Route requests under each policy through to Chutes: capture real (non-synthetic) responses and correct model selection per policy, with per-run UUID; before (stub returns canned text) -> after (live tokens) delta; existing guard tests still pass.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (internal/llm manager stub, line 33)", "phase_08/PHASE_8_ROADMAP.md §4.2 internal/llm"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy vLLM inference engine with PagedAttention defaults",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Deploy vLLM as a serving engine (image chutesai/vllm) with --trust-remote-code, --tensor-parallel-size, --max-num-batched-tokens 8192, PagedAttention and FlashAttention v3, targeting ~3,000 tok/s and 85-92% GPU utilization on 8B/H100.",
+    "closure_criteria": "Deploy vLLM on a real GPU node and serve a model: capture sustained tokens/sec and GPU utilization from metrics meeting the throughput/utilization targets, with per-run UUID; before (no engine) -> after (serving at target tok/s) delta.",
+    "required_test_types": ["integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §3 8b, §7.4.2", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 (vllm), §6.4 (3000 tok/s)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy SGLang inference engine with RadixAttention",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Deploy SGLang as the default/secondary engine (image chutesai/sglang) with --trust-remote-code, --enable-torch-compile, --tp-size, RadixAttention prefix caching for 5-6x multi-turn chat/agent speedup.",
+    "closure_criteria": "Deploy SGLang on a real GPU node and run a multi-turn conversation: capture measured prefix-cache speedup approaching the 5-6x multi-turn target vs cold, with per-run UUID; before (no SGLang) -> after (multi-turn served with cache hits) delta.",
+    "required_test_types": ["integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §3 8b, §7.4.2", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 (sglang)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Enable AWQ 4-bit quantization as default model format",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Apply AWQ 4-bit quantization as the default serving format to reduce VRAM consumption ~75% while retaining 98%+ benchmark quality.",
+    "closure_criteria": "Serve a model in AWQ 4-bit vs fp16 on a real GPU: capture VRAM reduction approaching 75% and an eval showing >=98% quality retention on a standard benchmark, with per-run UUID; before (fp16 VRAM) -> after (AWQ VRAM) delta.",
+    "required_test_types": ["integration(real-svc)", "benchmark", "performance"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §3 8b", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.4.2 (AWQ 4-bit, 75% VRAM, 98% quality)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy TurboDiffusion video-generation engine",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Deploy TurboDiffusion for video generation (SageAttention + step distillation) targeting 100-200x acceleration, as part of the shared serving stack alongside vLLM/SGLang/TEI.",
+    "closure_criteria": "Generate a short video clip on a real GPU node: capture generation latency demonstrating the acceleration vs baseline diffusion with per-run UUID; before (baseline diffusion time) -> after (TurboDiffusion time) delta.",
+    "required_test_types": ["integration(real-svc)", "performance"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec00.md (TurboDiffusion 100-200x)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Deploy Intel TDX + NVIDIA CC TEE stack via sek8s",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Deploy the sek8s secure Kubernetes stack enabling Intel TDX (encrypted CPU memory) + NVIDIA Confidential Computing (encrypted GPU VRAM) + encrypted PCIe bounce buffer (AES-256-GCM), with remote attestation via Intel Trust Authority (DCAP) and NVIDIA NRAS. Software TEE-document model exists in security/pkg/attestation; hardware quote chain deferred to TEE-capable hardware.",
+    "closure_criteria": "On a real H100 CC node, run an inference inside a TDX+CC enclave and produce an attestation quote validated against Intel Trust Authority + NRAS: capture the verified attestation chain with per-run UUID; before (plaintext execution) -> after (hardware-attested confidential execution) delta. Sink-side attestation evidence required per CLAUDE-1.",
+    "required_test_types": ["integration(real-svc)", "security", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#11 PARTIAL/DEFERRED, lines 29,72)", "phase_08/PHASE_8_ROADMAP.md §6 P2#11, §7.4.4", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.1.1, §7.4.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement hybrid PQC TLS (X25519 + ML-KEM-768) node-to-node transport",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement hybrid post-quantum node-to-node TLS combining X25519 + ML-KEM-768 (~10% handshake overhead) layered over the existing WireGuard mesh, eliminating harvest-now-decrypt-later. security/pkg/e2ee provides the KEM primitive but no node-to-node TLS integration exists yet.",
+    "closure_criteria": "Establish a node-to-node connection negotiating X25519+ML-KEM-768: capture the negotiated hybrid group in the handshake and measured overhead near 10% vs classical, with per-run UUID; before (classical TLS) -> after (hybrid PQC handshake) delta; tamper test rejects downgrade.",
+    "required_test_types": ["integration(real-svc)", "security", "performance"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#12 MISSING, line 35)", "phase_08/PHASE_8_ROADMAP.md §6 P2#12, §5.2", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.1.1, §7.4.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Cosign/Sigstore image admission controller for K3s",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement a K3s admission controller that verifies Cosign/Sigstore image signatures before pod admission (cosignAdmission in values), part of the code-integrity defense layer.",
+    "closure_criteria": "Attempt to deploy an unsigned image and a Cosign-signed image on a real K3s cluster: capture the unsigned pod rejected and the signed pod admitted, with per-run UUID; before (any image admitted) -> after (only signed admitted) delta; mutation disabling verification admits the unsigned image and FAILs the test.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 (cosignAdmission), Table 6.4 (Cosign+Sigstore)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement LUKS-encrypted root for miner nodes",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Enable LUKS encrypted root filesystem on TEE miner nodes (encryptedRoot in sek8s values) so node disks are encrypted at rest.",
+    "closure_criteria": "Provision a node with LUKS root and reboot: capture the encrypted root unlocking and disk reporting as LUKS via cryptsetup status with per-run UUID; before (plaintext disk) -> after (encrypted root) delta.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 (encryptedRoot)", "phase_08/PHASE_8_ROADMAP.md §6 P2#11 (LUKS encrypted root)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Cilium egress control and Watchtower integrity challenges",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Deploy Cilium with Hubble observability and net-nanny-style egress network policies, plus Watchtower continuous integrity challenges every 300s emitting Prometheus alerts (Table 6.4 monitoring layer).",
+    "closure_criteria": "Apply egress policy and run Watchtower challenges on a real cluster: capture a blocked unauthorized egress flow in Hubble and a periodic integrity challenge result in Prometheus with per-run UUID; before (open egress, no challenge) -> after (restricted egress + challenge metrics) delta.",
+    "required_test_types": ["integration(real-svc)", "security", "chaos"],
+    "source_refs": ["phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 (watchtower 300s), Table 6.4 (net-nanny+Cilium, Watchtower)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement carbon-aware scheduler with per-job energy metering",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Extend the Omega scheduler with a carbon signal that routes workloads to clean-energy regions when latency permits and meters energy consumption per job, feeding EU AI Act energy disclosure. No carbon signal exists today.",
+    "closure_criteria": "Submit jobs with two regional carbon intensities: capture the scheduler preferring the low-carbon region (when latency allows) and a per-job kWh/gCO2 record with per-run UUID; before (carbon-blind placement) -> after (carbon-aware placement + metering) delta; mutation ignoring the carbon signal changes placement and FAILs the test.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#13 MISSING, line 36)", "phase_08/PHASE_8_ROADMAP.md §6 P2#13, §7.4.4", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.3.1 + Table 7.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement EU AI Act compliance documentation pipeline",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Build a compliance pipeline that consumes TEE attestation logs to auto-generate technical documentation/model cards with provenance, handles >10^25 FLOP systemic-risk obligations (adversarial testing, incident reporting, energy disclosure) and >10^23 FLOP documentation obligations.",
+    "closure_criteria": "Run the pipeline for a deployed model: capture an auto-generated model card + technical documentation artifact derived from real attestation logs with per-run UUID; before (no compliance doc) -> after (generated, provenance-linked doc) delta.",
+    "required_test_types": ["integration(real-svc)", "automation"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (P2#13 MISSING)", "phase_08/PHASE_8_ROADMAP.md §6 P2#13, §7.4.4", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.3.1 + Table 7.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement export-control tier verification (country-code KYC) at node onboarding",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Embed hardware country-of-origin / country-code KYC verification into MinerController node onboarding to enforce US 3-tier export controls (Tier 3 no H100/H200/B200; Tier 2 50K GPU cap), blocking restricted hardware transfers.",
+    "closure_criteria": "Onboard a node declaring a Tier 3 country with an H100: capture the onboarding rejection and an allowed Tier 1 onboarding, with per-run UUID; before (no geo gating) -> after (export-control gated onboarding) delta; mutation bypassing the country check admits the Tier 3 H100 and FAILs the test.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §7 Risk (export control), §6 P2#13", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec07.md §7.3.1 + Table 7.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Extend pkg/metrics + Prometheus/Grafana with TAO/GraVal/throughput dashboards",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/metrics and Prometheus/Grafana to monitor TAO earnings, GraVal attestation status, token throughput, and GPU utilization, exposing the dashboards that back the Phase 8 KPIs (utilization +30-50%, attestation status visible).",
+    "closure_criteria": "On a running miner, open Grafana (NodePort 30080) and capture a screenshot showing live TAO earnings, GraVal attestation status, and token throughput panels with per-run UUID; before (no Phase-8 panels) -> after (populated dashboards) delta. Screenshot evidence required per CLAUDE-1.",
+    "required_test_types": ["integration(real-svc)", "ui", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §5.3 (pkg/metrics), §8 (GPU utilization, attestation in Grafana)", "phase_08/HelixCluster_Phase_08/helixcluster_phase8_sec06.md §6.4.1 monitoring"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Extend pkg/health with miner-api and GraVal DaemonSet health checks",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/health with checks for the miner-api Deployment and the GraVal bootstrap DaemonSet, so cluster health reflects Chutes miner liveness and attestation readiness.",
+    "closure_criteria": "Bring a miner up then kill the miner-api: capture pkg/health reporting healthy then unhealthy with the specific failing check named and per-run UUID; before (no miner health checks) -> after (miner+GraVal checks reporting) delta.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §5.3 (pkg/health extended)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author HelixQA Challenge: miner deployment and TAO earnings",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Create a HelixQA Challenge scenario validating miner deployment end-to-end and confirming TAO earnings on-chain for the registered hotkey. No Phase-8 challenge scenarios exist today.",
+    "closure_criteria": "Run the Challenge on real/testnet infra: capture a PASS only when the miner is deployed AND on-chain TAO emission for the hotkey is confirmed (btcli/explorer), with per-run UUID; before (no challenge) -> after (Challenge PASS with on-chain evidence) delta. PASS on a non-functional miner must be impossible (no PASS-bluff).",
+    "required_test_types": ["challenge(HelixQA)", "e2e", "integration(real-svc)"],
+    "source_refs": ["phase_08/GAP_AUDIT.md (HelixQA Challenges MISSING, line 37)", "phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 Challenges (a)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author HelixQA Challenge: E2EE inference roundtrip",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Create a HelixQA Challenge validating a full E2EE inference roundtrip: HelixCluster workload -> Chutes API client -> E2EE proxy -> Chutes network -> GPU miner -> response, asserting ciphertext on the wire and an audit-log record.",
+    "closure_criteria": "Run the Challenge: capture PASS only when plaintext is recovered, on-wire payload was ciphertext, and the E2EE proxy audit log shows sealed=true for the request id, with per-run UUID; before (no challenge) -> after (Challenge PASS with audit evidence) delta.",
+    "required_test_types": ["challenge(HelixQA)", "e2e", "security"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 Challenges (b), §8 (E2EE proxy audit log)", "phase_08/GAP_AUDIT.md (line 37)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author HelixQA Challenge: multi-marketplace routing decision",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Create a HelixQA Challenge validating that the UnifiedManager routes a workload to the correct marketplace under composite scoring and TEE constraints.",
+    "closure_criteria": "Run the Challenge with competing offers including a TEERequired case: capture PASS only when the routed marketplace matches the expected weighted/TEE winner, with the decision rationale and per-run UUID logged; before (no challenge) -> after (Challenge PASS) delta.",
+    "required_test_types": ["challenge(HelixQA)", "integration(real-svc)"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 Challenges (c)", "phase_08/GAP_AUDIT.md (line 37)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author HelixQA Challenge: GraVal attestation pass/fail",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Create a HelixQA Challenge validating GraVal attestation accepts genuine devices and rejects tampered/fake-hardware responses, surfacing the pass-rate KPI.",
+    "closure_criteria": "Run the Challenge across genuine and tampered devices: capture PASS only when genuine devices admit and tampered devices are rejected with ErrResponseMismatch and pass-rate reflects the tamper, with per-run UUID; before (no challenge) -> after (Challenge PASS) delta.",
+    "required_test_types": ["challenge(HelixQA)", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 Challenges (d)", "phase_08/GAP_AUDIT.md (line 37)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Validate Chutes API client P99 first-token streaming latency < 500ms",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Establish an integration performance test measuring P99 first-token latency for streaming chat completions against real/testnet Chutes, with the exit target < 500ms.",
+    "closure_criteria": "Run a load of streaming requests against real Chutes: capture a latency histogram with P99 first-token < 500ms and the run UUID; before (unmeasured) -> after (P99 measured and within target) delta. Measured on real infra per CLAUDE-1, not mocks.",
+    "required_test_types": ["performance", "integration(real-svc)", "benchmark"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 (Chutes API client latency P99 <500ms)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Achieve >60% line coverage on pkg/chutes, pkg/marketplace, pkg/e2ee (Codecov gate)",
+    "type": "Task",
+    "priority": "P2",
+    "description": "Add tests to reach >60% line coverage across pkg/chutes, pkg/marketplace, and pkg/e2ee as a CI Codecov gate, with mutation-paired tests per CLAUDE-1 (tests must fail on mutated source).",
+    "closure_criteria": "Run CI coverage: capture Codecov report showing >60% line coverage for the three packages and a mutation run where injected mutants are killed, with per-run UUID; before (below gate) -> after (gate green) delta.",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 (Test coverage >60%, build >99%)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Validate end-to-end full request flow integration (workload->client->E2EE->network->miner->response)",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Build and capture the mandatory CLAUDE-1 end-to-end integration: a full request flow HelixCluster workload -> Chutes API client -> E2EE proxy -> Chutes network -> GPU miner -> response executing successfully against real or testnet infrastructure.",
+    "closure_criteria": "Execute the full chain on real/testnet infra: capture the complete trace (request id/UUID at each hop) ending in a valid model response, with sink-side log/screenshot evidence; before (no integrated path) -> after (full chain succeeds) delta. Mock-only does not satisfy this gate.",
+    "required_test_types": ["e2e", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_08/PHASE_8_ROADMAP.md §8 CLAUDE-1 Usability Gate (3 end-to-end test)", "phase_08/GAP_AUDIT.md (CLAUDE-1/§11.4.68 gate, line 15)"],
+    "decoupling_candidate": false
+  }
+]

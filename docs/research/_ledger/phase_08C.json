@@ -1,0 +1,552 @@
+[
+  {
+    "title": "Implement pkg/security/e2ee PQ envelope (ML-KEM-768 + HKDF-SHA256)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build the canonical post-quantum E2EE inference envelope as a decoupled vasic-digital submodule: ML-KEM-768 (FIPS 203) KEM encapsulation, HKDF-SHA256 key derivation with salt = first 16 bytes of the KEM ciphertext and domain-separated info strings, terminating in an AEAD seal. Must match the Chutes wire format exactly (1088-byte ML-KEM-768 ciphertext, 12-byte nonce, 16-byte tag). Provides confidential serving where neither relay nor miner can read tenant prompts.",
+    "closure_criteria": "On a live run (UUID-tagged), encrypt a real chat-completions JSON payload through the envelope and decrypt it at a worker process; capture before(plaintext)/after(ciphertext-on-wire)/recovered(plaintext) showing the relay log contains only ciphertext + routing metadata while the worker recovers exact plaintext bytes; log the per-run UUID with byte lengths proving 1088/12/16 framing.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/PHASE_8C_ROADMAP.md §3,§4.1", "phase_08C/dossiers/chutes-e2ee-transport.md", "phase_08C/INCORPORATION_MATRIX.md Gap 5", "phase_08C/GAP_AUDIT.md 8C.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add ChaCha20-Poly1305 AEAD cipher variant to pkg/security/e2ee",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "The current implemented envelope uses AES-256-GCM, but the roadmap §4.1 and the Chutes reference protocol demand ChaCha20-Poly1305 (golang.org/x/crypto/chacha20poly1305) selectable via SessionConfig. Add the ChaCha20-Poly1305 AEAD path so the envelope is byte-interoperable with Chutes e2ee-proxy / chutes-e2ee-transport.",
+    "closure_criteria": "Run (UUID-tagged) encrypting a fixed plaintext with the ChaCha20-Poly1305 path and show the produced ciphertext bytes match a captured Chutes reference vector byte-for-byte; before=AES-only config, after=ChaCha20 config selectable, with a captured diff proving cipher selection changes the wire bytes as expected.",
+    "required_test_types": ["unit", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/PHASE_8C_ROADMAP.md §4.1", "phase_08C/GAP_AUDIT.md 8C.1, gap #4", "phase_08C/dossiers/e2ee-proxy.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add Chutes byte-interop test-vector corpus for pkg/security/e2ee",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Add a testdata/ corpus of fixed (encap-key, KEM-ct, nonce, AAD, plaintext, expected-ciphertext) golden vectors captured from the Chutes e2ee-test reference, and a vector-driven test asserting byte-for-byte Seal/Open reproduction. Closes the §8 exit gate 'byte-for-byte decrypt vs reference vectors'. HKDF salt = mlkem_ct[:16]; info labels e2e-req-v1 / e2e-resp-v1 / e2e-stream-v1 must be reproduced exactly.",
+    "closure_criteria": "Run (UUID-tagged) the vector-driven test over the golden corpus and capture a report showing every vector reproduces the expected ciphertext bytes exactly; mutate one HKDF info-label byte and capture the resulting all-vectors-fail diff as negative evidence.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #4, 8C.1", "phase_08C/PHASE_8C_ROADMAP.md §8 exit gate", "phase_08C/CHUTESAI_REPO_ANALYSIS.md e2ee-test"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement bidirectional per-request response keypair in pkg/security/e2ee",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Generate a fresh ephemeral ML-KEM response keypair per request and ship the response public key inside the encrypted request body so responses are encrypted back to a one-time key (forward secrecy). Use INFO_REQ / INFO_RESP domain separation for request vs response key derivation.",
+    "closure_criteria": "Run (UUID-tagged) two sequential requests and capture evidence that each used a distinct response public key (logged key fingerprints differ) and that a response sealed to request-1's key cannot be opened with request-2's key; before/after key-fingerprint log proves per-request rotation.",
+    "required_test_types": ["unit", "security", "e2e"],
+    "source_refs": ["phase_08C/dossiers/chutes-e2ee-transport.md", "phase_08C/dossiers/e2ee-proxy.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement gzip-before-encrypt payload compression in pkg/security/e2ee",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "gzip-compress the JSON payload before AEAD encryption, matching the Chutes envelope framing (compress/gzip in Go) so compressed payloads interoperate with the reference protocol.",
+    "closure_criteria": "Run (UUID-tagged) encrypting a large repetitive JSON prompt and capture before(raw size)/after(gzipped-then-sealed wire size) showing measurable compression, plus a round-trip decrypt+gunzip recovering exact bytes.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/chutes-e2ee-transport.md", "phase_08C/dossiers/e2ee-proxy.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement streaming SSE E2EE decryption (e2e_init + per-chunk) in pkg/security/e2ee",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Support transparent streaming: decrypt an e2e_init key-exchange event to derive a stream key (INFO_STREAM domain), then decrypt each e2e SSE chunk on the fly and re-emit standard data: {...} lines; pass through plaintext usage events and surface e2e_error events. Matches the e2e_stream_begin/chunk/end framing.",
+    "closure_criteria": "Run (UUID-tagged) a streamed inference through the envelope and capture token-by-token decrypted SSE chunks reassembling into the exact expected completion, with the relay capture showing only encrypted chunks; before=encrypted stream bytes, after=clean OpenAI data: lines.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "stress"],
+    "source_refs": ["phase_08C/dossiers/chutes-e2ee-transport.md", "phase_08C/dossiers/chutes.md Aegis streaming", "phase_08C/PHASE_8C_ROADMAP.md §4.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement E2EE instance-discovery + single-use nonce contract",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the consumer-side discovery contract: GET /e2e/instances/{chute_id} returns live instances each with instance_id, e2e_pubkey, and a pool of single-use server-issued nonces; cache per-instance pools with TTL/expiry (~55s server expiry, 60s client TTL), consume exactly one nonce per request (replay-proof), refresh on exhaustion. Thread-safe DiscoveryManager with per-chute pools and locks. Rewrites requests to POST /e2e/invoke with octet-stream body and X-Chute-Id/X-Instance-Id/X-E2E-Nonce/X-E2E-Stream/X-E2E-Path routing headers.",
+    "closure_criteria": "Run (UUID-tagged) consuming nonces from a real discovery endpoint; capture evidence a nonce used twice is rejected (403 on replay) and a fresh request succeeds; before(nonce pool size N)/after(N-1) plus replay-rejection log line.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "e2e"],
+    "source_refs": ["phase_08C/dossiers/chutes-e2ee-transport.md", "phase_08C/dossiers/e2ee-proxy.md", "phase_08C/INCORPORATION_MATRIX.md Gap 8"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Maintain E2EE length-prefixed framed transport over io.ReadWriter",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Length-prefixed record framing over io.ReadWriter with an oversize guard, supporting round-trip and concurrent use (already DONE in security/pkg/e2ee/transport.go). Keep it as the framed-record transport underlay for the envelope.",
+    "closure_criteria": "Run (UUID-tagged) a concurrent round-trip over the framed transport with an oversize record injected; capture evidence the oversize record is rejected by the guard and well-formed records round-trip intact under concurrency.",
+    "required_test_types": ["unit", "integration(real-svc)", "stress"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.1 E2EE framed transport (DONE)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/gpuattest device-info challenge/response + fingerprint",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Decoupled vasic-digital submodule for software proof-of-GPU: validator issues a challenge keyed to a claimed device roster (name, UUID, memory, SM/processor count, clock rate, max threads/processor); the node must compute a response only that exact hardware profile can produce. Clean-room HMAC challenge/response with replay+expiry protection (implemented PARTIAL). Honest scope note: software stands in, no GPU kernel yet.",
+    "closure_criteria": "Run (UUID-tagged) issuing a challenge to a genuine descriptor and a forged descriptor; capture evidence the genuine descriptor passes and expired/replayed/tampered/wrong-key/forged-descriptor responses are rejected with explicit error reasons; before=accepted genuine, after=rejected forgery log.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/graval.md", "phase_08C/GAP_AUDIT.md 8C.2", "phase_08C/INCORPORATION_MATRIX.md Gap 3", "phase_08C/PHASE_8C_ROADMAP.md §3 8C.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement seeded matmul proof-of-GPU-work (PoVW) in pkg/gpuattest",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Reimplement GraVal's PoVW: generate_challenge_matrices(seed, iterations) producing matrix-multiply work products with SHA256 intermediate hashes per iteration/matrix, so a node proves it ran the seeded memory-bound work on the claimed GPU. Asserts the work product binds to device info. (Full hardware kernel deferred to GPU CI; CPU-testable protocol subset here.)",
+    "closure_criteria": "Run (UUID-tagged) generating a PoVW for a known seed and verifying the per-iteration SHA256 chain; capture before(genuine matrices verify)/after(one perturbed iteration hash fails verification) with the failing index logged.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_08C/dossiers/graval.md", "phase_08C/dossiers/chutes-miner.md", "phase_08C/GAP_AUDIT.md 8C.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement O(1) spot-check verification in pkg/gpuattest",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add SpotCheck(resp, index) that re-derives and compares a single deterministic challenge-indexed word of a large software-PoVW response, enabling O(1) probabilistic verification across many challenges without re-running the whole workload (GraVal validator_check_proof equivalent; 200+ challenges per test cheaply).",
+    "closure_criteria": "Run (UUID-tagged) spot-checking a genuine response at random indices (all pass) and a response with one tampered word (fails exactly at that index); capture the index-level pass/fail log; mutation: ignore index → tampered-word test no longer fails (negative evidence).",
+    "required_test_types": ["unit", "security", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #5, 8C.2", "phase_08C/dossiers/graval.md", "phase_08C/PHASE_8C_ROADMAP.md §8 GPU gate"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement device-sealed encrypt/decrypt (SealForDevice/OpenFromDevice) in pkg/gpuattest",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add device-bound E2EE: SealForDevice(deviceKey, plaintext) / OpenFromDevice binding an AEAD key to the device secret so only the matching GPU can decrypt an inference payload (GraVal encrypt/miner_decrypt equivalent). Software-only, clearly scoped (no GPU kernel).",
+    "closure_criteria": "Run (UUID-tagged) sealing a payload to device-A's secret and attempting to open with device-B's secret; capture before(device-A opens successfully)/after(device-B open rejected) evidence.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/graval.md", "phase_08C/GAP_AUDIT.md gap #5", "phase_08C/dossiers/chutes-miner.md per-GPU AES key"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement filesystem residency challenge in pkg/gpuattest",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Validator can demand SHA256 of an arbitrary (offset,length) byte range of a file on the node to prove a model/weight file is genuinely resident on disk (GraVal miner_filesystem_challenge equivalent; complements cfsv Merkle filesystem challenge).",
+    "closure_criteria": "Run (UUID-tagged) challenging a present model file at random (offset,length) ranges (all verify) and a missing/truncated file (fails); capture the per-range hash-match log and the negative-case failure.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08C/dossiers/graval.md", "phase_08C/dossiers/chutes.md cfsv"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement multi-GPU node enumeration in pkg/gpuattest",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "initialize_node() discovers all local accelerators and keys per-device work products by GPU UUID, so a node with multiple GPUs proves each device independently.",
+    "closure_criteria": "Run (UUID-tagged) on a node descriptor with N GPUs and capture evidence N distinct per-UUID work products are produced and independently verifiable; before(N devices declared)/after(N proofs keyed by UUID).",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/graval.md"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/security/attestation TEE quote construct/verify",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Decoupled vasic-digital submodule for hardware TEE attestation: build/verify an ed25519-signed attestation document with nonce freshness, clock-skew tolerance, and measurement-policy evaluation (implemented PARTIAL). Provides a QuoteSigner seam where software stands in for a hardware quote, structured to accept a real TDX/NVIDIA quote later.",
+    "closure_criteria": "Run (UUID-tagged) constructing and verifying a genuine document, then verifying one with a stale nonce, excessive clock skew, and a measurement outside policy; capture before(genuine verifies)/after(each tamper class rejected with reason).",
+    "required_test_types": ["unit", "security", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/sek8s.md", "phase_08C/GAP_AUDIT.md 8C.3", "phase_08C/INCORPORATION_MATRIX.md Gap 9", "phase_08C/PHASE_8C_ROADMAP.md §3 8C.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Intel TDX quote generation with nonce+cert binding (report_data layout)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Reimplement sek8s TDX quote generation bound to the node TLS cert: report_data = nonce(64 hex) + cert_hash(64 hex) (128 chars / 64 bytes) proving freshness (anti-replay nonce) + key-possession (cert binding); parse/verify MRTD + RTMR0-3 measurements against an expected TeeMeasurementConfig via go-tdx-guest / Intel DCAP. (Real hardware validation DEFERRED to a TDX node.)",
+    "closure_criteria": "Run (UUID-tagged) on a real Intel TDX node generating a quote for a fresh nonce and verifying report_data binds the cert hash; capture the parsed MRTD/RTMR values matched against policy and a rejection when the nonce or cert hash is altered (sink-side hardware evidence).",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/sek8s.md", "phase_08C/dossiers/chutes-api.md TDX", "phase_08C/GAP_AUDIT.md DEFERRED 8C.3", "phase_08C/PHASE_8C_ROADMAP.md §7,§8"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement NVIDIA GPU attestation evidence verification (NRAS/nvTrust)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Reimplement the NVIDIA confidential-GPU attestation path: consume nvTrust / nv-attestation-sdk (NRAS) ES384-signed JWT evidence verifiable against NVIDIA public certs, plus NVIDIA PPCIE verifier, and GPU inventory via NVML (UUID, compute capability, memory, clock, ECC). Dual-root with TDX. (DEFERRED to confidential-GPU hardware.)",
+    "closure_criteria": "Run (UUID-tagged) on an H100/H200-class confidential GPU node verifying a genuine NRAS JWT against NVIDIA certs (passes) and a forged/expired JWT (rejected); capture the verified GPU inventory and the rejection reason as sink-side hardware evidence.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/sek8s.md", "phase_08C/dossiers/chutes-api.md nv-attest", "phase_08C/GAP_AUDIT.md DEFERRED 8C.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement measured-boot / RTMR3 access-config measurement",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Reimplement sek8s measured boot: hash every access-control file (/etc/ssh, PAM, authorized_keys, /etc/passwd|shadow, sudoers, grub cmdline) with SHA-384 into RTMR3 in initramfs so offline tamper causes the VM to power off at boot; bind the boot measurement into the attestation document.",
+    "closure_criteria": "Run (UUID-tagged) on a TDX node: a clean node boots and RTMR3 matches policy; tamper one access-control file offline and capture evidence the node powers off / fails admission (before=boots, after=halted on tamper) as sink-side hardware evidence.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "chaos"],
+    "source_refs": ["phase_08C/dossiers/sek8s.md", "phase_08C/CHUTESAI_REPO_ANALYSIS.md sek8s RTMR3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement attestation-gated key release (LUKS/secret) handshake",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Reimplement sek8s LUKS-root attestation-gated key release: the disk/secret decryption key is never on disk; a remote key service releases it only after MRTD/RTMR measurements match policy. Bind the E2EE envelope key release to a verified quote (encryption terminates only inside attested enclaves). Reconstruct the server side of the key-release handshake (not fully in upstream repo).",
+    "closure_criteria": "Run (UUID-tagged) where a genuine attested node receives the key and serves, while a tampered node is denied the key; capture before(key released, volume mounted)/after(key withheld, node cannot decrypt) as sink-side evidence.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/sek8s.md", "phase_08C/PHASE_8C_ROADMAP.md §5.2,§8 TEE gate", "phase_08C/dossiers/chutes.md TDX evidence server"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/security/admission OPA-style policy + signed-image (cosign) gate",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Decoupled vasic-digital submodule for workload admission (MISSING today; only a generic policy-rule framework exists). Reimplement sek8s OPA/Rego admission semantics (no-root, no-privileged, resource limits required, allowed registries only, hostPath/volume-type restrictions, seccomp, RBAC/CRD/namespace policies) plus cosign container-signature verification (per-registry/org/repo config, digest pinning with TTLs) before images are admitted.",
+    "closure_criteria": "Run (UUID-tagged) admitting a compliant signed image (accepted) and rejecting a privileged/unsigned/disallowed-registry workload; capture the admission decision log per rule violated; before=workload submitted, after=accept/deny with cited policy.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.3 admission MISSING", "phase_08C/dossiers/sek8s.md OPA/Rego + cosign", "phase_08C/PHASE_8C_ROADMAP.md P2 #9"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/modelintegrity hf_cache_verify gate (SHA-256 + size)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Port hf_cache_verify semantics to Go (MISSING today): given a model directory and a signed manifest of {relpath -> sha256, size}, walk the cache and verify every file's SHA-256 and byte size before a model is marked servable; reject on any mismatch/missing/extra file with ErrHashMismatch/ErrSizeMismatch/ErrMissing. Pure stdlib. Use ONLY V2 HMAC-SHA256 semantics, never MD5 (cllmv V1 is broken). Wire into LLMOrchestrator LoadModel as a precondition; graceful failure (not os._exit) using Helix's own metadata source.",
+    "closure_criteria": "Run (UUID-tagged) verifying a clean model dir (servable) then (a) flip one byte -> ErrHashMismatch, (b) truncate a file -> ErrSizeMismatch, (c) delete a file -> ErrMissing; capture before(model marked servable)/after(serving blocked) with the named error per tamper class.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #1 (P1 #7), 8C.7", "phase_08C/PHASE_8C_ROADMAP.md §4.1 model integrity, P1 #7", "phase_08C/CHUTESAI_REPO_ANALYSIS.md sglang hf_cache_verify", "phase_08C/dossiers/cllmv.md V2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement model/revision anti-cheat verification token (V2 HMAC-SHA256)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement cllmv's V2 verification-token contract in Go: validate_v2 HMAC-SHA256 token computed with a per-session key binding (id, created, value, sub, model, revision) to prove a serving node actually ran the claimed model/revision rather than faking responses. Plus build-time engine package-hash attestation (pkg_hash equivalent for the inference engine). Explicitly NEVER port V1 MD5 semantics.",
+    "closure_criteria": "Run (UUID-tagged) generating a token for a genuine completion (validates) and for a forged value / wrong revision (rejected); capture before(genuine token validates)/after(forged token rejected); confirm no MD5 codepath exists.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/cllmv.md V2", "phase_08C/INCORPORATION_MATRIX.md Gap 3 cllmv", "phase_08C/PHASE_8C_ROADMAP.md §7 risk V1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement X25519 ephemeral session-key handshake for verification tokens",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Reimplement cllmv's session bootstrap: an init blob carrying an encrypted ephemeral HMAC key, decrypted by the holder of the validator X25519 private key, establishing a per-session HMAC key for binding verification tokens to a session.",
+    "closure_criteria": "Run (UUID-tagged) where the validator decrypts the node's ephemeral key and both derive the same per-session HMAC key; capture matching derived-key fingerprints and a failed derivation with the wrong private key.",
+    "required_test_types": ["unit", "security"],
+    "source_refs": ["phase_08C/dossiers/cllmv.md session handshake"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Maintain pkg/scheduler cost-aware GPU placement plugin",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Cost-aware GPU scoring plugin (implemented DONE) using explicit price labels + proxy and implementing the Plugin interface, modeled on Gepetto's ORDER BY hourly_cost ASC, free_gpus ASC placement. Keep and extend to consume ComputeMultiplier/Attested signals from the GPU resource model.",
+    "closure_criteria": "Run (UUID-tagged) placing a workload across nodes with differing hourly cost and free-GPU counts; capture the scored ranking showing the cheapest sufficient node selected; before(candidate set)/after(chosen node + score breakdown).",
+    "required_test_types": ["unit", "integration(real-svc)", "benchmark", "performance"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.4 cost-aware (DONE)", "phase_08C/dossiers/chutes-miner.md gepetto", "phase_08C/INCORPORATION_MATRIX.md Gap 1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement value-multiplier preemption in pkg/scheduler (Gepetto model)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Replace/augment the current priority-based preemption with Gepetto's value-multiplier model: preempt the least-valuable running instance ranked by compute_multiplier; never preempt non-preemptible/private deployments, the only global instance of a chute, or instances whose multiplier >= the new chute's effective multiplier. Optimistic-concurrency version bump already present.",
+    "closure_criteria": "Run (UUID-tagged) submitting a high-multiplier chute onto a full node; capture before(low-multiplier instance running)/after(it is preempted and the high-multiplier chute placed), and a negative case where a sole-global or equal-multiplier instance is NOT preempted.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "chaos"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.4 preemption PARTIAL", "phase_08C/dossiers/chutes-miner.md preemption engine", "phase_08C/PHASE_8C_ROADMAP.md §4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SKIP LOCKED-style optimistic work-claiming in pkg/scheduler",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a lease-free optimistic work-claiming idiom equivalent to Postgres SELECT ... FOR UPDATE SKIP LOCKED (via etcd CAS / Postgres advisory), borrowed from genlayer-studio, for Omega's optimistic-concurrency core so concurrent schedulers atomically claim pending placement tasks without double-scheduling.",
+    "closure_criteria": "Run (UUID-tagged) with N concurrent scheduler workers claiming from a shared queue of M tasks; capture evidence each task is claimed exactly once (no duplicates, no drops) under contention; before(M unclaimed)/after(M claimed, distribution across workers logged).",
+    "required_test_types": ["unit", "integration(real-svc)", "stress", "chaos"],
+    "source_refs": ["phase_08C/dossiers/genlayer-studio.md SKIP LOCKED", "phase_08C/INCORPORATION_MATRIX.md Gap 1,Gap 8", "phase_08C/PHASE_8C_ROADMAP.md §4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement attestation-gated scheduler admission predicate",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add an AdmissionPredicate hook on Scheduler (and a Plugin.Filter participant) that rejects a node unless it carries a verified attestation token. Define NodeTrust interface{ Verified(nodeID string) bool } satisfied by gpuattest.Verifier / attestation.Verifier results; nodes failing verification are filtered out before scoring. Currently MISSING: the scheduler never consults gpuattest/attestation.",
+    "closure_criteria": "Run (UUID-tagged) with two nodes, one carrying a valid gpuattest response and one spoofed; capture evidence only the attested node is placeable and the spoofed node is filtered before scoring; mutation: predicate always-true -> spoofed-node-rejected test fails (negative evidence).",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #2, 8C.4", "phase_08C/PHASE_8C_ROADMAP.md §5.1", "phase_08C/INCORPORATION_MATRIX.md Gap 3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement bounty/auction economic-placement plugin for scheduler",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Layer chutes-api's bounty/auction economic-placement signal as an optional scheduler plugin (capacity placement via economic signal rather than central bin-packing), incentivizing nodes to deploy under-served workloads. Includes a Redis/etcd distributed-lock single-writer guard (autoscaler:lock SET NX + TTL) for the autoscaling loop.",
+    "closure_criteria": "Run (UUID-tagged) with an under-served workload offering a bounty; capture before(no node deploys)/after(a node claims the bounty and deploys), and evidence the single-writer lock prevents two concurrent autoscale decisions.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "stress"],
+    "source_refs": ["phase_08C/dossiers/chutes-api.md autoscaler/bounty", "phase_08C/INCORPORATION_MATRIX.md Gap 1", "phase_08C/PHASE_8C_ROADMAP.md §4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement utilization-aware EWMA candidate ranking for scheduler/orchestrator",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement chutes-autopilot's deterministic utilization-aware ranking: free_capacity = active_instance_count*(1-util) + scale_bonus - rate-limit penalty, with EWMA smoothing over 5m/15m/1h windows and explicit tie-breakers (score -> instance count -> utilization -> rate-limit ratio -> name). Provide sticky per-client selection (TTL, bounded entries) with rotation on failure, backed by a shared store for multi-replica consistency.",
+    "closure_criteria": "Run (UUID-tagged) ranking a candidate fleet under varied utilization; capture a deterministic ordering reproduced across runs with identical inputs, and a sticky-client request routed to the same backend until a failure rotates it; before/after ranking snapshots.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_08C/dossiers/chutes-autopilot.md ranking", "phase_08C/INCORPORATION_MATRIX.md Gap 1,Gap 6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Kueue-style suspend-then-admit tiered job admission",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Borrow squad-api's Kueue pattern: queue-name-routed jobs created suspended, admitted by quota, with per-tier (free/paid) resource shapes (e.g. 500m/2Gi vs 2/4Gi) mapped to queues. Provides tiered batch/agent job admission in the Omega scheduler.",
+    "closure_criteria": "Run (UUID-tagged) submitting free-tier and paid-tier jobs against constrained quota; capture before(jobs suspended)/after(admitted in tier/priority order with the correct resource shape applied), and a job held suspended when quota is exhausted.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling"],
+    "source_refs": ["phase_08C/dossiers/squad-api.md Kueue", "phase_08C/INCORPORATION_MATRIX.md Gap 1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement NodeSelector placement-constraint schema in pkg/resources",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Reimplement the chutes NodeSelector placement-intent contract: gpu_count (1-8), min_vram_gb_per_gpu (16-140), max_hourly_price_per_gpu, include/exclude GPU model lists; feed these hard constraints into the scheduler as placement filters.",
+    "closure_criteria": "Run (UUID-tagged) placing a workload with a NodeSelector (e.g. gpu_count=2, min_vram=80, exclude=[A100]); capture before(full candidate set)/after(only nodes satisfying all constraints remain), and a no-match case rejected with the unmet constraint cited.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08C/dossiers/chutes.md NodeSelector", "phase_08C/dossiers/chutes-api.md NodeSelector", "phase_08C/PHASE_8C_ROADMAP.md §4.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Extend pkg/resources GPUInfo with device fingerprint + attested/thermal state",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "GPU resource model is MISSING beyond GPUInfo{Count,Model,Memory}. Extend with DeviceFingerprint string (UUID, VRAM, SM major/minor, processor count, clock, ECC, SXM), Attested bool, and Thermal{TempC int; Ready bool}. One-row-per-physical-GPU device fingerprint per chutes-api schema. Gate 'schedulable' on the attested flag; expose thermal/readiness for scale-from-zero pre-warm.",
+    "closure_criteria": "Run (UUID-tagged) enumerating a node's GPUs and capture the populated fingerprint+attested+thermal fields; show an un-attested GPU is marked non-schedulable and a not-ready (cold) GPU is excluded from immediate dispatch; before/after resource snapshots.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #3, 8C.5 (MISSING)", "phase_08C/INCORPORATION_MATRIX.md Gap 2", "phase_08C/dossiers/chutes-api.md device fingerprint"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SUPPORTED_GPUS compute-multiplier catalog + LookupMultiplier",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a static SUPPORTED_GPUS catalog keyed by Model with per-GPU compute multipliers and hourly-rate basis (H100/H200/A100/etc.) and a LookupMultiplier(model string) with a conservative default. Feed ComputeMultiplier into the cost scorer so higher-class GPUs rank appropriately and un-attested GPUs score below attested ones.",
+    "closure_criteria": "Run (UUID-tagged) asserting LookupMultiplier('H100') > LookupMultiplier('A100') > default and that an un-attested GPU scores below an attested one; capture the catalog ordering; mutation: swap two catalog entries -> ordering test fails (negative evidence).",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #3", "phase_08C/dossiers/chutes-api.md SUPPORTED_GPUS", "phase_08C/INCORPORATION_MATRIX.md Gap 2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement VRAM-capacity (>=95%) usable-memory gate in resources/gpuattest",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Assert >=95% of a GPU's advertised VRAM is actually usable as part of attestation (GraVal/chutes-api VRAM gate), so a node advertising more VRAM than it can deliver fails verification and is not marked schedulable.",
+    "closure_criteria": "Run (UUID-tagged) verifying a GPU whose usable VRAM is >=95% advertised (passes) and one at 80% (rejected); capture the measured-vs-advertised VRAM and the gate decision.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08C/dossiers/chutes-miner.md >=95% VRAM", "phase_08C/dossiers/chutes-api.md VRAM gate", "phase_08C/INCORPORATION_MATRIX.md Gap 3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement LLMOrchestrator vLLM/SGLang backend WRAP (OpenAI HTTP)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Replace the stub Inference (returns '[stub inference from %s]') with a real LLMOrchestrator that WRAPs upstream vLLM and SGLang serving containers over the OpenAI HTTP API, plus OpenAI passthrough. Largest functional gap. (Live serving exit gate against real GPU containers DEFERRED to GPU integration env.)",
+    "closure_criteria": "Run (UUID-tagged) routing a real chat-completions request to a live vLLM/SGLang container and capture before(stub string)/after(genuine model completion tokens) with the backend that served it logged; sink-side evidence the response came from the engine, not a stub.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.6 (MISSING/stub)", "phase_08C/PHASE_8C_ROADMAP.md §3 8C.6,§4.3", "phase_08C/INCORPORATION_MATRIX.md Gap 6", "phase_08C/CHUTESAI_REPO_ANALYSIS.md vllm/sglang"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement streaming-safe failover (retry only before first byte) in LLMOrchestrator",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Reimplement chutes-autopilot's streaming-safe failover: retry the next candidate only on pre-byte failures (connect fail, header timeout, first-body-byte timeout, 503-before-stream); never retry after any byte is sent; pass 429 straight through (user-caused).",
+    "closure_criteria": "Run (UUID-tagged) injecting a first-byte-timeout on backend A and confirming failover to backend B yields a complete stream; then inject a mid-stream failure and confirm NO retry occurs (stream errors, no duplicate tokens); capture before/after failover-reason logs.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "chaos", "stress"],
+    "source_refs": ["phase_08C/dossiers/chutes-autopilot.md failover", "phase_08C/INCORPORATION_MATRIX.md Gap 6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement per-task ordered fallback chains with dedup/cap + empty-response detection",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement model-router's per-task ordered fallback: ordered fallback chains with dedup and an N-deep cap, capacity-aware demotion, and empty/partial-response detection that triggers fallback. Optional comma-separated preference-list routing mode.",
+    "closure_criteria": "Run (UUID-tagged) where the primary returns an empty response; capture before(empty completion)/after(fallback model produces a non-empty completion) with the ordered attempt-trace logged and duplicates removed.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08C/INCORPORATION_MATRIX.md Gap 6 model-router", "phase_08C/CHUTESAI_REPO_ANALYSIS.md model-router"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement thermal pre-warm / scale-from-zero state machine (Therm)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement ai-sdk-provider-chutes' Therm warmup + ThermalMonitor: expose {cold/warming/hot, instanceCount} per backend, a non-blocking monitor with waitUntilHot/reheat, and pre-warm scale-from-zero GPU backends before dispatch so cold-start latency is hidden.",
+    "closure_criteria": "Run (UUID-tagged) dispatching to a cold backend with pre-warm enabled; capture before(state=cold)/after(state=hot before first real request dispatched) and the measured cold-start latency reduction vs a no-prewarm run.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "scaling"],
+    "source_refs": ["phase_08C/INCORPORATION_MATRIX.md Gap 6 ai-sdk-provider-chutes", "phase_08C/CHUTESAI_REPO_ANALYSIS.md ai-sdk-provider-chutes", "phase_08C/dossiers/DeepGEMM.md warmup_kernels (engine-side)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement passthrough cords + disconnect-aware upstream abort in LLMOrchestrator",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement chutes' production streaming-serving semantics: passthrough proxying to a local engine with per-request IDs (rid) and abort_request propagation on client disconnect (convert disconnect to 499, abort upstream), keeping connections healthy with proper backpressure/cancellation.",
+    "closure_criteria": "Run (UUID-tagged) starting a long stream then disconnecting the client mid-stream; capture sink-side evidence the upstream engine receives an abort for that rid and stops generating (resources freed), and a clean 499 logged.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "stress"],
+    "source_refs": ["phase_08C/dossiers/chutes.md passthrough/abort", "phase_08C/INCORPORATION_MATRIX.md Gap 6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Claude/Responses API-shape adapters for LLMOrchestrator front door",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Reimplement (clean-room, Apache/MIT-only patterns) the API-shape adapters: Anthropic Claude Messages <-> OpenAI chat-completions (claude-proxy) and OpenAI Responses <-> Chat Completions with fragmentation-safe tool-call buffering, dual modern/legacy event emission, XML tool-call salvage, reasoning <think> passthrough, and MCP tool-result ingestion (responses-proxy). Include a provider-aware request rewriting + text <function=...> tool-call fallback grammar (codex) for heterogeneous backends, plus an in-process circuit breaker.",
+    "closure_criteria": "Run (UUID-tagged) sending a Claude Messages request and a Responses-API request through the adapters to an OpenAI backend; capture before(client-native request)/after(faithful translated response incl. correct streaming + tool-call event ordering); show the circuit breaker opening after the configured consecutive failures.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_08C/dossiers/claude-proxy.md", "phase_08C/dossiers/responses-proxy.md", "phase_08C/dossiers/codex.md", "phase_08C/INCORPORATION_MATRIX.md Gap 6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement error-classified LLM failover taxonomy + sandbox scheduling-hint contract",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Reimplement chutes-search's error-classified LLM failover (typed error classification -> deterministic fallback chain ending in a router) and the ephemeral sandbox scheduling-hint contract (priority/preemptable/flavor) for ephemeral GPU/agent sandbox job submission to the scheduler (Sandy pattern; also chutes-search/chutes-jumpmaster).",
+    "closure_criteria": "Run (UUID-tagged) classifying distinct upstream errors and capturing the deterministic fallback path taken per error class; submit a sandbox job with priority/preemptable/flavor hints and capture the scheduler honoring them in placement.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_08C/INCORPORATION_MATRIX.md Gap 1,Gap 6 chutes-search", "phase_08C/CHUTESAI_REPO_ANALYSIS.md chutes-search/chutes-jumpmaster"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/inferenceproxy correlation-ID + backend audit trail",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Decoupled vasic-digital submodule (MISSING today): an http.Handler middleware that injects/propagates a per-request correlation-ID header (X-Chutes-Correlation-Id equivalent), records which backend (node/instance) served each request as an audit trail ('which compute node served this'), and unwraps a {trace}/{result} SSE envelope streamingly so downstream clients see clean OpenAI payloads while routing metadata (target instance/uid) is harvested.",
+    "closure_criteria": "Run (UUID-tagged) proxying an inference request and capture the stored audit row + JSONL export showing the correlation-ID and the exact backend instance that served it (sink-side evidence); confirm the correlation-ID appears on the response.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #7 (MISSING)", "phase_08C/PHASE_8C_ROADMAP.md P2 #10", "phase_08C/dossiers/research-data-opt-in-proxy.md", "phase_08C/INCORPORATION_MATRIX.md Gap 6"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement deterministic keyed-hash anonymization in pkg/inferenceproxy",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement research-data-opt-in-proxy's deterministic anonymization: tokenize into fixed blocks (cl100k_base-compatible BPE) -> Blake2b-keyed SipHash-2-4 over 16-token blocks -> domain-remap to sequential integer IDs, so repeated payloads correlate (dedup / prefix-cache analytics / usage metering) without retaining raw text. Stable per-tenant, different across tenants.",
+    "closure_criteria": "Run (UUID-tagged) anonymizing the same prompt twice (identical block hashes) and across two tenants (different hashes); capture before(raw text)/after(stable anonymized token IDs) with no plaintext stored; mutation: anonymizer returns input unchanged -> 'anonymized != original' test fails.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/research-data-opt-in-proxy.md anonymization", "phase_08C/GAP_AUDIT.md gap #7", "phase_08C/INCORPORATION_MATRIX.md Gap 5"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement spoof-proof managed-header sanitization at the recording edge",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement research-data-opt-in-proxy's header model: RFC 7230 hop-by-hop header stripping on both legs, strip caller-supplied versions of trusted/managed headers before re-injecting canonical values (so they can never be spoofed), scope X-Forwarded-For trust to the proxy edge, redact Authorization/cookie/API-key before persistence, and use hmac.compare_digest constant-time comparison for secret-gated internal endpoints.",
+    "closure_criteria": "Run (UUID-tagged) sending a request with a forged trusted header and a real client IP; capture before(forged header present)/after(forged header stripped, canonical value injected, secrets redacted in the stored record); confirm constant-time secret comparison on the internal export endpoint.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08C/dossiers/research-data-opt-in-proxy.md header sanitization", "phase_08C/INCORPORATION_MATRIX.md Gap 5"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Maintain pkg/fiber length-prefixed framed miner<->validator transport",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Clean-room length-prefixed framed transport with Ping/Pong keepalive and a 1-reader/1-writer contract (implemented PARTIAL). Keep as the miner<->validator/federation transport underlay.",
+    "closure_criteria": "Run (UUID-tagged) a framed round-trip with Ping/Pong keepalive across an idle period; capture evidence the connection stays alive via keepalive and frames round-trip intact, with concurrent reader/writer contract enforced.",
+    "required_test_types": ["unit", "integration(real-svc)", "stress"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md pkg/fiber PARTIAL", "phase_08C/dossiers/fiber.md", "phase_08C/INCORPORATION_MATRIX.md Gap 4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement fiber ed25519 signed-identity handshake + stake-gated admission",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/fiber with an ed25519 handshake frame type carrying {nodeID, pubkey, signed-nonce} and an Admit(func(nodeID, stake) bool) gate run before application frames flow; reject unsigned/under-staked peers (stake supplied by caller, no chain). Replaces Bittensor SS58 with Helix identity; mirrors fiber's blacklist_low_stake DDoS/sybil hook and single-use time-windowed NonceManager replay protection.",
+    "closure_criteria": "Run (UUID-tagged) admitting a peer with a valid signature + sufficient stake and rejecting peers with a bad signature or zero stake; capture before(handshake attempt)/after(admit/deny decision + reason); mutation: skip signature verification -> bad-signature test fails (negative evidence).",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "ddos", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md gap #6, pkg/fiber PARTIAL", "phase_08C/dossiers/fiber.md handshake/blacklist_low_stake", "phase_08C/PHASE_8C_ROADMAP.md §9 Phase 6"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement node identity verify-then-pin (TOFU) keypair-rooted TLS",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Implement bittencert-style keypair-rooted (no-CA) TLS identity binding (MISSING today): generate a TLS keypair, sign cert metadata with the node's signing keypair, and a verify-then-pin connector that proves an HTTPS endpoint is controlled by a specific keypair without a CA (TOFU with identity pinning). Harden the binding to include SAN + pubkey (the reference omits them).",
+    "closure_criteria": "Run (UUID-tagged) connecting to a node, verifying its cert signature against the expected keypair and pinning it; capture before(unpinned)/after(pinned), and a rejection when a second endpoint presents a cert signed by a different keypair.",
+    "required_test_types": ["unit", "security", "integration(real-svc)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md node identity verify-then-pin (MISSING)", "phase_08C/dossiers/fiber.md", "phase_08C/CHUTESAI_REPO_ANALYSIS.md bittencert", "phase_08C/INCORPORATION_MATRIX.md Gap 5"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/marketplace registration -> bounty -> metering -> payout loop",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Economic layer entirely MISSING. Build the Phase 8/8B marketplace data model + loop on chutes-api's design: provider registration (gated on gpuattest + attestation proofs), bounty/auction placement, invocation metering, and incentive-weighted payout over Helix Raft reputation (replacing Bittensor weights; fiber commit-reveal as template). Preemptible vs private tiers; validator allow-list.",
+    "closure_criteria": "Run (UUID-tagged) where a provider registers (capability proven), claims a bounty, serves metered invocations, and receives a computed payout; capture before(provider unregistered)/after(registered, metered compute-units accrued, payout reconciled) with the full ledger trail.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/GAP_AUDIT.md 8C.7 marketplace (MISSING)", "phase_08C/PHASE_8C_ROADMAP.md §3 8C.7,§5.3, P2 #8", "phase_08C/INCORPORATION_MATRIX.md Gap 7", "phase_08C/dossiers/chutes-api.md marketplace"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/marketplace/audit commit-then-prove reproducible reconciliation",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reimplement chutes-audit's audit/reward-reconciliation half natively in Go: measure node contribution as time-weighted compute units (SUM(overlap_seconds * compute_multiplier)), publish tamper-evident audit reports anchored to a SHA-256 commitment (commit-then-prove), let independent parties reproduce the reward distribution, and detect self-report fraud via cross-source agreement ratios. Settle over Helix Raft reputation.",
+    "closure_criteria": "Run (UUID-tagged) generating an audit report with a SHA-256 commitment, independently recomputing per-node incentives from compute-unit data (delta within tolerance vs reported), and flagging a falsified self-report; capture before(report committed)/after(independent recomputation matches + fraud flagged).",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/dossiers/chutes-audit.md", "phase_08C/PHASE_8C_ROADMAP.md §5.3, §4.1 audit", "phase_08C/INCORPORATION_MATRIX.md Gap 7"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement scale-to-zero metered hot/cold billing state machine",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Reimplement chutes' workload billing/autoscaling policy: concurrency, max_instances, scaling_threshold (in-flight ratio trigger), shutdown_after_seconds (scale-to-zero), per-GPU hourly billing; feed metered active-seconds into the marketplace metering layer.",
+    "closure_criteria": "Run (UUID-tagged) driving a workload above scaling_threshold (scales up), idle past shutdown_after_seconds (scales to zero); capture before/after instance counts and the metered billable seconds matching observed active time.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "performance"],
+    "source_refs": ["phase_08C/dossiers/chutes.md billing/scale-to-zero", "phase_08C/INCORPORATION_MATRIX.md Gap 7"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement watchtower-style liveness/integrity prober for served instances",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Reimplement chutes-api's watchtower: continuous liveness/integrity prober that verifies an instance is running the expected container command/env (get/verify_expected_command) and purges instances that fail integrity, feeding the scheduler/reconciler.",
+    "closure_criteria": "Run (UUID-tagged) where an instance is tampered to run an unexpected command; capture before(instance healthy)/after(integrity check fails and instance is purged/quarantined) with the mismatch logged.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "security"],
+    "source_refs": ["phase_08C/dossiers/chutes-api.md watchtower", "phase_08C/CHUTESAI_REPO_ANALYSIS.md chutes-api"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Karmada-pattern multi-cluster aggregation over SWIM+Raft+etcd (Phase 6 hook)",
+    "type": "Research",
+    "priority": "P3",
+    "description": "Phase 6 federation hook: model cross-cluster aggregation on Karmada's search-cache + Prometheus metric-federation pattern but implement over Helix's SWIM+Raft+etcd (not Karmada/K3s); use fiber signed-identity + stake-gated admission as the federation trust protocol and keep the E2EE instance-discovery + nonce-binding contract for talking to external Chutes-style subnets.",
+    "closure_criteria": "Run (UUID-tagged) aggregating node/workload inventory across two Helix clusters and routing a confidential request cross-cluster; capture before(single-cluster view)/after(federated view) and sink-side evidence the cross-cluster route used signed identity + E2EE.",
+    "required_test_types": ["integration(real-svc)", "e2e", "scaling", "chaos"],
+    "source_refs": ["phase_08C/PHASE_8C_ROADMAP.md §9 Phase 6, P2 #11", "phase_08C/INCORPORATION_MATRIX.md Gap 4", "phase_08C/dossiers/chutes-miner.md Karmada"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement OpenAPI request-validation admission middleware for control-plane APIs",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Add a Go OpenAPI 3.x request-validation middleware (cpp-oasvalidator pattern, via native kin-openapi/ogen, no CGO) at the control-plane edge: short-circuit ordering (method -> route -> body -> path -> query -> header), path-trie routing with templated segments, full param style/explode deserialization, and JSON-Pointer-based structured rejection errors, so only spec-compliant requests reach the 14 microservices.",
+    "closure_criteria": "Run (UUID-tagged) sending a malformed request (bad body schema / unknown route) and a valid request; capture before(request received)/after(malformed rejected with JSON-Pointer error citing specRef, valid forwarded) at the gateway.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_08C/dossiers/cpp-oasvalidator.md", "phase_08C/dossiers/lua-oasvalidator.md", "phase_08C/INCORPORATION_MATRIX.md cpp-oasvalidator"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Document Phase 8C exit-gate evidence matrix (CLAUDE-1 usability proofs)",
+    "type": "Docs",
+    "priority": "P1",
+    "description": "Produce the Phase 8C success-criteria evidence matrix capturing, per success KPI, the real-integration proof: E2EE byte-for-byte + live confidential instance; spoofed/oversubscribed GPU rejected + genuine passes + O(1) spot-check; tampered node fails admission + genuine TDX+NVIDIA releases key; >=10 placement decisions/sec under attestation gate; relay observes only ciphertext (packet/log capture); tampered model cache blocks serving; >60% line coverage on new pkg/. Each entry must cite captured screenshot/log/metrics, never 'tests pass', and reject illusory trust signals (e.g. -TEE name suffix).",
+    "closure_criteria": "Run (UUID-tagged) the full exit-gate suite and capture, for every KPI row, a linked artifact (log/metric/screenshot/packet capture) proving end-user-visible behavior; before(KPI unproven)/after(artifact attached) with the per-run UUID recorded in the matrix.",
+    "required_test_types": ["e2e", "integration(real-svc)", "benchmark", "performance", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_08C/PHASE_8C_ROADMAP.md §8 Success Criteria + CLAUDE-1 emphasis", "phase_08C/GAP_AUDIT.md honest-completion summary", "CLAUDE.md CLAUDE-1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Document Phase 8C architecture integration diagrams (scheduler<-attest, orchestrator<-e2ee<-TEE, marketplace)",
+    "type": "Docs",
+    "priority": "P2",
+    "description": "Produce the Phase 8C integration-point diagrams and module map: pkg/gpuattest + pkg/security/attestation -> pkg/scheduler admission predicate / node-trust label / resources attested flag (§5.1); pkg/security/e2ee envelope terminating inside the attested enclave -> LLMOrchestrator confidential routing (§5.2); pkg/marketplace registration->placement->metering->settlement over Raft reputation (§5.3). Capture the decoupled vasic-digital submodule boundaries (e2ee, gpuattest, attestation, admission, inferenceproxy).",
+    "closure_criteria": "Run (UUID-tagged) a doc-review producing the rendered diagrams checked into docs and referenced by each implementing package's README; before(no integration map)/after(diagrams present and cross-linked to the modules they describe).",
+    "required_test_types": ["challenge(HelixQA)"],
+    "source_refs": ["phase_08C/PHASE_8C_ROADMAP.md §5.1,§5.2,§5.3, §4.1 decoupled submodules", "phase_08C/INCORPORATION_MATRIX.md cross-cutting notes"],
+    "decoupling_candidate": false
+  }
+]

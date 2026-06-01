@@ -1,0 +1,749 @@
+[
+ {
+  "title": "Implement pkg/device universal capability Descriptor with 15-tier + trust enums",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Create pkg/device defining Descriptor{Tier, TrustLevel, ComputeClass, Arch, CPUCores, MemMB, GPUs, NPUTops, FPGALogicElements, GPUTFLOPS, PowerBudgetW} with enums for the 15 tiers (T1 CORE_TRUSTED..T15 LEGACY_RETIRED), 5 trust levels (TRUSTED/SEMI_TRUSTED/EDGE/UNTRUSTED/RESEARCH), and 6 compute classes (cpu/gpu/npu/tpu/fpga/qpu). Foundation for all tier/trust assignment. GAP_AUDIT marks dir absent \u2014 nothing exists.",
+  "closure_criteria": "Run device descriptor constructor on a real x86/arm64 host; emit a Descriptor JSON with populated Arch/cores/mem and a run-UUID logged; before/after: no pkg/device existed, now `ls pkg/device` shows compiled package and a fixture-driven binary prints a real Descriptor.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#1",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#2.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement device.Probe(ctx) arch/CPU/mem auto-detection with override labels",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Implement Probe(ctx) (Descriptor, error) deriving Arch from runtime.GOARCH, CPU/mem from existing pkg/resources readers, and reading optional override labels (env/config) for non-auto-detectable fields (NPU TOPS, FPGA logic elements, GPU TFLOPS). Deterministic pure-Go.",
+  "closure_criteria": "On a real node, Probe returns a Descriptor whose Arch matches the host's actual GOARCH and core/mem counts match /proc readings; override env var for npu_tops surfaces in output; per-run UUID in the probe log proves a live invocation, not a fixture.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#53",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement device.AssignTier decision tree per \u00a750 taxonomy (riscv64->T10, x86+open-fw->T1, GPU+battery->T9)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Implement AssignTier(Descriptor) Tier encoding the taxonomy decision tree: riscv64->T10 RISC_V_EXPERIMENTAL, x86+open-firmware->T1, GPU+battery-present->T9 HANDHELD, NPU+Jetson->T4/T5, FPGA hard-core->T12, FPGA soft-core->T11, router class->T6, NAS->T7, cloud-spot->T13, exotic accel->T14, EOL->T15. Mutation-pairable per fixture.",
+  "closure_criteria": "Table-driven fixtures of synthetic Descriptors map to expected tiers; mutating the riscv64->T10 branch to T2 must flip the riscv fixture to FAIL, proving tier logic is exercised not just non-panic.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#55",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#2.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Extend api/v1/node.proto with tier, trust_level, compute_class, arch fields",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Add tier, trust_level, compute_class, arch fields to the Node message in api/v1/node.proto (currently only node_id/region/status/reason per GAP_AUDIT node.proto:20-45). Regenerate via existing buf pipeline.",
+  "closure_criteria": "Regenerated Go bindings expose the 4 new fields; a node-join RPC against a running control plane carries a populated tier/arch and the server logs the received tier with a run-UUID; before/after: grep of node.proto shows the 4 added fields that were previously absent.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#37",
+   "phase_05/GAP_AUDIT.md#58"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Create api/v1/resources.proto with npu_tops, fpga_logic_elements, tflops_gpu",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Create the absent api/v1/resources.proto file (GAP_AUDIT: file does not exist) with npu_tops, fpga_logic_elements, tflops_gpu fields, plus existing CPU/Mem/GPU/Disk/Net. Wire into buf codegen.",
+  "closure_criteria": "buf generate produces resources.pb.go; a resource-report RPC transmits real npu_tops/tflops values and the receiver persists them; before/after: api/v1/resources.proto exists where it did not.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#39",
+   "phase_05/GAP_AUDIT.md#58"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Extend api/v1/scheduler.proto with tier constraints and power_budget",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Add power_budget and repeated tier-constraint fields (RequiredTier, MinTrust) to the scheduler request message in api/v1/scheduler.proto (grep tier/power currently returns none).",
+  "closure_criteria": "A scheduling request carrying RequiredTier=T1/power_budget reaches a running scheduler and the constraint is honored in placement; before/after: scheduler.proto grep for tier/power now matches added fields.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#38",
+   "phase_05/GAP_AUDIT.md#58"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement device.Descriptor <-> pb.Node round-trip mapping helpers",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Add marshal/unmarshal helpers converting device.Descriptor to/from the protobuf Node/resources messages, copying all fields including tier enum and arch.",
+  "closure_criteria": "Marshal a Descriptor->proto->Descriptor and assert field equality including tier enum and arch; mutation: dropping the arch field copy must fail the round-trip assertion.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#60"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement pkg/scheduler tier-aware + power-aware Plugin (tier_power.go)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "New scheduler Plugin (same Name/Filter/Score/Bind contract as cost_gpu.go) that (a) Filters nodes whose Tier/TrustLevel violate a job's RequiredTier/MinTrust, and (b) for T9 HANDHELD nodes Filters when remaining power_budget < job estimate or node reports gaming-active/on-battery label. Reuse plugins.go registration. Does not exist today.",
+  "closure_criteria": "Submit a job requiring T1 against a mixed-tier node set on a running scheduler; only T1 nodes survive Filter, a charging-T9 node is admitted while a battery-only T9 is rejected, evidenced by placement logs with a run-UUID; mutation: invert trust comparison (>= to <) leaks an untrusted node and fails.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#33",
+   "phase_05/GAP_AUDIT.md#63"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement power-aware T9 HANDHELD scheduling policy (battery/thermal/gaming-active gating)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Encode the handheld power-aware policy from the architecture's device-state table: gaming-active->background CPU only at 4W, battery<20%->pause all compute, docked+idle->full compute, charging+idle->full. Battery threshold 20%, thermal limit 85C per T9 tier definition. Reduces handheld battery drain >80% during gaming (Phase 5a success criterion).",
+  "closure_criteria": "On a node emulating handheld power states, compute is suspended when battery<20% and resumed when charging; measured battery-drain reduction during simulated gaming >80% vs baseline, captured in metrics with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "performance"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#3.1",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#AppendixA-T9"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement pkg/discovery 15-tier registry + SelectByTier(tier, minTrust)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Extend the etcd-backed discovery registry to index nodes by tier/trust and add SelectByTier(tier, minTrust) returning only matching entries, backward-compatible with existing selection.go. Current registry is tier-agnostic.",
+  "closure_criteria": "Register synthetic nodes across T1/T9/T10 in a real etcd, query SelectByTier(T10,...) and assert the exact returned set against the etcd integration harness with a run-UUID; mutation: making SelectByTier ignore the trust filter surfaces a below-trust node and fails.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#35",
+   "phase_05/GAP_AUDIT.md#68"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Extend pkg/resources (currently only CPU/Mem/GPU-count/Disk/Net via cgroup-v2; GPUInfo has no TFLOPS) to read/report npu_tops, fpga_logic_elements, gpu_tflops, and QPU presence, with override-label fallback for non-probeable accelerators.",
+  "closure_criteria": "On a node with an override-labeled NPU, resources report shows npu_tops>0 and gpu_tflops where present; before/after: pkg/resources/types.go GPUInfo gains TFLOPS plus npu/fpga fields that were absent.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#34",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create pkg/cloudspot: PreemptionWatcher interface + pluggable SignalSource (file/HTTP-poller injectable for test) firing ordered hooks Drain->Checkpoint->Leave(mesh) on signal, within the 2-minute budget. Provide FakeSignalSource for tests; real AWS/GCP/Azure metadata poller is a thin adapter (deferred). Wire Leave to pkg/wireguard teardown. No spot/preempt logic exists today.",
+  "closure_criteria": "Inject a fake preemption signal; assert hooks run in order Drain->Checkpoint->Leave and Leave is called exactly once within a simulated 2-min budget, with a run-UUID; mutation: reorder so Leave precedes Checkpoint fails the ordering assertion.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "chaos"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#24",
+   "phase_05/GAP_AUDIT.md#73",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#7.3"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Extend pkg/wireguard with preemption-safe teardown / spot-drain hook",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Extend pkg/wireguard (currently generic mesh join/leave + key rotation, PARTIAL per GAP_AUDIT) with a preemption-aware teardown and spot-drain hook callable by pkg/cloudspot Leave, ensuring clean mesh exit on node departure.",
+  "closure_criteria": "On a running wireguard mesh, invoking the drain/teardown hook removes the peer and the control plane observes the node leave within the budget; before/after: peer count decrements and no stale tunnel remains, logged with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "chaos"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#36",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#7.3"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/inference provider-agnostic Backend interface + capability/tier Router",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Define Backend{Name(); Generate(ctx, Req)(Resp, error)} and a Router selecting a backend by capability/tier. Groq/Cerebras/Jetson/llama.cpp are adapters; only the interface + routing + local path are built now. Existing internal/llm is a local model-registry stub with no provider abstraction.",
+  "closure_criteria": "Register a fake + local backend, route a request, and assert the chosen backend matches the tier policy and the response propagates end-to-end, logged with a run-UUID; mutation: making Router always pick index 0 fails the tier-routing assertion.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#25",
+   "phase_05/GAP_AUDIT.md#78"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/inference LocalBackend wrapping internal/llm manager",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Implement LocalBackend wrapping the existing internal/llm manager so the inference interface is exercised end-to-end on local hardware today, providing the concrete reference implementation behind the Router.",
+  "closure_criteria": "A generate request routed to LocalBackend returns a real model response from internal/llm and the round-trip is captured with a run-UUID; before/after: a previously-stub LLM path is now reachable through the provider-agnostic Backend interface.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#80"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Implement detectGPU with multi-strategy probing: Vulkan (Mesa, works everywhere), NVIDIA CUDA, AMD ROCm, and mobile iGPU (Mali/Adreno), populating GPUInfo{Vendor, Model, VRAMBytes, DriverVersion, ComputeAPIs, TFLOPSFP32} and adding 'gpu' to compute classes. Non-fatal on failure.",
+  "closure_criteria": "On a real GPU host, discovery reports the actual GPU vendor/model and compute APIs (e.g. vulkan,rocm); on a headless host it degrades gracefully with no GPU class; output carries a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Implement detectNPU with strategies for Rockchip RK3588 NPU (RKNN-Toolkit2), NVIDIA Jetson DLA, Qualcomm Hexagon, and Apple Neural Engine, populating NPUInfo{Vendor, Model, TOPsINT8, TOPsFP16, SDKVersion} and adding 'npu' to compute classes.",
+  "closure_criteria": "On an RK3588 or Jetson device, discovery reports correct vendor and tops_int8 (e.g. 6.0 for RK3588, 67 for Orin Nano Super) verified against the SDK, with a run-UUID; on non-NPU hosts no npu class appears.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#4.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement device discovery engine: FPGA detection (Xilinx/Intel/Lattice, hard vs soft core)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Implement detectFPGA populating FPGAInfo{Vendor, Family, LogicCells, HasHardCPU, SoftCores, BitstreamHash} distinguishing hard-processor FPGAs (Zynq ARM cores) from soft-core (VexRiscv on ECP5) and adding 'fpga' compute class.",
+  "closure_criteria": "On a Zyng/DE10-Nano class device, discovery reports family and HasHardCPU=true with a bitstream hash; on a soft-core board reports SoftCores>0; evidence carries a run-UUID. (Requires real FPGA board \u2014 partially DEFERRED.)",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#6"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement micro-benchmarker producing normalized per-compute-class scores",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Implement the Benchmarker.RunBenchmarks step of the discovery pipeline that produces normalized benchmark scores per compute class (CPU score, GPU TFLOPS-effective, NPU TOPS-effective) used for tier assignment and scheduling hints (e.g. CPU score 2850.5 in the capability manifest).",
+  "closure_criteria": "On two physically different nodes (e.g. EPYC vs RK3588), the benchmarker yields distinct, repeatable normalized scores reflecting real relative performance, recorded with a run-UUID; scores feed into AssignTier.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "benchmark",
+   "performance"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.1",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.2"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement capability manifest generation + control-plane negotiation",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Generate the capability_manifest (device_id, hardware, compute_classes with eligible/non-eligible workloads, network, storage, assigned_tier, trust_level, workload_constraints, scheduling_hints incl. available_hours for overnight donation) and negotiate workload eligibility with the control plane on join.",
+  "closure_criteria": "A joining node submits a manifest and the control plane responds with an accepted tier/workload set; an RK3588 manifest correctly excludes llm_inference_70b and includes object_detection; negotiation logged with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.2"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement per-tier security model enforcement (sandbox + data/network policy by trust level)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Enforce the 5-trust-level security model: core_trusted (no sandbox, unrestricted, sensitive data, TPM/Secure Boot req), semi_trusted (docker, seccomp/AppArmor, encrypted-at-rest), edge_untrusted (gVisor/Kata, public data only, proxy-only network), research (VM isolation, airgapped, manual approval). Map sandbox requirement to assigned tier on admission.",
+  "closure_criteria": "A workload scheduled to a T9/edge node is launched under gVisor/Kata sandbox and denied sensitive-data access while a T1 node runs unsandboxed with full access; enforcement decision logged with a run-UUID. (Sandbox runtimes on real nodes partially DEFERRED.)",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "security",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.3",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_COMPLETE_REPORT.md#8.3"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Author complete YAML tier definitions (T1-T15) with min_requirements and constraints",
+  "type": "Docs",
+  "priority": "P1",
+  "description": "Produce helixcluster_tiers.yaml (apiVersion helixcluster.io/v1, kind TierDefinitions, version 5.0) encoding all 15 tiers with id/name/trust_level/sandbox/workload_access/min_requirements/compute_classes/constraints/typical_devices, including T9 power-aware scheduling block, T10 no-sensitive-data/no-persistent-state constraints, T11 bitstream_verification, T13 preemptible/checkpoint, T14 manual_approval/api_key, T15 deprecated.",
+  "closure_criteria": "The YAML loads into the tier classifier and a node's assigned tier resolves its min_requirements and sandbox at runtime; a node failing T1 min_cores=16 is rejected from T1; load+validation logged with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#AppendixA"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Build multi-arch universal agent container (amd64/arm64/riscv64) via buildx + distroless",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Build the universal HelixCluster agent as a multi-arch distroless image (golang builder honoring TARGETOS/TARGETARCH/TARGETVARIANT, CGO disabled) via docker buildx --platform linux/amd64,linux/arm64,linux/riscv64, nonroot user.",
+  "closure_criteria": "buildx produces and pushes a manifest-list image; pulling and running it on real arm64 and amd64 hosts starts the agent and registers with the cluster; before/after: a single tag resolves to 3 arch variants, evidenced by docker manifest inspect and join logs with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#10.4"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement riscv64 cross-compilation pipeline + RVV extension detection (DEFERRED CI)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Establish riscv64 cross-compile (Go GORISCV64 RVA20/22/23 profiles, Rust riscv64gc-unknown-linux-gnu via cross, Zig native, GCC/LLVM) and detectRISCVCapabilities reading /proc/cpuinfo isa to set VectorExtension (none/rvv0.7/rvv1.0; SpacemiT->rvv1.0, Sophon/SG2042->rvv0.7) and workload eligibility by core count. GAP_AUDIT: needs riscv64 toolchain/runner in CI.",
+  "closure_criteria": "CI produces a working linux/riscv64 agent binary that runs on a VisionFive 2 / Milk-V board and reports its RVV version matching the board's actual ISA, logged with a run-UUID. (DEFERRED on riscv64 CI runner.)",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#23",
+   "phase_05/GAP_AUDIT.md#42",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#5.2"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Create pkg/handheld + Steam Deck/x86-handheld agent: Vulkan compute backend (Mesa RADV primary), battery/thermal monitoring, ROCm override (HSA_OVERRIDE_GFX_VERSION=10.3.0 RDNA2 / 11.0.0 RDNA3), gaming-activity detection. GAP_AUDIT: dir absent; only internal/console/thermal.go (PS4/PS5) exists. DEFERRED \u2014 needs real Steam Deck.",
+  "closure_criteria": "On a real Steam Deck in Desktop Mode the agent detects the GPU and reports 1.6 TFLOPS, runs llama.cpp Vulkan inference, and does NOT interfere with gaming (FPS/battery benchmark captured per CLAUDE-1 anti-mock), with a run-UUID. DEFERRED on hardware.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "benchmark",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#21",
+   "phase_05/GAP_AUDIT.md#89",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#3.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Package Steam Deck Flatpak agent with systemd integration (DEFERRED hw)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Produce a Flatpak package + systemd service for the Steam Deck agent (SteamOS Arch) running in the Flatpak sandbox per the deployment-strategy table. GAP_AUDIT: no cmd/ or packaging artifact. DEFERRED \u2014 needs Steam Deck exit-gate evidence.",
+  "closure_criteria": "flatpak install + systemctl --user start launches the agent on real SteamOS and it appears as a T9 HANDHELD node in the cluster; gaming-interference gate passes with captured FPS evidence and a run-UUID. DEFERRED on hardware.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "ui",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#40",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#12.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/sbc: Jetson TensorRT backend (>=60 TOPS) (DEFERRED hw)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create internal/sbc Jetson integration: L4T packages, TensorRT backend (INT8/FP16/FP8/FP4 precision, DLA core, MAXN power profile, 85C thermal limit) classifying Orin Nano Super as AI_WORKER reporting 67 TOPS. GAP_AUDIT: dir absent. DEFERRED \u2014 needs Jetson Orin L4T + TensorRT.",
+  "closure_criteria": "On a real Jetson Orin Nano Super the agent reports 67 TOPS, runs a TensorRT YOLO/LLM-7B workload at expected throughput, and is admitted as T4 AI_WORKER, with a run-UUID. DEFERRED on hardware.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "benchmark",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#28",
+   "phase_05/GAP_AUDIT.md#90",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#4.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/sbc RK3588 NPU + Turing RK1 cluster support",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create internal/sbc RK3588 integration: Armbian packages for ROCK 5B/R6S/R6C, RKNN-Toolkit2 NPU detection (6 TOPS), classify as T2 STANDARD with NPU workload eligibility; Turing RK1 module + Turing Pi 2.5 carrier (4x RK1 = 32 cores). GAP_AUDIT: dir absent.",
+  "closure_criteria": "On a real ROCK 5B the agent installs via apt, detects the 6 TOPS NPU via RKNN, joins as T2, and accepts an object-detection workload; evidence with a run-UUID. (Requires RK3588 hardware.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#28",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#4.2"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement pkg/fpga + internal/fpga hard-SoC/soft-core/DPU backends (DEFERRED hw)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Create pkg/fpga + internal/fpga: hard-core path (Zynq DE10-Nano/PYNQ-Z2/ZUBoard/KV260 ARM cores running Linux), soft-core path (VexRiscv/LiteX on ECP5 Colorlight/ULX3S), KV260 Vitis-AI DPU backend (0.92 TOPS), full-bitstream-swap management. GAP_AUDIT: no FPGA code anywhere. DEFERRED \u2014 needs FPGA boards + Vitis AI/Yosys-LiteX.",
+  "closure_criteria": "On a KV260 the agent offloads YOLO inference to the DPU achieving ~0.92 TOPS and is classified T12 FPGA_HARD_ACCEL; a soft-core ECP5 boots LiteX+VexRiscv Linux and joins as T11; evidence with a run-UUID. DEFERRED on hardware.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "benchmark",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#22",
+   "phase_05/GAP_AUDIT.md#91",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#6"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement bitstream verification + management for FPGA tiers (T11 required)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Implement bitstream hashing/verification (FPGAInfo.BitstreamHash) and a full-bitstream-swap management system per T11 constraint bitstream_verification: required and max_runtime_per_bitstream; evaluate Dynamic Partial Reconfiguration as FPGA-containers concept (deferred to 5b).",
+  "closure_criteria": "Loading an unverified/tampered bitstream is rejected while a known-good hash is accepted and runs; reconfiguration swap completes and the node re-reports fabric, logged with a run-UUID. (Requires FPGA hardware.)",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "security"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#6.3",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#AppendixA-T11"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement internal/enterprise EPYC/Ampere auto-provisioning + Coreboot trust detection (DEFERRED hw)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create internal/enterprise: automated provisioning for used EPYC 7702/7742/7713 (CORE_TRUSTED, <30min onboarding), Ampere Altra Q80/M128 (SEMI, 80-128 core, 500+ containers), Coreboot/LinuxBoot open-firmware detection feeding trust assignment, UEFI Secure Boot + TPM 2.0 attestation on join. GAP_AUDIT: dir absent. DEFERRED \u2014 needs bare-metal server.",
+  "closure_criteria": "A real EPYC 7702 server runs the provisioning script and joins as CORE_TRUSTED in <30 minutes with TPM attestation verified; an Altra reports 80 cores and runs 500+ containers; evidence with a run-UUID. DEFERRED on hardware.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "security",
+   "scaling",
+   "performance",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#30",
+   "phase_05/GAP_AUDIT.md#93",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#7.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/iot OpenWrt router gateway agent (GL-MT6000, Docker, <5% overhead)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create internal/iot OpenWrt router agent: Docker-based deployment on GL-MT6000 (opkg dockerd, NODE_TIER=NETWORK_GATEWAY, TRUST_LEVEL=edge, rootless), classify as T6, run alongside routing with <5% CPU overhead. GAP_AUDIT: dir absent.",
+  "closure_criteria": "On a real GL-MT6000 the agent runs in a Docker container alongside live routing, joins as T6 NETWORK_GATEWAY, and measured CPU overhead is <5% while routing throughput is unaffected, captured with a run-UUID. (Requires OpenWrt router hardware.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "stress"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#31",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#8.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/iot NAS storage-node agent (Synology/QNAP Docker, dual-role)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Create internal/iot NAS agent for Synology DS923+ (Container Manager) and QNAP TS-464 (Container Station) classified as T7 STORAGE_NODE reporting storage capacity, serving the compute+persistent-storage dual role. GAP_AUDIT: dir absent.",
+  "closure_criteria": "On a real DS923+ and TS-464 the containerized agent joins as T7, reports its actual drive-bay/storage capacity, and serves a distributed-storage workload, evidenced with a run-UUID. (Requires NAS hardware.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#31",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#8.2"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement webOS smart-TV JS agent over WebSocket (DEFERRED device)",
+  "type": "Feature",
+  "priority": "P3",
+  "description": "Create a JavaScript/Node.js background-service agent for LG webOS (ares-* tooling) classified T3 EDGE_COMPUTE, communicating over WebSocket for low-intensity relay/aggregation/heartbeat tasks. GAP_AUDIT: requires webOS device + JS bridge runtime. DEFERRED.",
+  "closure_criteria": "On a real LG webOS TV the JS agent runs persistently as a background service, connects to the cluster via WebSocket, and performs a relay/aggregation task during idle, evidenced with a run-UUID. DEFERRED on device.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "ui"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#97",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#8.3"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/exotic Groq LPU inference adapter (<100ms TTFT) (DEFERRED cloud)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Create internal/exotic GroqCloud client: api_endpoint https://api.groq.com/openai/v1, models llama-3.1-70b/8b/mixtral-8x7b, classify T14 EXOTIC_ACCEL with api_proxy sandbox + api_key_required, eligible only for low-latency LLM inference (no training/multimodal). GAP_AUDIT: requires GroqCloud credentials. DEFERRED.",
+  "closure_criteria": "The cluster routes an LLM workload to the Groq API and measures <100ms TTFT on Llama 70B with the response returned to the requester, evidenced with a run-UUID. DEFERRED on cloud credentials.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "benchmark"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#95",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#9.1"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement internal/exotic Cerebras CS-3 large-model inference adapter (DEFERRED cloud)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Create internal/exotic Cerebras cloud-API backend for 70B+ large-model inference (CS-3 WSE-3, 125 PFLOPS FP16), classified T14 EXOTIC_ACCEL. GAP_AUDIT: requires Cerebras cloud API credentials. DEFERRED.",
+  "closure_criteria": "A 70B-parameter inference request is served via the Cerebras Cloud API and returned to the cluster requester, evidenced with a run-UUID. DEFERRED on cloud credentials.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#96",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#9.3"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/quantum Qiskit Runtime plugin for async circuit submission (DEFERRED)",
+  "type": "Research",
+  "priority": "P3",
+  "description": "Create pkg/quantum + internal/exotic quantum plugin: QuantumAccelerator{Provider, Backend, Qubits, MaxGateDepth} with SubmitCircuit validating against hardware constraints, transpiling, submitting via Qiskit Runtime, returning async JobID. Research-only T14. GAP_AUDIT: requires IBM Quantum account. DEFERRED.",
+  "closure_criteria": "A cluster node submits a Qiskit circuit to IBM Quantum and asynchronously receives results, classified as research-only T14 with airgapped/manual-approval policy, evidenced with a run-UUID. DEFERRED on IBM Quantum account.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "security"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#26",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#9.2"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement gVisor/Kata per-tier sandbox hardening for UNTRUSTED/edge nodes (DEFERRED)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Integrate gVisor and Kata Containers runtimes so all UNTRUSTED/edge-tier (T6-T9,T13) workloads run sandboxed per the security model, with full TPM attestation verified on join. GAP_AUDIT: requires gVisor/Kata runtime on real cluster nodes. DEFERRED.",
+  "closure_criteria": "A workload on an UNTRUSTED node is verifiably running inside gVisor/Kata (runtime evidence, escape attempt blocked) and TPM attestation is validated, captured with a run-UUID. DEFERRED on runtime availability.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "security",
+   "challenge(HelixQA)",
+   "chaos"
+  ],
+  "source_refs": [
+   "phase_05/GAP_AUDIT.md#98",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#12.4"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement cloud-spot AWS/Azure/GCP IMDS interruption pollers (adapters)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Implement the real metadata-poller adapters behind cloudspot SignalSource: AWS IMDSv2 spot/instance-action (2-min warning, token PUT), Azure scheduled-events, GCP preemption (30-sec warning), plus checkpoint upload to S3/GCS/Azure Blob and notifyClusterDrain. Architecture provides reference Go code.",
+  "closure_criteria": "Against a real spot instance (or recorded IMDS fixtures for unit, live account for integration) the poller detects an interruption notice and triggers drain->checkpoint->upload->leave, with checkpoint state recoverable on a replacement instance, evidenced with a run-UUID. Live path DEFERRED on cloud accounts.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)",
+   "chaos"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#7.3",
+   "phase_05/GAP_AUDIT.md#94"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement hybrid cloud-on-prem WireGuard mesh joining spot workers to on-prem cluster",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Wire cloud spot workers into the on-prem cluster over a WireGuard mesh (UDP/51820, Curve25519, separate cloud 10.0.2.0/24 subnet, native roaming) so they join/leave gracefully; integration gate of 5 on-prem + 5 spot nodes. GAP_AUDIT: requires live AWS/GCP spot accounts. DEFERRED for live gate.",
+  "closure_criteria": "A 5-on-prem + 5-spot hybrid cluster runs with spot nodes connected via WireGuard; on preemption workloads are checkpointed and the node leaves cleanly while on-prem capacity continues, evidenced with a run-UUID. DEFERRED on cloud accounts.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "chaos",
+   "scaling"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#7.3",
+   "phase_05/GAP_AUDIT.md#94",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#12.3"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k)",
+  "type": "Docs",
+  "priority": "P3",
+  "description": "Document and validate the 5 cluster build recipes: $250 ultra-budget edge (Odroid M1S + MT3000), $500 AI edge starter (Orin Nano Super + R6C + ROCK 5C), $1,000 home lab (EPYC 7702 + MT6000), $2,000 advanced ARM (Turing Pi 2.5 + 4x RK1 + Orin + CM3588), $5,000 production hybrid (EPYC 7713 + AGX Orin + MS-01 + A100), each with aggregate core/TOPS/network targets.",
+  "closure_criteria": "At least one recipe is physically assembled (or faithfully emulated per available hardware) and the resulting cluster reports the documented aggregate cores/TOPS and runs the recipe's stated use-case workload, evidenced with a run-UUID. (Hardware-dependent \u2014 partially DEFERRED.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "benchmark"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#11.3",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_COMPLETE_REPORT.md#8.4"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Author 64-device master taxonomy table as machine-readable device catalog",
+  "type": "Docs",
+  "priority": "P2",
+  "description": "Encode the 64-device master table (Device|Architecture|Tier|Trust|ComputeClass|Cores|RAM|Price|KeySpec) as a machine-readable catalog the discovery/classifier can consult for known-device fast-path tier assignment, covering all 64 entries from Steam Deck to IBM z17/Loihi 2.",
+  "closure_criteria": "A known device (e.g. matched by CPU model 'Rockchip RK3588') resolves to its catalog tier/trust/compute-class entry and matches the architecture table; lookup exercised against live discovery output with a run-UUID.",
+  "required_test_types": [
+   "unit",
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#2.2",
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_COMPLETE_REPORT.md#8.2"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Phase 5a integration test: 10-node mixed handheld+SBC cluster",
+  "type": "Task",
+  "priority": "P1",
+  "description": "Run the Phase 5a exit gate: a 10-node mixed cluster (handheld + SBC) where all nodes report metrics and accept eligible workloads; Steam Deck agent non-interfering, RK3588 as STANDARD with NPU eligibility, Orin Nano Super as AI_WORKER with TensorRT, power-aware scheduler cutting handheld battery drain >80%.",
+  "closure_criteria": "A live 10-node heterogeneous cluster shows all nodes reporting metrics and running tier-appropriate workloads; the power-aware drain reduction is measured >80%, captured with a run-UUID. (Hardware-dependent \u2014 DEFERRED in part.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "performance",
+   "scaling",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#12.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Phase 5b integration test: 8-node arm64+riscv64+fpga heterogeneous cluster",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Run the Phase 5b exit gate: an 8-node mixed cluster combining arm64 + riscv64 + FPGA nodes in one cluster, with RISC-V classified EXPERIMENTAL (limited eligibility) and FPGA hard-core as FPGA_HARD_ACCEL, KV260 DPU inference integrated into AI routing.",
+  "closure_criteria": "A single live cluster simultaneously runs arm64, riscv64, and FPGA nodes with correct tier classification and a DPU-routed inference job completing, evidenced with a run-UUID. (Hardware-dependent \u2014 DEFERRED.)",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e",
+   "scaling",
+   "challenge(HelixQA)"
+  ],
+  "source_refs": [
+   "phase_05/HelixCluster_Phase_05/HELIXCLUSTER_PHASE5_ADVANCED_DEVICES_ARCHITECTURE.md#12.2"
+  ],
+  "decoupling_candidate": false
+ }
+]

@@ -1,68 +1,51 @@
 # Issues Summary
 
-**Revision:** 6
-**Last modified:** 2026-05-30T20:09:59Z
-**Description:** Grouped issue summary by status for Helix Cluster OS
-**Authority:** Constitution §11.4 covenant
-**Maintainer:** Operator + AI loop
+**Revision:** 7
+**Last modified:** 2026-06-01T09:59:17Z
+**Description:** Counts of active workable items by phase / type / status / priority
+**Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
+**Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
----
+**Total active:** 623
 
-## Overview
+### By phase
 
-| Metric | Count |
-|--------|-------|
-| Total active items | 5 |
-| Queued | 4 |
+| Phase | Count |
+|---|---|
+| Foundation (anti-bluff) | 79 |
+| MVP | 71 |
+| Phase 2 | 23 |
+| Phase 3 | 55 |
+| Phase 4 | 70 |
+| Phase 5 | 44 |
+| Phase 6 | 53 |
+| Phase 7 | 39 |
+| Phase 8 | 66 |
+| Phase 8B | 68 |
+| Phase 8C | 55 |
+
+### By type
+
+| Type | Count |
+|---|---|
+| Bug | 32 |
+| Docs | 20 |
+| Feature | 467 |
+| Research | 14 |
+| Task | 90 |
+
+### By priority
+
+| Priority | Count |
+|---|---|
+| P0 | 167 |
+| P1 | 248 |
+| P2 | 167 |
+| P3 | 41 |
+
+### By status
+
+| Status | Count |
+|---|---|
 | In progress | 1 |
-| Ready for testing | 0 |
-| In testing | 0 |
-| Reopened | 0 |
-| Blocker | 0 |
-
----
-
-### Queued (4)
-
-| ID | Type | Priority | Title |
-|----|------|----------|-------|
-| HXC-016 | Task | P0 | Phase 4 Build Service |
-| HXC-017 | Feature | P1 | Phase 5 LLM Brain |
-| HXC-018 | Task | P1 | Phase 6 Security Hardening |
-| HXC-020 | Task | P2 | Phase 8 Polish & Release |
-
----
-
-### In progress (1)
-
-| ID | Type | Priority | Title |
-|----|------|----------|-------|
-| HXC-019 | Task | P0 | Phase 7 QA & Testing |
-
----
-
-### Ready for testing (0)
-
-No items.
-
----
-
-### In testing (0)
-
-No items.
-
----
-
-### Reopened (0)
-
-No items.
-
----
-
-### Blocker (0)
-
-No items.
-
----
-
-*For completed work, see `docs/fixed.md`.*
+| Queued | 622 |

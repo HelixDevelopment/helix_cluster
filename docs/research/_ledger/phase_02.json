@@ -1,0 +1,212 @@
+[
+ {
+  "title": "Document node-provisioning boundary: project does NOT implement jailbreak/exploit/DRM-circumvention",
+  "type": "Docs",
+  "priority": "P0",
+  "description": "Explicitly scope phase_02 node integration: how a device comes to run Linux (firmware/jailbreak/homebrew) is an OUT-OF-SCOPE operator prerequisite performed on hardware the operator owns and is authorized to modify. The cluster integrates nodes that ALREADY run Linux + SSH; it implements no exploit chain, no DRM circumvention, and no 'auto-exploit' automation. Supersedes ROADMAP items HXC-913 'auto-exploit' and 'exploit-chain diversity'.",
+  "closure_criteria": "docs/guides/node-provisioning-boundary.md exists stating the boundary; a reviewer reading it confirms no exploit/circumvention deliverable is tracked; the integration e2e joins a node over SSH without any console-security-bypass step in the path.",
+  "required_test_types": ["ux"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md", "operator decision 2026-06-01"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement internal/console/linux_boot.go BootCoordinator state machine",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "BootCoordinator reads kernel/firmware markers (/proc/version, /sys/firmware/devicetree, kernel cmdline) via injectable paths and reports BootState (Unknown/Booting/UserspaceReady/ClusterReady) plus WaitReady(ctx) that gates node registration until readiness probes pass. Pure file-reads + deterministic FSM; hardware-agnostic.",
+  "closure_criteria": "Feed fixture path-sets representing each boot phase; assert returned BootState transitions and that WaitReady blocks until ClusterReady; a per-run UUID written to the boot log proves a live invocation. Mutation: flip the readiness threshold/ordering and confirm the test FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#42", "phase_02/GAP_AUDIT.md#33"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Replace pkg/wireguard NAT discovery with RFC 5389 STUN client",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Replace the HTTP-echo DiscoverExternalAddress with a minimal RFC 5389 STUN Binding request over UDP that parses XOR-MAPPED-ADDRESS against a configurable STUN server. Standard NAT-reflexive-address discovery used by every P2P/VoIP stack.",
+  "closure_criteria": "Spin an in-process fake STUN UDP responder returning a known XOR-mapped addr; assert the parsed reflexive ip:port equals it, tagged with a per-run UUID. Mutation: corrupt the XOR-decode mask and confirm the parse assertion FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#46", "phase_02/GAP_AUDIT.md#22"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard",
+  "type": "Task",
+  "priority": "P3",
+  "description": "nat_traversal.go currently returns the string 'UPnP/NAT-PMP not implemented'. Replace with a typed sentinel error (errors.Is-checkable) so callers branch deterministically instead of string-matching. Honest unimplemented surface, not a silent stub.",
+  "closure_criteria": "Call the UPnP path; assert errors.Is(err, wireguard.ErrUnsupported) is true and no address is returned. Mutation: return nil error and confirm the assertion FAILS.",
+  "required_test_types": ["unit"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#22"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Add WireGuard key-rotation grace/overlap window with ActiveKeys()",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Extend RotateKeysTracked to keep a superseded key valid for a configurable overlap so in-flight peers do not drop; expose ActiveKeys() returning current+grace keys consumed by mesh.go peer config. Driven by an injected clock.",
+  "closure_criteria": "Rotate keys; assert both old+new keys accepted within the window and the old key rejected after it (injected clock advances past grace); UUID-tagged. Mutation: expire the old key immediately and confirm the overlap assertion FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#62", "phase_02/GAP_AUDIT.md#21"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Add pkg/discovery etcd-backed integration test against a real etcd",
+  "type": "Task",
+  "priority": "P1",
+  "description": "Build-tagged integration test running EtcdBackend against a real embedded/containerized etcd, asserting register->lookup->TTL-expiry->deregister round-trips, closing the mock-only gap on the backend.",
+  "closure_criteria": "Register an instance with a short TTL against real etcd, sleep past TTL, assert Lookup excludes it and a re-register restores it; UUID in the registered value proves liveness. Mutation: drop the lease/TTL on Put and confirm the expired instance wrongly persists (test FAILS).",
+  "required_test_types": ["integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#50", "phase_02/GAP_AUDIT.md#23"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement pkg/session container-checkpoint migration strategy (CRDT + manifest)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Implement containerStrategy as a state-only checkpoint: serialize CRDT session state + a restart manifest (cmd, env, cwd) to a blob, migrate by transferring the blob and re-spawning via the native PTY backend on the target. Real and infra-free (process restart, not live freeze); distinct from deferred CRIU.",
+  "closure_criteria": "Checkpoint a session on manager A, restore on manager B, assert CRDT state + manifest equality AND a live re-spawned PTY echoes a UUID written post-restore. Mutation: omit env from the manifest and confirm the restored-state assertion FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#54", "phase_02/GAP_AUDIT.md#29"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement pkg/resources Linux GPU reader via /sys/class/drm (NVML-free)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "GPUReader enumerates /dev/dri/card* and /sys/class/drm/*/device (vendor/device IDs, VRAM where exposed) to populate GPUInfo.Count/vendor without vendor SDKs; wire into NodeAggregator (currently GPU is only copied through).",
+  "closure_criteria": "Point the reader at fixture sysfs trees (NVIDIA, AMD, none); assert detected count/vendor; on a real GPU host assert non-zero detection. Mutation: swap the vendor-ID map and confirm misclassification FAILS the test.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#58", "phase_02/GAP_AUDIT.md#25"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Integrate universal Vulkan compute backend (vendor-neutral, no device-specific code)",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Bind a Vulkan compute backend usable by any Vulkan-capable node (internal/console/gpu.go already probes the Vulkan loader). Expose a compute-submit path that runs a sample kernel and returns a result; explicitly NOT console-specific — works on any GPU exposing Vulkan.",
+  "closure_criteria": "Submit a known Vulkan compute sample (e.g. vector add) on a real Vulkan device; assert the returned buffer matches the expected result for a UUID-seeded input. Mutation: alter the expected output and confirm FAIL.",
+  "required_test_types": ["integration(real-svc)", "performance"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#16", "phase_02/GAP_AUDIT.md#32"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement console/node thermal sink reader via /sys/class/thermal",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Read node temperature from /sys/class/thermal/thermal_zone*/temp (injectable paths) and expose a Temperature() reading consumed by the scheduler thermal plugin. Hardware-agnostic file reads.",
+  "closure_criteria": "Point at fixture thermal-zone trees; assert parsed milli-Celsius; on a real host assert a plausible non-zero reading. Mutation: change the unit divisor and confirm the asserted Celsius FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#42", "phase_02/GAP_AUDIT.md#31"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Implement thermal-aware scheduler plugin (throttle on overheat)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Scheduler plugin that lowers a node's score / filters it out when its reported temperature exceeds a configurable threshold, and resumes when it cools, so jobs avoid throttling hardware.",
+  "closure_criteria": "Inject rising temperature readings for a node; assert the scheduler stops binding new jobs to it above threshold and resumes below; decision log carries a per-run UUID. Mutation: invert the threshold comparison and confirm the binding-avoidance assertion FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#42", "phase_02/PHASE_2_ROADMAP.md#57"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Implement semi-trusted node output verification (redundant-compute/checksum)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "For nodes at TRUST_LEVEL=SEMI, the controller verifies returned results before acceptance: redundant computation on a trusted node and/or deterministic checksum comparison, rejecting mismatches. Real distributed-trust mechanism (not exploit-related).",
+  "closure_criteria": "Submit a job to a semi-trusted node; controller verifies output against a redundant computation; a deliberately tampered result is REJECTED with a logged UUID-tagged mismatch, a correct result is ACCEPTED. Mutation: skip the comparison and confirm the tampered result is wrongly accepted (test FAILS).",
+  "required_test_types": ["unit", "integration(real-svc)", "security"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#41", "phase_02/PHASE_2_ROADMAP.md#13"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Harden device hardware-identification in internal/console/detector.go (generic, fixture-tested)",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Ensure node hardware identification (CPU/SoC/devicetree via /proc + injectable paths) is generic hardware classification used for scheduling/labeling — not tied to any security bypass. Already implemented; add/confirm fixture-driven tests for multiple device classes.",
+  "closure_criteria": "Point the detector at fixture /proc + devicetree trees for several device classes; assert correct classification labels. Mutation: corrupt the SoC-match table and confirm misclassification FAILS the test.",
+  "required_test_types": ["unit"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#31"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "E2E: a Linux node joins the cluster mesh and becomes schedulable",
+  "type": "Task",
+  "priority": "P1",
+  "description": "End-to-end: an already-provisioned Linux node (any arch, including console-class hardware the operator owns) starts the node agent, joins the WireGuard mesh, registers in discovery, and receives+completes a scheduled job. No provisioning/exploit step in scope.",
+  "closure_criteria": "Bring up a real second Linux host (container/VM/owned device); it registers in discovery (verified via lookup), is pingable over the mesh (<latency target), and completes a UUID-seeded job whose result the controller verifies. Mutation: block the mesh handshake and confirm the join/schedule e2e FAILS.",
+  "required_test_types": ["e2e", "integration(real-svc)"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#39", "phase_02/GAP_AUDIT.md#30"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Improve tmux session backend to full PTY wrap on Attach",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "tmux backend Attach is a documented partial (window-pipe, not full PTY wrap). Implement full PTY wrapping so an attached operator session behaves identically to the native PTY backend.",
+  "closure_criteria": "Attach to a tmux-backed session; assert interactive I/O (write a UUID command, read its echoed output) matches native-PTY behavior. Mutation: drop the PTY wrap and confirm the interactive-echo assertion FAILS.",
+  "required_test_types": ["integration(real-svc)", "ux"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#28"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "E2E: aggregate GPU pool runs llama.cpp inference across heterogeneous nodes",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "Run llama.cpp inference distributed across a pool of GPU-capable Linux nodes, aggregating throughput. Vendor-neutral (any Vulkan/compute-capable node); measures real tokens/sec.",
+  "closure_criteria": "Run a known model across a 2+ node GPU pool; assert it produces coherent tokens for a UUID-seeded prompt and reports an aggregate tok/sec above a documented floor. Mutation: drop a node mid-run and confirm the pool-throughput assertion reflects the loss.",
+  "required_test_types": ["e2e", "performance", "scaling"],
+  "source_refs": ["phase_02/PHASE_2_ROADMAP.md#16", "phase_02/PHASE_2_ROADMAP.md#43"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "E2E: multi-node session CRDT convergence",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Prove CRDT session state converges across nodes under concurrent edits and partition/heal. pkg/session CRDT+convergence implemented; add an e2e that exercises real multi-instance convergence.",
+  "closure_criteria": "Two manager instances concurrently mutate a session; after gossip/merge, assert both converge to identical CRDT state including a UUID-tagged edit from each side. Mutation: drop one side's merge and confirm divergence is detected (test FAILS).",
+  "required_test_types": ["e2e", "integration(real-svc)", "chaos"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#27"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Validate cross-NAT WireGuard mesh hole-punching across real hosts",
+  "type": "Task",
+  "priority": "P2",
+  "description": "With the real STUN client in place, validate UDP hole-punching establishes a WireGuard tunnel between two nodes behind separate NATs (using real hosts/relay available in this environment).",
+  "closure_criteria": "Two hosts behind distinct NATs establish a WG tunnel via STUN-discovered reflexive addresses and exchange a UUID-tagged packet round-trip. Mutation: block the reflexive-address exchange and confirm the tunnel-establishment e2e FAILS.",
+  "required_test_types": ["e2e", "integration(real-svc)", "stress"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#71"],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Author phase_02 architecture diagram (operator console + mesh + node integration)",
+  "type": "Docs",
+  "priority": "P2",
+  "description": "Produce an architecture diagram + guide covering the operator console/terminal-multiplexer UI, the WireGuard+SWIM mesh, discovery/scheduler integration, and the Linux-node integration boundary. docs_chain-tied md->html/pdf.",
+  "closure_criteria": "docs/guides/phase_02_architecture.md + diagram render; docs_chain verify reports the chain in-sync; a reader can trace a job from console submission to node execution.",
+  "required_test_types": ["ux"],
+  "source_refs": ["phase_02/HelixCluster_Phase_2/report_phase2/phase02_chapter03_integration_architecture.md"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Confirm/extend node.proto so trust_level and thermal/temperature are first-class fields produced by the node agent and consumed by the scheduler (thermal plugin) and security (semi-trusted verification). Regenerate stubs if fields are added.",
+  "closure_criteria": "A node agent publishes a trust_level + temperature via the proto; the scheduler reads them and a UUID-tagged decision reflects both. Mutation: zero out the thermal field on the wire and confirm the thermal plugin's reaction assertion FAILS.",
+  "required_test_types": ["unit", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#35"],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "CRIU/DMTCP live process migration (research + spike)",
+  "type": "Research",
+  "priority": "P3",
+  "description": "Research/spike real live process migration via CRIU/DMTCP (privileged checkpoint/restore binaries), distinct from the CRDT/container state-only strategy. Roadmap schedules deeper work in Phase 3.",
+  "closure_criteria": "On a Linux host with CRIU available, checkpoint a running process and restore it on another host; assert the restored process continues from a UUID-tagged pre-checkpoint state. Marked PENDING_FORENSICS until run on real CRIU-capable hosts.",
+  "required_test_types": ["e2e", "integration(real-svc)"],
+  "source_refs": ["phase_02/GAP_AUDIT.md#70"],
+  "decoupling_candidate": true
+ }
+]

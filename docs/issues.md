@@ -1,37 +1,688 @@
 # Issues
 
-**Revision:** 6
-**Last modified:** 2026-05-30T20:09:59Z
-**Description:** Workable item tracker for Helix Cluster OS — canonical issue registry
-**Authority:** Constitution §11.4 covenant
-**Maintainer:** Operator + AI loop
+**Revision:** 7
+**Last modified:** 2026-06-01T09:59:17Z
+**Description:** Active workable-item registry for Helix Cluster OS
+**Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
+**Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
----
+Total active items: **623**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Legend
+## Foundation (anti-bluff) (79 active)
 
-| Type | Color |
-|------|-------|
-| Bug | Pale red |
-| Task | Pale blue |
-| Feature | Pale yellow |
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1001 | Task | P0 | Queued | Stand up embedded-etcd integration harness for pkg/etcd tests |
+| HXC-1002 | Feature | P0 | Queued | Prove etcd Put/Get round-trip and missing-key semantics against real etcd |
+| HXC-1005 | Feature | P0 | Queued | Prove etcd Watch fires correct event and closes on ctx cancel |
+| HXC-1007 | Feature | P0 | Queued | Prove etcd distributed Lock mutual exclusion (highest-risk path) |
+| HXC-1010 | Feature | P0 | Queued | Replace pkg/infra map-echo orchestrator with real service Boot via testcontainers |
+| HXC-1011 | Feature | P0 | Queued | Make pkg/infra Health probe real services and report false on failure |
+| HXC-1016 | Feature | P0 | Queued | Add EtcdLocker integration tests against real etcd (block/acquire/lease) |
+| HXC-1017 | Bug | P0 | Queued | Rewrite TestMemoryLockerConcurrent to detect a broken lock without -race |
+| HXC-1020 | Feature | P0 | Queued | Wire a real Builder behind pkg/build Service and prove image is pullable |
+| HXC-1026 | Feature | P0 | Queued | Add real mTLS handshake test for pkg/security (valid client succeeds, no/foreign cert rejected) |
+| HXC-1028 | Feature | P0 | Queued | Locate/build production Vault client and add dev-Vault integration test (KVv2 + PKI) |
+| HXC-1035 | Bug | P0 | Queued | Wire pkg/wasm WasmPlugin.Execute to real WASM output and prove transformed result |
+| HXC-1074 | Task | P0 | Queued | Establish fleet-wide -race CI gate across concurrency-sensitive packages |
+| HXC-016 | Task | P1 | Queued |  |
+| HXC-017 | Task | P1 | Queued |  |
+| HXC-018 | Task | P1 | Queued |  |
+| HXC-019 | Task | P1 | Queued |  |
+| HXC-020 | Task | P1 | Queued |  |
+| HXC-1003 | Feature | P1 | Queued | Prove etcd GetPrefix returns exactly matching multi-key set |
+| HXC-1004 | Feature | P1 | Queued | Prove etcd Delete/DeletePrefix remove keys (sink-side absence) |
+| HXC-1006 | Feature | P1 | Queued | Prove etcd Lease/PutWithLease/RevokeLease/KeepAlive TTL behavior |
+| HXC-1012 | Feature | P1 | Queued | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps |
+| HXC-1013 | Feature | P1 | Queued | Make pkg/infra Scale create real replicas verified via runtime query |
+| HXC-1014 | Feature | P1 | Queued | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end |
+| HXC-1021 | Bug | P1 | Queued | Drive pkg/build StateFailed via a genuine build failure not the 'fail' sentinel |
+| HXC-1022 | Bug | P1 | Queued | Make pkg/build List/Concurrent tests Start() the service and assert terminal states |
+| HXC-1027 | Bug | P1 | Queued | Assert MinVersion==TLS13 on the client TLS path in pkg/security |
+| HXC-1030 | Bug | P1 | Queued | Verify pkg/hxcregistry item_history audit-sink rows after Create/Update |
+| HXC-1036 | Task | P1 | Queued | Add pkg/wasm negative tests for missing execute export and corrupt module Init |
+| HXC-1039 | Bug | P1 | Queued | Replace self-defeating pkg/semaphore TestSemaphore_ReleaseTooMany_Mutation |
+| HXC-1040 | Feature | P1 | Queued | Add pkg/semaphore M>>N concurrency invariant test under -race |
+| HXC-1042 | Bug | P1 | Queued | Convert pkg/storage error tests to errors.Is on exported sentinels |
+| HXC-1045 | Feature | P1 | Queued | Add pkg/storage -race concurrent Put/Get/Delete test to prove RWMutex |
+| HXC-1046 | Bug | P1 | Queued | Gate -race in CI for pkg/metrics concurrency mutation tests |
+| HXC-1050 | Bug | P1 | Queued | Test pkg/grpcutil LoggingStreamInterceptor recv/send counters |
+| HXC-1053 | Bug | P1 | Queued | Add pkg/context TestDetach_PreservesValues for the value-retention guarantee |
+| HXC-1055 | Bug | P1 | Queued | Give pkg/workerpool TestPool_NilWorkSafe_Mutation a real sink |
+| HXC-1056 | Feature | P1 | Queued | Add pkg/workerpool fan-in count==N, post-Stop Submit, panic-recovery, idempotent-Stop tests |
+| HXC-1057 | Bug | P1 | Queued | Make pkg/errors concurrency test honest via locked GetFields path + -race |
+| HXC-1064 | Bug | P1 | Queued | Add pkg/log prefix-field proof catching the SetLevel prefix-loss bug |
+| HXC-1069 | Bug | P1 | Queued | Bring pkg/retry DoWithResult to behavioral parity with Do |
+| HXC-1008 | Task | P2 | Queued | Add mutation-paired etcd New() default-timeout injection test |
+| HXC-1009 | Task | P2 | Queued | Prove etcd error-wrapping on dead endpoint |
+| HXC-1015 | Feature | P2 | Queued | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect |
+| HXC-1018 | Task | P2 | Queued | Add explicit block-then-acquire ordering test for MemoryLocker |
+| HXC-1019 | Bug | P2 | Queued | Characterize or fix MemoryLocker.Lock context-cancellation goroutine leak |
+| HXC-1023 | Task | P2 | Queued | Replace time.Sleep polling in pkg/build with completion sync and add state-machine mutation tests |
+| HXC-1024 | Bug | P2 | Queued | Enforce or document pkg/build content-addressable cache digest integrity |
+| HXC-1025 | Task | P2 | Queued | Cover pkg/build cancel-mid-flight branch sets StateCancelled |
+| HXC-1031 | Bug | P2 | Queued | Assert exact and stable ComputeHeadingHash value in pkg/hxcregistry |
+| HXC-1032 | Task | P2 | Queued | Add pkg/hxcregistry failure-path tests (dup PK, missing-id Get/Update) |
+| HXC-1033 | Bug | P2 | Queued | Make pkg/hxcregistry concurrent test do concurrent writes (or rename) |
+| HXC-1037 | Bug | P2 | Queued | Prove pkg/wasm init/shutdown exports actually run via memory side-effect |
+| HXC-1043 | Bug | P2 | Queued | Reconcile and test pkg/storage FileStore vs MemoryStore copy semantics |
+| HXC-1044 | Task | P2 | Queued | Add pkg/storage overwrite, missing-delete, and List edge tests for both stores |
+| HXC-1047 | Bug | P2 | Queued | Complete pkg/metrics Prometheus exposition assertions (+Inf, _sum, ordering) |
+| HXC-1048 | Task | P2 | Queued | Add pkg/metrics duplicate-registration and histogram edge tests |
+| HXC-1051 | Bug | P2 | Queued | Strengthen pkg/grpcutil log assertions to dynamic behavior-dependent fields |
+| HXC-1052 | Task | P2 | Queued | Cover pkg/grpcutil status.FromError code extraction for handler errors |
+| HXC-1054 | Bug | P2 | Queued | Strengthen pkg/context WithTimeout deadline and expiry assertions |
+| HXC-1058 | Task | P2 | Queued | Pin pkg/errors Code enum exact values, distinctness, and WithFields nil receiver |
+| HXC-1059 | Bug | P2 | Queued | Replace tautological pkg/backoff cap-mutation test and pin Default() |
+| HXC-1060 | Bug | P2 | Queued | Assert pkg/classads parser AST Op per operator and paren precedence |
+| HXC-1062 | Bug | P2 | Queued | Add pkg/crypto SHA-256 known-answer vectors and sentinel errors.Is checks |
+| HXC-1067 | Feature | P2 | Queued | Add pkg/pubsub -race concurrency test and explicit drop-boundary assertion |
+| HXC-1068 | Bug | P2 | Queued | Prove pkg/ratelimit bucket starts full and add Limiter conformance + -race tests |
+| HXC-1070 | Task | P2 | Queued | Add pkg/retry transient-recovery, jitter-bound, and computeDelay table tests |
+| HXC-1072 | Bug | P2 | Queued | Pin pkg/validator error contract via errors.Is and remove/wire unused sentinels |
+| HXC-1029 | Task | P3 | Queued | Replace pkg/security non-nil-only TestNewTLSConfigBuilder with meaningful assertion |
+| HXC-1034 | Task | P3 | Queued | Prove pkg/hxcregistry timestamp round-trip and DB CHECK-constraint enforcement |
+| HXC-1038 | Task | P3 | Queued | Cover pkg/wasm Host.Call ErrUnexpectedResult branch |
+| HXC-1041 | Task | P3 | Queued | Add pkg/semaphore New(0) barrier and exact-capacity boundary tests |
+| HXC-1049 | Task | P3 | Queued | Add pkg/metrics /metrics integration test via httptest.Server |
+| HXC-1061 | Task | P3 | Queued | Add pkg/classads eval failure-path and regexp non-match tests |
+| HXC-1063 | Task | P3 | Queued | Add pkg/crypto AES-128/192, wrong-key decrypt, short-ciphertext, PBKDF2 vector tests |
+| HXC-1065 | Task | P3 | Queued | Strengthen pkg/log Warn test, add Debug-suppression, remove dead captureOutput scaffolding |
+| HXC-1066 | Task | P3 | Queued | Add pkg/lru boundary, cold-miss, and struct-value round-trip tests |
+| HXC-1071 | Task | P3 | Queued | Strengthen pkg/serde MustMarshal exact-content and add Unmarshal failure tests |
+| HXC-1073 | Task | P3 | Queued | Add pkg/validator uint min/max, IsValidID empty, oneof/email boundary tests |
 
-## Status values
+## MVP (71 active)
 
-Queued, In progress, Ready for testing, In testing, Reopened, Fixed, Blocker
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1075 | Feature | P0 | Queued | Implement NATS/JetStream client wrapper (pkg/events) |
+| HXC-1076 | Feature | P0 | Queued | Implement etcd client wrapper (pkg/etcd) |
+| HXC-1077 | Feature | P0 | Queued | Implement etcd discovery backend (pkg/discovery) |
+| HXC-1078 | Feature | P0 | Queued | Implement real Kafka producer/consumer (pkg/pubsub) |
+| HXC-1079 | Feature | P0 | Queued | Implement cgroups v2 + /proc resource reader (pkg/resources) |
+| HXC-1080 | Feature | P0 | Queued | Implement Omega-model scheduler core (pkg/scheduler, internal/scheduler) |
+| HXC-1081 | Feature | P0 | Queued | Implement optimistic-concurrency versioning for scheduler pool |
+| HXC-1084 | Feature | P0 | Queued | Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session) |
+| HXC-1085 | Feature | P0 | Queued | Implement CRDT session state and lifecycle (create/attach/migrate) |
+| HXC-1086 | Feature | P0 | Queued | Implement real Node gRPC handlers serving helixv1 Node API (internal/node) |
+| HXC-1087 | Feature | P0 | Queued | Make node registry etcd-backed and cross-process shared (internal/node) |
+| HXC-1088 | Feature | P0 | Queued | Implement SWIM gossip membership and failure detection (pkg/swim) |
+| HXC-1089 | Feature | P0 | Queued | Implement WireGuard mesh config-gen and key rotation (pkg/wireguard) |
+| HXC-1091 | Feature | P0 | Queued | Wire API gateway reverse proxy with prefix routing and /health (internal/gateway) |
+| HXC-1092 | Feature | P0 | Queued | Add JWT/RBAC auth middleware to API gateway (internal/gateway) |
+| HXC-1093 | Feature | P0 | Queued | Implement leader election with fencing tokens (pkg/leader) |
+| HXC-1094 | Feature | P0 | Queued | Implement distributed lock primitives over etcd (pkg/lock) |
+| HXC-1101 | Feature | P0 | Queued | Implement e2ee transport record protocol (security/pkg/e2ee) |
+| HXC-1103 | Feature | P0 | Queued | Implement RBAC scopes and identity bindings (internal/security) |
+| HXC-1105 | Feature | P0 | Queued | Implement htmux CLI raw-mode terminal client (cmd/htmux) |
+| HXC-1106 | Feature | P0 | Queued | Implement session I/O PTY-over-WebSocket forwarding (cmd/helix-session) |
+| HXC-1107 | Feature | P0 | Queued | Implement WebSocket envelope and MessagePack framing (pkg/websocket) |
+| HXC-1114 | Feature | P0 | Queued | Provision PostgreSQL primary schema with 15 tables, indexes, and triggers |
+| HXC-1115 | Task | P0 | Queued | Define etcd key namespace and key-builder constants (pkg/etcd) |
+| HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
+| HXC-1121 | Task | P0 | Queued | Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS) |
+| HXC-1135 | Feature | P0 | Queued | Implement two-node cluster formation end-to-end (exit gate) |
+| HXC-1136 | Feature | P0 | Queued | Implement session-create end-to-end path (htmux new exit gate) |
+| HXC-1082 | Feature | P1 | Queued | Implement HTCondor ClassAds matching in scheduler (pkg/classads) |
+| HXC-1083 | Feature | P1 | Queued | Implement gang scheduling and preemption in scheduler |
+| HXC-1090 | Feature | P1 | Queued | Implement WireGuard NAT traversal / STUN hole-punch (pkg/wireguard) |
+| HXC-1095 | Feature | P1 | Queued | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) |
+| HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
+| HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
+| HXC-1099 | Feature | P1 | Queued | Implement Build Service orchestrator and worker pool (internal/build) |
+| HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
+| HXC-1102 | Feature | P1 | Queued | Implement software-rooted attestation (security/pkg/attestation) |
+| HXC-1104 | Feature | P1 | Queued | Implement SPIFFE/SPIRE SVID issuance and mTLS identity (internal/security) |
+| HXC-1108 | Feature | P1 | Queued | Implement HelixQA live-service Challenge runner (cmd/helix-test) |
+| HXC-1109 | Feature | P1 | Queued | Implement deterministic-sim, chaos, and device-sim test harness (cmd/helix-test) |
+| HXC-1110 | Task | P1 | Queued | Wire Prometheus /metrics endpoint uniformly across all services (cmd/helix-*) |
+| HXC-1111 | Task | P1 | Queued | Wire Jaeger/OTel trace-ID propagation across services (pkg/tracing) |
+| HXC-1112 | Task | P1 | Queued | Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*) |
+| HXC-1116 | Feature | P1 | Queued | Define Redis cache, routing, and rate-limit key structure (pkg/storage) |
+| HXC-1118 | Feature | P1 | Queued | Implement REST API surface on API Gateway with OpenAPI 3.0 |
+| HXC-1119 | Feature | P1 | Queued | Implement Avro event schemas and schema-validated routing (Event Bus) |
+| HXC-1120 | Task | P1 | Queued | Configure Kafka topics with partitions/replication/retention |
+| HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
+| HXC-1127 | Feature | P1 | Queued | Implement OPA/WASM Policy Engine with HelixConstitution enforcement |
+| HXC-1132 | Feature | P1 | Queued | Implement Metrics Collector node scrape endpoint and GPU metrics aggregation |
+| HXC-1133 | Feature | P1 | Queued | Implement token-bucket rate limiter for API gateway (pkg/ratelimit) |
+| HXC-1137 | Task | P1 | Queued | Benchmark job scheduling decision latency under 100ms (exit gate) |
+| HXC-1138 | Task | P1 | Queued | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) |
+| HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
+| HXC-1098 | Feature | P2 | Queued | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) |
+| HXC-1113 | Bug | P2 | Queued | Remove dangling pkg/gpuattest placeholder and reuse security/pkg/gpuattest |
+| HXC-1122 | Feature | P2 | Queued | Implement Cap'n Proto zero-copy serialization for control-plane (pkg/serde) |
+| HXC-1123 | Feature | P2 | Queued | Implement FlatBuffers serialization for GPU compute payloads |
+| HXC-1124 | Feature | P2 | Queued | Implement ZeroMQ message patterns for internal data planes |
+| HXC-1126 | Feature | P2 | Queued | Implement LLM Brain advisory engine with LLMsVerifier gate (internal/llm) |
+| HXC-1128 | Feature | P2 | Queued | Implement Health Monitor with eBPF probes and LSTM failure prediction |
+| HXC-1129 | Feature | P2 | Queued | Implement CRIU/DMTCP-based session live migration orchestration |
+| HXC-1130 | Feature | P2 | Queued | Implement Zellij and GNU screen session backends |
+| HXC-1131 | Feature | P2 | Queued | Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints) |
+| HXC-1134 | Feature | P2 | Queued | Implement Vault secret injection and rotation for all services |
+| HXC-1139 | Research | P2 | Queued | Author TLA+ specifications for consensus and scheduling concurrency |
+| HXC-1141 | Feature | P2 | Queued | Implement interactive-mode AI CLI agent resource provisioning |
+| HXC-1142 | Feature | P2 | Queued | Implement hybrid mode switching and batch/interactive resource sharing |
+| HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
+| HXC-1144 | Feature | P2 | Queued | Implement WireGuard mesh network policies (segmentation) |
+| HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
----
+## Phase 2 (23 active)
 
-## Active Items
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1146 | Docs | P0 | Queued | Document node-provisioning boundary: project does NOT implement jailbreak/exploit/DRM-circumvention |
+| HXC-905 | Feature | P0 | Queued | SQLite HXC Registry |
+| HXC-1147 | Feature | P1 | Queued | Implement internal/console/linux_boot.go BootCoordinator state machine |
+| HXC-1148 | Feature | P1 | Queued | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client |
+| HXC-1150 | Feature | P1 | Queued | Add WireGuard key-rotation grace/overlap window with ActiveKeys() |
+| HXC-1151 | Task | P1 | Queued | Add pkg/discovery etcd-backed integration test against a real etcd |
+| HXC-1152 | Feature | P1 | Queued | Implement pkg/session container-checkpoint migration strategy (CRDT + manifest) |
+| HXC-1153 | Feature | P1 | Queued | Implement pkg/resources Linux GPU reader via /sys/class/drm (NVML-free) |
+| HXC-1156 | Feature | P1 | Queued | Implement thermal-aware scheduler plugin (throttle on overheat) |
+| HXC-1157 | Feature | P1 | Queued | Implement semi-trusted node output verification (redundant-compute/checksum) |
+| HXC-1159 | Task | P1 | Queued | E2E: a Linux node joins the cluster mesh and becomes schedulable |
+| HXC-906 | Docs | P1 | Queued | PHASE_2_ROADMAP.md |
+| HXC-1154 | Feature | P2 | Queued | Integrate universal Vulkan compute backend (vendor-neutral, no device-specific code) |
+| HXC-1155 | Feature | P2 | Queued | Implement console/node thermal sink reader via /sys/class/thermal |
+| HXC-1158 | Task | P2 | Queued | Harden device hardware-identification in internal/console/detector.go (generic, fixture-tested) |
+| HXC-1160 | Feature | P2 | Queued | Improve tmux session backend to full PTY wrap on Attach |
+| HXC-1161 | Feature | P2 | Queued | E2E: aggregate GPU pool runs llama.cpp inference across heterogeneous nodes |
+| HXC-1162 | Task | P2 | Queued | E2E: multi-node session CRDT convergence |
+| HXC-1163 | Task | P2 | Queued | Validate cross-NAT WireGuard mesh hole-punching across real hosts |
+| HXC-1164 | Docs | P2 | Queued | Author phase_02 architecture diagram (operator console + mesh + node integration) |
+| HXC-1165 | Task | P2 | Queued | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end |
+| HXC-1149 | Task | P3 | Queued | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard |
+| HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 
-| ID | Type | Status | Priority | Title | Description | Assignee | Created | Modified |
-|----|------|--------|----------|-------|-------------|----------|---------|----------|
-| HXC-016 | Task | Queued | P0 | Phase 4 Build Service | Build artifact caching, multi-arch container builds, registry integration, artifact versioning. | Operator + AI loop | 2026-05-31 | 2026-05-31 |
-| HXC-017 | Feature | Queued | P1 | Phase 5 LLM Brain | Agent orchestration layer, prompt engineering pipeline, model serving integration, inference scheduling. | Operator + AI loop | 2026-05-31 | 2026-05-31 |
-| HXC-018 | Task | Queued | P1 | Phase 6 Security Hardening | WireGuard mesh hardening, RBAC expansion, secret rotation, audit logging, threat model updates. | Operator + AI loop | 2026-05-31 | 2026-05-31 |
-| HXC-019 | Task | In progress | P0 | Phase 7 QA & Testing | Complete remaining mutation tests, expand VM test harness, add integration tests, coverage targets. | Operator + AI loop | 2026-05-31 | 2026-05-31 |
-| HXC-020 | Task | Queued | P2 | Phase 8 Polish & Release | Documentation finalization, release packaging, versioning automation, changelog generation. | Operator + AI loop | 2026-05-31 | 2026-05-31 |
+## Phase 3 (55 active)
 
----
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1167 | Task | P0 | Queued | Build ARM64 cross-compilation toolchain for Helix agent |
+| HXC-1168 | Feature | P0 | Queued | Implement SBC Linux node agent (Orange Pi 5 Max target, Tier T3) |
+| HXC-1171 | Task | P0 | Queued | Validate Mali-G610 Vulkan/OpenCL compute on SBC |
+| HXC-1172 | Feature | P0 | Queued | Scaffold Android Agent APK (Kotlin + NDK + Termux) |
+| HXC-1173 | Feature | P0 | Queued | Implement Android foreground service framework with START_STICKY |
+| HXC-1174 | Feature | P0 | Queued | Integrate Android BatteryManager monitoring |
+| HXC-1175 | Feature | P0 | Queued | Implement charging-gated PowerGater scheduling guard |
+| HXC-1178 | Feature | P0 | Queued | Implement MQTT client for edge work dispatch and status |
+| HXC-1184 | Feature | P0 | Queued | Implement edge node registration for all tiers (T3-T8) |
+| HXC-1185 | Feature | P0 | Queued | Implement edge heartbeat with battery/thermal/network telemetry |
+| HXC-1186 | Feature | P0 | Queued | Implement edge protocol gateway (MQTT/QUIC/WebSocket) |
+| HXC-1187 | Feature | P0 | Queued | Define EdgeWorkUnit and EdgeWorkResult protobuf schemas |
+| HXC-1188 | Feature | P0 | Queued | Enforce work-unit resource limits (duration/memory/CPU) on edge devices |
+| HXC-1189 | Feature | P0 | Queued | Implement EdgeAwarePlugin scheduler Filter stage |
+| HXC-1195 | Feature | P0 | Queued | Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR) |
+| HXC-1196 | Feature | P0 | Queued | Enforce workload restriction matrix by trust level |
+| HXC-1197 | Feature | P0 | Queued | Implement edge output verification (LLMsVerifier/redundant/checksum) |
+| HXC-1205 | Feature | P0 | Queued | Build edge setup wizard for device onboarding |
+| HXC-1207 | Task | P0 | Queued | Implement edge device chaos test suite |
+| HXC-1208 | Task | P0 | Queued | Implement battery/thermal stress testing for edge devices |
+| HXC-1210 | Bug | P0 | Queued | Wire EtcdBackend into the node agent for cluster-wide discovery |
+| HXC-1211 | Bug | P0 | Queued | Make internal/scheduler.StreamJobEvents a real event stream |
+| HXC-1212 | Feature | P0 | Queued | Connect pkg/classads to scheduler Filter/Score stages |
+| HXC-1213 | Feature | P0 | Queued | Add auth + RBAC enforcement to the gateway |
+| HXC-1169 | Feature | P1 | Queued | Implement SBCAdapter for SBC-specific hardware monitoring |
+| HXC-1170 | Feature | P1 | Queued | Integrate RK3588 NPU via RKNN Toolkit2 C API |
+| HXC-1176 | Feature | P1 | Queued | Implement Android Vulkan/NNAPI compute backend |
+| HXC-1177 | Feature | P1 | Queued | Implement QUIC transport client for Android (Tier T6) |
+| HXC-1179 | Feature | P1 | Queued | Scaffold iOS Agent app (Swift, Tier T7 EDGE_DONOR) |
+| HXC-1180 | Feature | P1 | Queued | Implement iOS Metal compute integration |
+| HXC-1182 | Feature | P1 | Queued | Implement iOS background execution scheduling (BGAppRefresh/BGProcessing) |
+| HXC-1190 | Feature | P1 | Queued | Implement EdgeAwarePlugin scheduler Score stage |
+| HXC-1191 | Feature | P1 | Queued | Implement declarative per-tier ScheduleRule engine |
+| HXC-1192 | Feature | P1 | Queued | Implement unified NPU backend with ONNX model converter |
+| HXC-1193 | Feature | P1 | Queued | Implement per-tier workload quantization selection |
+| HXC-1194 | Feature | P1 | Queued | Integrate MLC LLM universal engine for mobile inference |
+| HXC-1198 | Feature | P1 | Queued | Implement offline sync protocol with delta compression |
+| HXC-1199 | Feature | P1 | Queued | Implement edge sensor-fusion framework and stream workload type |
+| HXC-1200 | Feature | P1 | Queued | Implement Jetson CUDA-on-ARM GPU backend |
+| HXC-1203 | Task | P1 | Queued | Implement Armbian TV-box provisioning path (RK3588/Amlogic) |
+| HXC-1204 | Task | P1 | Queued | Implement ADB-over-WiFi fleet provisioning for Android cluster |
+| HXC-1206 | Feature | P1 | Queued | Build APK/IPA distribution system |
+| HXC-1209 | Task | P1 | Queued | Validate ARM SBC per-watt performance >=80% of x86 |
+| HXC-1214 | Feature | P1 | Queued | Add S3-compatible (minio) backend to pkg/storage |
+| HXC-1215 | Feature | P1 | Queued | Add OTLP/Jaeger export shim for pkg/tracing |
+| HXC-1181 | Feature | P2 | Queued | Implement iOS CoreML / Neural Engine inference engine |
+| HXC-1183 | Feature | P2 | Queued | Implement HarmonyOS Agent (ArkTS) with Da Vinci NPU inference |
+| HXC-1201 | Feature | P2 | Queued | Implement low-bandwidth protocol optimizations (CoAP option) |
+| HXC-1216 | Feature | P2 | Queued | Implement true embedded Raft consensus (pkg/raft) |
+| HXC-1217 | Feature | P2 | Queued | Implement internal/gpu cgo vendor backends (CUDA/ROCm/oneAPI/MLX) |
+| HXC-1218 | Feature | P2 | Queued | Implement session live migration (CRIU/DMTCP) |
+| HXC-1219 | Feature | P2 | Queued | Implement WireGuard UPnP/NAT-PMP NAT traversal |
+| HXC-1220 | Task | P2 | Queued | Replace custom policy engine with OPA/Rego |
+| HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
+| HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-*For completed work, see `docs/fixed.md`.*
+## Phase 4 (70 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1222 | Feature | P0 | Queued | Build K3s orchestration substrate with RuntimeClasses for firecracker/kata/runc |
+| HXC-1223 | Feature | P0 | Queued | Implement Firecracker microVM provisioner for T1-T3 with vsock and virtio-net |
+| HXC-1224 | Feature | P0 | Queued | Implement Firecracker golden snapshot create/restore pipeline (<=28ms restore) |
+| HXC-1229 | Task | P0 | Queued | Build device profile registry with versioned YAML schema for T1-T8 |
+| HXC-1232 | Feature | P0 | Queued | Implement unified golden snapshot + COW instant-reset across all simulator backends |
+| HXC-1234 | Feature | P0 | Queued | Build Rust DST engine: single-threaded SimLoop with virtual clock and seeded PRNG |
+| HXC-1235 | Feature | P0 | Queued | Integrate Rust turmoil for deterministic simulated TCP/UDP networking |
+| HXC-1236 | Feature | P0 | Queued | Implement INetwork/HelixNetwork trait with production and simulation swappable impls |
+| HXC-1237 | Feature | P0 | Queued | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) |
+| HXC-1242 | Feature | P0 | Queued | Build Elixir/OTP Chaos Controller GenServer with supervision-tree isolation |
+| HXC-1243 | Feature | P0 | Queued | Implement 8 network fault injectors (latency, loss, corruption, reorder, dup, bandwidth, partition, DNS, TCP reset) |
+| HXC-1244 | Feature | P0 | Queued | Implement 8 node fault injectors (VM crash/restart/pause, CPU/mem/disk pressure, OOM kill, graceful shutdown) |
+| HXC-1248 | Feature | P0 | Queued | Build YAML chaos Scenario Engine with phases, blast radius and abort-on-SLO-breach |
+| HXC-1249 | Feature | P0 | Queued | Implement emergency-stop and auto-recovery with <=2s halt latency |
+| HXC-1251 | Feature | P0 | Queued | Build Virtual Testing Controller OTP supervision tree (one_for_all) |
+| HXC-1252 | Feature | P0 | Queued | Implement SessionManager with 50-session cap, 2h TTL, resource-quota enforcement |
+| HXC-1253 | Feature | P0 | Queued | Implement DevicePool GenServer with tier-to-simulator dispatch and health checks |
+| HXC-1256 | Feature | P0 | Queued | Expose REST API for session CRUD, device provisioning and snapshot restore |
+| HXC-1267 | Feature | P0 | Queued | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands |
+| HXC-904 | Feature | P0 | In progress | Phase 4 Build Service |
+| HXC-1225 | Feature | P1 | Queued | Implement QEMU/KVM ARM64 virt provisioner for T6 RK3588-approximate SBC |
+| HXC-1226 | Feature | P1 | Queued | Integrate Cuttlefish/CrosVM provisioner for T5 Android AOSP devices |
+| HXC-1228 | Feature | P1 | Queued | Implement Docker + binfmt_misc protocol stubs for T7 iOS and T8 HarmonyOS |
+| HXC-1230 | Feature | P1 | Queued | Implement automated tier detection validating host KVM/ARM64/binfmt capabilities |
+| HXC-1231 | Feature | P1 | Queued | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) |
+| HXC-1233 | Feature | P1 | Queued | Implement qcow2 copy-on-write overlay management with 10-deep chain limit |
+| HXC-1238 | Feature | P1 | Queued | Implement BUGGIFY macro framework with ~25% deterministic fire rate |
+| HXC-1239 | Feature | P1 | Queued | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods |
+| HXC-1240 | Feature | P1 | Queued | Achieve 1,000+ simulated nodes in a single DST process |
+| HXC-1241 | Feature | P1 | Queued | Author DST consensus+gossip workloads using SETUP→EXECUTION→CHECK→METRICS pattern |
+| HXC-1245 | Feature | P1 | Queued | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
+| HXC-1247 | Feature | P1 | Queued | Implement pure-Go in-sim chaos faults toward 25+ (ClockSkew, DiskFill, MessageReorder, Byzantine, etc.) |
+| HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
+| HXC-1254 | Feature | P1 | Queued | Implement TestRunner with parallel suite execution and result collection |
+| HXC-1255 | Feature | P1 | Queued | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) |
+| HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |
+| HXC-1258 | Feature | P1 | Queued | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing |
+| HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
+| HXC-1260 | Feature | P1 | Queued | Implement metrics validation against baseline KPI table with severity gating |
+| HXC-1261 | Feature | P1 | Queued | Implement Welch's t-test statistical regression detector for HelixQA |
+| HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
+| HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
+| HXC-1264 | Task | P1 | Queued | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter |
+| HXC-1265 | Feature | P1 | Queued | Implement capability-based plugin sandbox with resource limits and audit logging |
+| HXC-1268 | Feature | P1 | Queued | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot |
+| HXC-1269 | Feature | P1 | Queued | Build cmd/helix-testd daemon as OTP controller node entrypoint |
+| HXC-1273 | Feature | P1 | Queued | Implement vsock host-guest control channel for chaos-resilient telemetry |
+| HXC-1284 | Task | P1 | Queued | Benchmark Firecracker 5,000+ microVMs per host with KSM and memory overcommit |
+| HXC-1285 | Task | P1 | Queued | Run 72-hour continuous chaos soak proving no resource leaks or degradation |
+| HXC-1286 | Docs | P1 | Queued | Execute Production Readiness Review with 80-item checklist (>=95% complete) |
+| HXC-1287 | Task | P1 | Queued | Run full 8-tier matrix (160 nodes) end-to-end within 45-minute CI budget |
+| HXC-907 | Docs | P1 | Queued | PHASE_4_ROADMAP.md |
+| HXC-1227 | Feature | P2 | Queued | Implement T4 gaming-console protocol-level constrained x86_64 VM |
+| HXC-1246 | Feature | P2 | Queued | Implement 6 hardware fault injectors (NMI, mem CE/UE, PCIe AER, CPU bit-flip, thermal throttle) |
+| HXC-1266 | Docs | P2 | Queued | Provide reference plugins (Rust device-sim, Zig device-sim) compiled to wasm32-wasi |
+| HXC-1270 | Feature | P2 | Queued | Implement Firecracker MicroVM Kubernetes operator and CRD |
+| HXC-1271 | Feature | P2 | Queued | Deploy WireGuard encrypted inter-host mesh DaemonSet for multi-host clusters |
+| HXC-1272 | Feature | P2 | Queued | Implement distributed snapshot pool backend (MinIO) and multi-host scheduling |
+| HXC-1274 | Feature | P2 | Queued | Implement Mininet WAN topology harness for multi-region network-stack testing |
+| HXC-1275 | Research | P2 | Queued | Author TLA+/PlusCal formal specs for leader election and scheduler allocation |
+| HXC-1276 | Research | P2 | Queued | Author Jepsen black-box linearizability test for task scheduling under partitions |
+| HXC-1279 | Feature | P2 | Queued | Add eBPF/XDP line-rate programmable network fault injection (cilium/ebpf) |
+| HXC-1283 | Docs | P2 | Queued | Define Corellium / physical-hardware-in-the-loop path for iOS, PS4, RK3588 GPU/NPU |
+| HXC-1288 | Task | P2 | Queued | Define polyglot interop boundaries (Rust↔Go↔Elixir↔Wasm) |
+| HXC-1289 | Feature | P2 | Queued | Integrate libcluster automatic BEAM cluster formation via Kubernetes DNS |
+| HXC-1277 | Research | P3 | Queued | Integrate Shadow/Phantom for unmodified-binary deterministic network simulation |
+| HXC-1278 | Research | P3 | Queued | Add property-based + coverage-guided fuzzing for cluster operations |
+| HXC-1280 | Research | P3 | Queued | Validate gem5 big.LITTLE (O3+Minor) scheduler fidelity for RK3588 |
+| HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
+| HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
+
+## Phase 5 (44 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1290 | Feature | P0 | Queued | Implement pkg/device universal capability Descriptor with 15-tier + trust enums |
+| HXC-1291 | Feature | P0 | Queued | Implement device.Probe(ctx) arch/CPU/mem auto-detection with override labels |
+| HXC-1292 | Feature | P0 | Queued | Implement device.AssignTier decision tree per §50 taxonomy (riscv64->T10, x86+open-fw->T1, GPU+battery->T9) |
+| HXC-1293 | Feature | P0 | Queued | Extend api/v1/node.proto with tier, trust_level, compute_class, arch fields |
+| HXC-1294 | Feature | P0 | Queued | Create api/v1/resources.proto with npu_tops, fpga_logic_elements, tflops_gpu |
+| HXC-1295 | Feature | P0 | Queued | Extend api/v1/scheduler.proto with tier constraints and power_budget |
+| HXC-1296 | Feature | P0 | Queued | Implement device.Descriptor <-> pb.Node round-trip mapping helpers |
+| HXC-1297 | Feature | P0 | Queued | Implement pkg/scheduler tier-aware + power-aware Plugin (tier_power.go) |
+| HXC-1298 | Feature | P0 | Queued | Implement power-aware T9 HANDHELD scheduling policy (battery/thermal/gaming-active gating) |
+| HXC-1299 | Feature | P0 | Queued | Implement pkg/discovery 15-tier registry + SelectByTier(tier, minTrust) |
+| HXC-1300 | Feature | P0 | Queued | Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU |
+| HXC-1310 | Feature | P0 | Queued | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) |
+| HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
+| HXC-1301 | Feature | P1 | Queued | Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks |
+| HXC-1302 | Feature | P1 | Queued | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook |
+| HXC-1303 | Feature | P1 | Queued | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router |
+| HXC-1304 | Feature | P1 | Queued | Implement pkg/inference LocalBackend wrapping internal/llm manager |
+| HXC-1305 | Feature | P1 | Queued | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) |
+| HXC-1306 | Feature | P1 | Queued | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) |
+| HXC-1309 | Feature | P1 | Queued | Implement capability manifest generation + control-plane negotiation |
+| HXC-1311 | Docs | P1 | Queued | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints |
+| HXC-1312 | Feature | P1 | Queued | Build multi-arch universal agent container (amd64/arm64/riscv64) via buildx + distroless |
+| HXC-1313 | Feature | P1 | Queued | Implement riscv64 cross-compilation pipeline + RVV extension detection (DEFERRED CI) |
+| HXC-1315 | Feature | P1 | Queued | Package Steam Deck Flatpak agent with systemd integration (DEFERRED hw) |
+| HXC-1316 | Feature | P1 | Queued | Implement internal/sbc: Jetson TensorRT backend (>=60 TOPS) (DEFERRED hw) |
+| HXC-1317 | Feature | P1 | Queued | Implement internal/sbc RK3588 NPU + Turing RK1 cluster support |
+| HXC-1320 | Feature | P1 | Queued | Implement internal/enterprise EPYC/Ampere auto-provisioning + Coreboot trust detection (DEFERRED hw) |
+| HXC-1321 | Feature | P1 | Queued | Implement internal/iot OpenWrt router gateway agent (GL-MT6000, Docker, <5% overhead) |
+| HXC-1322 | Feature | P1 | Queued | Implement internal/iot NAS storage-node agent (Synology/QNAP Docker, dual-role) |
+| HXC-1327 | Feature | P1 | Queued | Implement gVisor/Kata per-tier sandbox hardening for UNTRUSTED/edge nodes (DEFERRED) |
+| HXC-1328 | Feature | P1 | Queued | Implement cloud-spot AWS/Azure/GCP IMDS interruption pollers (adapters) |
+| HXC-1329 | Feature | P1 | Queued | Implement hybrid cloud-on-prem WireGuard mesh joining spot workers to on-prem cluster |
+| HXC-1332 | Task | P1 | Queued | Phase 5a integration test: 10-node mixed handheld+SBC cluster |
+| HXC-1307 | Feature | P2 | Queued | Implement device discovery engine: FPGA detection (Xilinx/Intel/Lattice, hard vs soft core) |
+| HXC-1308 | Feature | P2 | Queued | Implement micro-benchmarker producing normalized per-compute-class scores |
+| HXC-1318 | Feature | P2 | Queued | Implement pkg/fpga + internal/fpga hard-SoC/soft-core/DPU backends (DEFERRED hw) |
+| HXC-1319 | Feature | P2 | Queued | Implement bitstream verification + management for FPGA tiers (T11 required) |
+| HXC-1324 | Feature | P2 | Queued | Implement internal/exotic Groq LPU inference adapter (<100ms TTFT) (DEFERRED cloud) |
+| HXC-1325 | Feature | P2 | Queued | Implement internal/exotic Cerebras CS-3 large-model inference adapter (DEFERRED cloud) |
+| HXC-1331 | Docs | P2 | Queued | Author 64-device master taxonomy table as machine-readable device catalog |
+| HXC-1333 | Task | P2 | Queued | Phase 5b integration test: 8-node arm64+riscv64+fpga heterogeneous cluster |
+| HXC-1323 | Feature | P3 | Queued | Implement webOS smart-TV JS agent over WebSocket (DEFERRED device) |
+| HXC-1326 | Research | P3 | Queued | Implement pkg/quantum Qiskit Runtime plugin for async circuit submission (DEFERRED) |
+| HXC-1330 | Docs | P3 | Queued | Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k) |
+
+## Phase 6 (53 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1334 | Feature | P0 | Queued | Implement pkg/hlc Hybrid Logical Clock with drift clamp and total order |
+| HXC-1335 | Feature | P0 | Queued | Implement pkg/crdt G-Counter with per-replica max-merge convergence |
+| HXC-1336 | Feature | P0 | Queued | Implement pkg/crdt LWW-Register with HLC last-writer-wins tiebreak |
+| HXC-1337 | Feature | P0 | Queued | Implement pkg/crdt OR-Set with unique-tag add/remove semantics |
+| HXC-1340 | Feature | P0 | Queued | Implement pkg/federation Cell model and lifecycle state machine |
+| HXC-1341 | Feature | P0 | Queued | Implement thread-safe Cell Registry with add/remove/list/snapshot |
+| HXC-1344 | Feature | P0 | Queued | Implement pkg/swim/hierarchical two-tier LAN+WAN delegate gossip |
+| HXC-1348 | Feature | P0 | Queued | Implement pkg/nattraversal STUN client and NAT-type classification |
+| HXC-1349 | Feature | P0 | Queued | Implement ICE candidate gathering, prioritization and connectivity checks |
+| HXC-1352 | Feature | P0 | Queued | Implement internal/cell WireGuard inter-cell mesh manager |
+| HXC-1369 | Feature | P0 | Queued | Implement cmd/helix-federation binary and helixctl federation CLI |
+| HXC-1384 | Task | P0 | Queued | Establish multi-cell integration testbed for CLAUDE-1 usability gate |
+| HXC-1338 | Feature | P1 | Queued | Implement pkg/crdt/merkle anti-entropy tree with divergent-key Diff |
+| HXC-1339 | Feature | P1 | Queued | Implement Vector Clock causality type for Tier-2 operational state |
+| HXC-1342 | Feature | P1 | Queued | Implement pkg/federation federated API aggregation with partial failure |
+| HXC-1343 | Feature | P1 | Queued | Implement Phi-accrual failure detector in pkg/swim |
+| HXC-1345 | Feature | P1 | Queued | Implement gateway-relayed cross-cell suspicion propagation |
+| HXC-1346 | Feature | P1 | Queued | Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT, cloud, mDNS) |
+| HXC-1347 | Feature | P1 | Queued | Implement mDNS/DNS-SD local cell discovery advertiser and browser |
+| HXC-1350 | Feature | P1 | Queued | Implement TURN relay allocation and fallback chain |
+| HXC-1351 | Feature | P1 | Queued | Implement QUIC fallback transport with 0-RTT and connection migration |
+| HXC-1353 | Feature | P1 | Queued | Implement WireGuard zero-downtime key rotation with overlap window |
+| HXC-1357 | Feature | P1 | Queued | Implement pkg/spiffe/federation trust-bundle exchange across cells |
+| HXC-1361 | Feature | P1 | Queued | Implement double-encryption (WireGuard L3 + mTLS L7) data path |
+| HXC-1362 | Feature | P1 | Queued | Implement pkg/cilium Cluster Mesh client and global-service propagation |
+| HXC-1363 | Feature | P1 | Queued | Implement federated service discovery (cell-local + global registry) |
+| HXC-1364 | Feature | P1 | Queued | Implement internal/federation Karmada PropagationPolicy engine |
+| HXC-1365 | Feature | P1 | Queued | Extend pkg/scheduler with latency-aware spot/preemptible scoring |
+| HXC-1367 | Feature | P1 | Queued | Implement pkg/gitops ArgoCD ApplicationSet federation client |
+| HXC-1370 | Feature | P1 | Queued | Extend internal/node cell agent: gossip-tier selection + federation identity attestation |
+| HXC-1371 | Task | P1 | Queued | Enforce etcd-stays-within-cell static-analysis lint gate |
+| HXC-1373 | Feature | P1 | Queued | Implement split-brain prevention and partition-classification logic |
+| HXC-1380 | Feature | P1 | Queued | Implement split-brain detection PromQL alerts with runbook links |
+| HXC-1385 | Task | P1 | Queued | Validate Phase 6 exit-gate KPIs against the live federation |
+| HXC-1386 | Task | P1 | Queued | Verify sub-phase dependency gates 6a->6b->6c->6d soak conditions |
+| HXC-1354 | Feature | P2 | Queued | Implement SSH tunnel bridge fallback for control-plane bootstrap |
+| HXC-1355 | Feature | P2 | Queued | Implement cloud VPN bridge with provider-specific endpoint discovery |
+| HXC-1356 | Feature | P2 | Queued | Integrate libp2p DHT discovery, GossipSub and circuit relay |
+| HXC-1358 | Feature | P2 | Queued | Implement OPA/Gatekeeper cross-cluster federated-trust admission |
+| HXC-1359 | Feature | P2 | Queued | Implement OPA data-residency / data-sovereignty admission policy |
+| HXC-1360 | Feature | P2 | Queued | Integrate External Secrets Operator + Vault for federation secrets |
+| HXC-1366 | Feature | P2 | Queued | Implement cloud bursting auto-scaling burst pool with spot termination handling |
+| HXC-1368 | Feature | P2 | Queued | Implement CRDT-based config sync for cell-local overrides |
+| HXC-1372 | Feature | P2 | Queued | Implement per-cell etcd Raft WAN-safe tuning profiles |
+| HXC-1374 | Feature | P2 | Queued | Implement internal/chaos CE-01..CE-12 chaos experiment suite |
+| HXC-1375 | Feature | P2 | Queued | Implement Turmoil-style deterministic multi-cluster simulation harness |
+| HXC-1377 | Docs | P2 | Queued | Author Phase 6 FMEA catalog with detection and recovery runbooks |
+| HXC-1378 | Feature | P2 | Queued | Implement hierarchical Prometheus federation across cells |
+| HXC-1379 | Feature | P2 | Queued | Implement OpenTelemetry cross-cell distributed tracing |
+| HXC-1382 | Feature | P2 | Queued | Implement Velero tiered disaster recovery backup and restore |
+| HXC-1383 | Feature | P2 | Queued | Implement five federation topology patterns and block-binding modes |
+| HXC-1376 | Docs | P3 | Queued | Establish quarterly Game Day federation chaos drill protocol |
+| HXC-1381 | Feature | P3 | Queued | Build Grafana global-health cell-status-grid dashboard |
+
+## Phase 7 (39 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1387 | Feature | P0 | Queued | Implement Multi-Raft per-shard consensus manager (G-01, P0) |
+| HXC-1388 | Feature | P0 | Queued | Implement heartbeat coalescer for Multi-Raft network overhead control |
+| HXC-1390 | Feature | P0 | Queued | Implement MVCC revision store with B-tree index and time-travel (G-08, P0) |
+| HXC-1392 | Feature | P0 | Queued | Implement SLURM-style backfill scheduler over availability timeline (G-02, P0) |
+| HXC-1394 | Feature | P0 | Queued | Implement CRC16 16,384 hash-slot session router (G-03, P0) |
+| HXC-1395 | Feature | P0 | Queued | Implement MOVED/ASK redirection and ASKING for in-flight slot migration (G-03) |
+| HXC-1400 | Feature | P0 | Queued | Implement largest-subcluster-wins voting quorum (G-19, P0) |
+| HXC-1419 | Feature | P0 | Queued | Build deterministic simulation testing (DST) framework on Turmoil (G-14, P0) |
+| HXC-1420 | Feature | P0 | Queued | Implement BUGGIFY chaos macros at 25% deterministic fire rate (G-15, P0) |
+| HXC-1389 | Feature | P1 | Queued | Implement leaseholder fast-path local reads in Multi-Raft |
+| HXC-1391 | Feature | P1 | Queued | Implement persistent Watch Manager with synced/unsynced groups (G-08 support) |
+| HXC-1393 | Feature | P1 | Queued | Implement multifactor priority queue for scheduler (age+fairshare+size+QoS) |
+| HXC-1398 | Feature | P1 | Queued | Add Startup health-probe tier with GPU grace period (G-04, P1) |
+| HXC-1399 | Feature | P1 | Queued | Implement SWIM majority PFAIL->FAIL two-phase failure confirmation (G-23, P1) |
+| HXC-1401 | Feature | P1 | Queued | Implement STONITH fencing agents (IPMI/cloud/shared-disk) (G-19, P1) |
+| HXC-1404 | Feature | P1 | Queued | Implement N+K failover capacity admission control (G-22, P1) |
+| HXC-1405 | Feature | P1 | Queued | Implement gang scheduling all-or-nothing GPU reservation (G-18, P1) |
+| HXC-1407 | Feature | P1 | Queued | Implement device-plugin / GRES fingerprinting framework (G-11/G-13/G-17, P1) |
+| HXC-1408 | Feature | P1 | Queued | Implement BOINC-style redundant-execution trust scorer (G-09, P1) |
+| HXC-1410 | Feature | P1 | Queued | Implement Cassandra 3-layer repair: hinted handoff + read repair + Merkle anti-entropy (G-01 part, P1) |
+| HXC-1421 | Feature | P1 | Queued | Integrate Porcupine linearizability checking in CI under fault injection (G-16, P1) |
+| HXC-1425 | Docs | P1 | Queued | Produce Phase 7 phase-by-phase 23-gap matrix as tracked deliverable ledger |
+| HXC-1396 | Feature | P2 | Queued | Implement Atomic Slot Migration controller for live session migration (G-03, P2) |
+| HXC-1397 | Feature | P2 | Queued | Add config-epoch conflict resolution for simultaneous failovers |
+| HXC-1402 | Feature | P2 | Queued | Implement Pacemaker-style four-type constraint engine (G-20, P2) |
+| HXC-1403 | Feature | P2 | Queued | Implement SCAN stable virtual-IP/DNS client endpoint (G-21, P2) |
+| HXC-1406 | Feature | P2 | Queued | Implement topology-aware NUMA/NVLink GPU placement scoring (G-10/G-18, P2) |
+| HXC-1409 | Feature | P2 | Queued | Implement standalone delta-state CRDT package (G-counter/PN-counter/OR-set/LWW-map) (G-01 part, P2) |
+| HXC-1411 | Feature | P2 | Queued | Implement Informer cache helixcache.Watcher (list-watch local cache) (G-05, P2) |
+| HXC-1412 | Feature | P2 | Queued | Implement rate-limited work queue with exponential backoff (G-06, P2) |
+| HXC-1413 | Feature | P2 | Queued | Implement API Priority & Fairness FlowSchema->PriorityLevel->Queue (G-07, P2) |
+| HXC-1414 | Feature | P2 | Queued | Implement NATS leaf-node edge-to-core store-and-forward topology (G-12, P2) |
+| HXC-1415 | Feature | P2 | Queued | Implement idempotent producer (PID + sequence) for exactly-once messaging |
+| HXC-1416 | Feature | P2 | Queued | Implement cooperative incremental rebalancing for consumers/membership |
+| HXC-1418 | Feature | P2 | Queued | Implement tiered cache hot(memory)/warm(NVMe)/cold(SSD) data tiers |
+| HXC-1422 | Feature | P2 | Queued | Build nightly chaos pipeline (pod kill, partition, disk stall, clock skew) (G-15 part) |
+| HXC-1424 | Docs | P2 | Queued | Produce hardened HelixCluster architecture diagram and component map |
+| HXC-1417 | Feature | P3 | Queued | Implement embedded KRaft-style Raft quorum to remove external ZooKeeper |
+| HXC-1423 | Docs | P3 | Queued | Author TLA+ formal specifications for consensus/coordination protocols (P2) |
+
+## Phase 8 (66 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1434 | Feature | P0 | Queued | Implement GraVal-style miner attestation handshake controller in pkg/chutes |
+| HXC-1435 | Feature | P0 | Queued | Implement GraValVerifier.BatchVerify concurrent attestation with pass-rate KPI |
+| HXC-1436 | Feature | P0 | Queued | Implement GraVal VRAM-threshold (95%) gate in attestation |
+| HXC-1438 | Feature | P0 | Queued | Implement pkg/chutes MinerController K3s deployment lifecycle |
+| HXC-1439 | Feature | P0 | Queued | Define ChutesMinerConfig and ValidatorConfig data structures |
+| HXC-1440 | Feature | P0 | Queued | Deploy PostgreSQL StatefulSet for miner inventory tracking |
+| HXC-1441 | Feature | P0 | Queued | Deploy Redis pub/sub Deployment for miner event propagation |
+| HXC-1442 | Feature | P0 | Queued | Deploy GraVal bootstrap privileged DaemonSet for GPU attestation |
+| HXC-1443 | Feature | P0 | Queued | Deploy miner-api Deployment with NodePort 32000 |
+| HXC-1444 | Feature | P0 | Queued | Deploy Gepetto strategy engine via ConfigMap-backed Deployment |
+| HXC-1445 | Feature | P0 | Queued | Deploy registry-proxy host-network DaemonSet on port 30500 |
+| HXC-1446 | Feature | P0 | Queued | Implement custom HelixGepetto dual-resource arbitration strategy |
+| HXC-1447 | Feature | P0 | Queued | Implement dual-workload capacity reservation in internal/gpu |
+| HXC-1450 | Feature | P0 | Queued | Implement pkg/bittensor wallet (coldkey/hotkey) and TAO balance |
+| HXC-1451 | Feature | P0 | Queued | Implement Bittensor SN64 subnet registration flow |
+| HXC-1462 | Feature | P0 | Queued | Author helm/helixcluster-chutes base chart (values.yaml) |
+| HXC-1465 | Feature | P0 | Queued | Author scripts/chutes-node-prep.sh bare-metal node preparation |
+| HXC-1466 | Feature | P0 | Queued | Author scripts/chutes-miner-deploy.sh miner deployment + registration |
+| HXC-1491 | Task | P0 | Queued | Validate end-to-end full request flow integration (workload->client->E2EE->network->miner->response) |
+| HXC-1426 | Feature | P1 | Queued | Implement pkg/chutes Chutes OpenAI-compatible API Client (non-streaming) |
+| HXC-1427 | Feature | P1 | Queued | Implement Chutes API client fallback-model chain on retriable failure |
+| HXC-1428 | Feature | P1 | Queued | Implement SSE streaming decoder for Chutes chat completions |
+| HXC-1429 | Feature | P1 | Queued | Implement Chutes API model-list and user-account/balance queries |
+| HXC-1430 | Feature | P1 | Queued | Implement model-router default-model resolution by strategy (latency/throughput/quality/cost) |
+| HXC-1431 | Feature | P1 | Queued | Wire E2EE inference envelope between pkg/chutes and security/pkg/e2ee |
+| HXC-1448 | Feature | P1 | Queued | Implement GraVal attestation hook in internal/gpu Manager |
+| HXC-1454 | Feature | P1 | Queued | Implement MarketplaceAdapter interface and Chutes adapter |
+| HXC-1455 | Feature | P1 | Queued | Implement UnifiedManager.RouteWorkload concurrent pricing + composite scoring |
+| HXC-1463 | Feature | P1 | Queued | Author chute-deployment.yaml Helm template for inference pods |
+| HXC-1464 | Feature | P1 | Queued | Author values-models.yaml with 8 pre-configured model deployments |
+| HXC-1467 | Feature | P1 | Queued | Author scripts/chutes-health-monitor.sh observability + alerts |
+| HXC-1468 | Feature | P1 | Queued | Author scripts/chutes-verify.sh end-to-end verification |
+| HXC-1469 | Feature | P1 | Queued | Wire internal/gateway to route internal AI requests through Chutes API client |
+| HXC-1470 | Feature | P1 | Queued | Replace internal/llm stub Inference with real model router (latency/throughput/quality/cost) |
+| HXC-1471 | Feature | P1 | Queued | Deploy vLLM inference engine with PagedAttention defaults |
+| HXC-1472 | Feature | P1 | Queued | Deploy SGLang inference engine with RadixAttention |
+| HXC-1483 | Feature | P1 | Queued | Extend pkg/metrics + Prometheus/Grafana with TAO/GraVal/throughput dashboards |
+| HXC-1484 | Feature | P1 | Queued | Extend pkg/health with miner-api and GraVal DaemonSet health checks |
+| HXC-1485 | Task | P1 | Queued | Author HelixQA Challenge: miner deployment and TAO earnings |
+| HXC-1486 | Task | P1 | Queued | Author HelixQA Challenge: E2EE inference roundtrip |
+| HXC-1487 | Task | P1 | Queued | Author HelixQA Challenge: multi-marketplace routing decision |
+| HXC-1488 | Task | P1 | Queued | Author HelixQA Challenge: GraVal attestation pass/fail |
+| HXC-1489 | Task | P1 | Queued | Validate Chutes API client P99 first-token streaming latency < 500ms |
+| HXC-1432 | Feature | P2 | Queued | Implement gzip compression pipeline in E2EE inference envelope |
+| HXC-1433 | Task | P2 | Queued | Reconcile E2EE AEAD spec deviation (AES-256-GCM vs roadmap ChaCha20-Poly1305) |
+| HXC-1437 | Research | P2 | Queued | Implement GraVal CUDA Proof-of-Consecutive-VRAM-Work kernel (DEFERRED, GPU) |
+| HXC-1449 | Feature | P2 | Queued | Implement MIG profile management in internal/gpu |
+| HXC-1452 | Feature | P2 | Queued | Implement Yuma Consensus / metagraph weight queries in pkg/bittensor |
+| HXC-1456 | Feature | P2 | Queued | Implement RevenueOptimizer.OptimizeAllocation greedy GPU-to-marketplace assignment |
+| HXC-1457 | Feature | P2 | Queued | Implement io.net marketplace adapter |
+| HXC-1458 | Feature | P2 | Queued | Implement Akash marketplace adapter |
+| HXC-1459 | Feature | P2 | Queued | Implement Salad marketplace adapter |
+| HXC-1460 | Feature | P2 | Queued | Implement pkg/economics RewardDistributor multi-token distribution |
+| HXC-1461 | Feature | P2 | Queued | Implement RewardDistributor.GetParticipantROI and break-even tracking |
+| HXC-1473 | Feature | P2 | Queued | Enable AWQ 4-bit quantization as default model format |
+| HXC-1475 | Feature | P2 | Queued | Deploy Intel TDX + NVIDIA CC TEE stack via sek8s |
+| HXC-1476 | Feature | P2 | Queued | Implement hybrid PQC TLS (X25519 + ML-KEM-768) node-to-node transport |
+| HXC-1477 | Feature | P2 | Queued | Implement Cosign/Sigstore image admission controller for K3s |
+| HXC-1480 | Feature | P2 | Queued | Implement carbon-aware scheduler with per-job energy metering |
+| HXC-1481 | Feature | P2 | Queued | Implement EU AI Act compliance documentation pipeline |
+| HXC-1482 | Feature | P2 | Queued | Implement export-control tier verification (country-code KYC) at node onboarding |
+| HXC-1490 | Task | P2 | Queued | Achieve >60% line coverage on pkg/chutes, pkg/marketplace, pkg/e2ee (Codecov gate) |
+| HXC-1453 | Feature | P3 | Queued | Implement child-hotkey delegation support in pkg/bittensor |
+| HXC-1474 | Feature | P3 | Queued | Deploy TurboDiffusion video-generation engine |
+| HXC-1478 | Feature | P3 | Queued | Implement LUKS-encrypted root for miner nodes |
+| HXC-1479 | Feature | P3 | Queued | Implement Cilium egress control and Watchtower integrity challenges |
+
+## Phase 8B (68 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1492 | Feature | P0 | Queued | Define pkg/pool GPUProvider interface as single integration seam |
+| HXC-1493 | Feature | P0 | Queued | Implement GPUTier type with priority ordering (Local..Decentralized) |
+| HXC-1494 | Feature | P0 | Queued | Implement PoolManager registry with tier-ordered Allocate walk |
+| HXC-1495 | Feature | P0 | Queued | Implement WorkloadSpec/GPUDevice/GPUAllocation/PoolStatus data structures |
+| HXC-1496 | Feature | P0 | Queued | Implement candidate filtering (model/VRAM/cost/label selector) |
+| HXC-1498 | Feature | P0 | Queued | Implement PriorityScheduler (tier then least-load then cost) |
+| HXC-1502 | Feature | P0 | Queued | Implement internal/costbroker ComputeBroker weighted scorer |
+| HXC-1504 | Feature | P0 | Queued | Implement pkg/burst BurstController MONITOR->SPILL->RECOVER hysteresis |
+| HXC-1510 | Feature | P0 | Queued | Implement pkg/provider/chutes ChutesProvider OpenAI-compatible adapter |
+| HXC-1519 | Feature | P0 | Queued | Implement pkg/local LocalGPURegistrar with TCO effective-cost |
+| HXC-1521 | Task | P0 | Queued | Expose security ML-KEM-768 E2EE Session/Transport as pkg/e2ee |
+| HXC-1522 | Feature | P0 | Queued | Implement pkg/e2ee E2EEProxy outbound remote-GPU traffic proxy |
+| HXC-1530 | Feature | P0 | Queued | Implement cmd/gpu-pool-manager HTTP+gRPC front-end binary |
+| HXC-1531 | Feature | P0 | Queued | Implement cmd/burst-controller utilization-driven binary |
+| HXC-1532 | Feature | P0 | Queued | Implement cmd/e2ee-proxy transparent ML-KEM-768 proxy binary |
+| HXC-1552 | Task | P0 | Queued | Implement HelixQA BurstChallenge saturate+failover exit gate |
+| HXC-1553 | Task | P0 | Queued | Implement E2E helix submit -> saturate -> route-to-Chutes demo |
+| HXC-1497 | Feature | P1 | Queued | Implement global MaxCostPerHour budget cap on allocations |
+| HXC-1499 | Feature | P1 | Queued | Implement CostAwareScheduler selecting cheapest GPUs meeting SLA |
+| HXC-1500 | Feature | P1 | Queued | Implement LatencyAwareScheduler for inference routing |
+| HXC-1501 | Feature | P1 | Queued | Implement HealthMonitor with 30s checks and auto-failover trigger |
+| HXC-1503 | Feature | P1 | Queued | Implement ComputeBroker 60s re-scoring loop with price-spike guard |
+| HXC-1505 | Feature | P1 | Queued | Implement BurstController utilization RingBuffer moving average |
+| HXC-1506 | Feature | P1 | Queued | Implement BurstController activateBurst capacity estimation + allocation |
+| HXC-1507 | Feature | P1 | Queued | Implement pkg/burst CostRouter per-workload-type provider scoring |
+| HXC-1508 | Feature | P1 | Queued | Implement 5-tier fallback chain Chutes->io.net->RunPod->AWS |
+| HXC-1511 | Feature | P1 | Queued | Implement Chutes retryWithFallback across fallback models on 429 |
+| HXC-1514 | Feature | P1 | Queued | Implement pkg/provider/ionet IONetProvider Ray cluster adapter |
+| HXC-1515 | Feature | P1 | Queued | Implement pkg/provider/runpod RunPodProvider serverless + warm pool |
+| HXC-1520 | Feature | P1 | Queued | Implement LocalGPURegistrar nvidia-smi discovery + GPU classification |
+| HXC-1523 | Feature | P1 | Queued | Implement pkg/e2ee GraValVerifier provider admission gate |
+| HXC-1526 | Feature | P1 | Queued | Implement pkg/proxy CUDA API interceptor + memory staging |
+| HXC-1527 | Feature | P1 | Queued | Define gpu_proxy.proto gRPC GPUProvider kernel-dispatch service |
+| HXC-1528 | Feature | P1 | Queued | Implement virtual /dev/nvidia* device creation proxying to remote GPU |
+| HXC-1529 | Feature | P1 | Queued | Implement workload-suitability classifier (HPC local vs inference remote) |
+| HXC-1533 | Task | P1 | Queued | Add ProviderAdapter registration hooks to pkg/gpu |
+| HXC-1534 | Feature | P1 | Queued | Add GPUTier-aware filter predicate to pkg/scheduler |
+| HXC-1535 | Feature | P1 | Queued | Add GPU-tier utilization/cost/provider-health metrics to pkg/metrics |
+| HXC-1536 | Feature | P1 | Queued | Register virtual GPU devices into internal/node cluster resource model |
+| HXC-1537 | Task | P1 | Queued | Integrate GraValVerifier into pkg/security provider admission |
+| HXC-1540 | Feature | P1 | Queued | Implement local vLLM + SGLang serving stack deployment |
+| HXC-1541 | Feature | P1 | Queued | Implement GPU-proxy DaemonSet advertising virtual nvidia.com/gpu |
+| HXC-1548 | Feature | P1 | Queued | Implement CostTracker monthly cost report vs AWS on-demand |
+| HXC-1549 | Task | P1 | Queued | Author Helm chart for Phase 8B GPU pool + burst deployment |
+| HXC-1551 | Task | P1 | Queued | Build Prometheus/Grafana Phase 8B tier-utilization + cost dashboards |
+| HXC-1554 | Task | P1 | Queued | Stand up real-provider CI integration (Chutes/io.net/RunPod) |
+| HXC-1555 | Task | P1 | Queued | Capture E2EE usability evidence: tee=true encrypted-traffic gate |
+| HXC-1556 | Task | P1 | Queued | Benchmark ML-KEM-768 E2EE handshake latency (<1ms target) |
+| HXC-1557 | Task | P1 | Queued | Run inference p99 <500ms load test via Chutes (1000 requests) |
+| HXC-1509 | Feature | P2 | Queued | Implement QoS tiers (real-time, interactive, batch, best-effort) |
+| HXC-1512 | Feature | P2 | Queued | Implement Chutes GetBalance USD balance monitor |
+| HXC-1513 | Feature | P2 | Queued | Implement Chutes streaming (SSE) chat-completion variant |
+| HXC-1516 | Feature | P2 | Queued | Implement pkg/provider/aws AWSProvider EC2 Spot adapter |
+| HXC-1517 | Feature | P2 | Queued | Implement AWS Spot 2-minute interrupt -> CRIU/S3 checkpoint failover |
+| HXC-1524 | Feature | P2 | Queued | Implement pkg/e2ee TDX AttestationVerifier for sensitive workloads |
+| HXC-1525 | Feature | P2 | Queued | Implement key rotation CronJob + HSM integration for E2EE keys |
+| HXC-1538 | Feature | P2 | Queued | Implement @helix.task Go decorator/SDK with lifecycle hooks |
+| HXC-1539 | Feature | P2 | Queued | Implement intelligent ModelRouter (latency/throughput/cost/tee/balanced) |
+| HXC-1543 | Feature | P2 | Queued | Implement KEDA queue-depth/custom-metric autoscaling |
+| HXC-1545 | Feature | P2 | Queued | Implement CRIU GPU-context checkpoint/restore + graceful degradation |
+| HXC-1547 | Feature | P2 | Queued | Implement TCO calculator for hybrid own+burst economic model |
+| HXC-1550 | Task | P2 | Queued | Author Docker Compose development stack for Phase 8B |
+| HXC-1558 | Task | P2 | Queued | Run 48-hour load test and 7-day soak (>99.9% success) |
+| HXC-1559 | Task | P2 | Queued | Run chaos suite for provider failover and DDoS resilience |
+| HXC-1518 | Docs | P3 | Queued | Document GCP and Azure provider adapter patterns |
+| HXC-1542 | Feature | P3 | Queued | Implement bittencert blockchain-backed X.509 identity |
+| HXC-1544 | Research | P3 | Queued | Implement predictive scaling forecast to pre-warm before peaks |
+| HXC-1546 | Feature | P3 | Queued | Implement chutes-dropzone self-hosted gateway integration |
+
+## Phase 8C (55 active)
+
+| HXC | Type | Pri | Status | Title |
+|---|---|---|---|---|
+| HXC-1560 | Feature | P0 | Queued | Implement pkg/security/e2ee PQ envelope (ML-KEM-768 + HKDF-SHA256) |
+| HXC-1561 | Feature | P0 | Queued | Add ChaCha20-Poly1305 AEAD cipher variant to pkg/security/e2ee |
+| HXC-1562 | Task | P0 | Queued | Add Chutes byte-interop test-vector corpus for pkg/security/e2ee |
+| HXC-1568 | Feature | P0 | Queued | Implement pkg/gpuattest device-info challenge/response + fingerprint |
+| HXC-1569 | Feature | P0 | Queued | Implement seeded matmul proof-of-GPU-work (PoVW) in pkg/gpuattest |
+| HXC-1570 | Feature | P0 | Queued | Implement O(1) spot-check verification in pkg/gpuattest |
+| HXC-1571 | Feature | P0 | Queued | Implement device-sealed encrypt/decrypt (SealForDevice/OpenFromDevice) in pkg/gpuattest |
+| HXC-1574 | Feature | P0 | Queued | Implement pkg/security/attestation TEE quote construct/verify |
+| HXC-1575 | Feature | P0 | Queued | Implement Intel TDX quote generation with nonce+cert binding (report_data layout) |
+| HXC-1576 | Feature | P0 | Queued | Implement NVIDIA GPU attestation evidence verification (NRAS/nvTrust) |
+| HXC-1563 | Feature | P1 | Queued | Implement bidirectional per-request response keypair in pkg/security/e2ee |
+| HXC-1565 | Feature | P1 | Queued | Implement streaming SSE E2EE decryption (e2e_init + per-chunk) in pkg/security/e2ee |
+| HXC-1566 | Feature | P1 | Queued | Implement E2EE instance-discovery + single-use nonce contract |
+| HXC-1567 | Feature | P1 | Queued | Maintain E2EE length-prefixed framed transport over io.ReadWriter |
+| HXC-1577 | Feature | P1 | Queued | Implement measured-boot / RTMR3 access-config measurement |
+| HXC-1578 | Feature | P1 | Queued | Implement attestation-gated key release (LUKS/secret) handshake |
+| HXC-1580 | Feature | P1 | Queued | Implement pkg/modelintegrity hf_cache_verify gate (SHA-256 + size) |
+| HXC-1583 | Feature | P1 | Queued | Maintain pkg/scheduler cost-aware GPU placement plugin |
+| HXC-1584 | Feature | P1 | Queued | Implement value-multiplier preemption in pkg/scheduler (Gepetto model) |
+| HXC-1585 | Feature | P1 | Queued | Implement SKIP LOCKED-style optimistic work-claiming in pkg/scheduler |
+| HXC-1586 | Feature | P1 | Queued | Implement attestation-gated scheduler admission predicate |
+| HXC-1590 | Feature | P1 | Queued | Implement NodeSelector placement-constraint schema in pkg/resources |
+| HXC-1591 | Feature | P1 | Queued | Extend pkg/resources GPUInfo with device fingerprint + attested/thermal state |
+| HXC-1592 | Feature | P1 | Queued | Implement SUPPORTED_GPUS compute-multiplier catalog + LookupMultiplier |
+| HXC-1594 | Feature | P1 | Queued | Implement LLMOrchestrator vLLM/SGLang backend WRAP (OpenAI HTTP) |
+| HXC-1595 | Feature | P1 | Queued | Implement streaming-safe failover (retry only before first byte) in LLMOrchestrator |
+| HXC-1604 | Feature | P1 | Queued | Maintain pkg/fiber length-prefixed framed miner<->validator transport |
+| HXC-1605 | Feature | P1 | Queued | Implement fiber ed25519 signed-identity handshake + stake-gated admission |
+| HXC-1613 | Docs | P1 | Queued | Document Phase 8C exit-gate evidence matrix (CLAUDE-1 usability proofs) |
+| HXC-1564 | Feature | P2 | Queued | Implement gzip-before-encrypt payload compression in pkg/security/e2ee |
+| HXC-1572 | Feature | P2 | Queued | Implement filesystem residency challenge in pkg/gpuattest |
+| HXC-1573 | Feature | P2 | Queued | Implement multi-GPU node enumeration in pkg/gpuattest |
+| HXC-1579 | Feature | P2 | Queued | Implement pkg/security/admission OPA-style policy + signed-image (cosign) gate |
+| HXC-1581 | Feature | P2 | Queued | Implement model/revision anti-cheat verification token (V2 HMAC-SHA256) |
+| HXC-1587 | Feature | P2 | Queued | Implement bounty/auction economic-placement plugin for scheduler |
+| HXC-1588 | Feature | P2 | Queued | Implement utilization-aware EWMA candidate ranking for scheduler/orchestrator |
+| HXC-1589 | Feature | P2 | Queued | Implement Kueue-style suspend-then-admit tiered job admission |
+| HXC-1593 | Feature | P2 | Queued | Implement VRAM-capacity (>=95%) usable-memory gate in resources/gpuattest |
+| HXC-1596 | Feature | P2 | Queued | Implement per-task ordered fallback chains with dedup/cap + empty-response detection |
+| HXC-1597 | Feature | P2 | Queued | Implement thermal pre-warm / scale-from-zero state machine (Therm) |
+| HXC-1598 | Feature | P2 | Queued | Implement passthrough cords + disconnect-aware upstream abort in LLMOrchestrator |
+| HXC-1601 | Feature | P2 | Queued | Implement pkg/inferenceproxy correlation-ID + backend audit trail |
+| HXC-1602 | Feature | P2 | Queued | Implement deterministic keyed-hash anonymization in pkg/inferenceproxy |
+| HXC-1603 | Feature | P2 | Queued | Implement spoof-proof managed-header sanitization at the recording edge |
+| HXC-1606 | Feature | P2 | Queued | Implement node identity verify-then-pin (TOFU) keypair-rooted TLS |
+| HXC-1607 | Feature | P2 | Queued | Implement pkg/marketplace registration -> bounty -> metering -> payout loop |
+| HXC-1608 | Feature | P2 | Queued | Implement pkg/marketplace/audit commit-then-prove reproducible reconciliation |
+| HXC-1614 | Docs | P2 | Queued | Document Phase 8C architecture integration diagrams (scheduler<-attest, orchestrator<-e2ee<-TEE, marketplace) |
+| HXC-1582 | Feature | P3 | Queued | Implement X25519 ephemeral session-key handshake for verification tokens |
+| HXC-1599 | Feature | P3 | Queued | Implement Claude/Responses API-shape adapters for LLMOrchestrator front door |
+| HXC-1600 | Feature | P3 | Queued | Implement error-classified LLM failover taxonomy + sandbox scheduling-hint contract |
+| HXC-1609 | Feature | P3 | Queued | Implement scale-to-zero metered hot/cold billing state machine |
+| HXC-1610 | Feature | P3 | Queued | Implement watchtower-style liveness/integrity prober for served instances |
+| HXC-1611 | Research | P3 | Queued | Implement Karmada-pattern multi-cluster aggregation over SWIM+Raft+etcd (Phase 6 hook) |
+| HXC-1612 | Feature | P3 | Queued | Implement OpenAPI request-validation admission middleware for control-plane APIs |
+

@@ -176,121 +176,145 @@
 <h1 class="title">issues_summary</h1>
 </header>
 <h1 id="issues-summary">Issues Summary</h1>
-<p><strong>Revision:</strong> 6 <strong>Last modified:</strong>
-2026-05-30T20:09:59Z <strong>Description:</strong> Grouped issue summary
-by status for Helix Cluster OS <strong>Authority:</strong> Constitution
-§11.4 covenant <strong>Maintainer:</strong> Operator + AI loop</p>
-<hr />
-<h2 id="overview">Overview</h2>
+<p><strong>Revision:</strong> 7 <strong>Last modified:</strong>
+2026-06-01T09:59:17Z <strong>Description:</strong> Counts of active
+workable items by phase / type / status / priority
+<strong>Authority:</strong> Constitution §11.4.93 (workable-items DB
+single source of truth) <strong>Generated-by:</strong>
+scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry,
+not by hand)</p>
+<p><strong>Total active:</strong> 623</p>
+<h3 id="by-phase">By phase</h3>
 <table>
 <thead>
 <tr>
-<th>Metric</th>
+<th>Phase</th>
 <th>Count</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Total active items</td>
-<td>5</td>
+<td>Foundation (anti-bluff)</td>
+<td>79</td>
 </tr>
 <tr>
-<td>Queued</td>
-<td>4</td>
+<td>MVP</td>
+<td>71</td>
 </tr>
+<tr>
+<td>Phase 2</td>
+<td>23</td>
+</tr>
+<tr>
+<td>Phase 3</td>
+<td>55</td>
+</tr>
+<tr>
+<td>Phase 4</td>
+<td>70</td>
+</tr>
+<tr>
+<td>Phase 5</td>
+<td>44</td>
+</tr>
+<tr>
+<td>Phase 6</td>
+<td>53</td>
+</tr>
+<tr>
+<td>Phase 7</td>
+<td>39</td>
+</tr>
+<tr>
+<td>Phase 8</td>
+<td>66</td>
+</tr>
+<tr>
+<td>Phase 8B</td>
+<td>68</td>
+</tr>
+<tr>
+<td>Phase 8C</td>
+<td>55</td>
+</tr>
+</tbody>
+</table>
+<h3 id="by-type">By type</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Bug</td>
+<td>32</td>
+</tr>
+<tr>
+<td>Docs</td>
+<td>20</td>
+</tr>
+<tr>
+<td>Feature</td>
+<td>467</td>
+</tr>
+<tr>
+<td>Research</td>
+<td>14</td>
+</tr>
+<tr>
+<td>Task</td>
+<td>90</td>
+</tr>
+</tbody>
+</table>
+<h3 id="by-priority">By priority</h3>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0</td>
+<td>167</td>
+</tr>
+<tr>
+<td>P1</td>
+<td>248</td>
+</tr>
+<tr>
+<td>P2</td>
+<td>167</td>
+</tr>
+<tr>
+<td>P3</td>
+<td>41</td>
+</tr>
+</tbody>
+</table>
+<h3 id="by-status">By status</h3>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
 <tr>
 <td>In progress</td>
 <td>1</td>
 </tr>
 <tr>
-<td>Ready for testing</td>
-<td>0</td>
-</tr>
-<tr>
-<td>In testing</td>
-<td>0</td>
-</tr>
-<tr>
-<td>Reopened</td>
-<td>0</td>
-</tr>
-<tr>
-<td>Blocker</td>
-<td>0</td>
+<td>Queued</td>
+<td>622</td>
 </tr>
 </tbody>
 </table>
-<hr />
-<h3 id="queued-4">Queued (4)</h3>
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Type</th>
-<th>Priority</th>
-<th>Title</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HXC-016</td>
-<td>Task</td>
-<td>P0</td>
-<td>Phase 4 Build Service</td>
-</tr>
-<tr>
-<td>HXC-017</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Phase 5 LLM Brain</td>
-</tr>
-<tr>
-<td>HXC-018</td>
-<td>Task</td>
-<td>P1</td>
-<td>Phase 6 Security Hardening</td>
-</tr>
-<tr>
-<td>HXC-020</td>
-<td>Task</td>
-<td>P2</td>
-<td>Phase 8 Polish &amp; Release</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="in-progress-1">In progress (1)</h3>
-<table>
-<thead>
-<tr>
-<th>ID</th>
-<th>Type</th>
-<th>Priority</th>
-<th>Title</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>HXC-019</td>
-<td>Task</td>
-<td>P0</td>
-<td>Phase 7 QA &amp; Testing</td>
-</tr>
-</tbody>
-</table>
-<hr />
-<h3 id="ready-for-testing-0">Ready for testing (0)</h3>
-<p>No items.</p>
-<hr />
-<h3 id="in-testing-0">In testing (0)</h3>
-<p>No items.</p>
-<hr />
-<h3 id="reopened-0">Reopened (0)</h3>
-<p>No items.</p>
-<hr />
-<h3 id="blocker-0">Blocker (0)</h3>
-<p>No items.</p>
-<hr />
-<p><em>For completed work, see <code>docs/fixed.md</code>.</em></p>
 </body>
 </html>

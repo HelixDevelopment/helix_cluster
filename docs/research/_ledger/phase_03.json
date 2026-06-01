@@ -1,0 +1,552 @@
+[
+  {
+    "title": "Build ARM64 cross-compilation toolchain for Helix agent",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Establish a reproducible cross-compilation pipeline producing linux/arm64 (aarch64) Helix agent binaries from x86 build hosts, supporting both CGO-disabled and CGO-enabled builds (CC=aarch64-linux-gnu-gcc or zig cc -target aarch64-linux-gnu) per roadmap task E-0.1. Must also produce GOOS=android and GOARM=7 variants for older devices.",
+    "closure_criteria": "Run the toolchain to emit a helix-agent-arm64 ELF binary (file confirms 'ARM aarch64'), tagged with a per-run build UUID; before state = no arm64 artifact, after state = artifact runs on a real Orange Pi 5 Max / aarch64 container printing its version+UUID; capture file(1) output and on-device execution log as evidence.",
+    "required_test_types": ["unit", "integration(real-svc)", "automation", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-0.1)", "phase_03/HelixCluster_Phase_3/research/edge_dim01_sbc_orange_pi_raspberry.md#5", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#cross-compilation"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement SBC Linux node agent (Orange Pi 5 Max target, Tier T3)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Ship the standard Go Linux node agent compiled for arm64 that registers an Orange Pi 5 Max (RK3588, 8-core, 16GB LPDDR5, Mali-G610, 6 TOPS NPU, 2.5GbE) as a first-class STANDARD-trust cluster citizen, advertising CPU/GPU/NPU/RAM capabilities (roadmap E-0.2, milestone HXC-915).",
+    "closure_criteria": "Deploy agent to a real RK3588 board; before = node absent from cluster registry, after = control plane lists the node with correct capability metadata and a session/Docker workload completes on it; capture cluster registry listing + workload result with a per-run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#timeline (HXC-915)", "phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#2.2", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter02_device_deep_dives.md#2.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SBCAdapter for SBC-specific hardware monitoring",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Provide an SBCAdapter Go type keyed by model (orange_pi_5_max, raspberry_pi_5, h96_max_v58) exposing GPIO/PWM fan control via /sys/class/hwmon/, thermal-zone reads from /sys/class/thermal/, HasNPU() detection, and per-model capability flags as described in the edge architecture §2.3.",
+    "closure_criteria": "On a real SBC, call SetFanSpeed(pwm) and read back the resulting /sys/class/hwmon pwm value and a measured temperature drop; before = default fan PWM, after = changed PWM with lower thermal-zone reading; capture sysfs reads and HasNPU() result tagged with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#2.3", "phase_03/HelixCluster_Phase_3/research/edge_dim01_sbc_orange_pi_raspberry.md#8.2,#9.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Integrate RK3588 NPU via RKNN Toolkit2 C API",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add an NPU backend that loads .rknn models and runs inference on the RK3588 6 TOPS NPU using the RKNN Runtime C API (rknn_init -> rknn_inputs_set -> rknn_run -> rknn_outputs_get) and RKNN-LLM for LLMs (roadmap E-0.3). Must support INT4/INT8/INT16/FP16 and the documented model set (YOLO, ResNet, TinyLlama, Qwen, DeepSeek).",
+    "closure_criteria": "On a real Orange Pi 5 Max, run TinyLlama 1.1B INT8 via the backend and observe ~20 tok/s sustained output; before = no NPU inference path, after = tokens streamed from NPU; capture token-rate log + rknpu driver version (/sys/kernel/debug/rknpu/version) with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-0.3),#2.3", "phase_03/HelixCluster_Phase_3/research/edge_dim01_sbc_orange_pi_raspberry.md#4.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Validate Mali-G610 Vulkan/OpenCL compute on SBC",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Validate GPU compute on the Mali-G610 MP4 via OpenCL 2.2 (fully working, ~255 GFLOPS FP32) and Vulkan 1.2 (Mesa 25+/Panthor), wiring a SPIR-V/OpenCL compute kernel dispatch path into the agent's GPU backend (roadmap E-0.4).",
+    "closure_criteria": "Run an OpenCL FP32 GEMM/benchmark kernel on a real Mali-G610 and record ~255 GFLOPS; before = no GPU compute output, after = correct kernel result + measured GFLOPS; capture clinfo + benchmark output with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-0.4)", "phase_03/HelixCluster_Phase_3/research/edge_dim01_sbc_orange_pi_raspberry.md#4.2,#Q2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Scaffold Android Agent APK (Kotlin + NDK + Termux)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create the Android Agent APK shell in Kotlin wrapping a Termux/native environment, embedding the Go agent via gomobile/NDK (CGO enabled for working DNS), exposing capability reporting and a status UI (roadmap E-0.5, milestone HXC-917).",
+    "closure_criteria": "Sideload the APK on a real Android phone via adb install; before = device not in cluster, after = device registers as Tier T6 SEMI node and the persistent notification shows compute status; capture screenshot of notification + cluster registry entry with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "ui", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-0.5),#3.2", "phase_03/HelixCluster_Phase_3/research/edge_dim02_android_phones_tablets.md#native-development"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Android foreground service framework with START_STICKY",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement the HelixClusterService foreground Service (foregroundServiceType=dataSync) with a persistent ongoing notification, START_STICKY restart semantics, heartbeat, and native agent bootstrap, bypassing Android 12+ background execution / Doze restrictions (roadmap E-0.6).",
+    "closure_criteria": "Run the service 24h on a real phone; before = service killed in background within minutes, after = service survives Doze/App-Standby and keeps heartbeating; capture logcat showing persistent service + uninterrupted heartbeats over 24h with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "stress"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#3.3 (E-0.6)", "phase_03/HelixCluster_Phase_3/research/edge_dim02_android_phones_tablets.md#background-execution", "phase_03/PHASE_3_ROADMAP.md#risk (OS kills background app)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Integrate Android BatteryManager monitoring",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Wire BatteryManager (ACTION_CHARGING/ACTION_DISCHARGING broadcasts, isCharging(), BATTERY_PROPERTY_CAPACITY, EXTRA_PLUGGED AC/USB, thermal) into the agent so it reports charging state, battery percent, and temperature to the cluster and drives local power gating (roadmap E-0.7).",
+    "closure_criteria": "On a real device, plug/unplug the charger and observe the agent's reported charging state + battery% flip in the cluster heartbeat; before = static/unknown power state, after = live state reflecting physical charger; capture heartbeat payloads for both states with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-0.7)", "phase_03/HelixCluster_Phase_3/research/edge_dim02_android_phones_tablets.md#power-management"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement charging-gated PowerGater scheduling guard",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement the PowerGater Go type with PowerConfig (OnlyWhenCharging, MaxBatteryPercent, NightModeOnly hours, MaxCpuTempC, MaxBatteryDrainPct) and CanAcceptWork() returning a (bool, reason) tuple ('not_charging', 'battery_low_X%', 'daytime', 'cpu_hot_XC') that the agent consults before accepting work units (edge architecture §3.4, roadmap E-2.2).",
+    "closure_criteria": "On a real device toggle charger and battery thresholds; before = work accepted while discharging, after = CanAcceptWork() returns false with the correct reason string and the device receives no work; capture decision log with reasons across states + a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#3.4 (E-2.2)", "phase_03/HelixCluster_Phase_3/research/edge_insight.md#Insight 1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Android Vulkan/NNAPI compute backend",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Provide a native compute backend (JNI) running Vulkan compute shaders (SPIR-V, Turnip for Adreno / PanVK for Mali) and NNAPI/SNPE NPU inference on Android GPUs/NPUs, plus MLC LLM integration for on-device LLM inference (edge architecture §3.5).",
+    "closure_criteria": "On a real Android phone, dispatch a Vulkan compute kernel and run an INT8 NNAPI inference, returning correct results; before = no GPU/NPU result, after = kernel output + inference output verified; capture device GPU/NPU identity + result hashes with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#3.5", "phase_03/HelixCluster_Phase_3/research/edge_dim02_android_phones_tablets.md#gpu-compute,#npu-dsp"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement QUIC transport client for Android (Tier T6)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a lightweight QUIC/HTTP3 transport client for Android phones providing 0-RTT reconnect and connection migration across WiFi/cellular handoffs as the primary mobile transport (roadmap E-0.8, protocol stack §6.1).",
+    "closure_criteria": "On a real device, hold an active work session and switch WiFi->cellular; before (TCP baseline) = connection drops + new handshake, after (QUIC) = session survives with same connection ID and 0-RTT resume; capture pcap/connection-ID logs across the handoff with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "performance"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#6.1 (E-0.8)", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement MQTT client for edge work dispatch and status",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add an MQTT client (QoS 0/1/2, Last Will & Testament, persistent sessions, MQTT 5.0 shared subscriptions) for work-unit dispatch and status across all edge tiers, providing automatic device-death detection via LWT (roadmap E-0.9, protocol stack §6.1).",
+    "closure_criteria": "Publish a work unit over a real MQTT broker to an edge device and force-kill the device; before = stale device still 'present', after = LWT marks it offline and work is rescheduled; capture broker logs (subscribe, deliver, LWT trigger) with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#6.1 (E-0.9)", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Scaffold iOS Agent app (Swift, Tier T7 EDGE_DONOR)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create the native Swift iOS HelixCluster app implementing the pull-based compute-donor model, registering BGTaskScheduler tasks for com.helix.compute and fetching/executing/uploading work units only when charging+WiFi (roadmap E-0.10, milestone HXC-918).",
+    "closure_criteria": "Install via TestFlight on a real iPhone; before = no iOS contribution, after = device fetches a work unit during a background refresh window, executes it, and uploads a verified result; capture BGTask scheduling log + uploaded result record with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "ui", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#timeline (HXC-918)", "phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#4.1", "phase_03/HelixCluster_Phase_3/research/edge_dim04_ios_iphone_ipad.md#detailed-analysis-option-1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement iOS Metal compute integration",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Integrate Metal compute (MTLCreateSystemDefaultDevice, MTLComputePipelineState, MSL kernels, MPS Graph) so iOS work units of type metalCompute run on the device GPU (A18 Pro ~2.29 TFLOPS) (roadmap E-0.11).",
+    "closure_criteria": "On a real iPhone/iPad, run a Metal compute kernel work unit and return a bytes-correct result; before = no GPU result, after = verified Metal kernel output; capture Metal device name + result hash with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#4.1 (E-0.11)", "phase_03/HelixCluster_Phase_3/research/edge_dim04_ios_iphone_ipad.md#4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement iOS CoreML / Neural Engine inference engine",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add a CoreML inference engine (MLModelConfiguration.computeUnits=.all) so coreMLInference work units run on the Apple Neural Engine (35 TOPS A18 Pro / 38 TOPS M4), with ONNX->CoreML conversion in the unified NPU backend (roadmap E-0.12).",
+    "closure_criteria": "On a real iOS device, run a CoreML model inference work unit and return the prediction; before = no ANE inference, after = verified prediction output produced via .all compute units; capture inference log + output with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#4.1 (E-0.12)", "phase_03/HelixCluster_Phase_3/research/edge_dim04_ios_iphone_ipad.md#5"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement iOS background execution scheduling (BGAppRefresh/BGProcessing)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement iOS background scheduling using BGAppRefreshTaskRequest (earliestBeginDate, ~30s) and BGProcessingTaskRequest (requiresExternalPower, requiresNetworkConnectivity, ~3-30min) with expiration handlers and task re-submission, respecting Apple's heuristic background limits.",
+    "closure_criteria": "On a real device, schedule and observe a BGProcessingTask fire under charging+WiFi, complete within budget, call setTaskCompleted(success:), and re-schedule; before = no background work, after = task completes and reschedules; capture os_log/Console trace with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#4.2", "phase_03/HelixCluster_Phase_3/research/edge_dim04_ios_iphone_ipad.md#6"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement HarmonyOS Agent (ArkTS) with Da Vinci NPU inference",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create the HarmonyOS ArkTS app (Tier T8 SEMI) connecting via WebSocket+MQTT, reporting capabilities (Kirin 9000S, Maleoon 910, Da Vinci NPU), running continuous background tasks (backgroundTaskManager), and performing NPU inference via HiAI Foundation / CANN (roadmap E-0.13).",
+    "closure_criteria": "On a real Huawei MatePad Pro, register the device as a T8 node and run a HiAI NPU inference work unit; before = device absent, after = node present + inference result returned via Da Vinci NPU; capture AppGallery/DevEco run log + cluster registry entry with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#5.1 (E-0.13)", "phase_03/HelixCluster_Phase_3/research/edge_dim05_harmonyos_huawei.md#davinci-npu-ai-compute,#background-execution-model"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement edge node registration for all tiers (T3-T8)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Extend cluster registration to accept edge nodes across all six tiers with device-tier labels and per-tier trust levels (STANDARD/SEMI/EDGE_DONOR), capability-based (not model-based) discovery handling 10K+ device models (roadmap E-1.1, risk: device diversity).",
+    "closure_criteria": "Register one device of each available tier; before = tiers unrecognized, after = registry shows each node with correct device-tier label + trust level and capability ad; capture registry dump enumerating tiers with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-1.1),#1 (tier table)", "phase_03/PHASE_3_ROADMAP.md#risk (device diversity)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement edge heartbeat with battery/thermal/network telemetry",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add an edge heartbeat protocol carrying battery %, charging state, thermal/CPU temperature, and network type (WiFi/cellular) so the scheduler can make power/thermal-aware decisions; tolerate device churn with configurable timeouts (roadmap E-1.2).",
+    "closure_criteria": "On a real device, vary battery/temperature/network and observe the cluster's view update each heartbeat; before = no live telemetry, after = scheduler sees current battery/thermal/network; capture time-series of heartbeat values vs physical changes with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-1.2)", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#9"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement edge protocol gateway (MQTT/QUIC/WebSocket)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build an edge protocol gateway that terminates MQTT, QUIC, and WebSocket and bridges edge devices to the internal cluster control plane, with a NewProtocolClient(tier) factory selecting MQTT (T3-5/T8), QUIC (T6), WebSocket (T7) per device tier (roadmap E-1.3, §3.2).",
+    "closure_criteria": "Connect one device per protocol through the gateway; before = no edge ingress, after = gateway routes each protocol's traffic to the control plane and back; capture gateway routing logs for all three protocols with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "scaling", "ddos", "security"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-1.3),#6.1", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Define EdgeWorkUnit and EdgeWorkResult protobuf schemas",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Define the edge_work_unit.proto messages: EdgeWorkUnit (id, WorkType enum SMALL_BATCH/AI_INFERENCE_INT8/AI_INFERENCE_FP16/ENCODE_TRANSCODE/COMPRESS_DECOMPRESS/TEST_COMPILE/CRYPTO_HASH, encrypted_payload, max_duration_seconds, max_memory_mb, max_cpu_percent, VerifyMode enum LLM_VERIFY/REDUNDANT/CHECKSUM/TRIVIAL) and EdgeWorkResult (output, ed25519 signature, duration_ms, memory_peak_mb, DeviceMetrics) per §6.2.",
+    "closure_criteria": "Generate code from the .proto and round-trip an EdgeWorkUnit through a real device to an EdgeWorkResult with a valid ed25519 signature; before = no wire schema, after = device returns a signature-verified result honoring resource limits; capture serialized unit/result + signature verification with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#6.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Enforce work-unit resource limits (duration/memory/CPU) on edge devices",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement runtime enforcement of EdgeWorkUnit max_duration_seconds (kill after), max_memory_mb, and max_cpu_percent on the executor so a misbehaving or malicious work unit cannot exceed its declared budget on a user's device.",
+    "closure_criteria": "Submit a work unit that intentionally over-runs duration/memory; before = unbounded run risks user device, after = executor terminates it at the declared limit and reports a limit-exceeded result; capture termination log + resource counters with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "stress", "chaos"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#6.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement EdgeAwarePlugin scheduler Filter stage",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement the EdgeAware scheduler Filter that, for tiers >=6, rejects non-work-unit (session) workloads, unavailable/sleeping/offline devices, devices over thermalThreshold, and (T6/T8) devices below batteryMinPercent or not charging — returning Unschedulable with the documented reasons (roadmap E-2.1, §7.1).",
+    "closure_criteria": "Schedule an interactive session and a work unit against a discharging T6 node; before = both attempted on the phone, after = session is rejected ('Edge devices only accept work units') and the work unit is rejected while discharging ('Not charging'); capture scheduler decision trace with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#7.1 (E-2.1)", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement EdgeAwarePlugin scheduler Score stage",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the EdgeAware Score function applying per-tier bonuses (T3 NPU/NVMe, T4 batch, T5 headless, T6 small+battery/5, T7 inference +40 but -20 intermittency penalty, T8 NPU +35) plus thermal headroom bonus (<50C +15, >70C -30) so inference prefers NPU devices and batch prefers SBCs (§7.1).",
+    "closure_criteria": "Score the same inference job across one device per tier; before = uniform scores, after = ranking matches the spec (T7/T3/T8 NPU devices outrank T4 batch SBCs for inference, cooler devices outrank hot ones); capture per-node score breakdown with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#7.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement declarative per-tier ScheduleRule engine",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement the declarative map[DeviceTier][]ScheduleRule engine evaluating conditions (is_charging, wifi_connected, battery_above, cpu_temp_below, time_between, background_refresh_enabled, low_power_mode_off) with Required flags, as the data-driven source of edge scheduling rules per tier (§3.4).",
+    "closure_criteria": "Load T6 rules and evaluate against a device that is on WiFi but discharging at 15% battery; before = no rule evaluation, after = engine reports battery_above and is_charging failures and blocks scheduling; capture rule-evaluation trace with pass/fail per condition + a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement unified NPU backend with ONNX model converter",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Build the unified AI inference engine taking ONNX as the universal input and converting per-device: ONNX->RKNN (RK3588), ONNX->CoreML (iOS), ONNX->TFLite+NNAPI (Android Snapdragon), ONNX->MindSpore Lite (HarmonyOS), ONNX->Vulkan Compute (GPU fallback), with a runtime dispatcher RKNN/CoreML/NNAPI/HiAI/Vulkan/CPU (roadmap E-2.4, §3.3).",
+    "closure_criteria": "Feed one ONNX model and run inference on at least two distinct device backends (e.g., RK3588 NPU + iOS CoreML) producing equivalent outputs; before = per-platform bespoke code, after = single ONNX yields correct results on multiple backends; capture per-backend output comparison with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-2.4)", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.3", "phase_03/HelixCluster_Phase_3/research/edge_insight.md#Insight 7"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement per-tier workload quantization selection",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement automatic model quantization/selection per device tier: T3 up to 4GB Q4_0 RKNN (Qwen2.5 7B), T4 up to 2GB Q4_0 CPU (TinyLlama), T6 up to 1GB Q4_0+NNAPI (Gemma 2B), T7 up to 2GB Q4_0+CoreML (Llama 3.2 3B), T8 up to 1GB Q4_0+HiAI (Qwen 1.8B) (roadmap E-2.3, §3.3).",
+    "closure_criteria": "Submit one logical inference job and observe the engine pick the correct quantized model+backend per tier; before = one-size model fails on small devices, after = each tier runs its sized model successfully within memory budget; capture selected model+quant per device with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-2.3)", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.3 (quantization table)", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#how-to-quantize"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Integrate MLC LLM universal engine for mobile inference",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Integrate MLC LLM (MLCEngine: continuous batching, prompt caching, JSON mode, OpenAI-compatible API) as the universal on-device LLM runtime across iPhone, Android, Orange Pi, and WebGPU/Vulkan/Metal/OpenCL backends (roadmap E-5.1, insight 7).",
+    "closure_criteria": "On a real phone, load a quantized model via MLCEngine and stream a generation given a prompt; before = no on-device LLM, after = tokens stream with correct completion on the device's accelerator; capture generation log + tok/s + device backend with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-5.1),#3.5", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#12"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Extend the cluster trust model with STANDARD (SBCs, Armbian TV boxes), SEMI (Android phones, HarmonyOS, consoles), and EDGE_DONOR (iOS) levels, assigning each registering device its tier-appropriate trust level used by admission and the workload-restriction matrix (§8.1, §3.5).",
+    "closure_criteria": "Register an Android phone and an iPhone; before = no trust differentiation, after = phone is tagged SEMI and iPhone EDGE_DONOR and each is constrained accordingly; capture identity/trust binding records for both with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#8.1", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.5"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Enforce workload restriction matrix by trust level",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Enforce the workload-restriction matrix so each trust level only runs permitted workloads: e.g., interactive sessions FULL/STANDARD only; sensitive data FULL only; persistent storage and network relay denied to SEMI/EDGE_DONOR; AI inference and small batch allowed to all; EDGE_DONOR restricted to AI inference + data processing + small batch (§8.2).",
+    "closure_criteria": "Attempt a 'sensitive data' workload on a SEMI Android node and an 'interactive session' on EDGE_DONOR iOS; before = workloads run anywhere, after = both are denied with a policy reason while AI inference is allowed; capture admission decisions per (workload,trust) pair with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#8.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement edge output verification (LLMsVerifier/redundant/checksum)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Implement result verification for semi-trusted/donor device outputs honoring EdgeWorkUnit.VerifyMode: LLM_VERIFY (LLMsVerifier checks output), REDUNDANT (compare with a trusted node), CHECKSUM (hash verification), TRIVIAL (none), so untrusted edge results cannot silently corrupt cluster output (§3.5, §6.2).",
+    "closure_criteria": "Submit a duplicated REDUNDANT work unit and inject a wrong result from one edge device; before = wrong result accepted, after = verifier detects the mismatch against the trusted node and rejects/flags it; capture verification verdicts (accept/reject) with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#3.5", "phase_03/HelixCluster_Phase_3/research/edge_insight.md#Insight 5"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement offline sync protocol with delta compression",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement offline capability with sync-on-connect and delta compression so a device can complete jobs while disconnected and reconcile results on reconnect, recovering 100% of jobs after up to 72h disconnect (roadmap HXC-919, milestone 'Offline sync', success criterion 5).",
+    "closure_criteria": "Disconnect a real device, let it complete jobs offline, reconnect after a long outage; before = jobs lost on disconnect, after = 100% of offline-completed jobs sync back and reconcile; capture before/after job-ledger diff proving full recovery with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "stress"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#timeline (HXC-919),#milestones (Offline sync),#success (5)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement edge sensor-fusion framework and stream workload type",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Build the edge-native sensor-fusion / stream-processing framework enabling 3+ edge devices to fuse sensor streams into a real-time output, as an edge workload class distinct from batch/inference (roadmap HXC-920, milestone 'Sensor fusion', success criterion 6).",
+    "closure_criteria": "Run a fusion pipeline across 3+ real edge devices producing a combined real-time output; before = isolated per-device streams, after = a single fused output reflecting all device inputs in real time; capture the fused output stream + participating-device list with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#timeline (HXC-920),#milestones (Sensor fusion),#success (6)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Jetson CUDA-on-ARM GPU backend",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add a CUDA-on-ARM GPU backend for NVIDIA Jetson (Orin Nano) so Jetson devices run CUDA inference at >=50 TOPS as ARM SBC accelerator nodes (roadmap HXC-916, milestone 'Jetson CUDA').",
+    "closure_criteria": "On a real Jetson Orin Nano, run a CUDA inference workload measuring >=50 TOPS; before = no Jetson GPU path, after = CUDA inference completes at the target throughput; capture nvidia-smi/throughput log + result with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#timeline (HXC-916),#milestones (Jetson CUDA),#success (2)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement low-bandwidth protocol optimizations (CoAP option)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add low-bandwidth optimizations for ultra-constrained/cellular links, including an optional CoAP-over-UDP path (4-byte header, ~70% less data, observation mechanism) and adaptive protocol selection for sensor-tier devices, per roadmap scope and protocol selection matrix.",
+    "closure_criteria": "Send identical telemetry over MQTT and over CoAP on a constrained link; before = MQTT-only bandwidth, after = CoAP path transfers measurably less data for the same payload; capture byte-count comparison with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#scope (low-bandwidth protocol optimizations)", "phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#4,#protocol-selection-matrix"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement WebRTC P2P data-channel transport for edge devices",
+    "type": "Research",
+    "priority": "P3",
+    "description": "Evaluate and prototype WebRTC RTCDataChannel (configurable reliability, ICE/STUN/TURN NAT traversal, DTLS E2E) for direct device-to-device edge communication (model gossip, collaborative inference), accounting for documented mobile reliability caveats.",
+    "closure_criteria": "Establish a real P2P data channel between two edge devices behind NAT and exchange a payload; before = relay-only path, after = direct STUN-established channel transfers data E2E-encrypted; capture ICE candidate/STUN-vs-TURN log + delivered payload with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "chaos"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/research/edge_dim06_cross_platform_protocols.md#2,#can-we-use-webrtc"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Armbian TV-box provisioning path (RK3588/Amlogic)",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Document and automate flashing Armbian Linux onto Android TV boxes (RK3588 H96 MAX V58, Amlogic S905X4 onn 4K Pro/UGOOS) so they become STANDARD-trust ARM64 Linux server nodes running the standard agent + Docker, eliminating Android background limits (insight 6, deep dive 2.3).",
+    "closure_criteria": "Flash Armbian to a real TV box and join it to the cluster as a STANDARD node running a Docker workload; before = Android-bound box, after = headless Linux node executes a workload; capture uname -a + cluster registry + workload result with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/research/edge_dim03_android_tv_boxes.md#key-findings,#linux-and-server", "phase_03/HelixCluster_Phase_3/research/edge_insight.md#Insight 6", "phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter02_device_deep_dives.md#2.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement ADB-over-WiFi fleet provisioning for Android cluster",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Provide a controller-side tool to manage an Android fleet over wireless ADB (adb connect <ip>:5555, adb -s <id>, batch adb install, am startservice, status via top), enabling mass APK deployment and remote control without root (dim02 ADB section).",
+    "closure_criteria": "From a controller, batch-install the agent APK and start the service on 3+ real phones over WiFi-ADB; before = devices unmanaged, after = all devices report running compute service; capture per-device adb command output + status with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "automation", "scaling"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/research/edge_dim02_android_phones_tablets.md#adb-cluster-management,#code-examples (ADB script)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Build edge setup wizard for device onboarding",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build an edge setup wizard that walks an operator/end-user through onboarding any edge device tier (SBC flash, Android APK sideload, iOS TestFlight, HarmonyOS AppGallery), generating config (control plane endpoint, trust level, protocol, power-gating) and verifying join (roadmap E-8.1).",
+    "closure_criteria": "Run the wizard end-to-end to onboard a real device of one tier from zero config to cluster-joined; before = manual error-prone setup, after = wizard-driven device appears in cluster; capture wizard transcript/screens + resulting registry entry with a run UUID.",
+    "required_test_types": ["e2e", "ui", "ux", "challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-8.1)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Build APK/IPA distribution system",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Build the distribution system for the agent apps: APK hosting/sideload + TestFlight (10k testers) / Enterprise MDM for IPA + AppGallery for HarmonyOS, including versioning and channel management (roadmap E-8.2).",
+    "closure_criteria": "Publish a new agent build through each channel and install it on a real device per platform; before = no distribution channel, after = devices install and run the published build; capture distribution record (build id/version) + on-device installed version with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "automation"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-8.2)", "phase_03/HelixCluster_Phase_3/research/edge_dim04_ios_iphone_ipad.md#distribution-method-comparison"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement edge device chaos test suite",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Build a chaos test harness exercising edge failure modes: device sleep/Doze, network churn (WiFi<->cellular), abrupt disconnect, charger removal mid-job, and OS app-kill, verifying graceful rescheduling and result integrity (roadmap E-7.1).",
+    "closure_criteria": "Run the chaos suite against a live edge fleet injecting each fault; before = unknown resilience, after = cluster reschedules affected work and loses no verified results; capture fault-injection log + reconciliation outcome with a run UUID.",
+    "required_test_types": ["chaos", "integration(real-svc)", "e2e", "automation"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-7.1)", "phase_03/PHASE_3_ROADMAP.md#risk (network churn)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement battery/thermal stress testing for edge devices",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Build a 24h battery/thermal stress test that runs sustained edge compute while measuring battery drain (<5%/hour target) and thermal throttling, validating the charging-gated model keeps devices within safe thermal and drain bounds (roadmap E-7.2, success criterion 3).",
+    "closure_criteria": "Run 24h on a real Android phone under charging-gated compute; before = unmeasured drain/thermals, after = measured <5% drain/hour and no thermal damage with throttling observed and handled; capture battery/temperature time-series over 24h with a run UUID.",
+    "required_test_types": ["stress", "performance", "integration(real-svc)", "benchmark"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#9.1 (E-7.2)", "phase_03/PHASE_3_ROADMAP.md#success (3),#risk (battery drain)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Validate ARM SBC per-watt performance >=80% of x86",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Benchmark ARM SBC nodes against x86 baselines to confirm >=80% of x86 per-watt performance for representative cluster workloads, validating the SBC value proposition (roadmap success criterion 1).",
+    "closure_criteria": "Run the standard workload on a real SBC and an x86 node, measure throughput and wall power; before = unverified claim, after = SBC achieves >=80% perf/watt of x86; capture power-meter + throughput data for both with a run UUID.",
+    "required_test_types": ["benchmark", "performance", "integration(real-svc)"],
+    "source_refs": ["phase_03/PHASE_3_ROADMAP.md#success (1)", "phase_03/HelixCluster_Phase_3/research/edge_dim01_sbc_orange_pi_raspberry.md#8,#11.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Wire EtcdBackend into the node agent for cluster-wide discovery",
+    "type": "Bug",
+    "priority": "P0",
+    "description": "GAP_AUDIT gap #1: internal/node/node.go:105 hardcodes discovery.NewInMemoryBackend(), so node registrations are invisible cluster-wide despite a complete pkg/discovery/etcd_backend.go. Add an Agent config field EtcdEndpoints; when set, construct NewEtcdBackend with a TTL lease tied to the SWIM heartbeat (dead nodes auto-expire); fall back to in-memory only when unset; expose chosen backend type in agent status.",
+    "closure_criteria": "Boot real etcd via brokertest, start two agents pointing at it; before = agent A's registry.List() returns only itself, after = A sees agent B's instance with B's resource metadata; mutation: reverting to NewInMemoryBackend makes the test FAIL; capture registry listing with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (1)", "phase_03/GAP_AUDIT.md#Deliverable Status (internal/node, pkg/discovery)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Make internal/scheduler.StreamJobEvents a real event stream",
+    "type": "Bug",
+    "priority": "P0",
+    "description": "GAP_AUDIT gap #2: server.go:193 sends a single hardcoded 'scheduled' event then closes (a PASS-bluff). Add a per-job event channel in pkg/scheduler publishing on SCHEDULED/BOUND/PREEMPTED/COMPLETED/CANCELLED transitions; have the gRPC handler subscribe and forward events until terminal or client cancel.",
+    "closure_criteria": "Schedule a job, open the stream, then cancel/preempt it; before = one static event, after = >=2 distinct ordered EventTypes with monotonically increasing timestamps; mutation: dropping the PREEMPTED publish makes the test FAIL; capture the streamed event sequence with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (2)", "phase_03/GAP_AUDIT.md#Deliverable Status (internal/scheduler)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Connect pkg/classads to scheduler Filter/Score stages",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "GAP_AUDIT gap #3: a full ClassAds parser/evaluator exists (pkg/classads/eval.go) but the scheduler ignores it. Add ClassAdFilterPlugin and ClassAdScorePlugin implementing the existing Plugin interface: evaluate a job's Requirements expression against each node's attribute ad (Filter) and a Rank expression for Score, using pkg/scheduler.Resources as the attribute source.",
+    "closure_criteria": "Build two nodes (one with GPU, one without) and a job with Requirements=(GPU>=1); before = ClassAds unused, after = filter rejects the non-GPU node and Rank=-Memory orders nodes by free memory; mutation: flipping >= to < makes the test FAIL; capture filter/score decisions with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (3)", "phase_03/GAP_AUDIT.md#Deliverable Status (pkg/classads)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add auth + RBAC enforcement to the gateway",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "GAP_AUDIT gap #4: internal/gateway/gateway.go is a bare reverse proxy with zero auth, contradicting roadmap §2.7 (mTLS + OPA). Add middleware extracting a bearer/JWT identity (reuse pkg/jwt) and checking required scopes (reuse internal/security scope model / internal/policy) per route prefix; reject 401/403 with an X-Helix-Deny-Reason header before proxying.",
+    "closure_criteria": "Request /api/v1/scheduler/ with (a) no token, (b) token lacking scheduler:write, (c) valid token; before = all proxied, after = (a)=401, (b)=403 with deny reason, (c)=proxied with X-Helix-Gateway; mutation: fail-open on missing scope makes (a)/(b) FAIL; capture HTTP responses + headers with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "security"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (4)", "phase_03/GAP_AUDIT.md#Deliverable Status (pkg/gateway, internal/policy)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Add S3-compatible (minio) backend to pkg/storage",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "GAP_AUDIT gap #5: pkg/storage only has Memory + File; roadmap §2.4 wants pluggable distributed backends. Add an S3Store implementing the existing Put/Get/Delete/List interface against the S3 API (minio-go or aws-sdk-go-v2); the minio container already in the compose stack serves the integration test.",
+    "closure_criteria": "Round-trip a blob through S3Store against a real minio container; before = no distributed backend, after = Get returns bytes-identical content and List(prefix) enumerates it; mutation: writing Put to the wrong bucket makes Get FAIL; capture blob hash before/after + List output with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (5)", "phase_03/GAP_AUDIT.md#Deliverable Status (pkg/storage)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Add OTLP/Jaeger export shim for pkg/tracing",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "GAP_AUDIT gap #6: tracing is homegrown with no exporter, so spans never reach deployed Jaeger. Add a thin OTLP-HTTP exporter serializing existing Spans (TraceID/ParentID/timings/attrs) to the OTLP JSON span shape and POSTing batches to the collector endpoint; keep the homegrown API and only add the sink.",
+    "closure_criteria": "Stand up an httptest fake collector, emit a parent+child span; before = spans never exported, after = exporter POSTs one batch containing both spans with correct parent linkage and shared TraceID; mutation: dropping ParentID makes the linkage assertion FAIL; capture the POSTed OTLP payload with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#TOP IMPLEMENTABLE GAPS (6)", "phase_03/GAP_AUDIT.md#Deliverable Status (pkg/tracing)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement true embedded Raft consensus (pkg/raft)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "GAP_AUDIT MISSING/DEFERRED: roadmap §2.1 calls for true Raft consensus but no pkg/raft exists; locks/election currently lean on etcd and pkg/leader is not real Raft. Implement embedded Raft (e.g., hashicorp/raft) providing leader election, log replication, and a replicated state machine for cluster coordination.",
+    "closure_criteria": "Run a 3-node Raft cluster, kill the leader, and observe a new leader elected with the replicated log intact; before = no embedded consensus, after = quorum survives leader loss and committed entries persist; capture leader-change + log-consistency evidence with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "e2e"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#DEFERRED (True embedded Raft)", "phase_03/GAP_AUDIT.md#Deliverable Status (pkg/leader, True Raft)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement internal/gpu cgo vendor backends (CUDA/ROCm/oneAPI/MLX)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "GAP_AUDIT DEFERRED: internal/gpu is pure-Go device abstraction with no cgo vendor backends. Implement CUDA/ROCm/oneAPI/MLX cgo backends behind the existing manager so real GPU devices are usable for compute, gated on available GPU hardware + vendor SDKs.",
+    "closure_criteria": "On a real GPU host, enumerate the device through a vendor backend and run a compute kernel returning a correct result; before = pure-Go stub only, after = real GPU executes the kernel; capture vendor device enumeration + kernel result with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance", "benchmark"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#DEFERRED (internal/gpu)", "phase_03/GAP_AUDIT.md#Deliverable Status (internal/gpu)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement session live migration (CRIU/DMTCP)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "GAP_AUDIT DEFERRED: pkg/session/migration.go:178-222 contains explicit 'criu not implemented' / 'dmtcp not implemented' stubs. Implement live session checkpoint/restore via CRIU and DMTCP (host tooling + privileged kernel checkpoint support) enabling session migration between nodes.",
+    "closure_criteria": "Checkpoint a running session on node A and restore it on node B; before = stub error, after = session resumes on B with its in-memory state intact; capture checkpoint image + restored-process state proof with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#DEFERRED (Session live migration)", "phase_03/GAP_AUDIT.md#Deliverable Status (Session live migration)"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement WireGuard UPnP/NAT-PMP NAT traversal",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "GAP_AUDIT DEFERRED: pkg/wireguard/nat_traversal.go:35,41 contains 'UPnP/NAT-PMP not implemented' stubs. Implement UPnP/NAT-PMP port mapping so WireGuard mesh peers behind NAT gateways can establish direct tunnels (requires a real NAT gateway to validate).",
+    "closure_criteria": "Place two peers behind a real NAT router and establish a direct WireGuard tunnel via auto-created port mappings; before = traversal stubbed, after = peers exchange traffic over a direct tunnel; capture router port-mapping table + peer handshake log with a run UUID.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#DEFERRED (WireGuard UPnP/NAT-PMP)", "phase_03/GAP_AUDIT.md#Deliverable Status (WireGuard NAT traversal)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Replace custom policy engine with OPA/Rego",
+    "type": "Task",
+    "priority": "P2",
+    "description": "GAP_AUDIT PARTIAL: internal/policy/engine.go is a custom engine, NOT OPA/Rego as specified (no open-policy-agent import). Migrate (or wrap) the policy engine to evaluate Rego policies via the open-policy-agent library so gateway/admission decisions use the specified technology.",
+    "closure_criteria": "Author a Rego policy denying a specific scope and load it into the engine; before = custom-only evaluation, after = the OPA-evaluated policy denies a matching request and allows a non-matching one; capture OPA decision log with a run UUID.",
+    "required_test_types": ["unit", "integration(real-svc)", "security"],
+    "source_refs": ["phase_03/GAP_AUDIT.md#Deliverable Status (internal/policy)"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Document Phase 3 edge multi-platform agent architecture diagrams",
+    "type": "Docs",
+    "priority": "P2",
+    "description": "Produce/maintain the Phase 3 architecture documentation artifacts: the multi-platform agent landscape diagram (Linux/Android/iOS/HarmonyOS), protocol-stack-by-tier diagram, unified NPU backend diagram, trust-level diagram, and workload-restriction matrix, kept consistent with the implemented code.",
+    "closure_criteria": "Publish the diagrams/docs and cross-check each against the shipped agent tiers/protocols; before = stale/absent diagrams, after = each diagram element maps to a real implemented component verified by a reviewer; capture the rendered docs + review sign-off with a run UUID.",
+    "required_test_types": ["challenge(HelixQA)"],
+    "source_refs": ["phase_03/HelixCluster_Phase_3/report_phase3/phase03_chapter03_architecture_and_implementation.md#3.1,#3.2,#3.3,#3.5", "phase_03/HelixCluster_Phase_3/HELIXCLUSTER_PHASE3_EDGE_ARCHITECTURE.md#1,#8"],
+    "decoupling_candidate": false
+  }
+]

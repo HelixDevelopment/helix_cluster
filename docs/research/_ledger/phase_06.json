@@ -1,0 +1,532 @@
+[
+  {
+    "title": "Implement pkg/hlc Hybrid Logical Clock with drift clamp and total order",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Pure-Go Hybrid Logical Clock: Clock holding {wallMillis/Physical, logical} with Now() advancing against an injectable wall-clock, Update(remote Timestamp) taking max of local/remote physical and bumping logical on ties, clamping NTP drift to a configurable bound (default 500ms; <10ms tolerance target) returning error on exceed, plus total-order Timestamp.Compare and HappensBefore/Concurrent. 52-bit physical microseconds + 12/16-bit logical. Timestamp substrate every CRDT consumes; unblocks pkg/crdt and pkg/swim/hierarchical.",
+    "closure_criteria": "Run a Go program that feeds an out-of-order remote timestamp newer than local wall; capture before/after clock state showing the returned timestamp is strictly greater than both inputs and two events at identical wall time receive distinct logical counters preserving causal order; emit a per-run UUID into the log and attach the captured stdout proving deterministic causal ordering.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#1 pkg/hlc", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/hlc", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.4 Clock Synchronization"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/crdt G-Counter with per-replica max-merge convergence",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Grow-only counter CRDT over a per-node counts map; Increment(nodeID), Value()=sum, Merge(other)=element-wise max per node (commutative, associative, idempotent), and Encode() for network transfer. State-based, no networking.",
+    "closure_criteria": "Run a property test merging the same increment ops in randomized orders across 3 in-process replicas, capture each replica's encoded state proving byte-identical convergence and that merging twice equals once; log a per-run UUID with the converged Value() and attach the captured output.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#2 pkg/crdt", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/crdt", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.2 GCounter"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/crdt LWW-Register with HLC last-writer-wins tiebreak",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Last-write-wins register CRDT storing value + HLC timestamp + nodeID; Set(value,ts,nodeID) updates only if ts greater (or equal ts and higher nodeID for deterministic tiebreak), Get() returns value+metadata, Merge resolves via Compare. State-based CRDT over pkg/hlc.",
+    "closure_criteria": "Run a test issuing concurrent Set calls with equal HLC timestamps but differing nodeIDs across replicas, capture before/after register state proving the deterministic higher-nodeID winner converges on all replicas; emit per-run UUID and attach captured output.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#2 pkg/crdt", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.2 LWWRegister"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/crdt OR-Set with unique-tag add/remove semantics",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Observed-Removed Set CRDT: Add(element,tag) with unique per-add tags, Remove(element) removes only observed tags (add-wins on concurrent add/remove), Contains/Elements, and commutative/associative/idempotent Merge of adds and removes maps.",
+    "closure_criteria": "Run a randomized concurrent add/remove convergence test across 3 replicas, capture state proving an element concurrently added on one replica and removed on another converges to present (add-wins) byte-identically everywhere; log per-run UUID and attach output.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#2 pkg/crdt", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.2 ORSet"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/crdt/merkle anti-entropy tree with divergent-key Diff",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Merkle tree over a keyspace of CRDT registers with Insert(key,value) recomputing hashes up the tree, RootHash(), and Compare/Diff(remoteRoot) returning only divergent key ranges so reconciliation ships deltas not full state, honoring the <5 KB/s gossip budget. Pure-Go over an in-memory map, transport-agnostic. Depends on pkg/crdt.",
+    "closure_criteria": "Run a test with two trees of N keys differing in exactly one deep key, capture Diff output proving it returns exactly that key range and that syncing it makes root hashes equal; log per-run UUID plus byte counts demonstrating delta (not full) transfer and attach output.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#5 Merkle anti-entropy", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/crdt Merkle", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.3 Anti-Entropy"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Vector Clock causality type for Tier-2 operational state",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "VectorClock map[nodeID]uint64 with Increment, element-wise-max Merge, and Compare returning -1/0/1 (before/concurrent-or-equal/after) for precise causal ordering of Tier-2 operational state crossing cell boundaries.",
+    "closure_criteria": "Run a test constructing concurrent and causally-ordered VC pairs, capture Compare outputs proving correct before/after/concurrent classification across node sets of differing membership; log per-run UUID and attach output.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.4 VectorClock", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.5 State Classification"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/federation Cell model and lifecycle state machine",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Pure-Go cell model Cell{ID, Gateways, State} and explicit FSM over states CREATING->DISCOVERING->AUTHENTICATING->JOINING->SYNCHRONIZING->OPERATING->LEAVING->CLEANUP (plus Failed) using a ValidTransitions map and CanTransition guard; Transition(cell,event) rejects illegal jumps with a typed error and leaves state unchanged.",
+    "closure_criteria": "Run a driver that walks a cell through the legal happy path printing each state, then attempts an illegal jump (CLEANUP->OPERATING) and captures the typed rejection error with unchanged state; emit per-run UUID and attach the captured transition log.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#3 pkg/federation", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/federation", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#2.4 Lifecycle State Machine"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement thread-safe Cell Registry with add/remove/list/snapshot",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Thread-safe Registry in pkg/federation: AddCell, RemoveCell, ListCells, and a consistent Snapshot of cells with their states; concurrency-safe under RWMutex; backs federated API aggregation and CLI listing.",
+    "closure_criteria": "Run a concurrency test adding/removing cells from multiple goroutines with -race, capture a Snapshot proving consistent membership with no data race report; log per-run UUID and attach race-detector-clean output.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#3 pkg/federation Registry", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/federation"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/federation federated API aggregation with partial failure",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Pure-Go fan-out/merge engine: given Active cells from the Registry and a per-cell query func (interface), aggregate results with partial-failure semantics returning successes plus a per-cell error map, never fail-closed on one cell. Engine behind helixctl get ... --all-cells.",
+    "closure_criteria": "Run an aggregation over 3 fake cells where one returns an error; capture output proving 2 results returned plus 1 recorded error and no panic; emit per-run UUID and attach the aggregated result map.",
+    "required_test_types": ["unit"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#6 federated API aggregation", "phase_06/PHASE_6_ROADMAP.md#4.1 federated API proxy", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.1 Federated API Server"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Phi-accrual failure detector in pkg/swim",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add phi.go to pkg/swim: sliding window of inter-arrival heartbeat intervals producing phi(now) from sample mean/variance (normal-CDF based), Heartbeat(), Phi(), SuspicionLevel(memberID), threshold-based IsSuspect/IsFailed (threshold ~8-12). Replace/augment the fixed-timeout FailureDetector so suspicion adapts to observed latency; injectable clock.",
+    "closure_criteria": "Run a test feeding a steady 1s heartbeat stream then stopping; capture phi-over-time proving phi stays low while heartbeats arrive, crosses threshold within a bounded time after they stop, and a jittery-but-alive stream does NOT cross threshold; log per-run UUID and attach phi trace.",
+    "required_test_types": ["unit", "benchmark"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#4 Phi-accrual", "phase_06/PHASE_6_ROADMAP.md#4.3 pkg/swim Phi-accrual", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#4.4 PhiAccrualDetector"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/swim/hierarchical two-tier LAN+WAN delegate gossip",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Hierarchical SWIM extending pkg/swim: intra-cell LAN pool (gossip 200ms, probe 1s/timeout 500ms, suspicion x4, fanout 3, AES-256-GCM, up to 5000 nodes) and inter-cell WAN delegate pool of gateway nodes only (gossip 500ms, probe 5s/timeout 3s, suspicion x6, fanout 2, up to 100 delegates). GossipScope (IntraCell/InterCell/Federation), NodeMeta with HLC timestamp, scoped Broadcast, Members()/CellMembers(cellID), graceful Shutdown/Leave. Keeps WAN bandwidth O(cells).",
+    "closure_criteria": "Stand up a multi-process two-cell gossip testbed; capture each gateway's observed member set and Prometheus gossip_tx_bytes proving cross-cell membership converges in O(log C) rounds with per-gateway bandwidth under 5 KB/s; log per-run UUID and attach membership table plus bandwidth metric.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "benchmark"],
+    "source_refs": ["phase_06/GAP_AUDIT.md pkg/swim/hierarchical", "phase_06/PHASE_6_ROADMAP.md#4.1 pkg/swim/hierarchical", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#4.1 Hierarchical SWIM"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement gateway-relayed cross-cell suspicion propagation",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add gateway-relay suspicion path so suspicion about a cell or delegate detected by one gateway is relayed across the inter-cell pool, distinguishing single-node failure from full-cell partition per the partition-vs-failure decision matrix. Targets sub-10s cross-cell failure detection.",
+    "closure_criteria": "On a 10-cell testbed kill one gateway and capture the time from death to cross-cell suspicion propagation proving < 10 seconds; capture the partition-vs-failure classification log; emit per-run UUID and attach timing evidence.",
+    "required_test_types": ["integration(real-svc)", "chaos", "scaling"],
+    "source_refs": ["phase_06/GAP_AUDIT.md gateway-relay suspicion", "phase_06/PHASE_6_ROADMAP.md#4.3 gateway-relay suspicion", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#4.5 Partition Handling"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT, cloud, mDNS)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Bootstrapper with pluggable BootstrapStrategy (Static seeds, DNS SRV _helix-gossip._tcp, Kademlia DHT key hash(helix:federation:v6), cloud metadata tag query, mDNS) plus RetryJoin with exponential backoff (1s base, 30s cap) to join a new cell into an existing federation.",
+    "closure_criteria": "Run an end-to-end join using a static seed list against a live seed gateway and capture the new cell appearing in the federation member list; repeat with a failing seed showing RetryJoin backoff then success; emit per-run UUID and attach join logs.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#4.3 Bootstrap & Rendezvous"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement mDNS/DNS-SD local cell discovery advertiser and browser",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Zero-config LAN discovery on _helix-cluster._tcp: mDNSServer advertising TXT records (cellid, nodeid, version, wgpubkey, clusteraddr) and mDNSBrowser parsing ServiceEntry into DiscoveredPeer{CellID,NodeID,IP,Port,WireGuardPubKey,ClusterAddr,TTL}, rejecting invalid entries. mDNS used ONLY for discovery; trust requires SPIFFE attestation afterward.",
+    "closure_criteria": "Run two nodes on one LAN; capture the browser on node B discovering node A's advertised TXT records (correct cellid/nodeid/wgpubkey) within the discovery window (<30s); emit per-run UUID and attach the discovered-peer dump.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.3 Local Discovery mDNS"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/nattraversal STUN client and NAT-type classification",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "STUN client querying reflexive address (querySTUN/querySTUNWithServer), local host-candidate enumeration, and NAT classification (None/FullCone/Restricted/PortRestricted/Symmetric/Blocked) via multi-server comparison per RFC 5780 behavior tests. Replaces the current stub that returns 'not available in this build'.",
+    "closure_criteria": "Run against real STUN servers behind known NAT types in the test matrix; capture discovered reflexive addresses and the classified NAT type matching ground truth for each of 4 NAT types; emit per-run UUID and attach classification table.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/GAP_AUDIT.md#nattraversal", "phase_06/PHASE_6_ROADMAP.md#6 P0 STUN/TURN/ICE", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.2 NAT Traversal"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement ICE candidate gathering, prioritization and connectivity checks",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "ICE engine: DiscoverCandidates gathering Host, ServerReflexive (STUN) and Relay (TURN) candidates; candidatePriority per RFC 8445; formCandidatePairs sorted by combined priority; Connect performing bounded-parallel connectivity checks (max 5) returning the best working candidate pair as a *net.UDPConn with UDP hole punching.",
+    "closure_criteria": "Run two nodes behind separate non-symmetric NATs; capture a successful direct UDP path established via hole punch (candidate pair chosen, RTT measured) without relay; emit per-run UUID and attach the chosen-pair log and traffic proof.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#6 UDP hole punch", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.2 NAT Traversal Engine"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement TURN relay allocation and fallback chain",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "TURN client (allocateTURN) with TURNCredentials{Username,Password,Realm}; embedded/Coturn relay reachable on TCP-443 for firewall bypass; integrated as priority-4 guaranteed fallback in the prioritized chain (Direct, STUN+hole-punch, UPnP/PCP opportunistic, TURN relay, libp2p circuit relay, SSH tunnel last-resort).",
+    "closure_criteria": "Force a symmetric-NAT scenario where hole punching fails and capture data flowing through the allocated TURN relay (relay candidate selected, bytes relayed) proving 100% connectivity fallback; emit per-run UUID and attach relay traffic evidence.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#7 Risk symmetric NAT TURN", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.2 NAT Traversal Stack"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement QUIC fallback transport with 0-RTT and connection migration",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "QUIC transport (quic-go) as UDP-based reliable fallback: QUICServer with Allow0RTT, EnableDatagrams, ALPN helix-federation/6.0, configurable idle timeout/keepalive (15s < NAT timeout), flow-control windows, path-MTU discovery, and ConnectionMigrationStats tracking migrations and 0-RTT resumes for IP changes without reconnect.",
+    "closure_criteria": "Establish a QUIC connection, change the client source IP mid-stream and capture ConnectionMigrationStats proving migration succeeded with stream continuity and a 0-RTT resume on reconnect; emit per-run UUID and attach the stats dump.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#4.1 QUIC fallback", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.7 QUIC Transport"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement internal/cell WireGuard inter-cell mesh manager",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Cell abstraction with WireGuard MeshManager: per-node wg-helix interface, AddPeer/RemovePeer/GetPeers, Peer{PublicKey,Endpoint,AllowedIPs,CellID,NodeID,Keepalive=25s}, preshared-key generation, gateway-node management, inter-cell route advertising, and SWIM delegate configuration. Encrypted data plane prerequisite for all federation traffic (ChaCha20-Poly1305).",
+    "closure_criteria": "Bring up two real cells on separate hosts; capture a wg-helix tunnel established between gateways with iperf3 traffic flowing encrypted across cells (handshake + transfer logs); emit per-run UUID and attach wg show output and throughput.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_06/GAP_AUDIT.md internal/cell", "phase_06/PHASE_6_ROADMAP.md#6 P0 internal/cell mesh", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.1 WireGuard Mesh Manager"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement WireGuard zero-downtime key rotation with overlap window",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/wireguard with zero-downtime key rotation: add the new key before removing the old (200ms overlap window) so the mesh does not flap during rotation; 24-hour ephemeral key rotation; multi-cell peer management and inter-cell route advertising. Builds on existing RotateKeysTracked audit recording.",
+    "closure_criteria": "On a live multi-host mesh, rotate a gateway's key while iperf3 traffic flows and capture zero dropped-connection/handshake-failure events during the 200ms overlap window (continuous throughput graph); emit per-run UUID and attach the no-flap traffic evidence.",
+    "required_test_types": ["integration(real-svc)", "chaos", "performance"],
+    "source_refs": ["phase_06/GAP_AUDIT.md pkg/wireguard rotation", "phase_06/PHASE_6_ROADMAP.md#7 Risk key rotation flap", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#6.3 WireGuard rotation"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SSH tunnel bridge fallback for control-plane bootstrap",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Reverse/forward SSH tunnel bridge (autossh-style) per ssh-bridge.yaml: bastion host/port, identity key, tunnel local/remote ports (gossip 7946), keepalive interval and max failures; TCP-only last-resort path for admin access and bootstrap when UDP is blocked, explicitly not for data plane.",
+    "closure_criteria": "Block UDP between two hosts, establish the SSH reverse tunnel and capture the gossip control channel succeeding over the tunnel (member join via tunneled port); emit per-run UUID and attach tunnel + join logs.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.4 SSH Tunnel Bridging"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement cloud VPN bridge with provider-specific endpoint discovery",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Cloud bridge per cloud-bridge.yaml for aws/gcp/azure/hetzner/generic: WireGuard endpoint discovery via stun/static/metadata-service, AWS Global Accelerator anycast, GCP Cloud Load Balancing anycast, TURN over UDP/TCP+TLS. Enables cloud spot instances to join as a sub-cell (Mode D Cloud Extension).",
+    "closure_criteria": "Launch a real cloud instance and capture it joining an on-prem cell as a sub-cell via the cloud bridge (mesh peer established, node visible in federation) using metadata-service endpoint discovery; emit per-run UUID and attach join evidence.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.5 Cloud VPN Bridging", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#2.3 Mode D"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Integrate libp2p DHT discovery, GossipSub and circuit relay",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "libp2p application-layer P2P complementing (not replacing) WireGuard: Kademlia DHT global peer finding, DHT+Bitswap content routing for large cross-cell objects, GossipSub v1.1 cross-cell event streaming, DCUtR + Circuit Relay v2 decentralized hole punching, QUIC transport.",
+    "closure_criteria": "Run a 3-node libp2p network; capture a peer discovered via DHT without a central registry and a GossipSub message delivered cross-cell, plus a circuit-relay hole-punch upgrade to direct; emit per-run UUID and attach discovery/pubsub logs.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#3.6 libp2p Integration"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement pkg/spiffe/federation trust-bundle exchange across cells",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "SPIFFE/SPIRE nested topology (root trust anchor issuing per-cell intermediate CAs) with BundleCache mapping TrustDomain->CertPool with TTL+expiry, AddBundle, bundle-endpoint refresh (FederationConfig), SPIFFEID parse, VerifyPeerCertificate against local or federated bundles, FederationManager.CanCommunicate enforcing cross-domain trust. Separate trust domain per cell, federation via bundle endpoints (NOT shared CA); 1hr SVID TTL, rotate at 50%.",
+    "closure_criteria": "Stand up two SPIRE servers as nested trust domains; capture cell A presenting a real SVID accepted by cell B only after the bundle exchange, and rejected before exchange or after expiry; emit per-run UUID and attach the mTLS verify success/failure log.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security"],
+    "source_refs": ["phase_06/GAP_AUDIT.md pkg/spiffe/federation", "phase_06/PHASE_6_ROADMAP.md#6 P1 trust-bundle exchange", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#6.2 SPIFFE/SPIRE"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement OPA/Gatekeeper cross-cluster federated-trust admission",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "HelixFederatedTrust ConstraintTemplate + Rego rejecting pods whose helix.io/trust-domain annotation is not in allowedTrustDomains, applied at cell admission boundaries; default-deny posture so a compromised/unknown cell cannot place workloads. Extends internal/policy.",
+    "closure_criteria": "On a live Gatekeeper-enabled cell, submit a pod with a non-federated trust-domain annotation and capture the admission denial message naming the rejected domain, plus an allowed-domain pod admitted; emit per-run UUID and attach kubectl apply output for both.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#6 P2 OPA cross-cluster", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#6.4 OPA Policy"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement OPA data-residency / data-sovereignty admission policy",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "HelixDataResidency ConstraintTemplate + Rego requiring pods labeled data-classification=eu-personal-data to carry required EU region nodeAffinity (topology.kubernetes.io/region starts with europe-), enforcing data sovereignty at scheduling boundary.",
+    "closure_criteria": "Submit an EU-personal-data pod lacking EU affinity to a live cell and capture the admission rejection, then a compliant pod admitted; emit per-run UUID and attach both admission decisions.",
+    "required_test_types": ["integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#7.3 Data Sovereignty"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Integrate External Secrets Operator + Vault for federation secrets",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Secret management via ClusterSecretStore (Vault KV v2, kubernetes auth, role helix-cell-secrets) and ExternalSecret syncing the federation-ca-bundle with 1h refresh; HSM-protected CA keys per threat model.",
+    "closure_criteria": "On a live cell with Vault, store a CA bundle in Vault and capture the ExternalSecret materializing the Kubernetes secret and a workload consuming it after a Vault-side rotation reflected within the refresh interval; emit per-run UUID and attach the synced secret metadata.",
+    "required_test_types": ["integration(real-svc)", "security"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#6.5 Secret Management"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement double-encryption (WireGuard L3 + mTLS L7) data path",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Defense-in-depth: L3 WireGuard ChaCha20-Poly1305 node-to-node (ephemeral keys, 24h rotation) under L7 mTLS TLS1.3/AES-256-GCM service-to-service keyed by SPIFFE SVIDs (1h TTL, 50% rotation), within performance envelope (~38% P99 overhead combined, WireGuard <5% CPU at 1 Gbps).",
+    "closure_criteria": "Capture a cross-cell service call traversing both layers: tcpdump showing WireGuard-encrypted UDP on the wire plus the inner mTLS handshake with SPIFFE-ID verification, and a perf/iperf3 measurement confirming WireGuard CPU <5% at 1 Gbps; emit per-run UUID and attach captures.",
+    "required_test_types": ["integration(real-svc)", "security", "performance", "benchmark"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#6.3 WireGuard + mTLS"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/cilium Cluster Mesh client and global-service propagation",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Cilium Cluster Mesh client: per-cell unique cluster ID (1-255), etcd-backed endpoint/identity/policy synchronization between cells, CiliumIdentity propagation, and io.cilium/global-service annotation handling so a service is load-balanced cross-cell via eBPF kernel datapath (0.5-1ms p99 overhead) without gateway hops or sidecars.",
+    "closure_criteria": "On two Cilium cells, annotate a service global-service=true and capture a pod in cell Alpha reaching payment-api transparently load-balanced to a healthy instance in cell Beta (request served cross-cell, endpoints propagated); emit per-run UUID and attach the cross-cell request trace.",
+    "required_test_types": ["integration(real-svc)", "e2e", "performance"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#6 P1 Cilium Cluster Mesh", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.3.2 Cilium Cluster Mesh"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement federated service discovery (cell-local + global registry)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Two-level service discovery: cell-local registry answering local requests plus a global federated registry answering cross-cell 'where is the service', backing global DNS resolution; works with Cilium Cluster Mesh for the data path.",
+    "closure_criteria": "Register a service in cell Alpha and capture a client in cell Beta resolving it through the global registry and connecting; remove the Alpha instance and capture failover to a Gamma instance; emit per-run UUID and attach resolution logs.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.3 Federated Service Discovery"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement internal/federation Karmada PropagationPolicy engine",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Karmada/OCM integration: PropagationPolicy engine for two-level scheduling (global picks cell, local Omega picks node), OverridePolicy per cluster, and federated kubectl aggregation. Constraints: data locality, latency, cost, compliance. Targets cross-cell workload failover < 60s.",
+    "closure_criteria": "On a real multi-cluster Karmada hub, deploy a workload via PropagationPolicy across 3 cells, kill the gateway/cell hosting it and capture the workload rescheduled to another cell in < 60 seconds (pod Running elsewhere); emit per-run UUID and attach Karmada status + timing.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "performance"],
+    "source_refs": ["phase_06/GAP_AUDIT.md internal/federation", "phase_06/PHASE_6_ROADMAP.md#6 P1 Karmada", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.2 Global Resource Scheduling"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Extend pkg/scheduler with latency-aware spot/preemptible scoring",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Inter-cell scheduler extension: latency-aware spot/preemptible placement scoring feeding Karmada propagation, honoring topology keys (region/zone), spot tolerations (120s grace, preStop drain) and the measured-latency reference (etcd never crosses region >10ms). Targets 40-60% cloud cost reduction via bursting.",
+    "closure_criteria": "Run a 30-day-equivalent (or accelerated) spot-vs-on-demand billing comparison on a real cloud burst pool and capture 40-60% cost reduction while honoring latency constraints (no etcd cross-region); emit per-run UUID and attach the billing delta report.",
+    "required_test_types": ["integration(real-svc)", "scaling", "performance", "benchmark"],
+    "source_refs": ["phase_06/GAP_AUDIT.md pkg/scheduler", "phase_06/PHASE_6_ROADMAP.md#2 Federated Scheduling", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#7.2 Latency-Aware Scheduling"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement cloud bursting auto-scaling burst pool with spot termination handling",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Cloud burst pool auto-scaling 0-500 spot/preemptible instances across AWS/GCP/Azure/Hetzner, triggered at CPU>80% for 5 min, with graceful 2-min termination warning handling (terminationGracePeriodSeconds 120, preStop drain) so on-prem cells extend into cloud when saturated (Mode D).",
+    "closure_criteria": "Drive a real on-prem cell past 80% CPU for 5 min and capture spot instances joining the burst pool, workloads scheduled onto them, and graceful drain on a spot-termination notice with no request loss; emit per-run UUID and attach scale-up/drain logs.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos", "scaling"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#6 P2 Velero/cost", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#7.1 Cloud Bursting"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement pkg/gitops ArgoCD ApplicationSet federation client",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "ArgoCD ApplicationSet client generating one Application per target cell from a single template (matrix generator: cluster auto-discovery + per-cell Git overlay), syncPolicy automated prune+self-heal, and RollingSync progressive rollout (canary -> tier-2 50% -> tier-1 25%); drift detection; GitOps federation pipeline. Single-commit deploy to all cells.",
+    "closure_criteria": "On a live ArgoCD with 3 registered cells, commit a 3-tier app to Git and capture ApplicationSet generating per-cell Applications and rolling out canary-first then tiered, with a removed Git resource pruned from a cell (self-heal); emit per-run UUID and attach ArgoCD sync status screenshots/logs.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/GAP_AUDIT.md pkg/gitops", "phase_06/PHASE_6_ROADMAP.md#6 P1 ArgoCD ApplicationSet", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.4.1 GitOps ApplicationSets"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement CRDT-based config sync for cell-local overrides",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Partition-tolerant CRDT-backed config sync for dynamic cell-local overrides complementing GitOps base config: a feature flag flippable locally via the cell config API and converging to other cells via gossip in 5-30s, vs ArgoCD Git path in 1-3 min.",
+    "closure_criteria": "On a multi-cell testbed, flip a feature flag via one cell's config API during a brief partition and capture it converging to all healthy cells within 5-30s after heal (CRDT merge, no conflict); emit per-run UUID and attach per-cell flag-state timeline.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.4.2 CRDT-Based Config Sync"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement cmd/helix-federation binary and helixctl federation CLI",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Federation CLI surface: cmd/helix-federation plus helixctl federation subcommands including 'cell join', 'cell leave/evacuate', and '--all-cells' aggregated reads (e.g. helixctl get pods --all-cells) wired to the Registry, lifecycle FSM and federated aggregation engine. Operator-facing entry point for all federation flows.",
+    "closure_criteria": "As an operator on a real two-cell testbed run 'helix cell join' and capture the new cell reaching OPERATING in < 60s, then run 'helixctl get pods --all-cells' capturing merged output across both cells; emit per-run UUID and attach the terminal recording.",
+    "required_test_types": ["integration(real-svc)", "e2e", "ux", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/GAP_AUDIT.md cmd/helix-federation", "phase_06/PHASE_6_ROADMAP.md#8 Exit gates e2e operator flows", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec08.md#8.1.1 Single API Endpoint"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Extend internal/node cell agent: gossip-tier selection + federation identity attestation",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Cell agent in internal/node: selects gossip tier (gateway joins inter-cell pool, worker intra-cell only), performs federation identity attestation (SPIRE node attestation) at cell admission, and advertises NodeMeta capacity/role/region/wg key. Currently node agent has no cell/federation logic.",
+    "closure_criteria": "Start a real node configured as gateway and another as worker; capture the gateway joining both gossip pools and the worker only the intra pool, each completing SPIRE attestation before trust; emit per-run UUID and attach the agent role/attestation logs.",
+    "required_test_types": ["integration(real-svc)", "e2e", "security"],
+    "source_refs": ["phase_06/GAP_AUDIT.md internal/node", "phase_06/PHASE_6_ROADMAP.md#4.3 internal/node Cell agent"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Enforce etcd-stays-within-cell static-analysis lint gate",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Static-analysis lint rule + CI gate forbidding etcd endpoints outside the cell CIDR so Raft/etcd is never accidentally stretched across WAN (a Critical-impact risk). Per-cell strong consistency invariant enforced mechanically.",
+    "closure_criteria": "Add a config referencing an out-of-cell etcd endpoint and capture the CI gate failing with the offending endpoint named; fix it and capture the gate passing; emit per-run UUID and attach both CI run links.",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#7 Risk etcd stretched across WAN", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.1 Per-Cell Strong Consistency"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement per-cell etcd Raft WAN-safe tuning profiles",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Per-cell etcd Raft tuning profiles for LAN vs same-region WAN: heartbeat 100ms/200-500ms, election timeout 1000ms/2000-5000ms (>=10x max RTT), snapshot chunk 64KB-1MB, max inflight 256/512-1024, Pre-Vote enabled/required, Check Quorum enabled on WAN so an isolated leader steps down. Up to 3 AZs within a region only.",
+    "closure_criteria": "Deploy a 3-node etcd across 3 same-region AZs with the WAN profile, inject an AZ partition and capture the isolated minority going read-only (leader steps down via CheckQuorum, no split-brain) with commit latency within target; emit per-run UUID and attach etcd metrics.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#5.1 Raft Tuning Parameters"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement split-brain prevention and partition-classification logic",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Split-brain prevention pipeline: SWIM+Phi detection, partition-vs-failure classification (all-cell-unreachable=partition vs some=partial), per-cell etcd majority-quorum enforcement (minority read-only), CRDT auto-merge + Merkle compare on heal, and leader fencing via CheckQuorum, per the partition decision matrix.",
+    "closure_criteria": "On a multi-cell testbed inject a full inter-cell partition and capture both sides operating autonomously with no dual-leader writes, then heal and capture CRDT convergence; emit per-run UUID and attach the classification + post-heal convergence log.",
+    "required_test_types": ["integration(real-svc)", "chaos", "scaling"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#4.5 Partition Handling", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.3 FMEA F-03"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement internal/chaos CE-01..CE-12 chaos experiment suite",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "12 automated chaos experiments (CE-01..CE-12) with Chaos Mesh controller hooks and CI integration: pod/node kills, rolling cell drain, full and asymmetric inter-cell partitions (tc netem directional filters), gateway loss, clock skew +/-500ms (HLC absorbs), cascading sequential cell failures, etc., each with defined abort criteria and Game Day cadence.",
+    "closure_criteria": "Run the full 12-experiment suite against a real multi-node testbed and capture a 12/12 pass report where each experiment's expected behavior held and abort criteria did not trigger; emit per-run UUID and attach the chaos CI report with per-experiment evidence.",
+    "required_test_types": ["chaos", "integration(real-svc)", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/GAP_AUDIT.md internal/chaos", "phase_06/PHASE_6_ROADMAP.md#6 P2 chaos suite", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.2.1 The 12 Chaos Experiments"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Turmoil-style deterministic multi-cluster simulation harness",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Deterministic simulation harness (Turmoil-style, seed-reproducible) simulating up to 100 cells with WAN latency, partitions and node churn; covers gossip convergence (O(log C) rounds), split-brain prevention, CRDT monotonicity and message durability under single-node failure; runs every PR producing replayable trace files.",
+    "closure_criteria": "Run the simulation on a fixed seed and capture bit-identical replay plus passing assertions for gossip convergence and CRDT monotonicity across a simulated 100-cell run; corrupt one invariant and capture the harness producing a replayable failing trace; emit per-run UUID and attach the trace.",
+    "required_test_types": ["unit", "automation", "scaling", "chaos"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.1 Deterministic Simulation"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Establish quarterly Game Day federation chaos drill protocol",
+    "type": "Docs",
+    "priority": "P3",
+    "description": "Four-per-year Game Day protocol: pre-drill alignment doc one week prior, 24h on-call notice, blast radius limited to 30% of production traffic, written abort criteria (abort if API error rate >1% for 60s), and a 48h retrospective; four defined scenarios.",
+    "closure_criteria": "Execute one Game Day against staging following the protocol and capture the completed alignment doc, the live abort-criteria monitoring (never tripped or correctly aborted), and the filed 48h retrospective; emit per-run UUID and attach the drill record.",
+    "required_test_types": ["chaos", "automation"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.2.3 Game Day Exercises"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Author Phase 6 FMEA catalog with detection and recovery runbooks",
+    "type": "Docs",
+    "priority": "P2",
+    "description": "FMEA catalog (F-01..F-11+) covering split-brain dual leaders, complete cell failure, etcd quorum loss, asymmetric partition, etc., each with cause, detection signal/latency, effect, recovery procedure (e.g. Velero restore ~15min RPO), mitigation, plus failure-interaction/cascading analysis and circuit-breaker/bulkhead isolation design.",
+    "closure_criteria": "For each FMEA entry, trigger the failure on the testbed and capture the documented detection signal firing within its stated latency and the runbook recovery succeeding; emit per-run UUID and attach the FMEA-validation log mapping each row to evidence.",
+    "required_test_types": ["chaos", "integration(real-svc)"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.3 FMEA"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement hierarchical Prometheus federation across cells",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Hierarchical Prometheus: each cell scrapes locally (15s) and adds external_labels (cell, region); a central Prometheus federates pre-aggregated recording-rule metrics from each cell's /federate endpoint (60s) with honor_labels=true; optional regional aggregation tier beyond 100 cells. Exposes helix_gossip_tx_bytes_per_sec and federation KPIs.",
+    "closure_criteria": "On a multi-cell deployment capture the central Prometheus returning aggregated cross-cell series with preserved cell/region labels and the gossip-bandwidth metric queryable; emit per-run UUID and attach a PromQL query screenshot proving cross-cell aggregation.",
+    "required_test_types": ["integration(real-svc)", "scaling"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#6 P2 Prometheus federation", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.4.1 Prometheus Federation"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement OpenTelemetry cross-cell distributed tracing",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Cell-level OpenTelemetry Collector configuration enabling trace context propagation across cell boundaries so a request spanning multiple cells produces a single correlated trace, exported to a central backend.",
+    "closure_criteria": "Issue a request that crosses two cells and capture a single trace in the backend containing spans from both cells with correct parent/child linkage; emit per-run UUID and attach the trace view.",
+    "required_test_types": ["integration(real-svc)", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.4.2 OpenTelemetry Cross-Cell Tracing"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement split-brain detection PromQL alerts with runbook links",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Central-Prometheus alert rules evaluated every 15s detecting consensus divergence (e.g. etcd_server_is_leader summed >1 across a cell, etcd_server_has_leader==0) firing a split-brain alert with runbook_url; targets split-brain alert latency < 30s.",
+    "closure_criteria": "Inject a partition producing dual leaders via Chaos Mesh and capture the split-brain alert firing in < 30 seconds with its runbook link in the notification; emit per-run UUID and attach the alert timeline.",
+    "required_test_types": ["integration(real-svc)", "chaos"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#8 Split-brain alert latency", "phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.4.3 Split-Brain Detection Alerts"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Build Grafana global-health cell-status-grid dashboard",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Grafana Global Health dashboard with a cell status grid (each cell a colored square: green healthy / yellow degraded / red critical / gray partitioned) scaling to 255 cells, with drill-down from a cell to its cell-local Prometheus/Grafana for detailed debugging.",
+    "closure_criteria": "On a live multi-cell deployment capture the dashboard correctly reflecting an induced cell-degraded state (square turns yellow/red) and a working drill-down to that cell's local metrics; emit per-run UUID and attach the dashboard screenshots before/after.",
+    "required_test_types": ["integration(real-svc)", "ui", "ux"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/helixcluster_phase6_sec07.md#7.4.4 Grafana Dashboards"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Velero tiered disaster recovery backup and restore",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Tiered DR: Velero hourly backups (Schedule, 30-day TTL, exclude ephemeral pods/events, volume snapshots) plus cross-region snapshot replication, with documented RTO/RPO tiers (active-active <15min/near-zero; warm standby; backup+restore; GitOps rebuild) and a cross-cluster restore procedure (deploy new cell with same cell ID, restore namespaces). Targets DR RPO < 15 min, restore < 15 min.",
+    "closure_criteria": "Perform a real Velero restore drill: back up a namespace, destroy the source cell, and capture full-namespace restore to a secondary cell completing in < 15 minutes with workloads healthy and data loss within RPO; emit per-run UUID and attach the restore-drill timeline.",
+    "required_test_types": ["integration(real-svc)", "e2e", "chaos"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#8 DR RPO", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#7.4 Disaster Recovery"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement five federation topology patterns and block-binding modes",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Support configurable federation topologies (flat full-mesh, hierarchical tree, full mesh, partial mesh k-nearest for 20-255 cells, hub-and-spoke, equal-peer) and block-binding modes A (cluster-of-clusters default), B (equal-peer shared scheduler, only <10ms RTT), C (gateway bridging latency-aware routing), D (cloud extension sub-cell). Cell sizing ~5000 nodes, max 255 cells (511 with Cilium extended) via uint8/uint16 cell-ID encoding.",
+    "closure_criteria": "Configure a partial-mesh topology over >3 cells and capture each cell connecting only to its k nearest neighbors with multi-hop routing reaching distant cells, plus a hub-and-spoke config validated; emit per-run UUID and attach the realized mesh adjacency.",
+    "required_test_types": ["integration(real-svc)", "scaling", "e2e"],
+    "source_refs": ["phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#2.2 Topology Types", "phase_06/HelixCluster_Phase_06/HELIXCLUSTER_PHASE6_FEDERATION_ARCHITECTURE.md#2.3 Block Binding Modes", "phase_06/PHASE_6_ROADMAP.md#2 Key Architecture Decisions"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Establish multi-cell integration testbed for CLAUDE-1 usability gate",
+    "type": "Task",
+    "priority": "P0",
+    "description": "Real multi-cell integration testbed and CI job integration/federation using real WireGuard + real etcd (no mock-only) exercising every federated feature, satisfying the CLAUDE-1 non-waivable sub-gates: real integration tests, e2e operator flows, HelixQA Challenge validation against a live federation, sink-side evidence (Grafana/log/helixctl output), and no mock-only claims (mocks only in pkg/crdt and pkg/hlc unit tests).",
+    "closure_criteria": "Run the integration/federation CI job against a live ≥2-cell testbed and capture all CLAUDE-1 sub-gates passing with attached sink-side artifacts (Grafana screenshot, log excerpt, helixctl output) and a HelixQA report showing PASS per Challenge on the running federation; emit per-run UUID and attach the consolidated evidence bundle.",
+    "required_test_types": ["integration(real-svc)", "e2e", "challenge(HelixQA)", "automation"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#8 CLAUDE-1 End-User Usability Sub-Gates", "phase_06/GAP_AUDIT.md Exit gate real multi-cell integration tests", "CLAUDE.md CLAUDE-1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Validate Phase 6 exit-gate KPIs against the live federation",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Measure and certify the Phase 6 exit-gate KPI table on the real testbed: cell join <60s, intra-cell failure detection <1s (100-node 24h soak), cross-cell detection <10s, gossip <5 KB/s per gateway, WireGuard CPU <5% at 1 Gbps, NAT traversal >80% on non-symmetric NAT (4-type matrix), CRDT convergence <120s after 4h partition, cross-cell failover <60s, cloud cost reduction 40-60%, DR RPO <15min, chaos 12/12, split-brain alert <30s, and >70% line coverage on pkg/federation, pkg/crdt, pkg/swim/hierarchical.",
+    "closure_criteria": "Produce a measurement report where each KPI is captured from a real run (benchmark/soak/chaos output, Prometheus metric, Codecov report) meeting its target, with before/after deltas where applicable; emit per-run UUID and attach the KPI evidence matrix.",
+    "required_test_types": ["performance", "benchmark", "scaling", "chaos", "stress", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#8 Success Criteria / Exit Gates", "phase_06/PHASE_6_ROADMAP.md#3 Sub-Phase Dependency Gates"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Verify sub-phase dependency gates 6a->6b->6c->6d soak conditions",
+    "type": "Task",
+    "priority": "P1",
+    "description": "Validate the four sub-phase gates: 6a->6b two cells sustain stable WireGuard mesh 72h without intervention; 6b->6c 10-cell sim survives 4h WAN partition with CRDT converge <120s post-heal; 6c->6d 3-tier app deploys across 3 cells via ArgoCD with cross-cell failover <60s; 6d->Done all 12 chaos pass, split-brain alert <30s, DR restore <15min.",
+    "closure_criteria": "Run each gate scenario on the real testbed and capture evidence the condition held (72h mesh-uptime log; 10-cell partition+converge timing; 3-cell ArgoCD deploy + failover timing; chaos/alert/DR results); emit per-run UUID and attach per-gate pass evidence.",
+    "required_test_types": ["integration(real-svc)", "scaling", "chaos", "stress", "e2e"],
+    "source_refs": ["phase_06/PHASE_6_ROADMAP.md#3 Sub-Phase Dependency Gates"],
+    "decoupling_candidate": false
+  }
+]

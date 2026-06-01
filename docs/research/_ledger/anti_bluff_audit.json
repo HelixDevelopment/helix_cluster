@@ -1,0 +1,1092 @@
+[
+ {
+  "title": "Stand up embedded-etcd integration harness for pkg/etcd tests",
+  "type": "Task",
+  "priority": "P0",
+  "description": "pkg/etcd's only production line any test touches is a nil-receiver Close(); all real ops are untested. Add an integration test harness using go.etcd.io/etcd/server/v3/embed (or a testcontainers/docker-compose etcd), gated behind a build tag or testing.Short() skip, so subsequent tests run against a REAL etcd per CLAUDE-1 rule 5. Delete the filler TestMockKV and TestContextTimeout (they test a local map and stdlib, not the package).",
+  "closure_criteria": "A real/embedded etcd starts in the test process; `go test ./pkg/etcd/...` connects and the harness logs a live endpoint with a per-run UUID; TestMockKV/TestContextTimeout are removed from the tree.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.1, \u00a74"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Prove etcd Put/Get round-trip and missing-key semantics against real etcd",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Add integration tests: New -> Put(ctx,'k','v') -> Get(ctx,'k') asserts value=='v' && ok==true; then Get of a missing key asserts ok==false, err==nil (covers the len(resp.Kvs)==0 branch at package.go:64).",
+  "closure_criteria": "Against live etcd, a stored key is read back with exact value and ok==true; a missing-key Get returns ok==false/err==nil; deleting the value-read path makes the test fail.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd GetPrefix returns exactly matching multi-key set",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Put a/1, a/2, b/1; assert GetPrefix('a/') returns exactly the two a/ keys with correct values.",
+  "closure_criteria": "Live etcd GetPrefix('a/') returns the two a/ keys with correct values and excludes b/1; sink-side map asserted.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd Delete/DeletePrefix remove keys (sink-side absence)",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Delete then re-Get and assert the key(s) are gone for both Delete and DeletePrefix.",
+  "closure_criteria": "After Delete/DeletePrefix, a follow-up Get against live etcd shows the key(s) absent (ok==false); test fails if delete is a no-op.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd Watch fires correct event and closes on ctx cancel",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Register a watch, Put a new value in another goroutine, assert the received WatchEvent has Type=='PUT', matching Key/Value, Err==nil; also assert the channel closes when ctx is cancelled. The goroutine+channel+ctx-cancel logic at package.go:103-132 is entirely unverified.",
+  "closure_criteria": "A live Put triggers a WatchEvent with correct Type/Key/Value over the channel; cancelling ctx closes the watch channel; both observed within the test.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd Lease/PutWithLease/RevokeLease/KeepAlive TTL behavior",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Put a key with a short lease, assert it is gone after RevokeLease (or TTL expiry); KeepAlive keeps it alive past the TTL window.",
+  "closure_criteria": "Lease-bound key disappears after RevokeLease/TTL on live etcd; with KeepAlive the key survives past the TTL window; both asserted sink-side.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd distributed Lock mutual exclusion (highest-risk path)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Acquire the lock in goroutine A, assert a second Lock on the same key in goroutine B blocks until A's unlock() is called. The distributed-mutex contract at package.go:172-186 has zero coverage.",
+  "closure_criteria": "Against live etcd, goroutine B's Lock acquisition timestamp is strictly after A's unlock; B is proven to have blocked while A held the lock.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.1"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add mutation-paired etcd New() default-timeout injection test",
+  "type": "Task",
+  "priority": "P2",
+  "description": "With a real/embedded endpoint, call New(Config{Endpoints:...}) with DialTimeout unset and assert via Raw() config that the 5s default was applied (package.go:26-28), so deleting the default-injection makes the test fail.",
+  "closure_criteria": "New() with unset DialTimeout yields a client whose effective DialTimeout==5s observed via Raw(); removing the default branch fails the test.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove etcd error-wrapping on dead endpoint",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Point New at a dead endpoint with a short DialTimeout and assert operations return the wrapped error (message contains 'etcd ... failed'), proving error wrapping is real.",
+  "closure_criteria": "Operations against an unreachable endpoint return errors whose message/identity matches the 'etcd ... failed: %w' wrapping; test fails if wrapping is removed.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/etcd.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Replace pkg/infra map-echo orchestrator with real service Boot via testcontainers",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "infra Orchestrator performs zero real work \u2014 Boot/Health/Logs/Scale/VMSpawn/VMSSH read/write hardcoded strings in a map and tests assert those literals. Use testcontainers-go (or real docker-compose) so Boot('postgres-primary') actually starts Postgres; assert sink-side via a pgx/database/sql connection running SELECT 1, Redis PING, etcd member-list, Kafka produce/consume round-trip.",
+  "closure_criteria": "Boot('postgres-primary') starts a real Postgres container and a subsequent SELECT 1 over a real connection returns a row; equivalent sink-side probes pass for redis/etcd/kafka; test fails if the service never started.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.2, \u00a74"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Make pkg/infra Health probe real services and report false on failure",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "Health currently echoes the stored Healthy flag (always true after Boot) and hardcodes Latency=1ms; it can never report unhealthy. Add a test that starts then kills/pauses a service and asserts Health reports Healthy==false with a real measured latency. Add the missing failure-path coverage.",
+  "closure_criteria": "After a started service is killed/paused, Health() returns Healthy==false with a non-hardcoded measured latency; a healthy service returns true with real probe timing.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Logs returns nil and ignores follow/tail/since/timestamps. Start a service that emits a known marker line, call Logs(..., tail=N), and assert the marker appears and that tail/since/timestamps actually affect the output.",
+  "closure_criteria": "Logs output contains the known marker line from a real running service, and varying tail/since/timestamps changes the captured output as asserted.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/infra Scale create real replicas verified via runtime query",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Scale only writes s.Replicas and a message; no container is created. After Scale(svc,3), query the compose/docker runtime and assert 3 running replicas exist \u2014 not just that the struct field equals 3.",
+  "closure_criteria": "After Scale(svc,3) the docker/compose API reports exactly 3 running replicas for the service; test fails if no real replica is created.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "VMSpawn fabricates CPU/Memory/IP constants and VMSSH returns a format string with nothing reachable. Spawn a real (or firecracker/QEMU/local-container) node and assert VMSSH runs 'echo ok' over a real session and stdout=='ok'.",
+  "closure_criteria": "VMSSH executes 'echo ok' over a real SSH session to a spawned node and the captured stdout equals 'ok'; test fails if the host is unreachable.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "These flip an in-map string field. Assert an observable network effect instead: a health probe to the node fails during partition and recovers after, rather than only an internal string field.",
+  "closure_criteria": "During simulated partition a real probe to the node fails; after auto-heal the probe succeeds; both transitions observed, fails if only the string field changed.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "chaos"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/infra.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add EtcdLocker integration tests against real etcd (block/acquire/lease)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "pkg/lock's production EtcdLocker (the package's whole reason to exist) has zero coverage. Add tests against REAL etcd: client A holds the lock, client B blocks, A releases, B acquires; assert the etcd key/lease exists while held and is gone after unlock; add error-path test asserting 'etcd lock: %w'/'etcd unlock: %w' wrapping (lock.go:74,78).",
+  "closure_criteria": "Against live etcd, B acquires only after A releases; the lease key is present while held and absent after unlock (verified via direct etcd Get); error path returns the wrapped message.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/lock.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.4, \u00a74"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Rewrite TestMemoryLockerConcurrent to detect a broken lock without -race",
+  "type": "Bug",
+  "priority": "P0",
+  "description": "The concurrent test only asserts counter==10, which survives a no-op lock under the default (non-race) command. Each goroutine, while holding the lock, must set a shared inCritical flag, sleep briefly, and record a violation if another goroutine observed inCritical==true; assert violation count==0. This fails on a no-op lock even without -race.",
+  "closure_criteria": "Mutating MemoryLocker.Lock to a no-op makes the test FAIL under the default `go test` command (no -race); with the real lock the violation counter is 0.",
+  "required_test_types": [
+   "unit",
+   "chaos"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/lock.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add explicit block-then-acquire ordering test for MemoryLocker",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Acquire key, start a goroutine that locks the same key and records a timestamp, sleep, unlock, and assert the second acquisition happened AFTER the unlock \u2014 proving the lock serializes rather than just returns.",
+  "closure_criteria": "The second acquisition timestamp is strictly greater than the unlock timestamp; test fails if Lock returns without blocking.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/lock.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Characterize or fix MemoryLocker.Lock context-cancellation goroutine leak",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "On context cancellation a goroutine is left blocked on lm.Lock() and will later acquire the mutex with no owner to release it (lock.go:44-57). Add a documented test for this leak/behavior, or fix the implementation to not leak and assert the fix.",
+  "closure_criteria": "Either a test deterministically demonstrates the documented leak behavior, or the implementation is fixed and a test proves no goroutine remains blocked after cancellation.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/lock.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Wire a real Builder behind pkg/build Service and prove image is pullable",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "runBuild is a time.After+magic-string('fail') stub; TestServiceSubmitAndGet asserts State==Succeeded/ImageTag!='' though no image/layer/digest/registry artifact is ever produced. Inject a Builder interface into Service and add an integration test running a real builder (docker buildx/buildkit) against a fixture repo+Dockerfile, asserting the produced image exists and is pullable (sink-side evidence). Alternatively rename the stub path *_Simulated and stop asserting success implies a build.",
+  "closure_criteria": "A real build of a fixture repo produces an image that can be pulled/inspected from a registry (digest verified); test fails if no real image artifact exists.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "e2e"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.3, \u00a74"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Drive pkg/build StateFailed via a genuine build failure not the 'fail' sentinel",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "The only path to StateFailed is RepoURL=='fail' (build.go:253). Drive a real failure (invalid Dockerfile / unreachable repo / builder non-zero exit) and assert the error surfaces in Job.Logs and State==StateFailed.",
+  "closure_criteria": "A real failing build (e.g. bad Dockerfile) yields State==StateFailed with the underlying error captured in Job.Logs; the 'fail' sentinel is no longer the failure trigger.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/build List/Concurrent tests Start() the service and assert terminal states",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "TestServiceList and TestServiceConcurrentSubmits never call svc.Start(ctx), so workers never run and jobs sit StateQueued; tests only count map size and swallow Submit errors. Start the service, wait for terminal states, assert each job reached StateSucceeded, check Submit return values, and add a queue-overflow test asserting 'build queue is full'.",
+  "closure_criteria": "With Start(ctx), all submitted jobs reach StateSucceeded; Submit errors are asserted not discarded; filling the 100-slot queue returns 'build queue is full'.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Replace time.Sleep polling in pkg/build with completion sync and add state-machine mutation tests",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Tests depend on a 100ms simulated build finishing inside a 300ms sleep (flaky-by-construction). Replace time.Sleep with a completion channel/Job.Done(); add a mutation test that fails if TransitionTo validation or IsTerminal is removed (queued->succeeded rejected, terminal re-transition rejected, StartedAt/CompletedAt set by the worker).",
+  "closure_criteria": "Tests synchronize on real completion (no fixed sleeps); removing TransitionTo validation or IsTerminal makes a test fail; timestamps set by the worker are asserted.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Enforce or document pkg/build content-addressable cache digest integrity",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "DiskCache.Put/MemoryCache.Put accept any digest string for any data; content-addressability claimed in the package doc is unenforced. Add a test asserting Get rejects (or is documented not to verify) Digest(data)==digest; if it is a real guarantee, enforce it in Put/Get and test the mismatch rejection.",
+  "closure_criteria": "Storing data under a mismatched digest is rejected on Get (or behavior is explicitly documented and tested); test fails if a corrupted/mismatched digest is silently accepted as a guarantee.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Cover pkg/build cancel-mid-flight branch sets StateCancelled",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Add a test that cancels a job while runBuild is in-flight and asserts the context-cancellation branch (build.go:246-249) sets StateCancelled and logs 'cancelled' \u2014 currently uncovered.",
+  "closure_criteria": "Cancelling an in-flight job transitions it to StateCancelled with a 'cancelled' log entry; test fails if the cancel branch is removed.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/build.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add real mTLS handshake test for pkg/security (valid client succeeds, no/foreign cert rejected)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "mTLS is never handshaked \u2014 tests only inspect *tls.Config fields. Using generateTestCert, start a TLS server with ServerTLS() and assert: a client from ClientTLS() (valid same-CA cert) completes the handshake and exchanges a byte; a client with no cert or a foreign-CA cert is REJECTED with a handshake error. This is the sink-side proof that RequireAndVerifyClientCert enforces mutual auth.",
+  "closure_criteria": "A same-CA client exchanges a byte over a real tls.Listener/tls.Dial; a no-cert/foreign-CA client fails the handshake with an error; both observed in one test.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "security"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/security.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.5"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Assert MinVersion==TLS13 on the client TLS path in pkg/security",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "TestClientTLS checks len(Certificates)==1 and RootCAs!=nil but does NOT assert MinVersion==tls.VersionTLS13 (unlike the server test). Add the assertion so the client TLS-1.3 floor has a mutation pair.",
+  "closure_criteria": "ClientTLS() config asserts MinVersion==tls.VersionTLS13; removing the TLS 1.3 floor on the client path fails the test.",
+  "required_test_types": [
+   "unit",
+   "security"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/security.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Locate/build production Vault client and add dev-Vault integration test (KVv2 + PKI)",
+  "type": "Feature",
+  "priority": "P0",
+  "description": "vault.go ships only an interface+wrapper+mock; no production VaultClient exists in-package, and all Vault tests drive MockVaultClient with hand-fed values. Confirm/locate the production client and add an integration test against a real Vault (dev-mode container) exercising KVv2 read/write round-trip and PKI issue->renew, asserting the returned Certificate PEM parses via x509.ParseCertificate. If none exists, mark the Vault feature incomplete rather than imply complete via green mock tests.",
+  "closure_criteria": "Against a dev Vault, a KVv2 secret is written and read back identically, and a PKI-issued cert PEM parses successfully via x509.ParseCertificate; or the feature is explicitly marked incomplete.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "security"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/security.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.5"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Replace pkg/security non-nil-only TestNewTLSConfigBuilder with meaningful assertion",
+  "type": "Task",
+  "priority": "P3",
+  "description": "TestNewTLSConfigBuilder only asserts the constructor returns non-nil (it cannot return nil), proving nothing. Replace with an assertion that the stored PEM bytes are actually used (covered transitively by the handshake test).",
+  "closure_criteria": "The builder test asserts a behavioral property (PEM bytes used in the produced config) rather than non-nil; removing the test loses no coverage already provided by the handshake test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/security.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Verify pkg/hxcregistry item_history audit-sink rows after Create/Update",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "CreateItem/UpdateItem write item_history rows with swallowed errors (_, _ = r.db.Exec) and no test ever queries them, so the audit-history feature could be entirely broken while tests pass. Query item_history after CreateItem asserting exactly one row with event_type='Opened'; after UpdateItem assert an 'Updated' row; stop swallowing those Exec errors.",
+  "closure_criteria": "After Create, a SELECT on item_history returns one row with event_type='Opened'; after Update, an 'Updated' row exists; Exec errors are surfaced not swallowed; test fails if history writes are broken.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/hxcregistry.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.6"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Assert exact and stable ComputeHeadingHash value in pkg/hxcregistry",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "Hash is asserted only !='' so any non-empty garbage passes and the 'stable hash for re-sync binding' claim is unproven. Assert ComputeHeadingHash of a known title equals a known 16-hex constant, equals itself on repeated calls, and that two different titles produce different hashes (mutation-paired).",
+  "closure_criteria": "ComputeHeadingHash('<known title>') equals a pinned 16-hex value, is identical across calls, and differs for a different title; test fails on any digest change.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/hxcregistry.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/hxcregistry failure-path tests (dup PK, missing-id Get/Update)",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Happy-path only today. Add: second CreateItem with duplicate HXCID returns an error; GetItem('HXC-999') returns the 'not found' error (hits sql.ErrNoRows branch registry.go:155-157); UpdateItem on a non-existent id either errors or is asserted as a documented no-op via RowsAffected.",
+  "closure_criteria": "Duplicate-PK insert errors; missing-id Get returns the not-found error; missing-id Update behavior is asserted (error or documented no-op via RowsAffected).",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/hxcregistry.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Make pkg/hxcregistry concurrent test do concurrent writes (or rename)",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestRegistryConcurrentAccess only spawns concurrent reads against one row despite its name. Run concurrent CreateItem/UpdateItem with distinct ids and assert all rows present and consistent (final count==N), or rename it to TestRegistryConcurrentReads.",
+  "closure_criteria": "Concurrent writes of N distinct items leave exactly N consistent rows under -race; or the test is renamed to reflect read-only scope.",
+  "required_test_types": [
+   "integration(real-svc)",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/hxcregistry.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove pkg/hxcregistry timestamp round-trip and DB CHECK-constraint enforcement",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Assert LastModified strictly increased after UpdateItem and CreatedAt round-trips through RFC3339 store/load. Add a DB-constraint test inserting an invalid current_location/status directly to prove the schema CHECK constraints are active (sink-side enforcement vs Go-side Validate divergence).",
+  "closure_criteria": "LastModified advances after Update and CreatedAt survives round-trip; a direct insert violating current_location/status CHECK is rejected by the DB.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/hxcregistry.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Wire pkg/wasm WasmPlugin.Execute to real WASM output and prove transformed result",
+  "type": "Bug",
+  "priority": "P0",
+  "description": "Execute calls host.Call but discards the WASM return and returns input unchanged; TestWasmPluginLifecycle asserts the literal it passed in. Make Execute use the real WASM return value/linear memory, then test a module whose execute transforms input (e.g. len*2 or a memory write) and assert the TRANSFORMED result so an ignored WASM call FAILS the test.",
+  "closure_criteria": "A WASM module that transforms its input produces a transformed output through Execute that differs from the input; the test fails if Execute ignores the WASM call.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/wasm.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.7"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/wasm negative tests for missing execute export and corrupt module Init",
+  "type": "Task",
+  "priority": "P1",
+  "description": "Add a negative test where the module lacks the execute export and confirm Execute surfaces ErrFunctionNotFound (currently init/shutdown/execute absence is silently tolerated). Add an Init failure test loading a structurally invalid .wasm and asserting Init returns a wrapped error (proving the load/instantiate error path, not just the host==nil guard).",
+  "closure_criteria": "Missing-execute-export module makes Execute return ErrFunctionNotFound; corrupt .wasm bytes make Init return a wrapped error.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/wasm.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Prove pkg/wasm init/shutdown exports actually run via memory side-effect",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "Init and Shutdown swallow the result/error of init/shutdown exports; no test verifies they were invoked. Use a WASM module that records a side effect (writes a sentinel to exported memory) and verify after Init/Shutdown the sentinel changed, so removing the h.Call(initFn)/h.Call(shutdown) lines fails a test.",
+  "closure_criteria": "An exported-memory sentinel changes after Init and again after Shutdown; removing either h.Call line fails the test.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/wasm.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Cover pkg/wasm Host.Call ErrUnexpectedResult branch",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Add a test covering Host.Call's ErrUnexpectedResult branch (a function returning a non-i64/multi-value result), currently uncovered.",
+  "closure_criteria": "A module function returning a non-i64/multi-value result causes Host.Call to return ErrUnexpectedResult; test fails if the branch is removed.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/wasm.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Replace self-defeating pkg/semaphore TestSemaphore_ReleaseTooMany_Mutation",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "The over-release test accepts both immediate-return and timeout branches and asserts nothing, so it can never fail and it leaks a permanently-blocked goroutine. Replace with a test that asserts the honest contract \u2014 Release() on an unheld semaphore blocks (fail if the done channel closes early) \u2014 and cleans up the goroutine, or change the API to make over-release detectable and test the detection.",
+  "closure_criteria": "The new test fails if Release() on an unheld semaphore returns early; the previously leaked goroutine is cleaned up; the test has a real assertion that can fail.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/semaphore.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.8"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/semaphore M>>N concurrency invariant test under -race",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "No concurrency/race coverage exists despite the type's purpose. Launch M>>N goroutines that each Acquire(), increment a counter, assert the active count never exceeds N (atomic load + peak tracker), then Release(); run the package under -race.",
+  "closure_criteria": "Under `go test -race`, the observed peak concurrent holders never exceeds N across M>>N goroutines; a counting bug would be caught.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/semaphore.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/semaphore New(0) barrier and exact-capacity boundary tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Add New(0) cases (TryAcquire returns false, Acquire blocks indefinitely) and verify TryAcquire count exactly equals N before returning false; add a round-trip test that after K matched Acquire/Release pairs the semaphore returns to empty (TryAcquire succeeds exactly N times).",
+  "closure_criteria": "New(0) TryAcquire returns false and Acquire blocks; TryAcquire succeeds exactly N times on a fresh New(N); state returns to baseline after matched pairs.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/semaphore.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Convert pkg/storage error tests to errors.Is on exported sentinels",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "Five error tests only assert err!=nil; the exported sentinels ErrKeyNotFound/ErrEmptyKey are never proven, so a wrong wrapped/generic error would still pass. Switch each to errors.Is(err, ErrKeyNotFound)/errors.Is(err, ErrEmptyKey) to lock the public error contract.",
+  "closure_criteria": "Each error test asserts the specific sentinel via errors.Is; returning a different error type fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/storage.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.9"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Reconcile and test pkg/storage FileStore vs MemoryStore copy semantics",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "MemoryStore copies data in/out (paired tests) but FileStore.Put writes the caller slice directly and Get returns the freshly-read slice; the divergent aliasing semantics are unproven. Add TestFileStorePutCopiesData/GetCopiesData OR document+assert that FileStore intentionally does not copy, making the two implementations' contract explicit and tested.",
+  "closure_criteria": "FileStore copy behavior is asserted (either copies, with mutation-paired tests, or documented non-copy with a test pinning it); a Store conformance contract is explicit.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/storage.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/storage overwrite, missing-delete, and List edge tests for both stores",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Add overwrite tests (Put(k,v1);Put(k,v2);Get(k)==v2) for both stores; TestDeleteMissingKeyIsNoError for the intentional idempotent-delete contract; List('') returns-all and List('nomatch') returns-empty-no-error; remove or test the ineffective FileStore.List dir-Stat branch (storage.go:151-154).",
+  "closure_criteria": "Overwrite returns v2 for both stores; deleting a missing key returns nil; List('') returns all keys and List('nomatch') returns empty/no error; the dead dir-Stat branch is removed or covered.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/storage.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/storage -race concurrent Put/Get/Delete test to prove RWMutex",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Both stores carry sync.RWMutex implying thread-safety, but the locking could be removed and every test would still pass. Add a -race concurrent Put/Get/Delete test (N goroutines); optionally a table-driven Store conformance suite run against both NewMemoryStore() and NewFileStore(t.TempDir()).",
+  "closure_criteria": "Under `go test -race`, concurrent Put/Get/Delete across N goroutines is clean; removing the RWMutex triggers a race detector failure.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/storage.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Gate -race in CI for pkg/metrics concurrency mutation tests",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "TestCounter/Gauge/Histogram_Concurrent*_Mutation only assert final aggregates and pass even with atomics removed because the audit run lacks -race. Add a `go test -race ./pkg/metrics/...` CI job and document that these tests are only meaningful under -race.",
+  "closure_criteria": "A CI job runs pkg/metrics under -race; removing an atomic/lock triggers a race detector failure in that job.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/metrics.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.10"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Complete pkg/metrics Prometheus exposition assertions (+Inf, _sum, ordering)",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestPrometheusHandler checks one finite bucket line and _count but never asserts the _bucket{le='+Inf'} line, the _sum line, or the %g float formatting; a regression dropping +Inf or _sum would still pass. Assert the +Inf bucket, _sum, exact _count, and the full ordered body (golden string) so dropped lines fail.",
+  "closure_criteria": "The handler test asserts +Inf bucket, _sum, _count, and a deterministic ordered body; dropping any required line fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/metrics.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/metrics duplicate-registration and histogram edge tests",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Add TestRegistry_DuplicateName pinning intended overwrite-or-reject semantics, TestRegistry_Serialize_Ordering for sorted multi-type output, and histogram edge tests: empty buckets, unsorted buckets, Observe(Inf)/Observe(NaN), and a boundary-equality case (v==bucket) proving <= cumulative semantics.",
+  "closure_criteria": "Duplicate-name semantics asserted; ordered multi-type body asserted; histogram edge/boundary cases produce the documented behavior with tests that fail on regression.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/metrics.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/metrics /metrics integration test via httptest.Server",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Mount PrometheusHandler() on a real httptest.Server, issue an HTTP GET, and validate the parsed body \u2014 proving end-user /metrics scrape behavior, not just in-process handler invocation.",
+  "closure_criteria": "An HTTP GET to a real server hosting PrometheusHandler() returns a parseable Prometheus body with the expected metrics.",
+  "required_test_types": [
+   "integration(real-svc)"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/metrics.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Test pkg/grpcutil LoggingStreamInterceptor recv/send counters",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "LoggingStreamInterceptor + wrappedStream (the only function producing real sink-side state) are entirely untested; recvCount/sendCount could be a no-op and all tests pass. Drive RecvMsg/SendMsg N and M times and assert the emitted log line contains recv=N send=M (capture via log.SetOutput) AND assert ws.recvCount/ws.sendCount directly.",
+  "closure_criteria": "After N RecvMsg and M SendMsg calls, the log line contains recv=N send=M and the counter fields equal N/M; a no-op counter fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/grpcutil.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.11"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Strengthen pkg/grpcutil log assertions to dynamic behavior-dependent fields",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestUnaryInterceptorCallsHandler/Stream only assert Contains('unary')/('stream') which are hardcoded literals always present regardless of branch. Assert dynamic fields: Contains('/test/Method'), Contains('code=OK'), Contains('err=<nil>') so the assertion fails if the wrong branch runs.",
+  "closure_criteria": "Log assertions check method path, code=OK, and err=<nil>; an incorrect branch (missing auth/duration/code) fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/grpcutil.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Cover pkg/grpcutil status.FromError code extraction for handler errors",
+  "type": "Task",
+  "priority": "P2",
+  "description": "The code-extraction logging path (package.go:33-37, 58-62) is never verified because rejection tests short-circuit on auth. Add a test where the handler returns status.Error(codes.Internal, ...) and assert the interceptor returns that exact code and logs code=Internal for both unary and stream. Also add TestAuthUnaryInterceptorEmptyTokenSlice for the len(tokens)==0 branch.",
+  "closure_criteria": "Handler returning codes.Internal is propagated with code=Internal logged for unary and stream; empty-token-slice metadata is rejected via the len==0 branch.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/grpcutil.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/context TestDetach_PreservesValues for the value-retention guarantee",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "The headline guarantee \u2014 Detach 'keeps only values' \u2014 is never tested; a mutation returning context.Background() would pass everything. Store a value in the parent, cancel the parent, and assert the value survives through the detached context.",
+  "closure_criteria": "parent:=WithValue(...); d:=Detach(parent); cancel parent; d.Value(key)=='v' still holds; a Detach returning Background() fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/context.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.12"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Strengthen pkg/context WithTimeout deadline and expiry assertions",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestWithTimeout only checks Deadline() ok==true, near-tautological. Assert the deadline is within tolerance of now+timeout, add a positive-duration expiry test (wait for Done() to fire, assert Err()==DeadlineExceeded), and a cancel-path test asserting Err()==context.Canceled after cancel().",
+  "closure_criteria": "Deadline ~= now+timeout within tolerance; a real short timeout fires Done() with DeadlineExceeded; cancel() yields Canceled; a hardcoded/ignored timeout fails the test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/context.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Give pkg/workerpool TestPool_NilWorkSafe_Mutation a real sink",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "The nil-work test has no assertion and relies on non-deterministic no-panic. Follow the nil submission with a non-nil submission that signals a channel and assert the worker survived and processed the subsequent task, so removing the if fn!=nil guard is reliably caught.",
+  "closure_criteria": "After a nil submission, a follow-up task signals completion proving the worker survived; removing the nil guard fails the test deterministically.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/workerpool.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.13"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/workerpool fan-in count==N, post-Stop Submit, panic-recovery, idempotent-Stop tests",
+  "type": "Feature",
+  "priority": "P1",
+  "description": "Submit blocks forever after Stop (goroutine leak), a panicking task crashes the process (no recover in worker()), and double-Stop panics on close(stopCh). Add: fan-in test asserting final counter==N after Stop (no task dropped); post-Stop Submit hang guard (Submit in a goroutine with timeout); panicking-task recovery (add recover() in worker() then assert pool keeps processing); idempotent double-Stop (guard the close) with a test calling Stop() twice.",
+  "closure_criteria": "N submitted tasks all execute (counter==N); a post-Stop Submit is shown not to hang; a panicking task is recovered and later tasks still run; Stop() called twice does not panic.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/workerpool.md"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Make pkg/errors concurrency test honest via locked GetFields path + -race",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "TestConcurrentFieldAccess reads err.Fields directly without RLock, runs without -race, and asserts nothing, so it proves nothing about the mutex. Route concurrent readers through GetFields (locked path), assert len(GetFields(err))==50 (all writes observed), and CI-gate -race for the package.",
+  "closure_criteria": "Readers use GetFields; after the run len(GetFields(err))==50; under -race the mutex is exercised and removing it triggers a race failure.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/errors.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.14"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Pin pkg/errors Code enum exact values, distinctness, and WithFields nil receiver",
+  "type": "Task",
+  "priority": "P2",
+  "description": "TestCodeEnumValues only checks non-empty (collisions/renames pass). Assert exact string values (e.g. E_NOT_FOUND=='E_NOT_FOUND') and pairwise distinctness via a set. Add TestWithFields_NilReceiver covering the e==nil guard (package.go:139), an errors.As chain extraction test, GetFields(nil) returns empty non-nil map, and a stack-frame-content + 32-frame-cap assertion.",
+  "closure_criteria": "Each Code equals its exact expected string and all are distinct; WithFields nil receiver is safe; errors.As extracts *Error through a Wrap chain; GetFields(nil) returns empty non-nil; stack content/cap asserted.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/errors.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Replace tautological pkg/backoff cap-mutation test and pin Default()",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestDuration_CapRemoved_Mutation uses Max=1<<62 so output is byte-identical whether the cap branch exists or not. Replace with a small-Max test (Base=100ms,Max=500ms,Factor=2) asserting Duration(20)==500ms exactly. Pin Default() to exact Base=100ms/Max=30s/Factor=2 and Default().Duration(1)==200ms; add monotonic-growth and an exact mid-range (Duration(3)==800ms) assertion.",
+  "closure_criteria": "Removing the cap branch makes Duration(20)!=500ms and the test fails; Default() exact fields asserted; monotonic growth and Duration(3)==800ms hold.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/backoff.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.16"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Assert pkg/classads parser AST Op per operator and paren precedence",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "Parser tests assert only err==nil, never the resulting Op/tree shape (a <-parsed-as-> mutation survives), and no eval-level paren test proves precedence override. Assert expr.(BinaryOp).Op per comparison operator; add Eval('(1+2)*3',nil)==9 paired with Eval('1+2*3',nil)==7; assert TestParseLogical root is BinaryOp{Op:'||'} with both children &&.",
+  "closure_criteria": "Each comparison operator parses to the correct Op; (1+2)*3 evaluates to 9 and 1+2*3 to 7; logical tree shape asserted; a <->> swap fails a test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/classads.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.17"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/classads eval failure-path and regexp non-match tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Add failure-path eval tests for guarded type mismatches: Eval('!5') errors ('! requires bool'), Eval('\"x\" < 1') errors ('requires numbers'), regexp with a non-string arg errors. Add a Match test where the requirement evaluates to a non-bool asserting the 'did not evaluate to bool' error (eval.go:26). Add a regexp non-match case (regexp('^win','linux')==false).",
+  "closure_criteria": "Each guarded mismatch returns the documented error; non-bool Match returns the bool-error; regexp non-match returns false; removing a validation branch fails a test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/classads.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/crypto SHA-256 known-answer vectors and sentinel errors.Is checks",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "Hash/GenerateKey assert length only (a deterministic-but-wrong digest passes) and sentinel errors are never checked via errors.Is. Add SHA-256 KAT (Hash('abc')==ba7816bf...); assert ErrVerifyFailed/ErrInvalidKey/ErrInvalidCiphertext via errors.Is; replace negative-path err discards with t.Fatalf.",
+  "closure_criteria": "Hash('abc') equals the published SHA-256 vector; negative paths assert the specific sentinel via errors.Is; a wrong-but-deterministic digest fails the test.",
+  "required_test_types": [
+   "unit",
+   "security"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/crypto.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.19"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/crypto AES-128/192, wrong-key decrypt, short-ciphertext, PBKDF2 vector tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Only AES-256 is covered. Add table-driven AES-128 (16-byte) and AES-192 (24-byte) keys plus an invalid-key-length rejection case; a wrong-key decrypt (encrypt with A, decrypt with B -> auth failure) proving key binding; a 'ciphertext too short' test (hex shorter than gcm.NonceSize()) hitting the ErrInvalidCiphertext length branch; a fixed PBKDF2 vector for DeriveKey.",
+  "closure_criteria": "AES-128/192 round-trip; wrong-key decrypt fails with auth error; short ciphertext yields ErrInvalidCiphertext; DeriveKey matches a fixed PBKDF2 vector.",
+  "required_test_types": [
+   "unit",
+   "security"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/crypto.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/log prefix-field proof catching the SetLevel prefix-loss bug",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "Real bug: SetLevel rebuilds the handler with hardcoded .With('logger','helix'), dropping the New(prefix) value; no test asserts the logger field survives SetLevel. Add a test that New('svc',&buf) emits JSON containing 'logger':'svc', and a mutation-paired test where after SetLevel(WarnLevel) the emitted record still has logger=='svc' (this fails today at package.go:100).",
+  "closure_criteria": "Emitted JSON contains 'logger':'svc' from New('svc',...) and still does after SetLevel; the current SetLevel prefix-loss bug is caught (test fails until fixed).",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/log.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.15"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Strengthen pkg/log Warn test, add Debug-suppression, remove dead captureOutput scaffolding",
+  "type": "Task",
+  "priority": "P3",
+  "description": "TestWarn only checks a message substring. Strengthen it to assert a structured field reaches output and add a TestWarn_Mutation for field-dropping; add a Debug-suppression test (SetLevel(InfoLevel) then Debug produces empty output). Remove or wire up the dead captureOutput/defaultOutput scaffolding (package_test.go:11-20). Optionally test Fatal via subprocess.",
+  "closure_criteria": "Warn emits and asserts a structured field; Debug is suppressed at InfoLevel; dead scaffolding is removed; field-drop mutation fails the Warn test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/log.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/lru boundary, cold-miss, and struct-value round-trip tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "lru has no pass-bluffs but minor gaps. Add NewCache(0)/NewCache(-1) boundary tests asserting intended degenerate behavior (pins the eviction guard at package.go:43); an explicit cold-miss test (fresh cache Get('absent') returns nil,false at package.go:33); a struct-value round-trip proving the interface{} value path; optionally a -race test if used concurrently or document non-thread-safety.",
+  "closure_criteria": "NewCache(0)/(-1) behavior asserted; fresh-cache miss returns (nil,false); a struct value round-trips by equality; concurrency stance is tested or documented.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/lru.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.24"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/pubsub -race concurrency test and explicit drop-boundary assertion",
+  "type": "Feature",
+  "priority": "P2",
+  "description": "No -race concurrency test exists despite the RWMutex being the main correctness mechanism, and the 10-retained/11th-dropped boundary is not explicit. Add a -race test: N subscribers / M publishers over overlapping subjects with deterministic per-subscriber counts; add a boundary test draining the channel to assert exactly the first 10 messages retained and the 11th dropped; add an unknown-subject no-op test.",
+  "closure_criteria": "Under -race, concurrent subscribe/publish is clean and per-subscriber counts are deterministic; draining shows exactly 10 retained and 11th dropped; publish to an unsubscribed subject is a safe no-op.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/pubsub.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.22"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Prove pkg/ratelimit bucket starts full and add Limiter conformance + -race tests",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "TestTokenBucket_ZeroTokensInitially_Mutation only asserts one Allow succeeds (would pass if bucket started with 1 token). Assert NewTokenBucket(5,0) allows exactly 5 then denies the 6th. Add var _ Limiter=(*PerKeyLimiter)(nil) conformance and reconcile TokenBucket/SlidingWindow with the Limiter interface; add a -race test that total granted tokens never exceeds max under concurrent AllowN; add a denied-AllowN no-side-effect test for SlidingWindow.",
+  "closure_criteria": "NewTokenBucket(5,0) grants exactly 5 then denies; a value used through the Limiter interface compiles/runs; under -race total granted never exceeds max; a denied AllowN leaves window slots unconsumed.",
+  "required_test_types": [
+   "unit",
+   "stress"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/ratelimit.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.21"
+  ],
+  "decoupling_candidate": true
+ },
+ {
+  "title": "Bring pkg/retry DoWithResult to behavioral parity with Do",
+  "type": "Bug",
+  "priority": "P1",
+  "description": "DoWithResult is a duplicated loop with near-zero coverage: TestDoWithResultExhausted only asserts err!=nil; its non-retryable branch (retry.go:98) and context-cancellation branch (retry.go:104-108) are unexercised. Add DoWithResult mutation mirrors of the Do tests: exact attempt count, errors.Is last-error wrapping, zero-value-on-failure, context-cancellation early-abort (callCount check), and an exponential-timing test.",
+  "closure_criteria": "DoWithResult tests assert exact attempt count, errors.Is wrapping, zero-value on failure, early-abort on cancel, and backoff timing; a regression in its loop fails a test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/retry.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.18"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/retry transient-recovery, jitter-bound, and computeDelay table tests",
+  "type": "Task",
+  "priority": "P2",
+  "description": "Add transient-recovery tests for both Do and DoWithResult (fail K then succeed, assert success/value and callCount==K+1). Strengthen TestDoExhausted-class with errors.Is(sentinel) and attempt-count. Add a jitter upper-bound test (every per-attempt delay in [D,1.25D)) and a tiny-delay (Delay=1ns) edge to pin the rand.Int63n(.../4) panic. Add a computeDelay table (Fixed/Linear/Exponential/default+MaxDelay clamp) asserting exact durations with jitter disabled.",
+  "closure_criteria": "Transient recovery proven for both variants; exhaustion tests assert sentinel+count; jitter never exceeds 1.25D and tiny-delay does not panic; computeDelay table matches exact durations.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/retry.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Strengthen pkg/serde MustMarshal exact-content and add Unmarshal failure tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "TestMustMarshal asserts only len!=0 (garbage would pass). Replace with an exact-content assertion (string(data)=='{\"k\":\"v\"}'). Add an Unmarshal failure-path test feeding malformed JSON asserting a non-nil error; add a nested/tagged round-trip (slices, maps, nested structs, json:'-'/omitempty); optionally assert Unmarshal into nil/non-pointer returns an error.",
+  "closure_criteria": "MustMarshal output equals the exact expected JSON; malformed input to Unmarshal returns a non-nil error; nested/tagged round-trip preserves structure; nil/non-pointer target errors.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/serde.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.23"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Pin pkg/validator error contract via errors.Is and remove/wire unused sentinels",
+  "type": "Bug",
+  "priority": "P2",
+  "description": "Tests assert only err!=nil/substring, so the wrong sentinel or dropped %w would pass; ErrMinExceeded/ErrMaxExceeded are declared but never returned (checkMin/checkMax use ad-hoc fmt.Errorf) \u2014 a latent API lie. Convert assertions to errors.Is on each sentinel; either wire ErrMinExceeded/ErrMaxExceeded through %w with a matching errors.Is test or delete them.",
+  "closure_criteria": "Each validation failure asserts its specific sentinel via errors.Is; ErrMinExceeded/ErrMaxExceeded are either returned (with a passing errors.Is test) or removed; a wrong-sentinel return fails a test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/validator.md",
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a73.20"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Add pkg/validator uint min/max, IsValidID empty, oneof/email boundary tests",
+  "type": "Task",
+  "priority": "P3",
+  "description": "Add uint min/max cases (uint8/uint64) to cover the dedicated reflect.Uint* branches (validator.go:185-189,211-215); IsValidID('') expecting false plus an underscore/dash positive case; an email boundary ('a@b' accepted by net/mail, 'user@' rejected); a registered-custom-rule-with-required ordering test and a test that an unregistered rule name is silently ignored (checkRule default fall-through, line 168), documenting/pinning that behavior.",
+  "closure_criteria": "uint min/max branches covered; IsValidID('') is false; email boundaries behave per net/mail; unregistered rule names are pinned as silently ignored; removing a reflect.Uint branch fails a test.",
+  "required_test_types": [
+   "unit"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/validator.md"
+  ],
+  "decoupling_candidate": false
+ },
+ {
+  "title": "Establish fleet-wide -race CI gate across concurrency-sensitive packages",
+  "type": "Task",
+  "priority": "P0",
+  "description": "Systemic gap: concurrency/atomicity guarantees are 'proven' by count-only tests that pass even with the lock/atomic removed because the audit command does not run -race (affects errors, metrics, semaphore, storage, lock, pubsub, ratelimit). Add a CI job running `go test -race ./...` (or per-package -race jobs) so a removed lock/atomic is detected fleet-wide, not per-package.",
+  "closure_criteria": "A CI pipeline runs the suite under -race; introducing a deliberate data race (remove a mutex/atomic in any listed package) causes the -race job to fail with a detected race, evidenced by the CI log and a per-run UUID.",
+  "required_test_types": [
+   "unit",
+   "stress",
+   "automation"
+  ],
+  "source_refs": [
+   "anti_bluff_audit/AUDIT_REPORT.md \u00a71, \u00a73.10, \u00a73.14",
+   "anti_bluff_audit/metrics.md",
+   "anti_bluff_audit/errors.md",
+   "anti_bluff_audit/storage.md",
+   "anti_bluff_audit/lock.md",
+   "anti_bluff_audit/pubsub.md",
+   "anti_bluff_audit/ratelimit.md",
+   "anti_bluff_audit/semaphore.md"
+  ],
+  "decoupling_candidate": true
+ }
+]

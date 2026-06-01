@@ -1,0 +1,392 @@
+[
+  {
+    "title": "Implement Multi-Raft per-shard consensus manager (G-01, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/multiraft MultiRaftManager that partitions cluster state into shards, each an independent etcd-io/raft group with its own leader, eliminating the single-etcd write bottleneck ('etcd wall'). Includes ShardID identity, CreateShard, Propose (per-shard parallel writes), Tick for all shards, ShardStorage implementing raft.Storage, and RaftTransport abstraction for testability. Write throughput must scale with shard count rather than hitting the ~16,800 req/s single-leader ceiling.",
+    "closure_criteria": "On a real multi-node test cluster (run-UUID logged), create N>=100 shards and drive concurrent Propose across shards; capture before/after write-throughput metrics showing throughput rises with shard count past the single-Raft ceiling, and a committed-entry log per shard proving independent leaders. Kill one shard leader and show that shard re-elects while other shards keep committing.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "performance", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-01 MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.2.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement heartbeat coalescer for Multi-Raft network overhead control",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Build HeartbeatCoalescer that batches Raft heartbeats across all shards between the same node pair into one message per peer per tick, keeping inter-node network traffic constant regardless of shard count (CockroachDB technique). Flush() emits one coalesced MsgHeartbeat per peer.",
+    "closure_criteria": "With run-UUID, run a node hosting 1,000 shards across 5 peers and capture packet/byte counters before vs after enabling coalescing: per-tick heartbeat messages must drop from O(shards*peers) to O(peers) while liveness of all shards is preserved (no spurious elections observed in the shard event log).",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.2.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement leaseholder fast-path local reads in Multi-Raft",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Add LeaseTracker so a shard's leaseholder serves reads from its local store without a Raft round-trip (CockroachDB leaseholder pattern); non-leaseholders route reads to the current leaseholder via RaftTransport.SendRead. Lease has expiration; IsLocalLeaseholder checks validity against injected clock.",
+    "closure_criteria": "Run-UUID logged test: a read on the leaseholder returns the latest committed value with no Raft proposal recorded (verified via Raft message trace), while the same read on a follower is shown forwarded to the leaseholder. After lease expiry the local fast path is refused and the read re-routes.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §2.1.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement MVCC revision store with B-tree index and time-travel (G-08, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/mvcc revision-based key-value store where every write creates a new revision rev=(main,sub), maintaining a B-tree (bbolt-backed) index mapping keys to revision history, enabling time-travel Get(key, rev), efficient watches from any historical revision, and compaction. Replaces Phase 1 simple KV.",
+    "closure_criteria": "With run-UUID, write a key 5 times, then Get at each historical revision and observe the exact prior values (before/after delta captured); start a watch from an old revision and confirm it replays all intervening events; run compaction and prove pre-compaction revisions are reclaimed while post-compaction reads still succeed.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-08 MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.1 G-08", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.2.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement persistent Watch Manager with synced/unsynced groups (G-08 support)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create a Watch Manager over the MVCC store providing gRPC persistent watch streams with synced/unsynced watcher groups (etcd v3 pattern), a victim/retry queue for slow watchers, and Watch(prefix, rev) semantics that never miss updates. Supports resuming from a historical revision.",
+    "closure_criteria": "Run-UUID logged: register a watcher on a prefix from revision R, perform 100 writes, and confirm the stream delivers all 100 ordered events with no gaps; simulate a slow consumer to force it into the unsynced/victim group, then prove it catches up without losing events.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "performance"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.2.3", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §4.1.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement SLURM-style backfill scheduler over availability timeline (G-02, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/backfill BackfillScheduler that builds a ResourceTimeline from running jobs' (end-time, freed-resources), estimates the start time of the head reserved job, and EASY-backfills lower-priority jobs into gaps iff they do not delay the highest-priority reservation. Jobs declare Duration/walltime upfront; tryAllocate performs bin-packing across nodes. Targets 90%+ utilization vs 40-60% FIFO.",
+    "closure_criteria": "Run-UUID logged: build a queue where a short job fits a gap before the head reservation (must backfill and run) and a long job that would delay the reservation (must NOT backfill); capture before/after cluster-utilization metric rising toward 90%+ and the reservation start-time unchanged by the backfilled short job.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "performance", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-02 MISSING; TOP GAP #3)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.2", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.3.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement multifactor priority queue for scheduler (age+fairshare+size+QoS)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Implement a SLURM-style multifactor job priority (age + fair-share + job-size + QoS) feeding the backfill scheduler's JobPriorityQueue (container/heap, O(log N)). Supports job arrays, dependencies, and reservations.",
+    "closure_criteria": "Run-UUID logged: enqueue jobs with differing age/fairshare/size/QoS and assert dequeue order matches the computed composite priority; advance the injected clock and show an aged low-priority job overtakes a newer one (before/after ordering captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §7.1.2/§7.1.4", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement CRC16 16,384 hash-slot session router (G-03, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/hashslot Redis-compatible router computing CRC16(key) & 0x3FFF slot mapping, a SlotMap (slot->nodeID) with Owner(key) and Reshard(slots,dst), and {}-hashtag carve-out so user1000 and {user1000}:foo co-locate. Pure computation + in-memory map, later wired into internal/gateway.",
+    "closure_criteria": "Run-UUID logged: assert known Redis CRC16 vectors (e.g. '123456789'->0x31C3) and that hashtag keys route to the same slot as their tag; demonstrate a session lookup resolving to the owning node before/after a Reshard moves the slot.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-03 MISSING; TOP GAP #1)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.3.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.4.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement MOVED/ASK redirection and ASKING for in-flight slot migration (G-03)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Add MOVED and ASK redirection structs to the hash-slot router so that while a slot is MIGRATING the source serves ASK redirects and the destination accepts requests prefixed by ASKING; stable ownership returns MOVED. Foundation for Atomic Slot Migration.",
+    "closure_criteria": "Run-UUID logged: mark a slot MIGRATING and show a client request for an absent key returns ASK to the dest while present keys are served by source; after migration completes, a request returns MOVED pointing to the new owner (before/after redirection captured).",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (TOP GAP #1)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.3.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §5.1.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement Atomic Slot Migration controller for live session migration (G-03, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create a Migration Controller implementing Redis 8.4-style Atomic Slot Migration: snapshot + live delta replication + atomic transfer of a slot's sessions, achieving sub-10-second (6-8s) live session migration without disruption. Integrates with hash-slot router MIGRATING/ASK states and session CRDT/CRIU strategies.",
+    "closure_criteria": "Run-UUID logged: with an active GPU session bound to a slot, trigger migration and capture wall-clock move time <10s plus client-visible continuity (no session loss, request stream uninterrupted before/after); show source slot empty and dest slot owning the session post-transfer.",
+    "required_test_types": ["unit", "integration(real-svc)", "e2e", "chaos", "performance", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.4.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.4.2", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §5.5.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Add config-epoch conflict resolution for simultaneous failovers",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add Redis Cluster-style config epoch to the slot map so conflicting ownership claims during simultaneous failovers resolve deterministically by highest epoch, preventing slot-ownership ambiguity.",
+    "closure_criteria": "Run-UUID logged: inject two nodes claiming the same slot with different epochs and assert the higher-epoch claim wins on all observers (before/after ownership convergence captured); equal-epoch claims resolve via the documented tiebreak.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §5.1.4"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Add Startup health-probe tier with GPU grace period (G-04, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/health rollup with a third tier: add Startup CheckKind + CheckStartup(ctx) and a per-dependency GracePeriod so startup failures are tolerated until grace elapses (GPU initialization grace), complementing existing Liveness (restart) and Readiness (traffic) tiers. Gaming-aware: liveness may check frame-rate health, readiness gates session acceptance.",
+    "closure_criteria": "Run-UUID logged with injected clock: a dependency failing within grace reports Healthy under CheckStartup but Unhealthy under CheckReadiness; after grace elapses the same dependency's startup flips to Unhealthy (before/after state delta captured).",
+    "required_test_types": ["unit", "integration(real-svc)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-04 PARTIAL; TOP GAP #4)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.1 G-04"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement SWIM majority PFAIL->FAIL two-phase failure confirmation (G-23, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Extend pkg/swim suspicion with FailureVotes so a member transitions Suspect->Dead only after >=ceil(N/2) distinct gossiped suspicions (Redis Cluster master-consensus PFAIL->FAIL), not on a single node's timeout. Reuses existing incarnation refutation.",
+    "closure_criteria": "Run-UUID logged: with N=5, two gossiped suspicions keep a member Suspect; the third promotes it to Dead and fires OnDead exactly once (before/after state and callback-count captured). A refutation before quorum returns the member to Alive.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-23 PARTIAL; TOP GAP #5)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.6 G-23", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §5.1.2"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement largest-subcluster-wins voting quorum (G-19, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/voting in-memory vote store with per-voter TTL (3s) and Resolve(view []Membership) Decision granting survival to the partition holding a strict majority of registered votes; ties (even split) -> all-fence, deterministic lowest-ID loses. Pure logic over an injected clock. Oracle RAC voting-disk pattern for split-brain prevention.",
+    "closure_criteria": "Run-UUID logged: 5-node set partitioned 3/2 -> 3-side Decision=Survive, 2-side Fence; a 2/2 even split -> both Fence (before/after decision per partition captured). Vote TTL expiry removes a stale voter and re-resolves.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-19 MISSING; TOP GAP #2)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.2.3", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.5.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement STONITH fencing agents (IPMI/cloud/shared-disk) (G-19, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/stonith with a pluggable FencingAgent interface and drivers for IPMI, AWS EC2, Azure ARM, and SBD shared-disk fencing, with multi-level fallback; mandatory for production stateful clusters to guarantee a partitioned/failed node cannot corrupt shared state. Includes a no-op/mock agent for testing.",
+    "closure_criteria": "Run-UUID logged: against a real or emulated fencing endpoint, issue a fence and capture the target transitioning to powered-off/isolated (before reachable, after unreachable) plus a fence-confirmation record; multi-level fallback proven by failing the primary agent and observing the secondary fence succeed.",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-19 MISSING; DEFERRED cluster)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.5.2", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §6.2.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Pacemaker-style four-type constraint engine (G-20, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create pkg/constraint placement engine supporting location, colocation, ordering, and stickiness constraints (Pacemaker PE model) so workload placement respects hardware topology, regulatory boundaries, and performance dependencies.",
+    "closure_criteria": "Run-UUID logged: define each constraint type and assert the resulting placement honors them (e.g. colocated workloads land on the same node, ordered resources start in sequence, sticky resources stay put across re-scores); a conflicting constraint set yields the documented rejection. Before/after placement maps captured.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-20 MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.6 G-20", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.5.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement SCAN stable virtual-IP/DNS client endpoint (G-21, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create pkg/scan providing an Oracle RAC SCAN-style stable DNS name resolving to up to 3 virtual IPs with least-loaded listener routing, so clients keep a constant endpoint while nodes are added/removed without reconfiguration.",
+    "closure_criteria": "Run-UUID logged: clients connect via the SCAN name and are routed to the least-loaded node; add and remove a backend node and prove the client endpoint is unchanged and connections rebalance (before/after listener assignment and node membership captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-21 MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §6.1.3/§6.4.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement N+K failover capacity admission control (G-22, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/admissioncontrol that, before accepting a workload, verifies the cluster retains enough slack to absorb the loss of the K largest nodes (vSphere HA N+K) and rejects admission that would breach the reserve. Pure arithmetic over pkg/scheduler Node capacities.",
+    "closure_criteria": "Run-UUID logged: admit a workload while N+1 slack holds (accepted), then submit one that would consume reserved failover headroom (rejected with reason); capture before/after reserved-headroom accounting proving the reserve is never violated.",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-22 MISSING; TOP GAP #8)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.6 G-22"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement gang scheduling all-or-nothing GPU reservation (G-18, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Harden gang scheduling (currently partial in pkg/scheduler) into a complete all-or-nothing multi-GPU reservation (SLURM/Volcano PodGroup) so all tasks of a distributed-training job start simultaneously, preventing partial-allocation deadlock for MPI/all-reduce. Atomic placement with optimistic version and preemption already exist; complete the GPU gang semantics.",
+    "closure_criteria": "Run-UUID logged: submit a job requiring G GPUs when only G-1 are free and assert zero partial allocation (job stays pending, no GPU held); free the last GPU and observe all G allocated atomically in one transition (before/after allocation map captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "stress", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-18 gang PARTIAL)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.5 G-18", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §7.5.3"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Implement topology-aware NUMA/NVLink GPU placement scoring (G-10/G-18, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create a Topology Manager that models node NUMA affinity and an NVLink interconnect graph (clique detection) and scores GPU placement to keep multi-GPU jobs on NVLink-connected GPUs (600GB/s) rather than PCIe (32GB/s), avoiding 3-8x degradation for distributed training. Currently MISSING per audit.",
+    "closure_criteria": "Run-UUID logged on hardware/emulated topology: schedule a 2-GPU job and prove it lands on an NVLink-connected pair when available, falling back to PCIe only when not; capture before/after measured interconnect bandwidth for the placed job demonstrating NVLink selection.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "benchmark", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-18 topology MISSING; G-10)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.2 G-10", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.3.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement device-plugin / GRES fingerprinting framework (G-11/G-13/G-17, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/deviceplugin: a Nomad/K8s-style gRPC device-plugin framework where each device type registers a plugin reporting model, memory, driver version, PCIe bandwidth, capabilities, health, and utilization, with GRES-style descriptors (e.g. gpu:rtx3080:1,memory:10Gi,pcie:16GT/s) consumed by the scheduler. Generalizes the current mock-only GPU manager into extensible fingerprinting for GPU/FPGA/NPU.",
+    "closure_criteria": "Run-UUID logged: register a real (or hardware-emulated) device plugin via gRPC and show the scheduler discovers the device with full fingerprint fields; a GRES request gpu:<model>:N is matched and allocated, and oversubscription beyond reported count is rejected (before/after allocatable inventory captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "scaling", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-11/13/17 MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.3/§9.1.5", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.3.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement BOINC-style redundant-execution trust scorer (G-09, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create internal/trust (avoiding the internal/advisory lock-service name collision) tracking per-node trust from result agreement across redundant executions: quorum match raises trust, outlier disagreement lowers it; expose Trusted(nodeID) bool gated on a threshold, with adaptive replication for semi-trusted console/edge hardware. Pure scoring logic.",
+    "closure_criteria": "Run-UUID logged: run a work unit on 4 nodes where 3 return result R and 1 returns R'; assert the outlier's trust drops below threshold and it is quarantined while the 3 stay Trusted, and the canonical R is accepted by quorum (before/after trust scores captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "security", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-09 MISSING; name collision; TOP GAP #7)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.2 G-09", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §7.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement standalone delta-state CRDT package (G-counter/PN-counter/OR-set/LWW-map) (G-01 part, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create pkg/crdt with G-counter, PN-counter, OR-set, and LWW-map supporting Merge and Delta(sinceVersion) extraction, generalizing the session-scoped LWW logic already proven. Enables 5s delta cross-cell sync wired to pubsub/federation for the no-etcd-wall design.",
+    "closure_criteria": "Run-UUID logged: property tests prove commutativity/associativity/idempotency of Merge; an OR-set add-then-remove across reordered deltas converges to the same state on all replicas (before/after replica states captured identical); cross-cell delta sync demonstrated within the 5s window.",
+    "required_test_types": ["unit", "integration(real-svc)", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (CRDT PARTIAL; TOP GAP #6)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §1.5.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Cassandra 3-layer repair: hinted handoff + read repair + Merkle anti-entropy (G-01 part, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/repair implementing hinted handoff (store writes for down replicas), read repair (reconcile on read), and Merkle-tree anti-entropy (background full reconciliation) to repair divergent replicas in the data layer. Currently MISSING.",
+    "closure_criteria": "Run-UUID logged: take a replica offline during writes (hints accumulate), bring it back and prove handoff replays the missed writes; introduce a stale value and show read repair corrects it on next read; run anti-entropy and confirm Merkle-tree comparison detects and heals an injected divergence (before/after replica equality captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (repair MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §2.2.3/§2.5.2", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §2.2.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement Informer cache helixcache.Watcher (list-watch local cache) (G-05, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create internal/node helixcache.Watcher implementing the Kubernetes Informer LIST/WATCH local-cache pattern with event streaming, replacing controller polling and reducing data-store read load ~100x.",
+    "closure_criteria": "Run-UUID logged: run a controller against helixcache.Watcher and capture data-store read QPS before (polling) vs after (informer) showing ~100x reduction while the controller still observes every create/update/delete event in order.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (informer MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.1 G-05", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §1.2.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement rate-limited work queue with exponential backoff (G-06, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create helixqueue.RateLimitedQueue (Kubernetes workqueue.RateLimitingInterface analog) providing per-item exponential backoff and de-duplication for controller reconciliation, preventing thundering-herd retries on failures.",
+    "closure_criteria": "Run-UUID logged: force repeated reconcile failures on an item and capture the retry timestamps showing exponential backoff growth; enqueue the same item many times concurrently and prove it is processed once per ready window (before/after queue depth captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "stress"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (informer/queue MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.1 G-06", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §1.2.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement API Priority & Fairness FlowSchema->PriorityLevel->Queue (G-07, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add APF to pkg/security: request classification via FlowSchema -> PriorityLevel -> fair queues (Kubernetes KEP-1040) so one misbehaving controller/client cannot starve others; distinct from the existing generic pkg/ratelimit.",
+    "closure_criteria": "Run-UUID logged: drive a flood from one flow and a steady stream from another; capture before/after admitted-request rates proving the abusive flow is throttled to its priority-level share while the well-behaved flow's latency/throughput is preserved.",
+    "required_test_types": ["unit", "integration(real-svc)", "ddos", "stress", "security"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (APF MISSING)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.1 G-07", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §1.1.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement NATS leaf-node edge-to-core store-and-forward topology (G-12, P2)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add NATS Leaf Node topology with JetStream store-and-forward so edge devices keep local traffic local and forward to the cloud cluster across intermittent connectivity, honoring permissions and queue semantics during partitions.",
+    "closure_criteria": "Run-UUID logged: partition an edge leaf from the core, publish messages locally (delivered to local subscribers), then heal the link and prove buffered messages forward to core subscribers with no loss (before/after delivery counts captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-12)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.3 G-12", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §3.2.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement idempotent producer (PID + sequence) for exactly-once messaging",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add Kafka-style idempotent producer using producer-ID + per-partition sequence numbers so retries do not duplicate messages, providing exactly-once-on-retry for the HelixCluster messaging layer.",
+    "closure_criteria": "Run-UUID logged: force producer retries (induced acks loss) and prove the broker deduplicates by PID+sequence so each message appears exactly once in the log (before/after duplicate count = 0 captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §3.1.1/§3.4.1", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.1.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement cooperative incremental rebalancing for consumers/membership",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Replace stop-the-world eager rebalancing with Kafka-style cooperative incremental rebalancing so membership/assignment changes never cause a global pause (avoiding ~30s unavailability).",
+    "closure_criteria": "Run-UUID logged: add a consumer to a running group and capture before/after that only the minimal set of partitions move and unaffected consumers experience zero pause (continuous processing throughput maintained across the rebalance).",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos", "performance"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §3.1.3/§3.4.3/§10.3", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.1.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement embedded KRaft-style Raft quorum to remove external ZooKeeper",
+    "type": "Feature",
+    "priority": "P3",
+    "description": "Adopt a KRaft-style self-managed Raft metadata quorum for the messaging layer, eliminating any external ZooKeeper dependency and reducing infrastructure (~30-40% per Kafka).",
+    "closure_criteria": "Run-UUID logged: run the messaging layer with no ZooKeeper process present and prove metadata operations (topic create, leader election) succeed via the embedded quorum; capture before/after dependency inventory showing ZooKeeper removed.",
+    "required_test_types": ["unit", "integration(real-svc)", "chaos"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §3.1.2/§3.4.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement tiered cache hot(memory)/warm(NVMe)/cold(SSD) data tiers",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Add a tiered cache placing hot data in memory, warm on NVMe, and cold on SSD, with promotion/demotion, for the cache/session layer (Redis/Dragonfly lessons).",
+    "closure_criteria": "Run-UUID logged: drive an access pattern and prove hot keys are served from memory while idle keys demote to NVMe/SSD; capture before/after per-tier hit rates and a measured latency delta between tiers proving correct placement.",
+    "required_test_types": ["unit", "integration(real-svc)", "performance", "benchmark"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §5.5.3/§9.4.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Build deterministic simulation testing (DST) framework on Turmoil (G-14, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/dst: a FoundationDB-style deterministic simulation harness (Rust Turmoil/Tokio) running real code in a single-threaded event loop with abstracted network/disk/time/randomness and seeded RNG for perfect reproducibility, wired as a CI gate (target 1,000 sims/commit). Real production code IS the model (no mock).",
+    "closure_criteria": "Run-UUID logged: run >=1,000 seeded simulations in CI; capture the seed and full event trace of at least one induced failure and prove byte-for-byte replay reproduces it; CI gate blocks a PR when a seed surfaces a linearizability/safety violation (before/after CI status captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "automation", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-14 MISSING; DEFERRED)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.4 G-14", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.6.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Implement BUGGIFY chaos macros at 25% deterministic fire rate (G-15, P0)",
+    "type": "Feature",
+    "priority": "P0",
+    "description": "Create pkg/dst BUGGIFY_WITH_PROB(p) macros (Go) firing deterministically (~25%) on timeouts, cache sizes, retry limits and I/O patterns to explore rare code paths (e.g. shrink timeouts 600x), with a configurable fire-rate gated to test builds only.",
+    "closure_criteria": "Run-UUID logged: with a fixed seed, capture which BUGGIFY sites fired and at what rate (converging on ~25% across many runs); prove an injected timeout-shrink forces an otherwise-untested retry path to execute, and that BUGGIFY is disabled in production builds (before/after build-flag behavior captured).",
+    "required_test_types": ["unit", "automation", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-15 MISSING; DEFERRED)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.4 G-15", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.6.2"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Integrate Porcupine linearizability checking in CI under fault injection (G-16, P1)",
+    "type": "Feature",
+    "priority": "P1",
+    "description": "Create pkg/porcupine integration: a history recorder shim plus the Porcupine model checker run nightly (and per-run) to verify linearizability of distributed operations under fault injection.",
+    "closure_criteria": "Run-UUID logged: record an operation history under injected faults and run Porcupine; capture a PASS (linearizable) on correct behavior and a deliberately seeded non-linearizable history producing a FAIL with the violating operation identified (before/after checker verdict captured).",
+    "required_test_types": ["unit", "integration(real-svc)", "automation", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (G-16 MISSING; DEFERRED)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1.4 G-16", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.6.3"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Build nightly chaos pipeline (pod kill, partition, disk stall, clock skew) (G-15 part)",
+    "type": "Feature",
+    "priority": "P2",
+    "description": "Create internal/chaos with a roachtest/Chaos-Mesh-style nightly pipeline (GitHub Actions + live cluster) injecting pod kills, network partitions, disk stalls, and clock skew, with canary safeguards and automatic rollback (Netflix ChAP-style).",
+    "closure_criteria": "Run-UUID logged: execute a scheduled nightly run against a live test cluster that injects each fault class and captures the system recovering within SLO; a forced regression triggers the canary safeguard and automatic rollback (before/after cluster health and rollback log captured).",
+    "required_test_types": ["integration(real-svc)", "automation", "chaos", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (chaos MISSING; DEFERRED)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.4.5", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §8.4/§8.6.4"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Author TLA+ formal specifications for consensus/coordination protocols (P2)",
+    "type": "Docs",
+    "priority": "P3",
+    "description": "Write TLA+ specifications (TLC model-checkable) for HelixCluster consensus and coordination protocols (Multi-Raft, voting quorum, two-phase failure detection) to formally verify safety/liveness invariants.",
+    "closure_criteria": "Run-UUID logged: run TLC on the committed .tla specs and capture a clean model-check (no invariant violations) over the bounded state space; introduce a deliberate spec bug and show TLC reports the violating trace (before/after model-check result captured).",
+    "required_test_types": ["unit", "automation", "challenge(HelixQA)"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (TLA+ MISSING; DEFERRED)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §8.6.5/§9.5.1"],
+    "decoupling_candidate": true
+  },
+  {
+    "title": "Produce hardened HelixCluster architecture diagram and component map",
+    "type": "Docs",
+    "priority": "P2",
+    "description": "Produce the canonical hardened-architecture artifact: the ASCII layered diagram (client/SCAN, federation, per-node data/scheduler/session/messaging/testing layers) and the Component Map table mapping each component to its source system, hardness mechanism, and provenance.",
+    "closure_criteria": "Run-UUID logged: the diagram and component-map are checked into docs and reviewed; every named component links to its implementing package and gap ID, verified by a doc-lint that fails if a mapped component has no corresponding package reference (before/after lint status captured).",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec11.md §11.1.1/§11.1.2", "phase_07/HelixCluster_Phase_07/helixcluster_phase7.agent.outline.md §11.1"],
+    "decoupling_candidate": false
+  },
+  {
+    "title": "Produce Phase 7 phase-by-phase 23-gap matrix as tracked deliverable ledger",
+    "type": "Docs",
+    "priority": "P1",
+    "description": "Maintain the authoritative Phase 7 gap matrix (23 gaps G-01..G-23 across Phases 1-6 with severity, industry source, prescribed fix, P0-P3 priority, and hardened-code location) as a living ledger reconciled against actual source.",
+    "closure_criteria": "Run-UUID logged: the matrix is checked in and each gap row carries a live status (DONE/PARTIAL/MISSING) cross-referenced to file:line evidence; a verification script recomputes status from the repo and the doc matches (before/after reconciliation diff captured = empty).",
+    "required_test_types": ["unit", "automation"],
+    "source_refs": ["phase_07/GAP_AUDIT.md (Deliverable Status Table)", "phase_07/HelixCluster_Phase_07/helixcluster_phase7_sec09.md §9.1 Table 1"],
+    "decoupling_candidate": false
+  }
+]
