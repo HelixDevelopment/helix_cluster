@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 88 <strong>Last modified:</strong>
-2026-06-01T23:58:54Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 89 <strong>Last modified:</strong>
+2026-06-01T23:59:37Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,31 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>656bec1</code></td>
+<td>Foundation wave 27: 2 disjoint streams (both approved no-fix;
+mutation spot-checks bite). HXC-1237 swim prod+sim transport parity
+(pkg/swim: minimal additive Config.Transport injection seam in
+NewProtocol – nil =&gt; real UDP NewTransport as before, non-nil =&gt;
+injected MessageTransport; prod behavior unchanged. NEW
+simparity_test.go runs the REAL swim membership protocol over the
+deterministic SimNetwork: 3-node full-mesh converges (all see
+StateAlive, 12 msgs), 4-node determinism (same seed identical),
+seam-load-bearing test asserts sim addr 127.0.0.1:18200. mutation:
+ignore cfg.Transport -&gt; node sees only itself, convergence FAILS).
+HXC-1278 property-based + coverage-guided fuzzing (4 native Go FuzzXxx
+targets, NEW files only): FuzzParseCoverProfile (no-panic +
+Covered&lt;=Total + Aggregate in [0,100]), FuzzParseTraceParent
+(no-panic + String() round-trip stable + valid hex ids), FuzzApply
+(checkpoint_merge no-panic on arbitrary checkpoint bytes via real
+checksum/gob path), FuzzCRDTCheckpointRoundTrip
+(NewCRDTCheckpoint-&gt;RestoreCRDT Fingerprint-stable + corrupt-bytes
+no-panic). All assert falsifiable invariants on non-empty seed corpora,
+run under plain go test (no -fuzz needed); mutation: break
+TraceParent.String() round-trip FAILS. ZERO new deps. Gate:
+build/vet/vet-integration clean, full -short -race green, dataplane ok,
+tmux clean; 2 mutation spot-checks bite.</td>
+</tr>
 <tr>
 <td><code>5707d6b</code></td>
 <td>Foundation wave 26: mark 3 items Completed (HXC-1268/1265/1236) —
@@ -407,14 +432,6 @@ isolation. NOTE pre-existing leak: pkg/session.Manager-based tests
 (manager.go:106 session-<nanos> naming, e.g. hxc1136) can leave tmux
 sessions — hygiene item, not introduced here.</td>
 </tr>
-<tr>
-<td><code>09d0044</code></td>
-<td>Foundation wave 21: mark 3 items Completed (HXC-1130/1249/1243) —
-screen+zellij session backends (real screen, zellij ErrUnsupported) /
-emergency-stop+auto-recovery / 8 network fault injectors (verified
-already complete). Mutation spot-check confirms emergency-stop bite.
-Registry 182-&gt;185 Completed / 454 Queued.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -432,11 +449,11 @@ Registry 182-&gt;185 Completed / 454 Queued.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>5707d6b</code></td>
+<td><code>656bec1</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:58:54Z</td>
+<td>2026-06-01T23:59:37Z</td>
 </tr>
 </tbody>
 </table>

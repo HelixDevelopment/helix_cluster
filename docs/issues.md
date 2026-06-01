@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 35
-**Last modified:** 2026-06-01T23:44:27Z
+**Revision:** 36
+**Last modified:** 2026-06-01T23:59:30Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **446**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **444**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -98,7 +98,7 @@ Total active items: **446**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (51 active)
+## Phase 4 (49 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -108,7 +108,6 @@ Total active items: **446**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1232 | Feature | P0 | Queued | Implement unified golden snapshot + COW instant-reset across all simulator backends |
 | HXC-1234 | Feature | P0 | Queued | Build Rust DST engine: single-threaded SimLoop with virtual clock and seeded PRNG |
 | HXC-1235 | Feature | P0 | Queued | Integrate Rust turmoil for deterministic simulated TCP/UDP networking |
-| HXC-1237 | Feature | P0 | Queued | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) |
 | HXC-1242 | Feature | P0 | Queued | Build Elixir/OTP Chaos Controller GenServer with supervision-tree isolation |
 | HXC-1251 | Feature | P0 | Queued | Build Virtual Testing Controller OTP supervision tree (one_for_all) |
 | HXC-1252 | Feature | P0 | Queued | Implement SessionManager with 50-session cap, 2h TTL, resource-quota enforcement |
@@ -149,7 +148,6 @@ Total active items: **446**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1288 | Task | P2 | Queued | Define polyglot interop boundaries (Rust↔Go↔Elixir↔Wasm) |
 | HXC-1289 | Feature | P2 | Queued | Integrate libcluster automatic BEAM cluster formation via Kubernetes DNS |
 | HXC-1277 | Research | P3 | Queued | Integrate Shadow/Phantom for unmodified-binary deterministic network simulation |
-| HXC-1278 | Research | P3 | Queued | Add property-based + coverage-guided fuzzing for cluster operations |
 | HXC-1280 | Research | P3 | Queued | Validate gem5 big.LITTLE (O3+Minor) scheduler fidelity for RK3588 |
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |

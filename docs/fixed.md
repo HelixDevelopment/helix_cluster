@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 35
-**Last modified:** 2026-06-01T23:44:27Z
+**Revision:** 36
+**Last modified:** 2026-06-01T23:59:30Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **194**.
+Total completed: **196**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -186,6 +186,7 @@ Total completed: **194**.
 | HXC-1229 | Task | P0 | Build device profile registry with versioned YAML schema for T1-T8 | 1c0d943 |
 | HXC-1231 | Feature | P1 | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) | 553a043 |
 | HXC-1236 | Feature | P0 | Implement INetwork/HelixNetwork trait with production and simulation swappable impls | 7c41c2f |
+| HXC-1237 | Feature | P0 | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) | 656bec1 |
 | HXC-1238 | Feature | P1 | Implement BUGGIFY macro framework with ~25% deterministic fire rate | 75f076f |
 | HXC-1239 | Feature | P1 | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods | 75f076f |
 | HXC-1240 | Feature | P1 | Achieve 1,000+ simulated nodes in a single DST process | 75f076f |
@@ -202,5 +203,6 @@ Total completed: **194**.
 | HXC-1265 | Feature | P1 | Implement capability-based plugin sandbox with resource limits and audit logging | 7c41c2f |
 | HXC-1267 | Feature | P0 | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands | aba565b |
 | HXC-1268 | Feature | P1 | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot | 7c41c2f |
+| HXC-1278 | Research | P3 | Add property-based + coverage-guided fuzzing for cluster operations | 656bec1 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
