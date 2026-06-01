@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 26
-**Last modified:** 2026-06-01T20:58:23Z
+**Revision:** 27
+**Last modified:** 2026-06-01T21:17:59Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **469**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **466**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,17 +18,14 @@ Total active items: **469**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (21 active)
+## MVP (18 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
-| HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
 | HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
 | HXC-1110 | Task | P1 | Queued | Wire Prometheus /metrics endpoint uniformly across all services (cmd/helix-*) |
-| HXC-1111 | Task | P1 | Queued | Wire Jaeger/OTel trace-ID propagation across services (pkg/tracing) |
-| HXC-1112 | Task | P1 | Queued | Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*) |
 | HXC-1119 | Feature | P1 | Queued | Implement Avro event schemas and schema-validated routing (Event Bus) |
 | HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |

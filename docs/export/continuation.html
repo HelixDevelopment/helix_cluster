@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 69 <strong>Last modified:</strong>
-2026-06-01T21:17:16Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 70 <strong>Last modified:</strong>
+2026-06-01T21:18:00Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,31 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>05f408d</code></td>
+<td>Foundation wave 17: 3 disjoint streams (all approved no-fix;
+mutation spot-check confirms all 3 bite). HXC-1097 unified GPUBackend
+interface + BackendRegistry.AutoDetect (REAL probes
+nvidia-smi/rocm-smi/sycl-ls + Apple/Darwin backend with real
+system_profiler/sysctl device detection + metrics) — compute ops
+(Execute/ExecuteDistributed/AllocateMemory/MPS) return typed
+ErrUnsupported, NEVER fake success (CLAUDE-2 honest seam; mutation:
+fake-success-&gt;ErrUnsupported test FAILS). HXC-1111 gRPC W3C trace-ID
+propagation (pkg/tracing/grpc.go Unary client+server interceptors
+reusing existing Inject/Extract/ParseTraceParent; proven across a REAL
+3-hop in-process gateway-&gt;scheduler-&gt;session chain — one trace ID
+survives, distinct per-hop parent; mutation: drop-inject-&gt;3-hop
+equality FAILS). HXC-1112 standard grpc.health.v1 (pkg/health/grpc.go
+RegisterGRPC+SetServing bridging health.Checker-&gt;SERVING/NOT_SERVING;
+in-process grpc_health_v1 client Check proves SERVING+NOT_SERVING; wired
+into 6 gRPC service mains
+advisory/build/node/scheduler/security/session; htmux/gateway/policy
+correctly skipped — no grpc.Server). ZERO new deps (used grpc’s
+health/grpc_health_v1/metadata/bufconn already vendored). Gate:
+build/vet/vet-integration clean, full -short -race green,
+dataplane+security ok, 3 mutation spot-checks confirm assertions
+bite.</td>
+</tr>
 <tr>
 <td><code>6f55986</code></td>
 <td>Foundation wave 16: mark 6 items Completed
@@ -392,25 +417,6 @@ edgeaware T6 guard confirmed real.</td>
 already-implemented (STUN/OTLP). Registry 137-&gt;151 Completed / 488
 Queued.</td>
 </tr>
-<tr>
-<td><code>7718c20</code></td>
-<td>Foundation wave 12: 5 disjoint-package streams, 12 items
-integration-proven vs real etcd/minio. pkg/wireguard typed
-ErrUnsupported (errors.Is) + key-rotation grace/overlap ActiveKeys()
-consumed by mesh; pkg/scheduler named ClassAdFilter/ScorePlugin
-(classads Requirements/Rank) + thermal-aware plugin (filter/score on
-temp_c threshold); internal/scheduler real PREEMPTED lifecycle event
-(terminal, ordered); NEW pkg/edge trust model
-(FULL/STANDARD/SEMI/EDGE_DONOR) + workload restriction matrix +
-work-unit resource-limit executor (kill-after duration) + declarative
-per-tier ScheduleRule engine; NEW internal/verifier SEMI output
-verification (sha256 redundant-recompute reject tamper) + pkg/discovery
-etcd TTL-lifecycle integration test + pkg/storage real-minio S3
-round-trip integration test. ZERO new deps. GATE:
-build/vet/vet-integration clean, full -short -race green, integration
-tier vs real etcd(:38623 ephemeral)+minio(:9000) green, mutation
-spot-check on verifier confirmed real.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -428,11 +434,11 @@ spot-check on verifier confirmed real.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>6f55986</code></td>
+<td><code>05f408d</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T21:17:16Z</td>
+<td>2026-06-01T21:18:00Z</td>
 </tr>
 </tbody>
 </table>

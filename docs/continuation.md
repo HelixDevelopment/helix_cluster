@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 69
-**Last modified:** 2026-06-01T21:17:16Z
+**Revision:** 70
+**Last modified:** 2026-06-01T21:18:00Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `05f408d` | Foundation wave 17: 3 disjoint streams (all approved no-fix; mutation spot-check confirms all 3 bite). HXC-1097 unified GPUBackend interface + BackendRegistry.AutoDetect (REAL probes nvidia-smi/rocm-smi/sycl-ls + Apple/Darwin backend with real system_profiler/sysctl device detection + metrics) — compute ops (Execute/ExecuteDistributed/AllocateMemory/MPS) return typed ErrUnsupported, NEVER fake success (CLAUDE-2 honest seam; mutation: fake-success->ErrUnsupported test FAILS). HXC-1111 gRPC W3C trace-ID propagation (pkg/tracing/grpc.go Unary client+server interceptors reusing existing Inject/Extract/ParseTraceParent; proven across a REAL 3-hop in-process gateway->scheduler->session chain — one trace ID survives, distinct per-hop parent; mutation: drop-inject->3-hop equality FAILS). HXC-1112 standard grpc.health.v1 (pkg/health/grpc.go RegisterGRPC+SetServing bridging health.Checker->SERVING/NOT_SERVING; in-process grpc_health_v1 client Check proves SERVING+NOT_SERVING; wired into 6 gRPC service mains advisory/build/node/scheduler/security/session; htmux/gateway/policy correctly skipped — no grpc.Server). ZERO new deps (used grpc's health/grpc_health_v1/metadata/bufconn already vendored). Gate: build/vet/vet-integration clean, full -short -race green, dataplane+security ok, 3 mutation spot-checks confirm assertions bite. |
 | `6f55986` | Foundation wave 16: mark 6 items Completed (HXC-1238/1239/1240/1241/1138/1199) — BUGGIFY framework / DST virtual-time compression / 1000+ node scale (253k ev/s) / FoundationDB 4-phase workload / coverage+mutation gate tool / edge sensor-fusion. Adversarial review caught+fixed 3 real CLAUDE-1 bluffs; mutation spot-check confirms invariants bite. Registry 165->171 Completed / 468 Queued. |
 | `75f076f` | Foundation wave 16: 6 disjoint pure-Go DST/testing-infra streams. HXC-1238 BUGGIFY framework (pkg/testing/dst/buggify.go: Buggify type + Engine.Buggify(p) driven by seeded PRNG, ~25% FireQuarter, enabled gate, BuggifyDuration 60s->0.1s timeout compression; determinism + 100k-trial fire-rate proofs). HXC-1239 virtual-time compression (NEW pkg/testing/dstcompress: Measure() real-wall-vs-virtual ratio + BatchSchedule; proves ~2e9:1 over 24h virtual horizon, >=8:1 at 1000 nodes). HXC-1240 1000+ node scale (NEW pkg/testing/dstscale: RunScale measured throughput/mem/virtual-span; -short 1000-node correctness + integration 1000x100k @ 253k ev/s, 12.8KB/node). HXC-1241 FoundationDB 4-phase workload (NEW pkg/testing/dstworkload: SETUP/EXECUTION/CHECK/METRICS over dst+chaos; real task-assignment protocol, chaos mutates Node.Online, NoLostTasks/NoDoubleAssignment/Quorum>=3 invariants that BITE, throughput+p99). HXC-1138 coverage+mutation gate tool (NEW pkg/covgate: ParseCoverProfile + threshold verdict + mutation-pairing scanner vs run_mutations.sh convention; fixture-driven FAIL cases). HXC-1199 edge sensor-fusion (NEW pkg/edgefusion: deterministic windowed multi-stream fusion, distinct workload class, exact-output assertion). Adversarial review caught+fixed 3 real CLAUDE-1 bluffs (B always-true WallElapsed<0 + self-referential same-timestamp; C always-true ClockMonotonic removed->measured ProcessedRatio; D structurally-dead NoDoubleAssignment map-loop -> duplicates seam). ZERO new deps, zero edits to existing files (6 disjoint dirs). Gate: build/vet/vet-integration clean, full -short -race green, dstscale integration 253k ev/s, mutation spot-check confirms D+F invariants bite. |
 | `888a5a3` | Foundation wave 15: mark 4 items Completed (HXC-1136/1137/1231/1260) — session-create EXIT GATE proven vs real tmux / scheduler-latency EXIT GATE <100ms / provisioner-lifecycle-FSM / KPI-quality-gate. MVP exit-gate triad complete (1135+1136+1137). Registry 161->165 Completed / 474 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `e1dab02` | Foundation wave 13: mark 6 items Completed (HXC-1189/1190/1198/1210/1213/1220) — gateway-auth-deny-reason / node-etcd-wiring (real etcd cross-visibility) / OPA-decision-log / EdgeAware-Filter+Score / offline-sync-delta-compression. Registry 151->157 Completed / 482 Queued. |
 | `203c42a` | Foundation wave 13: 5 disjoint-package streams, 6 items. internal/gateway X-Helix-Deny-Reason header + scheduler:write scope enforcement (401/403 reject-before-proxy); internal/node REAL EtcdBackend wiring (Config.EtcdEndpoints -> NewEtcdBackend w/ SWIM-tied TTL lease + resource metadata, BackendType() status, in-memory fallback) — node registrations now cluster-visible (unblocks 1135 two-node formation); internal/policy real persisted OPA decision-log sink (DecisionLogEntry RunUUID/Allow/Reason/PolicyName); NEW pkg/scheduler/edgeaware.go EdgeAware Filter (tier>=6 reject session/sleeping/over-thermal/not-charging w/ reasons) + Score (per-tier+thermal-headroom bonuses); NEW pkg/offlinesync delta-compression (flate) offline job-ledger + idempotent reconcile (100% recovery). ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, integration tier 1210 vs REAL etcd (A sees B+metadata, UUID) + gateway/policy green, live mutation spot-check on edgeaware T6 guard confirmed real. |
 | `23df87b` | Foundation wave 12: mark 14 items Completed (HXC-1148/1149/1150/1151/1156/1157/1188/1191/1195/1196/1211/1212/1214/1215) — 12 integration-proven vs real etcd/minio + 2 gate-verified already-implemented (STUN/OTLP). Registry 137->151 Completed / 488 Queued. |
-| `7718c20` | Foundation wave 12: 5 disjoint-package streams, 12 items integration-proven vs real etcd/minio. pkg/wireguard typed ErrUnsupported (errors.Is) + key-rotation grace/overlap ActiveKeys() consumed by mesh; pkg/scheduler named ClassAdFilter/ScorePlugin (classads Requirements/Rank) + thermal-aware plugin (filter/score on temp_c threshold); internal/scheduler real PREEMPTED lifecycle event (terminal, ordered); NEW pkg/edge trust model (FULL/STANDARD/SEMI/EDGE_DONOR) + workload restriction matrix + work-unit resource-limit executor (kill-after duration) + declarative per-tier ScheduleRule engine; NEW internal/verifier SEMI output verification (sha256 redundant-recompute reject tamper) + pkg/discovery etcd TTL-lifecycle integration test + pkg/storage real-minio S3 round-trip integration test. ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, integration tier vs real etcd(:38623 ephemeral)+minio(:9000) green, mutation spot-check on verifier confirmed real. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `6f55986` |
-| **Timestamp** | 2026-06-01T21:17:16Z |
+| **Commit** | `05f408d` |
+| **Timestamp** | 2026-06-01T21:18:00Z |
 
 ## §3: Active Work
 
