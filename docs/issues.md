@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 19
-**Last modified:** 2026-06-01T17:11:08Z
+**Revision:** 20
+**Last modified:** 2026-06-01T17:28:43Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **509**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **506**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,7 +18,7 @@ Total active items: **509**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (31 active)
+## MVP (28 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -45,13 +45,10 @@ Total active items: **509**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1128 | Feature | P2 | Queued | Implement Health Monitor with eBPF probes and LSTM failure prediction |
 | HXC-1129 | Feature | P2 | Queued | Implement CRIU/DMTCP-based session live migration orchestration |
 | HXC-1130 | Feature | P2 | Queued | Implement Zellij and GNU screen session backends |
-| HXC-1131 | Feature | P2 | Queued | Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints) |
-| HXC-1134 | Feature | P2 | Queued | Implement Vault secret injection and rotation for all services |
 | HXC-1139 | Research | P2 | Queued | Author TLA+ specifications for consensus and scheduling concurrency |
 | HXC-1141 | Feature | P2 | Queued | Implement interactive-mode AI CLI agent resource provisioning |
 | HXC-1142 | Feature | P2 | Queued | Implement hybrid mode switching and batch/interactive resource sharing |
 | HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
-| HXC-1144 | Feature | P2 | Queued | Implement WireGuard mesh network policies (segmentation) |
 | HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
 ## Phase 2 (23 active)

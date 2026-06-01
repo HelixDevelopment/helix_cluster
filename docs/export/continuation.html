@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 55 <strong>Last modified:</strong>
-2026-06-01T17:28:06Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 56 <strong>Last modified:</strong>
+2026-06-01T17:28:49Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,15 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>467a6dc</code></td>
+<td>Foundation wave 10: Vault secret injection + rotation (KV v2,
+no-downtime refresh), WireGuard mesh segmentation policy engine
+(DENY-wins label selectors + enforcement ruleset), Backup service (etcd
+clientv3 snapshot + pg_dump/restore state-match) — integration-proven vs
+real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files
+(unused ctx, unused require import)</td>
+</tr>
 <tr>
 <td><code>f1e920b</code></td>
 <td>Foundation wave 9: mark 4 items Completed (HXC-1104/1116/1127/1132)
@@ -324,11 +333,6 @@ postgres registry / build orchestrator — integration-proven</td>
 <td>Wave 5 deferred resolved: mark HXC-1086/1088/1093 Completed
 (integration-proven)</td>
 </tr>
-<tr>
-<td><code>4d0ac66</code></td>
-<td>fix(swim,leader,node): resolve Wave 5 deferred — real-dep
-integration now green</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -346,11 +350,11 @@ integration now green</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>f1e920b</code></td>
+<td><code>467a6dc</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T17:28:06Z</td>
+<td>2026-06-01T17:28:49Z</td>
 </tr>
 </tbody>
 </table>
