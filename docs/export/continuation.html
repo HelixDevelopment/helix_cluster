@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 86 <strong>Last modified:</strong>
-2026-06-01T23:43:49Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 87 <strong>Last modified:</strong>
+2026-06-01T23:44:33Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,30 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>7c41c2f</code></td>
+<td>Foundation wave 26: 3 disjoint streams (all approved; A minor
+comment-lie fixed by me). HXC-1268 standalone cmd/helix-snapshot CLI
+(run() dispatch + create/restore/compare/list/delete wiring real
+snapshot.Manager via -dir; 11 tests w/ real temp-dir fs assertions +
+exit codes; verified by me running the REAL binary: create writes
+.golden, list shows it, compare rc=0, delete removes it). HXC-1265
+capability sandbox + REAL resource-limit enforcement + audit (NEW
+pkg/sandbox: Capability deny-by-default grant model + Guard.Check (deny
+ungranted) + atomic.Int64 cumulative MaxOps/MaxBytes/MaxDuration
+enforcement – the genuine gap vs pkg/wasm caps – + MemAudit allow/deny
+log; in-process model, OS syscall isolation honestly out-of-scope not
+faked; mutation neuter-Has -&gt; ungranted allowed FAILS). HXC-1236
+HelixNetwork trait prod+sim (NEW pkg/helixnet: HelixNetwork interface +
+ProdNetwork real in-process channel fabric (bytes genuinely move
+A-&gt;B, deliver errors on unknown/closed dst) + SimNetwork
+deterministic via dst.Engine; zero pkg/swim edits – that’s 1237;
+mutation drop-delivery -&gt; send/unknown-addr tests FAIL). ZERO new
+deps, ZERO edits to existing files. Gate: build/vet/vet-integration
+clean, full -short -race green (only the known internal/advisory
+load-flake, passes isolated), dataplane ok, tmux/screen clean; 3
+mutation spot-checks bite + helix-snapshot real-binary verified.</td>
+</tr>
 <tr>
 <td><code>02cd05a</code></td>
 <td>Foundation wave 25: mark 3 items Completed (HXC-1254/1255/1267) —
@@ -410,14 +434,6 @@ dataplane ok; mutation spot-check: B skip-RestoreAll -&gt; post-stop
 ActiveFaults!=0 FAILS (bite real); A real screen create/list/kill
 verified sink-side, zero leaks.</td>
 </tr>
-<tr>
-<td><code>bc99718</code></td>
-<td>Foundation wave 20: mark 2 items Completed (HXC-1248/1244) — YAML
-chaos scenario engine (blast-radius+abort) / simulated node fault
-injectors. Plus HXC-1110 /metrics coverage completed for the 6 gRPC-only
-services. Mutation spot-checks confirm bites. Registry 180-&gt;182
-Completed / 457 Queued.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -435,11 +451,11 @@ Completed / 457 Queued.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>02cd05a</code></td>
+<td><code>7c41c2f</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:43:49Z</td>
+<td>2026-06-01T23:44:33Z</td>
 </tr>
 </tbody>
 </table>

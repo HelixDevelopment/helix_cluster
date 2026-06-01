@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 34
-**Last modified:** 2026-06-01T23:30:42Z
+**Revision:** 35
+**Last modified:** 2026-06-01T23:44:27Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **191**.
+Total completed: **194**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -185,6 +185,7 @@ Total completed: **191**.
 | HXC-1220 | Task | P2 | Replace custom policy engine with OPA/Rego | 203c42a |
 | HXC-1229 | Task | P0 | Build device profile registry with versioned YAML schema for T1-T8 | 1c0d943 |
 | HXC-1231 | Feature | P1 | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) | 553a043 |
+| HXC-1236 | Feature | P0 | Implement INetwork/HelixNetwork trait with production and simulation swappable impls | 7c41c2f |
 | HXC-1238 | Feature | P1 | Implement BUGGIFY macro framework with ~25% deterministic fire rate | 75f076f |
 | HXC-1239 | Feature | P1 | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods | 75f076f |
 | HXC-1240 | Feature | P1 | Achieve 1,000+ simulated nodes in a single DST process | 75f076f |
@@ -198,6 +199,8 @@ Total completed: **191**.
 | HXC-1255 | Feature | P1 | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) | aba565b |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |
+| HXC-1265 | Feature | P1 | Implement capability-based plugin sandbox with resource limits and audit logging | 7c41c2f |
 | HXC-1267 | Feature | P0 | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands | aba565b |
+| HXC-1268 | Feature | P1 | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot | 7c41c2f |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

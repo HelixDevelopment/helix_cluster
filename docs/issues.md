@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 34
-**Last modified:** 2026-06-01T23:30:42Z
+**Revision:** 35
+**Last modified:** 2026-06-01T23:44:27Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **449**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **446**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -98,7 +98,7 @@ Total active items: **449**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (54 active)
+## Phase 4 (51 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -108,7 +108,6 @@ Total active items: **449**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1232 | Feature | P0 | Queued | Implement unified golden snapshot + COW instant-reset across all simulator backends |
 | HXC-1234 | Feature | P0 | Queued | Build Rust DST engine: single-threaded SimLoop with virtual clock and seeded PRNG |
 | HXC-1235 | Feature | P0 | Queued | Integrate Rust turmoil for deterministic simulated TCP/UDP networking |
-| HXC-1236 | Feature | P0 | Queued | Implement INetwork/HelixNetwork trait with production and simulation swappable impls |
 | HXC-1237 | Feature | P0 | Queued | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) |
 | HXC-1242 | Feature | P0 | Queued | Build Elixir/OTP Chaos Controller GenServer with supervision-tree isolation |
 | HXC-1251 | Feature | P0 | Queued | Build Virtual Testing Controller OTP supervision tree (one_for_all) |
@@ -129,8 +128,6 @@ Total active items: **449**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
 | HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
 | HXC-1264 | Task | P1 | Queued | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter |
-| HXC-1265 | Feature | P1 | Queued | Implement capability-based plugin sandbox with resource limits and audit logging |
-| HXC-1268 | Feature | P1 | Queued | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot |
 | HXC-1269 | Feature | P1 | Queued | Build cmd/helix-testd daemon as OTP controller node entrypoint |
 | HXC-1273 | Feature | P1 | Queued | Implement vsock host-guest control channel for chaos-resilient telemetry |
 | HXC-1284 | Task | P1 | Queued | Benchmark Firecracker 5,000+ microVMs per host with KSM and memory overcommit |
