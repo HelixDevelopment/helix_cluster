@@ -31,6 +31,20 @@ func NewMemoryLocker() *MemoryLocker {
 }
 
 // Lock acquires an in-memory lock for the given key.
+// If ctx is cancelled while waiting, Lock returns ctx.Err() immediately and
+// guarantees no goroutine remains permanently blocked: the internal acquisition
+// goroutine is signalled via an "abandoned" channel so that — whether it has
+// already acquired the per-key mutex or is still waiting to acquire it — it
+// releases the mutex rather than leaving an orphan owner.
+//
+// Design: "locked" is UNBUFFERED. This eliminates the send-race that plagues
+// buffered designs:
+//   - The goroutine's `locked <- struct{}{}` only completes if the outer select
+//     is simultaneously reading from it (i.e. the caller takes ownership).
+//   - If the outer select instead picks ctx.Done(), the goroutine is still
+//     blocked on the `locked <- struct{}{}` send (or on lm.Lock()). Closing
+//     "abandoned" makes the goroutine's inner select choose <-abandoned and
+//     call lm.Unlock() — no orphan, no leak.
 func (m *MemoryLocker) Lock(ctx context.Context, key string) (UnlockFunc, error) {
 	m.mu.Lock()
 	lm, ok := m.locks[key]
@@ -40,20 +54,40 @@ func (m *MemoryLocker) Lock(ctx context.Context, key string) (UnlockFunc, error)
 	}
 	m.mu.Unlock()
 
-	// Fast path: try to lock without blocking first
-	locked := make(chan struct{}, 1)
+	// locked is UNBUFFERED: the goroutine's send completes only when the caller
+	// receives, which means ownership transfer is atomic with the outer select.
+	// abandoned is closed exactly once by the cancellation path to tell the
+	// goroutine to release the mutex it just acquired.
+	locked := make(chan struct{})
+	abandoned := make(chan struct{})
+
 	go func() {
 		lm.Lock()
-		locked <- struct{}{}
+		// lm is now held by this goroutine. Decide who owns it:
+		//   • If the outer select is waiting on <-locked, the send completes and
+		//     the caller owns the mutex.
+		//   • If abandoned is already closed (ctx cancelled before we acquired),
+		//     nobody wants the lock — release it immediately.
+		select {
+		case locked <- struct{}{}:
+			// Caller took ownership; it will call lm.Unlock() via UnlockFunc.
+		case <-abandoned:
+			// Caller is gone; release so future waiters are not permanently blocked.
+			lm.Unlock()
+		}
 	}()
 
 	select {
 	case <-locked:
 		return func() error { lm.Unlock(); return nil }, nil
 	case <-ctx.Done():
-		// We can't cancel the goroutine, but we record it will eventually unlock
-		// For production, use EtcdLocker instead
-		return nil, ctx.Err()
+		ctxErr := ctx.Err()
+		// Signal the goroutine to release the mutex when it eventually acquires it.
+		// Because locked is unbuffered, the goroutine cannot have completed its
+		// send without the outer select receiving it — so we know the goroutine
+		// has NOT transferred ownership to us, and closing abandoned is safe.
+		close(abandoned)
+		return nil, ctxErr
 	}
 }
 

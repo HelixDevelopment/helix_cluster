@@ -32,6 +32,19 @@ type Job struct {
 	CompletedAt    *time.Time        `json:"completed_at,omitempty"`
 	Logs           []string          `json:"logs"`
 	mu             sync.RWMutex
+	// done is closed exactly once when the job enters a terminal state.
+	// Readers can select/wait on Done() without polling.
+	done chan struct{}
+	// doneOnce guards the single close of done.
+	doneOnce sync.Once
+}
+
+// Done returns a channel that is closed when the job reaches a terminal state
+// (StateSucceeded, StateFailed, or StateCancelled). It is safe to call Done
+// from multiple goroutines. The channel is never nil once the job has been
+// enqueued via Service.Submit.
+func (j *Job) Done() <-chan struct{} {
+	return j.done
 }
 
 // IsTerminal returns true if the build has reached a terminal state.
@@ -97,6 +110,11 @@ func (j *Job) TransitionTo(newState State) error {
 		j.StartedAt = &now
 	case StateSucceeded, StateFailed, StateCancelled:
 		j.CompletedAt = &now
+		// Signal Done() waiters. Must be called while still under j.mu so that
+		// readers who observe the closed channel also see the terminal State.
+		if j.done != nil {
+			j.doneOnce.Do(func() { close(j.done) })
+		}
 	}
 	return nil
 }
@@ -232,6 +250,7 @@ func (s *Service) Submit(j *Job) error {
 	j.State = StateQueued
 	j.CreatedAt = time.Now().UTC()
 	j.Logs = make([]string, 0)
+	j.done = make(chan struct{})
 	s.jobs[j.ID] = j
 
 	select {
@@ -280,6 +299,24 @@ func (j *Job) clone() *Job {
 		c.CompletedAt = &t
 	}
 	return c
+}
+
+// WaitDone blocks until the job identified by id reaches a terminal state or
+// the context is cancelled, then returns a snapshot via Get. It is the
+// preferred alternative to polling in tests and production callers alike.
+func (s *Service) WaitDone(ctx context.Context, id string) (*Job, error) {
+	s.mu.RLock()
+	j, ok := s.jobs[id]
+	s.mu.RUnlock()
+	if !ok {
+		return nil, fmt.Errorf("job %s not found", id)
+	}
+	select {
+	case <-j.Done():
+		return j.clone(), nil
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	}
 }
 
 // List returns all jobs.

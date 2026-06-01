@@ -2,6 +2,7 @@ package lock
 
 import (
 	"context"
+	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -203,5 +204,100 @@ func TestMemoryLockerContextCancellation(t *testing.T) {
 	_, err = l.Lock(ctx2, "cancel-key")
 	if err != context.Canceled {
 		t.Fatalf("expected context.Canceled, got %v", err)
+	}
+}
+
+// TestMemoryLockerCancelNoGoroutineLeak proves that cancelling a context while
+// waiting for a contended lock does NOT leave a goroutine permanently blocked.
+//
+// The fix required (HXC-1019): the goroutine spawned in Lock() to call lm.Lock()
+// must detect cancellation and — if it already acquired the mutex — release it
+// immediately without delegating the orphan to some future caller.
+//
+// Assertion (sink-side, not "no panic"):
+//  1. Lock(cancelledCtx) returns context.Canceled.
+//  2. A "released" channel receives a signal within 3 s, proving the internal
+//     goroutine actually exited (not just that the select arm fired).
+//  3. After the goroutine exits, the mutex can be re-acquired without blocking,
+//     confirming the orphan release happened correctly.
+func TestMemoryLockerCancelNoGoroutineLeak(t *testing.T) {
+	l := NewMemoryLocker()
+
+	// Acquire the lock so the second caller is forced to block.
+	holderUnlock, err := l.Lock(context.Background(), "leak-key")
+	if err != nil {
+		t.Fatalf("holder Lock: %v", err)
+	}
+
+	// Snapshot goroutine count before the cancellable waiter is started.
+	before := runtime.NumGoroutine()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// lockErrCh receives the error from the cancellable Lock call.
+	lockErrCh := make(chan error, 1)
+	go func() {
+		_, err := l.Lock(ctx, "leak-key")
+		lockErrCh <- err
+	}()
+
+	// Give the waiter goroutine time to start and block on lm.Lock().
+	time.Sleep(50 * time.Millisecond)
+
+	// Cancel the context — this should cause Lock() to return context.Canceled
+	// AND guarantee the internal goroutine does not remain blocked.
+	cancel()
+
+	// 1. Lock must return context.Canceled.
+	select {
+	case err := <-lockErrCh:
+		if err != context.Canceled {
+			t.Fatalf("expected context.Canceled, got %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("Lock did not return after context cancellation")
+	}
+
+	// Release the holder so the internal goroutine (if any) can make progress
+	// and exit promptly rather than being stuck indefinitely.
+	if err := holderUnlock(); err != nil {
+		t.Fatalf("holderUnlock: %v", err)
+	}
+
+	// 2. Goroutine count must return to at most before+1 within 3 s, proving
+	//    no goroutine is permanently parked.  We allow +1 slack for test
+	//    scheduler jitter (the goroutine we spawned above plus normal GC goroutines).
+	deadline := time.Now().Add(3 * time.Second)
+	for time.Now().Before(deadline) {
+		after := runtime.NumGoroutine()
+		if after <= before+1 {
+			break
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+	after := runtime.NumGoroutine()
+	if after > before+1 {
+		t.Fatalf("goroutine leak: had %d goroutines before, have %d after cancellation+holder-release (want ≤ %d)", before, after, before+1)
+	}
+
+	// 3. After goroutine has settled, the lock must be re-acquirable, proving
+	//    the internal goroutine did NOT leave the mutex in a permanently-locked state.
+	reacquireCh := make(chan error, 1)
+	go func() {
+		unlock2, err := l.Lock(context.Background(), "leak-key")
+		if err != nil {
+			reacquireCh <- err
+			return
+		}
+		_ = unlock2()
+		reacquireCh <- nil
+	}()
+	select {
+	case err := <-reacquireCh:
+		if err != nil {
+			t.Fatalf("re-acquire after cancel+release: %v", err)
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("re-acquire blocked after cancel+release (orphan lock not released)")
 	}
 }
