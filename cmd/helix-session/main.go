@@ -19,6 +19,7 @@ import (
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	"github.com/HelixDevelopment/helix_cluster/internal/session"
+	"github.com/HelixDevelopment/helix_cluster/pkg/health"
 	"google.golang.org/grpc"
 )
 
@@ -99,6 +100,9 @@ func run(ctx context.Context, cfg Config, ready func(addr net.Addr)) error {
 
 	s := grpc.NewServer()
 	helixv1.RegisterSessionServiceServer(s, session.NewServer())
+	hc := health.NewChecker()
+	hc.SetStatus(health.Healthy)
+	health.RegisterGRPC(s, hc)
 
 	srvErr := make(chan error, 1)
 	go func() {

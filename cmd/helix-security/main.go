@@ -36,6 +36,7 @@ import (
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	"github.com/HelixDevelopment/helix_cluster/internal/security"
+	"github.com/HelixDevelopment/helix_cluster/pkg/health"
 	"google.golang.org/grpc"
 )
 
@@ -132,6 +133,9 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 
 	gs := grpc.NewServer()
 	helixv1.RegisterSecurityServiceServer(gs, newSecurityServer())
+	hc := health.NewChecker()
+	hc.SetStatus(health.Healthy)
+	health.RegisterGRPC(gs, hc)
 
 	if ready != nil {
 		ready(lis.Addr().String())
