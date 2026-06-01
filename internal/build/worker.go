@@ -10,14 +10,14 @@ import (
 
 // Worker represents a build worker node in the cluster.
 type Worker struct {
-	ID        string
-	Address   string
-	Capacity  int // max concurrent builds
-	Load      int // current active builds
-	Healthy   bool
-	LastSeen  time.Time
-	Labels    map[string]string
-	mu        sync.RWMutex
+	ID       string
+	Address  string
+	Capacity int // max concurrent builds
+	Load     int // current active builds
+	Healthy  bool
+	LastSeen time.Time
+	Labels   map[string]string
+	mu       sync.RWMutex
 }
 
 // WorkerPool manages registration, allocation, and release of build workers.

@@ -52,6 +52,10 @@ type Config struct {
 	Workers int
 	// ShutdownTimeout bounds graceful shutdown. Must be > 0.
 	ShutdownTimeout time.Duration
+	// SimulatedBuilds, when true, injects the NON-PRODUCTION simulated builder
+	// so the gRPC/orchestration plumbing can be exercised deterministically
+	// without a real podman daemon. Production leaves this false (real podman).
+	SimulatedBuilds bool
 }
 
 // Addr returns the listen address in host:port form suitable for net.Listen.
@@ -128,7 +132,12 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 
 	// Build the orchestrator and start its worker pool. The orchestrator's
 	// goroutines are torn down on return so a failed bind does not leak workers.
-	orch := build.NewOrchestrator(cfg.Workers, cache.NewMemoryCache())
+	var orch *build.Orchestrator
+	if cfg.SimulatedBuilds {
+		orch = build.NewOrchestratorWithBuilder(cfg.Workers, cache.NewMemoryCache(), build.NewSimulatedBuilder())
+	} else {
+		orch = build.NewOrchestrator(cfg.Workers, cache.NewMemoryCache())
+	}
 	orch.Start(ctx)
 	defer orch.Stop()
 

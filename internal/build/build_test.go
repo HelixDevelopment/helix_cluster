@@ -15,7 +15,9 @@ import (
 )
 
 func TestOrchestrator_SubmitAndGetStatus(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fake builder: this test exercises orchestrator state-machine and submit
+	// plumbing, not the real podman executor.
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 
@@ -117,7 +119,8 @@ func TestOrchestrator_ListBuilds_WithFilters(t *testing.T) {
 }
 
 func TestOrchestrator_ConcurrentBuilds(t *testing.T) {
-	orch := NewOrchestrator(4, cache.NewMemoryCache())
+	// Use fake builder: exercises concurrent queue/state-machine, not real podman.
+	orch := newFakeOrchestrator(4, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 
@@ -293,7 +296,8 @@ func TestWorkerPool_RemoveWorker(t *testing.T) {
 }
 
 func TestServer_SubmitBuild(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fake builder: this test exercises the gRPC server submit path, not podman.
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 
@@ -312,7 +316,8 @@ func TestServer_SubmitBuild(t *testing.T) {
 }
 
 func TestServer_GetBuildStatus(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fake builder: this test exercises the gRPC status path, not podman.
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 

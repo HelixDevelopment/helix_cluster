@@ -99,8 +99,8 @@ func (s *GatewayEndpointsSuite) TestHealthEndpointAggregatesAllServices() {
 	s.Require().NoError(err)
 
 	var result struct {
-		Status  string `json:"status"`
-		Checks  []struct {
+		Status string `json:"status"`
+		Checks []struct {
 			Name   string `json:"name"`
 			Status string `json:"status"`
 		} `json:"checks"`

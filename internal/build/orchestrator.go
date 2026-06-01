@@ -165,15 +165,27 @@ type Orchestrator struct {
 	workers   int
 	cancel    context.CancelFunc
 	wg        sync.WaitGroup
+	builder   OrchestratorBuilder
 }
 
-// NewOrchestrator creates a build orchestrator with the given worker pool size and cache.
+// NewOrchestrator creates a build orchestrator with the given worker pool size
+// and cache, backed by the REAL podman executor (production default).
 func NewOrchestrator(workers int, c cache.Cache) *Orchestrator {
+	return NewOrchestratorWithBuilder(workers, c, nil)
+}
+
+// NewOrchestratorWithBuilder creates a build orchestrator with an injectable
+// OrchestratorBuilder, enabling unit tests to supply a fake runner. Passing nil
+// for builder defaults to the real podman executor.
+func NewOrchestratorWithBuilder(workers int, c cache.Cache, builder OrchestratorBuilder) *Orchestrator {
 	if workers < 1 {
 		workers = 1
 	}
 	if c == nil {
 		c = cache.NewMemoryCache()
+	}
+	if builder == nil {
+		builder = NewPodmanOrchestratorBuilder(nil) // nil runner => real os/exec
 	}
 	return &Orchestrator{
 		jobs:      make(map[string]*Job),
@@ -181,6 +193,7 @@ func NewOrchestrator(workers int, c cache.Cache) *Orchestrator {
 		cache:     c,
 		artifacts: make(map[string]string),
 		workers:   workers,
+		builder:   builder,
 	}
 }
 
@@ -362,30 +375,8 @@ func (o *Orchestrator) worker(ctx context.Context, id int) {
 	}
 }
 
-// runBuild executes the build logic. Override in production.
+// runBuild delegates to the injected OrchestratorBuilder which is responsible
+// for driving the job to a terminal state. The default builder uses real podman.
 func (o *Orchestrator) runBuild(ctx context.Context, j *Job) {
-	j.AppendLog(fmt.Sprintf("[%s] Build started on worker", time.Now().UTC().Format(time.RFC3339)))
-
-	select {
-	case <-ctx.Done():
-		j.TransitionTo(StateCancelled)
-		j.AppendLog("Build cancelled by context")
-		return
-	case <-time.After(100 * time.Millisecond):
-	}
-
-	if j.RepoURL == "fail" {
-		// Append the outcome log BEFORE the terminal transition so a client
-		// streaming logs (which stops once the job is terminal) cannot miss
-		// the final line due to a transition/append ordering race.
-		j.AppendLog("Build failed: simulated failure")
-		j.TransitionTo(StateFailed)
-		return
-	}
-
-	j.mu.Lock()
-	j.ImageTag = fmt.Sprintf("helix/%s:%s", j.ID, j.Ref)
-	j.mu.Unlock()
-	j.AppendLog(fmt.Sprintf("Build succeeded: image %s", j.ImageTag))
-	j.TransitionTo(StateSucceeded)
+	o.builder.Execute(ctx, j)
 }

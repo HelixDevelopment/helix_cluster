@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 46
-**Last modified:** 2026-06-01T14:11:33Z
+**Revision:** 47
+**Last modified:** 2026-06-01T15:14:58Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `e0d3938` | Wave 5 deferred resolved: mark HXC-1086/1088/1093 Completed (integration-proven) |
 | `4d0ac66` | fix(swim,leader,node): resolve Wave 5 deferred — real-dep integration now green |
 | `8184725` | Foundation wave 5: mark 5 items Completed (HXC-1087/1089/1091/1092/1094); 1086/1088/1093 stay Queued (integration WIP) |
 | `2f27ac9` | Foundation wave 5: 5 control-plane streams (gateway/lock/wireguard/node-registry proven; leader+swim+node-watch WIP) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `366a436` | CLAUDE-2: Cross-Platform Parity Guarantee — no Linux-only feature may fall back to a mock/stub on macOS |
 | `f6209f6` | Foundation wave 3b: mark 7 items Completed (HXC-1010/1011/1012/1013/1015/1020/1028) |
 | `85ee85e` | Foundation wave 3b: real-infra impl (infra orchestrator / podman builder / vault api) — integration-proven |
-| `909d107` | Disable all active CI per operator directive: park race.yml in disabled/ |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `4d0ac66` |
-| **Timestamp** | 2026-06-01T14:11:33Z |
+| **Commit** | `e0d3938` |
+| **Timestamp** | 2026-06-01T15:14:58Z |
 
 ## §3: Active Work
 

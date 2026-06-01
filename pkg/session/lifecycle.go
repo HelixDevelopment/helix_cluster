@@ -41,12 +41,12 @@ func asInvalidTransition(err error, target **InvalidTransitionError) bool {
 // Rationale for the chosen edges:
 //   - attach:    only a Running session can be attached to.
 //   - detach:    a Running or Paused session can be detached (idempotent-ish;
-//                a no-op detach from Paused is harmless and user-expected).
+//     a no-op detach from Paused is harmless and user-expected).
 //   - migrate:   only a Running session may begin migration. A session already
-//                Migrating, Terminated, Creating, Paused or Failed may not.
+//     Migrating, Terminated, Creating, Paused or Failed may not.
 //   - terminate: nearly any non-terminal state may be terminated (Running,
-//                Migrating, Paused, Creating, Failed) — but a Terminated
-//                session may NOT be terminated again (double-terminate guard).
+//     Migrating, Paused, Creating, Failed) — but a Terminated
+//     session may NOT be terminated again (double-terminate guard).
 var allowedTransitions = map[lifecycleAction]map[SessionStatus]bool{
 	actionAttach: {
 		StatusRunning: true,

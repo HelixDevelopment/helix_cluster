@@ -2,6 +2,7 @@ package build
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -11,6 +12,46 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// ---------------------------------------------------------------------------
+// fakeOrchestratorBuilder — unit-test helper
+//
+// Drives every job to SUCCEEDED (with a fixed image tag) or FAILED without
+// touching podman or any real external command. Replaces the old simulated
+// runBuild so unit tests that exercise the orchestrator/state-machine remain
+// hermetic even though NewOrchestrator now defaults to the real podman builder.
+// ---------------------------------------------------------------------------
+
+type fakeOrchestratorBuilder struct {
+	// failRepoURL, if non-empty, makes any job with that RepoURL fail.
+	failRepoURL string
+	// tagFn, if set, overrides how the image tag is derived. Default: "helix/<id>:<ref>".
+	tagFn func(j *Job) string
+}
+
+func (f *fakeOrchestratorBuilder) Execute(_ context.Context, j *Job) {
+	if f.failRepoURL != "" && j.RepoURL == f.failRepoURL {
+		j.AppendLog("Build failed: simulated failure")
+		_ = j.TransitionTo(StateFailed)
+		return
+	}
+	tag := fmt.Sprintf("helix/%s:%s", j.ID, j.Ref)
+	if f.tagFn != nil {
+		tag = f.tagFn(j)
+	}
+	j.mu.Lock()
+	j.ImageTag = tag
+	j.mu.Unlock()
+	j.AppendLog(fmt.Sprintf("Build succeeded: image %s", tag))
+	_ = j.TransitionTo(StateSucceeded)
+}
+
+// newFakeOrchestrator returns an Orchestrator wired with fakeOrchestratorBuilder.
+// All existing tests that need the orchestrator to process jobs to completion
+// must use this instead of NewOrchestrator (which now defaults to real podman).
+func newFakeOrchestrator(workers int, c cache.Cache) *Orchestrator {
+	return NewOrchestratorWithBuilder(workers, c, &fakeOrchestratorBuilder{failRepoURL: "fail"})
+}
 
 // --- Job.TransitionTo validation matrix ---
 
@@ -178,13 +219,20 @@ func itoa(i int) string {
 }
 
 // --- runBuild outcomes (end-user observable state + logs + image tag) ---
+//
+// These tests exercise the orchestrator's execute delegation path using the
+// fakeOrchestratorBuilder so they remain hermetic (no real podman required).
+// MUTATION: swap fakeOrchestratorBuilder.Execute to always succeed -> the
+// StateFailed assertion fails.  Swap to always fail -> StateSucceeded fails.
 
 func TestOrchestrator_RunBuild_FailurePath(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fakeOrchestratorBuilder so this unit test is hermetic (no podman).
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 	ctx := context.Background()
 
+	// RepoURL "fail" triggers the failure branch in fakeOrchestratorBuilder.
 	_, err := orch.SubmitBuild(ctx, BuildSpec{ID: "f1", RepoURL: "fail"})
 	require.NoError(t, err)
 
@@ -197,11 +245,15 @@ func TestOrchestrator_RunBuild_FailurePath(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, StateFailed, j.State)
 	assert.Empty(t, j.ImageTag, "failed build must not produce an image tag")
+	// The fake builder echoes "simulated failure" on the failure path, preserving
+	// the assertion that the failure log line is captured.
 	assert.Contains(t, lastLog(j.Logs), "simulated failure")
 }
 
 func TestOrchestrator_RunBuild_SuccessTagsImage(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fakeOrchestratorBuilder so this unit test is hermetic (no podman).
+	// MUTATION: change fakeOrchestratorBuilder to set tag="wrong" -> this fails.
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 	ctx := context.Background()
@@ -216,6 +268,7 @@ func TestOrchestrator_RunBuild_SuccessTagsImage(t *testing.T) {
 
 	j, err := orch.GetBuildStatus(ctx, "ok1")
 	require.NoError(t, err)
+	// The fake builder uses "helix/<id>:<ref>" matching the former simulated tag.
 	assert.Equal(t, "helix/ok1:v9", j.ImageTag, "image tag must encode id and ref")
 }
 
@@ -299,8 +352,8 @@ func TestWorkerPool_AllocateSkipsUnhealthy(t *testing.T) {
 func TestWorkerPool_RegisterWorker_Validation(t *testing.T) {
 	pool := NewWorkerPool()
 	ctx := context.Background()
-	assert.Error(t, pool.RegisterWorker(ctx, &Worker{Capacity: 1}))            // no ID
-	assert.Error(t, pool.RegisterWorker(ctx, &Worker{ID: "z", Capacity: 0}))   // bad capacity
+	assert.Error(t, pool.RegisterWorker(ctx, &Worker{Capacity: 1}))             // no ID
+	assert.Error(t, pool.RegisterWorker(ctx, &Worker{ID: "z", Capacity: 0}))    // bad capacity
 	require.NoError(t, pool.RegisterWorker(ctx, &Worker{ID: "z", Capacity: 1})) // ok
 }
 

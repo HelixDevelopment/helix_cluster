@@ -14,10 +14,10 @@ import (
 // Server implements the helix.v1.BuildService gRPC interface.
 type Server struct {
 	helixv1.UnimplementedBuildServiceServer
-	orch      *Orchestrator
-	pool      *WorkerPool
-	streamMu  sync.RWMutex
-	streams   map[string]chan *helixv1.BuildLogLine
+	orch     *Orchestrator
+	pool     *WorkerPool
+	streamMu sync.RWMutex
+	streams  map[string]chan *helixv1.BuildLogLine
 }
 
 // Ensure Server implements the interface at compile time.

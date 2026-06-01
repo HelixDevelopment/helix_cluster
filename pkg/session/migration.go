@@ -16,8 +16,8 @@ type MigrationPlanner struct {
 type MigrationStrategy string
 
 const (
-	StrategyCRIU      MigrationStrategy = "criu"
-	StrategyDMTCP     MigrationStrategy = "dmtcp"
+	StrategyCRIU       MigrationStrategy = "criu"
+	StrategyDMTCP      MigrationStrategy = "dmtcp"
 	StrategyCRDT       MigrationStrategy = "crdt"       // state-only, no process
 	StrategyContainer  MigrationStrategy = "container"  // container checkpoint/restore
 	StrategyCheckpoint MigrationStrategy = "checkpoint" // versioned state snapshot/restore (pure-Go)

@@ -13,12 +13,12 @@ import (
 // --- mock tmux backend ---
 
 type mockTmuxBackend struct {
-	mu        sync.Mutex
-	sessions  map[string]bool
-	windows   map[string]bool
-	panes     map[string]bool
-	calls     []string
-	failNext  string
+	mu       sync.Mutex
+	sessions map[string]bool
+	windows  map[string]bool
+	panes    map[string]bool
+	calls    []string
+	failNext string
 }
 
 func newMockTmuxBackend() *mockTmuxBackend {
@@ -109,11 +109,11 @@ func (m *mockTmuxBackend) SendKeys(session, pane string, keys string) error {
 }
 
 func (m *mockTmuxBackend) CapturePane(session, pane string) (string, error) {
-	return "captured", m.record("capture:"+session+"/"+pane)
+	return "captured", m.record("capture:" + session + "/" + pane)
 }
 
 func (m *mockTmuxBackend) GetSessionState(session string) ([]byte, error) {
-	return []byte("state"), m.record("getstate:"+session)
+	return []byte("state"), m.record("getstate:" + session)
 }
 
 func (m *mockTmuxBackend) RestoreSessionState(session string, state []byte) error {

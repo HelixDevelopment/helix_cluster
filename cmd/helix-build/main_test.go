@@ -61,7 +61,11 @@ func dial(t *testing.T, addr string) helixv1.BuildServiceClient {
 }
 
 func testConfig() Config {
-	return Config{Host: "127.0.0.1", Port: 0, Workers: 2, ShutdownTimeout: 5 * time.Second}
+	// SimulatedBuilds: these tests exercise the gRPC/orchestration plumbing, not a
+	// real container build — inject the simulated builder so they are deterministic
+	// without a podman daemon. Real podman build is proven by internal/build's
+	// //go:build integration tests.
+	return Config{Host: "127.0.0.1", Port: 0, Workers: 2, ShutdownTimeout: 5 * time.Second, SimulatedBuilds: true}
 }
 
 // TestRun_SubmitAndStatus proves the service actually starts, binds, and serves

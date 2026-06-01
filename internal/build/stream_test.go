@@ -8,9 +8,9 @@ import (
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	"github.com/HelixDevelopment/helix_cluster/pkg/build/cache"
-	"google.golang.org/grpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"google.golang.org/grpc"
 )
 
 // fakeLogStream implements helixv1.BuildService_StreamBuildLogsServer
@@ -49,7 +49,8 @@ func (f *fakeLogStream) received() []*helixv1.BuildLogLine {
 // once and terminate when the build reaches a terminal state. This is the core
 // end-user-visible behavior of the streaming RPC.
 func TestServer_StreamBuildLogs_DeliversAllLinesThenStops(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	// Use fake builder so the job completes deterministically without real podman.
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 	srv := NewServer(orch, NewWorkerPool())
@@ -90,7 +91,8 @@ func TestServer_StreamBuildLogs_DeliversAllLinesThenStops(t *testing.T) {
 // When the client context is cancelled, StreamBuildLogs must return nil promptly
 // and stop sending, rather than blocking forever.
 func TestServer_StreamBuildLogs_ClientCancel(t *testing.T) {
-	orch := NewOrchestrator(0, cache.NewMemoryCache()) // job stays queued, never terminal
+	// 0 workers: job stays queued (never terminal), exercising client-cancel path.
+	orch := newFakeOrchestrator(0, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 	srv := NewServer(orch, NewWorkerPool())
@@ -117,7 +119,7 @@ func TestServer_StreamBuildLogs_ClientCancel(t *testing.T) {
 
 // Streaming logs for an unknown build must surface the not-found error.
 func TestServer_StreamBuildLogs_UnknownBuild(t *testing.T) {
-	orch := NewOrchestrator(1, cache.NewMemoryCache())
+	orch := newFakeOrchestrator(1, cache.NewMemoryCache())
 	orch.Start(context.Background())
 	defer orch.Stop()
 	srv := NewServer(orch, NewWorkerPool())

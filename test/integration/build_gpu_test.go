@@ -35,7 +35,7 @@ func (s *BuildGPUSuite) TestSubmitBuildAllocateGPUBuildRunsReleaseGPU() {
 	s.Equal(jobID, allocated.AllocatedTo)
 
 	// Submit build via build orchestrator.
-	orch := build.NewOrchestrator(1, nil)
+	orch := build.NewOrchestratorWithBuilder(1, nil, build.NewSimulatedBuilder())
 	orch.Start(ctx)
 	defer orch.Stop()
 
@@ -89,7 +89,7 @@ func (s *BuildGPUSuite) TestBuildFailureGPUReleasedAnyway() {
 	s.NotNil(allocated)
 
 	// Submit a build that will fail (RepoURL == "fail" triggers simulated failure).
-	orch := build.NewOrchestrator(1, nil)
+	orch := build.NewOrchestratorWithBuilder(1, nil, build.NewSimulatedBuilder())
 	orch.Start(ctx)
 	defer orch.Stop()
 
