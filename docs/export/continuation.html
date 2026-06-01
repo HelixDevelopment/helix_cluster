@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 71 <strong>Last modified:</strong>
-2026-06-01T21:34:21Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 72 <strong>Last modified:</strong>
+2026-06-01T21:35:04Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,30 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>1a67f0a</code></td>
+<td>Foundation wave 18: 3 disjoint streams (all approved no-fix;
+mutation spot-checks confirm bites). HXC-1098 GPU sharing modes
+(internal/gpu/backend_sharing.go: SharingMode
+Exclusive/MPS/TimeSlice/MIG + REAL DeviceSharingState.Admit decisions —
+exclusive rejects 2nd job, time-slice rejects over-quantum, MIG rejects
+over-partition-limit, Release frees; ConfigureSharing hardware control
+returns typed ErrUnsupported on M3 via real AppleBackend.EnableMPS —
+NEVER fake hardware success; 25 tests). HXC-1110 Prometheus /metrics
+wiring (pkg/metrics/mount.go Mount+NewServiceRegistry reusing existing
+Registry/PrometheusHandler; in-process httptest scrape asserts exact
+‘helix_test_jobs_total 2’ rejecting 0/1; WIRED into 5 HTTP-serving mains
+gateway/policy/helixd/health/llm; gRPC-only bins correctly skipped).
+HXC-1141 interactive-agent provisioning (NEW pkg/agentprovision:
+AgentAdmission per-node cap+queue + per-user rate-limit reusing
+pkg/ratelimit.PerKeyLimiter; ContextRegistry copy-isolated
+shared-context map; workload type defined locally — ZERO scheduler
+edits; 9 deterministic bite tests). ZERO new deps. Gate:
+build/vet/vet-integration clean, full -short -race green under load,
+dataplane+security ok; mutation spot-checks: A ConfigureSharing
+fake-success-&gt;ErrUnsupported test FAILS, A cap-unlimited-&gt;queue
+test FAILS (C), confirming decisions bite.</td>
+</tr>
 <tr>
 <td><code>a0d623e</code></td>
 <td>Foundation wave 17: mark 3 items Completed (HXC-1097/1111/1112) —
@@ -398,25 +422,6 @@ node-etcd-wiring (real etcd cross-visibility) / OPA-decision-log /
 EdgeAware-Filter+Score / offline-sync-delta-compression. Registry
 151-&gt;157 Completed / 482 Queued.</td>
 </tr>
-<tr>
-<td><code>203c42a</code></td>
-<td>Foundation wave 13: 5 disjoint-package streams, 6 items.
-internal/gateway X-Helix-Deny-Reason header + scheduler:write scope
-enforcement (401/403 reject-before-proxy); internal/node REAL
-EtcdBackend wiring (Config.EtcdEndpoints -&gt; NewEtcdBackend w/
-SWIM-tied TTL lease + resource metadata, BackendType() status, in-memory
-fallback) — node registrations now cluster-visible (unblocks 1135
-two-node formation); internal/policy real persisted OPA decision-log
-sink (DecisionLogEntry RunUUID/Allow/Reason/PolicyName); NEW
-pkg/scheduler/edgeaware.go EdgeAware Filter (tier&gt;=6 reject
-session/sleeping/over-thermal/not-charging w/ reasons) + Score
-(per-tier+thermal-headroom bonuses); NEW pkg/offlinesync
-delta-compression (flate) offline job-ledger + idempotent reconcile
-(100% recovery). ZERO new deps. GATE: build/vet/vet-integration clean,
-full -short -race green, integration tier 1210 vs REAL etcd (A sees
-B+metadata, UUID) + gateway/policy green, live mutation spot-check on
-edgeaware T6 guard confirmed real.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -434,11 +439,11 @@ edgeaware T6 guard confirmed real.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>a0d623e</code></td>
+<td><code>1a67f0a</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T21:34:21Z</td>
+<td>2026-06-01T21:35:04Z</td>
 </tr>
 </tbody>
 </table>

@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 27
-**Last modified:** 2026-06-01T21:17:59Z
+**Revision:** 28
+**Last modified:** 2026-06-01T21:35:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **174**.
+Total completed: **177**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -121,6 +121,7 @@ Total completed: **174**.
 | HXC-1094 | Feature | P0 | Implement distributed lock primitives over etcd (pkg/lock) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1095 | Feature | P1 | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-1097 | Feature | P1 | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) | 05f408d |
+| HXC-1098 | Feature | P2 | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) | 1a67f0a |
 | HXC-1099 | Feature | P1 | Implement Build Service orchestrator and worker pool (internal/build) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-1101 | Feature | P0 | Implement e2ee transport record protocol (security/pkg/e2ee) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
 | HXC-1102 | Feature | P1 | Implement software-rooted attestation (security/pkg/attestation) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
@@ -131,6 +132,7 @@ Total completed: **174**.
 | HXC-1107 | Feature | P0 | Implement WebSocket envelope and MessagePack framing (pkg/websocket) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
 | HXC-1108 | Feature | P1 | Implement HelixQA live-service Challenge runner (cmd/helix-test) | 6c825dfc56a498b371578de921db8458a97d09f9 |
 | HXC-1109 | Feature | P1 | Implement deterministic-sim, chaos, and device-sim test harness (cmd/helix-test) | 6c825dfc56a498b371578de921db8458a97d09f9 |
+| HXC-1110 | Task | P1 | Wire Prometheus /metrics endpoint uniformly across all services (cmd/helix-*) | 1a67f0a |
 | HXC-1111 | Task | P1 | Wire Jaeger/OTel trace-ID propagation across services (pkg/tracing) | 05f408d |
 | HXC-1112 | Task | P1 | Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*) | 05f408d |
 | HXC-1114 | Feature | P0 | Provision PostgreSQL primary schema with 15 tables, indexes, and triggers | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
@@ -151,6 +153,7 @@ Total completed: **174**.
 | HXC-1136 | Feature | P0 | Implement session-create end-to-end path (htmux new exit gate) | 553a043 |
 | HXC-1137 | Task | P1 | Benchmark job scheduling decision latency under 100ms (exit gate) | 553a043 |
 | HXC-1138 | Task | P1 | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) | 75f076f |
+| HXC-1141 | Feature | P2 | Implement interactive-mode AI CLI agent resource provisioning | 1a67f0a |
 | HXC-1144 | Feature | P2 | Implement WireGuard mesh network policies (segmentation) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1148 | Feature | P1 | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client | 7718c20 |
 | HXC-1149 | Task | P3 | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard | 7718c20 |

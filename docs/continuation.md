@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 71
-**Last modified:** 2026-06-01T21:34:21Z
+**Revision:** 72
+**Last modified:** 2026-06-01T21:35:04Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `1a67f0a` | Foundation wave 18: 3 disjoint streams (all approved no-fix; mutation spot-checks confirm bites). HXC-1098 GPU sharing modes (internal/gpu/backend_sharing.go: SharingMode Exclusive/MPS/TimeSlice/MIG + REAL DeviceSharingState.Admit decisions — exclusive rejects 2nd job, time-slice rejects over-quantum, MIG rejects over-partition-limit, Release frees; ConfigureSharing hardware control returns typed ErrUnsupported on M3 via real AppleBackend.EnableMPS — NEVER fake hardware success; 25 tests). HXC-1110 Prometheus /metrics wiring (pkg/metrics/mount.go Mount+NewServiceRegistry reusing existing Registry/PrometheusHandler; in-process httptest scrape asserts exact 'helix_test_jobs_total 2' rejecting 0/1; WIRED into 5 HTTP-serving mains gateway/policy/helixd/health/llm; gRPC-only bins correctly skipped). HXC-1141 interactive-agent provisioning (NEW pkg/agentprovision: AgentAdmission per-node cap+queue + per-user rate-limit reusing pkg/ratelimit.PerKeyLimiter; ContextRegistry copy-isolated shared-context map; workload type defined locally — ZERO scheduler edits; 9 deterministic bite tests). ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green under load, dataplane+security ok; mutation spot-checks: A ConfigureSharing fake-success->ErrUnsupported test FAILS, A cap-unlimited->queue test FAILS (C), confirming decisions bite. |
 | `a0d623e` | Foundation wave 17: mark 3 items Completed (HXC-1097/1111/1112) — GPUBackend interface+registry+AutoDetect (honest ErrUnsupported for compute) / gRPC W3C trace-ID propagation (3-hop proven) / standard grpc.health.v1 wired into 6 services. All 3 mutation spot-checks confirm assertions bite. Registry 171->174 Completed / 465 Queued. |
 | `05f408d` | Foundation wave 17: 3 disjoint streams (all approved no-fix; mutation spot-check confirms all 3 bite). HXC-1097 unified GPUBackend interface + BackendRegistry.AutoDetect (REAL probes nvidia-smi/rocm-smi/sycl-ls + Apple/Darwin backend with real system_profiler/sysctl device detection + metrics) — compute ops (Execute/ExecuteDistributed/AllocateMemory/MPS) return typed ErrUnsupported, NEVER fake success (CLAUDE-2 honest seam; mutation: fake-success->ErrUnsupported test FAILS). HXC-1111 gRPC W3C trace-ID propagation (pkg/tracing/grpc.go Unary client+server interceptors reusing existing Inject/Extract/ParseTraceParent; proven across a REAL 3-hop in-process gateway->scheduler->session chain — one trace ID survives, distinct per-hop parent; mutation: drop-inject->3-hop equality FAILS). HXC-1112 standard grpc.health.v1 (pkg/health/grpc.go RegisterGRPC+SetServing bridging health.Checker->SERVING/NOT_SERVING; in-process grpc_health_v1 client Check proves SERVING+NOT_SERVING; wired into 6 gRPC service mains advisory/build/node/scheduler/security/session; htmux/gateway/policy correctly skipped — no grpc.Server). ZERO new deps (used grpc's health/grpc_health_v1/metadata/bufconn already vendored). Gate: build/vet/vet-integration clean, full -short -race green, dataplane+security ok, 3 mutation spot-checks confirm assertions bite. |
 | `6f55986` | Foundation wave 16: mark 6 items Completed (HXC-1238/1239/1240/1241/1138/1199) — BUGGIFY framework / DST virtual-time compression / 1000+ node scale (253k ev/s) / FoundationDB 4-phase workload / coverage+mutation gate tool / edge sensor-fusion. Adversarial review caught+fixed 3 real CLAUDE-1 bluffs; mutation spot-check confirms invariants bite. Registry 165->171 Completed / 468 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `34efa5d` | Foundation wave 14: mark 4 items Completed (HXC-1135/1229/1247/1261) — MVP two-node-formation EXIT GATE proven vs real etcd / chaos-sequencer+Byzantine / device-profile-registry / Welch-t-test. Registry 157->161 Completed / 478 Queued. |
 | `1c0d943` | Foundation wave 14: 4 disjoint streams, 4 items incl the MVP two-node-formation EXIT GATE. cmd/helix-agent --etcd-endpoints/HELIX_ETCD_ENDPOINTS wiring + HXC-1135 E2E (two REAL helix-agent processes form a cluster via real etcd, both visible <60s w/ per-run UUID + formation timestamp + evidence file); pkg/testing/chaos seeded deterministic fault sequencer (reproducible injection log) + Byzantine equivocation fault; NEW pkg/deviceprofile versioned-YAML device profile registry T1-T8 + schema validation/rejection; NEW pkg/stats Welch t-test regression detector (t-stat/Welch-Satterthwaite df/p-value). ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, 1135 two-process formation PROVEN vs REAL etcd (2.76s), deviceprofile+stats integration green, live mutation spot-check on Welch significance confirmed real. |
 | `e1dab02` | Foundation wave 13: mark 6 items Completed (HXC-1189/1190/1198/1210/1213/1220) — gateway-auth-deny-reason / node-etcd-wiring (real etcd cross-visibility) / OPA-decision-log / EdgeAware-Filter+Score / offline-sync-delta-compression. Registry 151->157 Completed / 482 Queued. |
-| `203c42a` | Foundation wave 13: 5 disjoint-package streams, 6 items. internal/gateway X-Helix-Deny-Reason header + scheduler:write scope enforcement (401/403 reject-before-proxy); internal/node REAL EtcdBackend wiring (Config.EtcdEndpoints -> NewEtcdBackend w/ SWIM-tied TTL lease + resource metadata, BackendType() status, in-memory fallback) — node registrations now cluster-visible (unblocks 1135 two-node formation); internal/policy real persisted OPA decision-log sink (DecisionLogEntry RunUUID/Allow/Reason/PolicyName); NEW pkg/scheduler/edgeaware.go EdgeAware Filter (tier>=6 reject session/sleeping/over-thermal/not-charging w/ reasons) + Score (per-tier+thermal-headroom bonuses); NEW pkg/offlinesync delta-compression (flate) offline job-ledger + idempotent reconcile (100% recovery). ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, integration tier 1210 vs REAL etcd (A sees B+metadata, UUID) + gateway/policy green, live mutation spot-check on edgeaware T6 guard confirmed real. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `a0d623e` |
-| **Timestamp** | 2026-06-01T21:34:21Z |
+| **Commit** | `1a67f0a` |
+| **Timestamp** | 2026-06-01T21:35:04Z |
 
 ## §3: Active Work
 
