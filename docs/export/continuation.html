@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 85 <strong>Last modified:</strong>
-2026-06-01T23:30:49Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 86 <strong>Last modified:</strong>
+2026-06-01T23:43:49Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,13 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>02cd05a</code></td>
+<td>Foundation wave 25: mark 3 items Completed (HXC-1254/1255/1267) —
+parallel TestRunner / session test FSM / helix-test CLI (verified
+already complete). Mutation spot-checks confirm bites. Registry
+188-&gt;191 Completed / 448 Queued.</td>
+</tr>
 <tr>
 <td><code>aba565b</code></td>
 <td>Foundation wave 25: 2 new test-orchestration pkgs + 1
@@ -411,29 +418,6 @@ injectors. Plus HXC-1110 /metrics coverage completed for the 6 gRPC-only
 services. Mutation spot-checks confirm bites. Registry 180-&gt;182
 Completed / 457 Queued.</td>
 </tr>
-<tr>
-<td><code>e93fad6</code></td>
-<td>Foundation wave 20: 3 disjoint streams (all approved; A minor
-silent-error-discard fixed by orchestrator). /metrics sidecar completing
-HXC-1110 ‘every binary’ intent (pkg/metrics/sidecar.go
-StartSidecar/StartSidecarFromEnv opt-in HTTP listener
-HELIX_METRICS_ADDR-gated; in-process scrape asserts exact
-‘helix_sidecar_hits_total 3’; wired into the 6 gRPC-only mains
-advisory/build/node/scheduler/security/session; orchestrator added
-log-on-bind-error to all 6 to avoid silent failure). HXC-1248 YAML chaos
-Scenario Engine (NEW pkg/testing/scenario:
-Scenario{phases,faults,MaxFaults,MaxAffected,AbortOn} parsed via
-yaml.v3; Engine.Run-&gt;ExecutionLog with per-phase + global
-blast-radius clamp + abort-on-condition early-stop; deterministic, no
-wall-clock; reuses chaos catalog read-only). HXC-1244 simulated node
-fault injectors (NEW pkg/testing/chaos/node_faults.go: NodeRestart w/
-recovery window, DiskSpaceExhaustion write-block, ProcessTerminate —
-each a real chaos.Fault with state-flipping Apply/Restore; distinct from
-existing NodeCrash/SlowDisk/OOMKill). ZERO new deps. Gate:
-build/vet/vet-integration clean, full -short -race green, dataplane ok;
-mutation spot-checks B blast-radius + C node-restart bite; A sidecar
-exact-value scrape verified.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -451,11 +435,11 @@ exact-value scrape verified.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>aba565b</code></td>
+<td><code>02cd05a</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:30:49Z</td>
+<td>2026-06-01T23:43:49Z</td>
 </tr>
 </tbody>
 </table>
