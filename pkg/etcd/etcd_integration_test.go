@@ -11,6 +11,8 @@ import (
 	"time"
 
 	"digital.vasic.containers/pkg/brokertest"
+
+	"github.com/HelixDevelopment/helix_cluster/pkg/testing/evidence"
 )
 
 // sharedEndpoint is the client endpoint of the ONE real ephemeral etcd booted
@@ -63,8 +65,18 @@ func TestEtcd_PutGetRoundTrip(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
+	// CLAUDE-1 §7.1 evidence: embed a per-run unique token into the value so a
+	// stale-cache or fabricated read cannot masquerade as a real round-trip.
+	e := evidence.NewT(t, "etcd-put-get-roundtrip", t.TempDir())
 	const key = "/helix/test/kv1"
-	const val = "hello-etcd"
+	val := "hello-etcd-" + e.Token()
+
+	// State DELTA: before the Put the key is absent (empty); after, it carries
+	// the tokenized value.
+	before, _, err := c.Get(ctx, key)
+	if err != nil {
+		t.Fatalf("Get(before): %v", err)
+	}
 
 	if err := c.Put(ctx, key, val); err != nil {
 		t.Fatalf("Put: %v", err)
@@ -80,6 +92,9 @@ func TestEtcd_PutGetRoundTrip(t *testing.T) {
 	if got != val {
 		t.Fatalf("Get value: got %q want %q", got, val)
 	}
+
+	e.MustDelta(t, "value-after-put", before, got)
+	e.MustPositive(t, "tokenized-readback", got, e.Token())
 	t.Logf("real Put/Get round-trip: key=%s value=%s", key, got)
 }
 

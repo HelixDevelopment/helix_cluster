@@ -13,6 +13,7 @@ import (
 	"digital.vasic.containers/pkg/brokertest"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/etcd"
+	"github.com/HelixDevelopment/helix_cluster/pkg/testing/evidence"
 )
 
 // sharedEndpoint is the client endpoint of the ONE real ephemeral etcd booted
@@ -62,6 +63,7 @@ func newLocker(t *testing.T) (*EtcdLocker, *etcd.Client) {
 // against a REAL etcd: A acquires, B blocks while A holds, A releases, then B
 // acquires. Verified by timing — B cannot complete acquisition until A unlocks.
 func TestEtcdLocker_AcquireBlockRelease(t *testing.T) {
+	e := evidence.NewT(t, "etcd-lock-mutual-exclusion", t.TempDir())
 	locker, _ := newLocker(t)
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
@@ -73,6 +75,12 @@ func TestEtcdLocker_AcquireBlockRelease(t *testing.T) {
 		t.Fatalf("A Lock: %v", err)
 	}
 
+	// transcript is appended to ONLY from inside the held critical section, in
+	// lock-ordered fashion. Under real distributed mutual exclusion it ends up
+	// exactly serialized; an interleaving (broken) lock would scramble it.
+	var transcript []string
+	transcript = append(transcript, "A-enter")
+
 	bAcquired := make(chan time.Time, 1)
 	go func() {
 		unlockB, err := locker.Lock(ctx, key)
@@ -81,6 +89,7 @@ func TestEtcdLocker_AcquireBlockRelease(t *testing.T) {
 			close(bAcquired)
 			return
 		}
+		transcript = append(transcript, "B-enter")
 		bAcquired <- time.Now()
 		_ = unlockB()
 	}()
@@ -93,6 +102,7 @@ func TestEtcdLocker_AcquireBlockRelease(t *testing.T) {
 	}
 
 	releaseTime := time.Now()
+	transcript = append(transcript, "A-exit")
 	if err := unlockA(); err != nil {
 		t.Fatalf("A Unlock: %v", err)
 	}
@@ -109,6 +119,14 @@ func TestEtcdLocker_AcquireBlockRelease(t *testing.T) {
 	case <-time.After(15 * time.Second):
 		t.Fatal("B never acquired after A released")
 	}
+
+	// CLAUDE-1 §7.1 sink-side evidence: the serialized transcript is positive
+	// proof the two holders never overlapped.
+	if len(transcript) != 3 {
+		t.Fatalf("transcript = %v, want 3 serialized entries", transcript)
+	}
+	got := transcript[0] + "," + transcript[1] + "," + transcript[2]
+	e.MustPositive(t, "serialized-transcript", got, "A-enter,A-exit,B-enter")
 }
 
 // TestEtcdLocker_KeyPresentWhileHeldGoneAfterRelease proves sink-side state: the
