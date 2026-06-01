@@ -8,6 +8,9 @@ import (
 	"sync"
 )
 
+// Compile-time check: tmuxFunctionalAttachStream satisfies io.ReadWriteCloser.
+var _ io.ReadWriteCloser = (*tmuxFunctionalAttachStream)(nil)
+
 // TmuxBackend implements Backend by shelling out to tmux.
 type TmuxBackend struct {
 	mu       sync.Mutex
@@ -41,10 +44,11 @@ func (t *TmuxBackend) Create(name string, cmd string) (string, error) {
 	return name, nil
 }
 
-// Attach returns a pipe to the tmux session.
-// Because tmux attach is interactive, we open a new window in the session
-// and return a pipe to a long-running cat process so the caller has a
-// stable ReadWriteCloser.  This is a pragmatic implementation for the MVP.
+// Attach returns a fully functional ReadWriteCloser tied to the live tmux session.
+// Write delivers bytes as real keystrokes via tmux send-keys -l (literal) so
+// that the shell actually sees and executes typed commands.  Read returns real
+// pane content via tmux capture-pane -p, incrementally tracking what has
+// already been returned.  See tmux_attach.go for the stream implementation.
 func (t *TmuxBackend) Attach(id string) (io.ReadWriteCloser, error) {
 	// Verify the session exists before returning a stream.
 	list, err := t.List()
@@ -61,42 +65,7 @@ func (t *TmuxBackend) Attach(id string) (io.ReadWriteCloser, error) {
 	if !found {
 		return nil, fmt.Errorf("session %q not found", id)
 	}
-
-	pr, pw := io.Pipe()
-	// We return a synthetic pipe; callers that need true bidirectional
-	// PTY access should use the native backend.  For tmux we provide a
-	// write-only stream via SendInput and read via CaptureOutput.
-	// To satisfy the interface we return the pipe writer side as a
-	// no-op closer and the reader side separately.  A more advanced
-	// implementation would wrap a PTY around tmux's socket.
-	_ = pr
-	return &tmuxAttachStream{session: id, pw: pw}, nil
-}
-
-// tmuxAttachStream satisfies io.ReadWriteCloser for tmux attach.
-// Reads come from CaptureOutput; writes go to SendKeys.
-type tmuxAttachStream struct {
-	session string
-	pw      *io.PipeWriter
-	closed  bool
-}
-
-func (s *tmuxAttachStream) Read(p []byte) (int, error) {
-	// Read is satisfied by CaptureOutput in a polling loop.
-	// For the MVP we return 0, io.EOF to signal non-blocking read.
-	return 0, io.EOF
-}
-
-func (s *tmuxAttachStream) Write(p []byte) (int, error) {
-	if s.closed {
-		return 0, fmt.Errorf("tmux attach stream closed")
-	}
-	return s.pw.Write(p)
-}
-
-func (s *tmuxAttachStream) Close() error {
-	s.closed = true
-	return s.pw.Close()
+	return &tmuxFunctionalAttachStream{session: id}, nil
 }
 
 // Detach detaches the client from the session.
