@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 20
-**Last modified:** 2026-06-01T17:28:43Z
+**Revision:** 21
+**Last modified:** 2026-06-01T18:10:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **134**.
+Total completed: **137**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -136,6 +136,9 @@ Total completed: **134**.
 | HXC-1118 | Feature | P1 | Implement REST API surface on API Gateway with OpenAPI 3.0 | 6c825dfc56a498b371578de921db8458a97d09f9 |
 | HXC-1120 | Task | P1 | Configure Kafka topics with partitions/replication/retention | 6c825dfc56a498b371578de921db8458a97d09f9 |
 | HXC-1121 | Task | P0 | Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS) | 6c825dfc56a498b371578de921db8458a97d09f9 |
+| HXC-1122 | Feature | P2 | Implement Cap'n Proto zero-copy serialization for control-plane (pkg/serde) | 63822b3bcd439a360fae67d282fe7154af491c06 |
+| HXC-1123 | Feature | P2 | Implement FlatBuffers serialization for GPU compute payloads | 63822b3bcd439a360fae67d282fe7154af491c06 |
+| HXC-1124 | Feature | P2 | Implement ZeroMQ message patterns for internal data planes | 63822b3bcd439a360fae67d282fe7154af491c06 |
 | HXC-1127 | Feature | P1 | Implement OPA/WASM Policy Engine with HelixConstitution enforcement | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |
 | HXC-1131 | Feature | P2 | Implement Backup Service (etcd snapshots, WAL archival, Ceph checkpoints) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1132 | Feature | P1 | Implement Metrics Collector node scrape endpoint and GPU metrics aggregation | 7634fbbfaf4e66eba233c79adb5d2b4c169e9d36 |

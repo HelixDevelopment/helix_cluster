@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 20
-**Last modified:** 2026-06-01T17:28:43Z
+**Revision:** 21
+**Last modified:** 2026-06-01T18:10:59Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **506**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **503**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,7 +18,7 @@ Total active items: **506**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (28 active)
+## MVP (25 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -38,9 +38,6 @@ Total active items: **506**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
 | HXC-1098 | Feature | P2 | Queued | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) |
 | HXC-1113 | Bug | P2 | Queued | Remove dangling pkg/gpuattest placeholder and reuse security/pkg/gpuattest |
-| HXC-1122 | Feature | P2 | Queued | Implement Cap'n Proto zero-copy serialization for control-plane (pkg/serde) |
-| HXC-1123 | Feature | P2 | Queued | Implement FlatBuffers serialization for GPU compute payloads |
-| HXC-1124 | Feature | P2 | Queued | Implement ZeroMQ message patterns for internal data planes |
 | HXC-1126 | Feature | P2 | Queued | Implement LLM Brain advisory engine with LLMsVerifier gate (internal/llm) |
 | HXC-1128 | Feature | P2 | Queued | Implement Health Monitor with eBPF probes and LSTM failure prediction |
 | HXC-1129 | Feature | P2 | Queued | Implement CRIU/DMTCP-based session live migration orchestration |
