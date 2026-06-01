@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 65 <strong>Last modified:</strong>
-2026-06-01T19:59:07Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 66 <strong>Last modified:</strong>
+2026-06-01T19:59:54Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,28 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>553a043</code></td>
+<td>Foundation wave 15: 4 streams, 4 items incl 2 MVP exit gates.
+HXC-1136 session-create EXIT GATE — wired pkg/session.Manager to a REAL
+tmux/PTY backend via BackendAdapter (fixed the nil-backend StatusRunning
+PASS-bluff in internal/session.NewServer; added NewServerWithTmuxBackend
+seam + SessionExists sink-probe); E2E proves htmux create -&gt;
+helix-session -&gt; real tmux session visible running in 388ms (&lt;3s).
+HXC-1137 scheduler decision-latency EXIT GATE (&lt;100ms across 10 jobs,
+histogram + placement-correctness + 120ms-slow-plugin mutation). NEW
+pkg/testing/instance Provisioner/Instance lifecycle FSM
+(provisioned-&gt;booting-&gt;ready-&gt;stopped on virtual clock,
+illegal-transition reject). NEW pkg/qualitygate KPI baseline validation
++ critical-severity CI gate (8 rules). ZERO new deps. GATE caught+fixed
+a real regression: 1136’s real backend exposed test/chaos+test/e2e
+relying on the no-op bluff (1000 free sessions -&gt; 509 leaked tmux
+-&gt; PTY exhaustion) -&gt; switched those harnesses to the in-memory
+NewServerWithTmuxBackend(nil) seam + added SessionExists to the test
+double. Full -short -race green, 1136 real-tmux E2E + 1231/1260
+integration green, live mutation spot-check on qualitygate critical gate
+confirmed real.</td>
+</tr>
 <tr>
 <td><code>34efa5d</code></td>
 <td>Foundation wave 14: mark 4 items Completed (HXC-1135/1229/1247/1261)
@@ -362,15 +384,6 @@ wired. GATE: fixed C++ harness flatc root-accessor
 <td>Foundation wave 10: mark 3 items Completed (HXC-1131/1134/1144) —
 integration-proven vs real vault/etcd/postgres</td>
 </tr>
-<tr>
-<td><code>467a6dc</code></td>
-<td>Foundation wave 10: Vault secret injection + rotation (KV v2,
-no-downtime refresh), WireGuard mesh segmentation policy engine
-(DENY-wins label selectors + enforcement ruleset), Backup service (etcd
-clientv3 snapshot + pg_dump/restore state-match) — integration-proven vs
-real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files
-(unused ctx, unused require import)</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -388,11 +401,11 @@ real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>34efa5d</code></td>
+<td><code>553a043</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T19:59:07Z</td>
+<td>2026-06-01T19:59:54Z</td>
 </tr>
 </tbody>
 </table>

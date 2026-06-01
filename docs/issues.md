@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 24
-**Last modified:** 2026-06-01T19:30:54Z
+**Revision:** 25
+**Last modified:** 2026-06-01T19:59:47Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,12 +18,11 @@ Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (24 active)
+## MVP (22 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
-| HXC-1136 | Feature | P0 | Queued | Implement session-create end-to-end path (htmux new exit gate) |
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
 | HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
 | HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
@@ -32,7 +31,6 @@ Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1112 | Task | P1 | Queued | Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*) |
 | HXC-1119 | Feature | P1 | Queued | Implement Avro event schemas and schema-validated routing (Event Bus) |
 | HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
-| HXC-1137 | Task | P1 | Queued | Benchmark job scheduling decision latency under 100ms (exit gate) |
 | HXC-1138 | Task | P1 | Queued | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) |
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
 | HXC-1098 | Feature | P2 | Queued | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) |
@@ -115,7 +113,7 @@ Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (67 active)
+## Phase 4 (65 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -142,7 +140,6 @@ Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1226 | Feature | P1 | Queued | Integrate Cuttlefish/CrosVM provisioner for T5 Android AOSP devices |
 | HXC-1228 | Feature | P1 | Queued | Implement Docker + binfmt_misc protocol stubs for T7 iOS and T8 HarmonyOS |
 | HXC-1230 | Feature | P1 | Queued | Implement automated tier detection validating host KVM/ARM64/binfmt capabilities |
-| HXC-1231 | Feature | P1 | Queued | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) |
 | HXC-1233 | Feature | P1 | Queued | Implement qcow2 copy-on-write overlay management with 10-deep chain limit |
 | HXC-1238 | Feature | P1 | Queued | Implement BUGGIFY macro framework with ~25% deterministic fire rate |
 | HXC-1239 | Feature | P1 | Queued | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods |
@@ -155,7 +152,6 @@ Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |
 | HXC-1258 | Feature | P1 | Queued | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing |
 | HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
-| HXC-1260 | Feature | P1 | Queued | Implement metrics validation against baseline KPI table with severity gating |
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
 | HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
 | HXC-1264 | Task | P1 | Queued | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter |
