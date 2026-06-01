@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 36
-**Last modified:** 2026-06-01T11:29:14Z
+**Revision:** 37
+**Last modified:** 2026-06-01T12:10:33Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `909d107` | Disable all active CI per operator directive: park race.yml in disabled/ |
 | `7cc8147` | Foundation wave 3a: mark 6 items Completed (HXC-1019/1022/1023/1025/1029/1038) |
 | `32feec3` | Foundation wave 3a: real fixes for lock leak + build sync/cancel + security/wasm coverage |
 | `930a7ac` | Foundation wave 2: mark 30 items Completed (HXC-1039..1041/1046..1061/1064..1074) |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `8d7030c` | Foundation: add pkg/testing/evidence — §7.1 positive-evidence test helper (TDD + §1.1 mutation-paired) |
 | `47b6d91` | Phase 0: ingest 614-item phase ledger into hxc_registry.db (HXC-1001..1614); DB-as-source-of-truth |
 | `a15c272` | Phase 0: wire docs_chain (§11.4.106) — tracked_docs context, engine wrapper, commit gate sync+verify, canonical doc dedup manifest |
-| `4554e9a` | Phase 0 enabling: integrate constitution upstream (§11.4.106 Docs Chain + workable-items DB), add docs_chain + helixqa submodules, purge stale test binaries, gitignore docs_chain runtime |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `7cc8147` |
-| **Timestamp** | 2026-06-01T11:29:14Z |
+| **Commit** | `909d107` |
+| **Timestamp** | 2026-06-01T12:10:33Z |
 
 ## §3: Active Work
 
