@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 31
-**Last modified:** 2026-06-01T22:31:27Z
+**Revision:** 32
+**Last modified:** 2026-06-01T22:47:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **185**.
+Total completed: **187**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -163,8 +163,10 @@ Total completed: **185**.
 | HXC-1149 | Task | P3 | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard | 7718c20 |
 | HXC-1150 | Feature | P1 | Add WireGuard key-rotation grace/overlap window with ActiveKeys() | 7718c20 |
 | HXC-1151 | Task | P1 | Add pkg/discovery etcd-backed integration test against a real etcd | 7718c20 |
+| HXC-1152 | Feature | P1 | Implement pkg/session container-checkpoint migration strategy (CRDT + manifest) | 1d79b5c |
 | HXC-1156 | Feature | P1 | Implement thermal-aware scheduler plugin (throttle on overheat) | 7718c20 |
 | HXC-1157 | Feature | P1 | Implement semi-trusted node output verification (redundant-compute/checksum) | 7718c20 |
+| HXC-1160 | Feature | P2 | Improve tmux session backend to full PTY wrap on Attach | 1d79b5c |
 | HXC-1188 | Feature | P0 | Enforce work-unit resource limits (duration/memory/CPU) on edge devices | 7718c20 |
 | HXC-1189 | Feature | P0 | Implement EdgeAwarePlugin scheduler Filter stage | 203c42a |
 | HXC-1190 | Feature | P1 | Implement EdgeAwarePlugin scheduler Score stage | 203c42a |

@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 31
-**Last modified:** 2026-06-01T22:31:27Z
+**Revision:** 32
+**Last modified:** 2026-06-01T22:47:59Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **455**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **453**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -34,21 +34,19 @@ Total active items: **455**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1143 | Feature | P2 | Queued | Implement distcc/icecream distributed C/C++ compilation and ccache layer |
 | HXC-1145 | Docs | P2 | Queued | Author MVP architecture and component-specification documentation artifacts |
 
-## Phase 2 (17 active)
+## Phase 2 (15 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1146 | Docs | P0 | Queued | Document node-provisioning boundary: project does NOT implement jailbreak/exploit/DRM-circumvention |
 | HXC-905 | Feature | P0 | Queued | SQLite HXC Registry |
 | HXC-1147 | Feature | P1 | Queued | Implement internal/console/linux_boot.go BootCoordinator state machine |
-| HXC-1152 | Feature | P1 | Queued | Implement pkg/session container-checkpoint migration strategy (CRDT + manifest) |
 | HXC-1153 | Feature | P1 | Queued | Implement pkg/resources Linux GPU reader via /sys/class/drm (NVML-free) |
 | HXC-1159 | Task | P1 | Queued | E2E: a Linux node joins the cluster mesh and becomes schedulable |
 | HXC-906 | Docs | P1 | Queued | PHASE_2_ROADMAP.md |
 | HXC-1154 | Feature | P2 | Queued | Integrate universal Vulkan compute backend (vendor-neutral, no device-specific code) |
 | HXC-1155 | Feature | P2 | Queued | Implement console/node thermal sink reader via /sys/class/thermal |
 | HXC-1158 | Task | P2 | Queued | Harden device hardware-identification in internal/console/detector.go (generic, fixture-tested) |
-| HXC-1160 | Feature | P2 | Queued | Improve tmux session backend to full PTY wrap on Attach |
 | HXC-1161 | Feature | P2 | Queued | E2E: aggregate GPU pool runs llama.cpp inference across heterogeneous nodes |
 | HXC-1162 | Task | P2 | Queued | E2E: multi-node session CRDT convergence |
 | HXC-1163 | Task | P2 | Queued | Validate cross-NAT WireGuard mesh hole-punching across real hosts |
