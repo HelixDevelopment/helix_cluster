@@ -176,17 +176,17 @@
 <h1 class="title">issues</h1>
 </header>
 <h1 id="issues">Issues</h1>
-<p><strong>Revision:</strong> 8 <strong>Last modified:</strong>
-2026-06-01T10:29:18Z <strong>Description:</strong> Active workable-item
+<p><strong>Revision:</strong> 9 <strong>Last modified:</strong>
+2026-06-01T11:05:59Z <strong>Description:</strong> Active workable-item
 registry for Helix Cluster OS <strong>Authority:</strong> Constitution
 §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total active items: <strong>593</strong>. Canonical source:
+<p>Total active items: <strong>563</strong>. Canonical source:
 <code>data/hxc_registry.db</code>. Full per-item detail (description,
 closure criteria, required test types, source refs) lives in the DB and
 <code>docs/research/_ledger/*.json</code>.</p>
-<h2 id="foundation-anti-bluff-49-active">Foundation (anti-bluff) (49
+<h2 id="foundation-anti-bluff-19-active">Foundation (anti-bluff) (19
 active)</h2>
 <table>
 <colgroup>
@@ -237,14 +237,6 @@ pullable</td>
 <td>Queued</td>
 <td>Locate/build production Vault client and add dev-Vault integration
 test (KVv2 + PKI)</td>
-</tr>
-<tr>
-<td>HXC-1074</td>
-<td>Task</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Establish fleet-wide -race CI gate across concurrency-sensitive
-packages</td>
 </tr>
 <tr>
 <td>HXC-016</td>
@@ -314,82 +306,6 @@ end-to-end</td>
 terminal states</td>
 </tr>
 <tr>
-<td>HXC-1039</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Replace self-defeating pkg/semaphore
-TestSemaphore_ReleaseTooMany_Mutation</td>
-</tr>
-<tr>
-<td>HXC-1040</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/semaphore M&gt;&gt;N concurrency invariant test under
--race</td>
-</tr>
-<tr>
-<td>HXC-1046</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Gate -race in CI for pkg/metrics concurrency mutation tests</td>
-</tr>
-<tr>
-<td>HXC-1050</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Test pkg/grpcutil LoggingStreamInterceptor recv/send counters</td>
-</tr>
-<tr>
-<td>HXC-1053</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/context TestDetach_PreservesValues for the value-retention
-guarantee</td>
-</tr>
-<tr>
-<td>HXC-1055</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Give pkg/workerpool TestPool_NilWorkSafe_Mutation a real sink</td>
-</tr>
-<tr>
-<td>HXC-1056</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/workerpool fan-in count==N, post-Stop Submit,
-panic-recovery, idempotent-Stop tests</td>
-</tr>
-<tr>
-<td>HXC-1057</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Make pkg/errors concurrency test honest via locked GetFields path +
--race</td>
-</tr>
-<tr>
-<td>HXC-1064</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/log prefix-field proof catching the SetLevel prefix-loss
-bug</td>
-</tr>
-<tr>
-<td>HXC-1069</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Bring pkg/retry DoWithResult to behavioral parity with Do</td>
-</tr>
-<tr>
 <td>HXC-1015</td>
 <td>Feature</td>
 <td>P2</td>
@@ -421,101 +337,6 @@ state-machine mutation tests</td>
 <td>Cover pkg/build cancel-mid-flight branch sets StateCancelled</td>
 </tr>
 <tr>
-<td>HXC-1047</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Complete pkg/metrics Prometheus exposition assertions (+Inf, _sum,
-ordering)</td>
-</tr>
-<tr>
-<td>HXC-1048</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/metrics duplicate-registration and histogram edge tests</td>
-</tr>
-<tr>
-<td>HXC-1051</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Strengthen pkg/grpcutil log assertions to dynamic behavior-dependent
-fields</td>
-</tr>
-<tr>
-<td>HXC-1052</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Cover pkg/grpcutil status.FromError code extraction for handler
-errors</td>
-</tr>
-<tr>
-<td>HXC-1054</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Strengthen pkg/context WithTimeout deadline and expiry
-assertions</td>
-</tr>
-<tr>
-<td>HXC-1058</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Pin pkg/errors Code enum exact values, distinctness, and WithFields
-nil receiver</td>
-</tr>
-<tr>
-<td>HXC-1059</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Replace tautological pkg/backoff cap-mutation test and pin
-Default()</td>
-</tr>
-<tr>
-<td>HXC-1060</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Assert pkg/classads parser AST Op per operator and paren
-precedence</td>
-</tr>
-<tr>
-<td>HXC-1067</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/pubsub -race concurrency test and explicit drop-boundary
-assertion</td>
-</tr>
-<tr>
-<td>HXC-1068</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Prove pkg/ratelimit bucket starts full and add Limiter conformance +
--race tests</td>
-</tr>
-<tr>
-<td>HXC-1070</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/retry transient-recovery, jitter-bound, and computeDelay
-table tests</td>
-</tr>
-<tr>
-<td>HXC-1072</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Pin pkg/validator error contract via errors.Is and remove/wire
-unused sentinels</td>
-</tr>
-<tr>
 <td>HXC-1029</td>
 <td>Task</td>
 <td>P3</td>
@@ -529,60 +350,6 @@ meaningful assertion</td>
 <td>P3</td>
 <td>Queued</td>
 <td>Cover pkg/wasm Host.Call ErrUnexpectedResult branch</td>
-</tr>
-<tr>
-<td>HXC-1041</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/semaphore New(0) barrier and exact-capacity boundary
-tests</td>
-</tr>
-<tr>
-<td>HXC-1049</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/metrics /metrics integration test via httptest.Server</td>
-</tr>
-<tr>
-<td>HXC-1061</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/classads eval failure-path and regexp non-match tests</td>
-</tr>
-<tr>
-<td>HXC-1065</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Strengthen pkg/log Warn test, add Debug-suppression, remove dead
-captureOutput scaffolding</td>
-</tr>
-<tr>
-<td>HXC-1066</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/lru boundary, cold-miss, and struct-value round-trip
-tests</td>
-</tr>
-<tr>
-<td>HXC-1071</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Strengthen pkg/serde MustMarshal exact-content and add Unmarshal
-failure tests</td>
-</tr>
-<tr>
-<td>HXC-1073</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/validator uint min/max, IsValidID empty, oneof/email
-boundary tests</td>
 </tr>
 </tbody>
 </table>
