@@ -28,7 +28,11 @@ func wantCode(t *testing.T, err error, want codes.Code) {
 func startTestServer(t *testing.T) (helixv1.SessionServiceClient, func()) {
 	t.Helper()
 
-	srv := NewServer()
+	// Use nil backend for hermetic behavior tests: they assert gRPC protocol
+	// correctness (field round-trips, validation, FSM guards), not whether a
+	// real tmux process was launched.  A nil backend keeps the tests fast,
+	// deterministic, and free of tmux session accumulation.
+	srv := NewServerWithTmuxBackend(nil)
 	gs := grpc.NewServer()
 	helixv1.RegisterSessionServiceServer(gs, srv)
 

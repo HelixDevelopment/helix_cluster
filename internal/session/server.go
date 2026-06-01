@@ -3,6 +3,7 @@ package session
 
 import (
 	"context"
+	"os/exec"
 
 	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
 	"github.com/HelixDevelopment/helix_cluster/pkg/session"
@@ -24,22 +25,50 @@ type Server struct {
 	manager *session.Manager
 }
 
-// NewServer creates a new Session gRPC server with a native backend.
+// NewServer creates a new Session gRPC server.
+//
+// When tmux is present in PATH, the Manager is backed by a real
+// backends.TmuxBackend (via BackendAdapter) so sessions get a real process.
+// When tmux is absent (e.g. in a stripped container), the Manager is backed
+// by a NativeBackend (local PTY shell) so there is still a real process —
+// NOT a nil backend that unconditionally reports StatusRunning without
+// launching anything.
 func NewServer() *Server {
 	return &Server{
-		manager: session.NewManager(nil),
+		manager: session.NewManager(newRealBackend()),
 	}
 }
 
+// newRealBackend returns a session.TmuxBackend backed by a real process.
+// Priority: tmux (if present in PATH) > NativeBackend (PTY shell).
+// It never returns nil — nil is the bluff we eradicate.
+func newRealBackend() session.TmuxBackend {
+	if _, err := exec.LookPath("tmux"); err == nil {
+		tb, err := backends.NewTmuxBackend()
+		if err == nil {
+			return session.NewBackendAdapter(tb)
+		}
+	}
+	return session.NewBackendAdapter(backends.NewNativeBackend())
+}
+
 // NewServerWithBackend creates a new Session gRPC server with the provided backend.
+// The supplied backends.Backend is wrapped in a BackendAdapter so the Manager
+// drives a real process rather than a nil stub.
 func NewServerWithBackend(be backends.Backend) *Server {
-	// The pkg/session Manager expects a TmuxBackend interface, but for the
-	// native backend we wrap it so the gRPC server can operate without tmux.
-	// For now we use NewManager(nil) which skips tmux operations and keeps
-	// sessions in-memory. If a real backend is provided we still use the
-	// manager's in-memory tracking and optionally invoke the backend.
-	_ = be
-	return NewServer()
+	return &Server{
+		manager: session.NewManager(session.NewBackendAdapter(be)),
+	}
+}
+
+// NewServerWithTmuxBackend creates a Session gRPC server whose Manager is
+// driven by the supplied session.TmuxBackend directly.  Used by tests that
+// inject a mock or a pre-constructed BackendAdapter without going through
+// backends.TmuxBackend construction.
+func NewServerWithTmuxBackend(tb session.TmuxBackend) *Server {
+	return &Server{
+		manager: session.NewManager(tb),
+	}
 }
 
 // modeLabel is the domain Labels key under which the gRPC `mode` field is

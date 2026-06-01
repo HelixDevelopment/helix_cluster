@@ -153,8 +153,9 @@ func NewInProcessCluster(t testing.TB) *InProcessCluster {
 	// 5. Scheduler server
 	sched := internalscheduler.NewServer()
 
-	// 6. Session server
-	sess := internalsession.NewServer()
+	// 6. Session server — in-memory (nil) backend for the e2e harness; the real
+	// tmux backend path is proven separately by HXC-1136's dedicated E2E.
+	sess := internalsession.NewServerWithTmuxBackend(nil)
 
 	// 7. Build service
 	pool := build.NewWorkerPool()

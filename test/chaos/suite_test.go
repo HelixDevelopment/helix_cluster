@@ -156,8 +156,11 @@ func NewInProcessCluster(t testing.TB) *InProcessCluster {
 	// 5. Scheduler server
 	sched := internalscheduler.NewServer()
 
-	// 6. Session server
-	sess := internalsession.NewServer()
+	// 6. Session server — use an in-memory (nil) backend for service-level chaos
+	// tests (concurrent-create-at-scale, restart, backend-failure) so they do not
+	// spawn real tmux/PTYs (which exhaust OS fork/PTY limits at 1000 sessions).
+	// The real-tmux backend path is proven separately by HXC-1136's E2E.
+	sess := internalsession.NewServerWithTmuxBackend(nil)
 
 	// 7. Build service
 	pool := build.NewWorkerPool()

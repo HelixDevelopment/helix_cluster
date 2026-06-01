@@ -79,6 +79,12 @@ func (m *mockTmuxBackend) ListSessions() ([]string, error) {
 	return out, nil
 }
 
+func (m *mockTmuxBackend) SessionExists(name string) (bool, error) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.sessions[name], nil
+}
+
 func (m *mockTmuxBackend) CreateWindow(session, name string) (string, error) {
 	if err := m.record("window:" + session + "/" + name); err != nil {
 		return "", err

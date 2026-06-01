@@ -135,6 +135,9 @@ type failingTmuxBackend struct{}
 func (f *failingTmuxBackend) CreateSession(name string, env map[string]string) (string, error) {
 	return "", fmt.Errorf("backend failure: tmux is unreachable")
 }
+func (f *failingTmuxBackend) SessionExists(name string) (bool, error) {
+	return false, fmt.Errorf("backend failure")
+}
 func (f *failingTmuxBackend) AttachSession(name string) error   { return fmt.Errorf("backend failure") }
 func (f *failingTmuxBackend) DetachSession(name string) error   { return fmt.Errorf("backend failure") }
 func (f *failingTmuxBackend) KillSession(name string) error     { return fmt.Errorf("backend failure") }

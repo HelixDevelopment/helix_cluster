@@ -29,6 +29,10 @@ type TmuxBackend interface {
 	DetachSession(name string) error
 	KillSession(name string) error
 	ListSessions() ([]string, error)
+	// SessionExists reports whether a session with the given name is alive in
+	// the backend. It is the sink-side probe used by tests and health checks to
+	// prove a real process was launched (not merely StatusRunning in memory).
+	SessionExists(name string) (bool, error)
 	CreateWindow(session, name string) (string, error)
 	SplitWindow(session, window string) (string, error)
 	ResizePane(session, pane string, rows, cols int) error
