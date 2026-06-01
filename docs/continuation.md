@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 40
-**Last modified:** 2026-06-01T13:02:42Z
+**Revision:** 41
+**Last modified:** 2026-06-01T13:04:06Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `44db918` | Foundation wave 4 + cross-platform parity: 9 real-infra items + macOS GPU/resources + real VMSSH — integration-proven |
 | `366a436` | CLAUDE-2: Cross-Platform Parity Guarantee — no Linux-only feature may fall back to a mock/stub on macOS |
 | `f6209f6` | Foundation wave 3b: mark 7 items Completed (HXC-1010/1011/1012/1013/1015/1020/1028) |
 | `85ee85e` | Foundation wave 3b: real-infra impl (infra orchestrator / podman builder / vault api) — integration-proven |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `930a7ac` | Foundation wave 2: mark 30 items Completed (HXC-1039..1041/1046..1061/1064..1074) |
 | `a084eb1` | Foundation wave 2: anti-bluff harden 29 pkg test items + §1.1 mutation runner + -race CI gate |
 | `3fb815d` | Foundation wave 1: mark 30 verified items Completed (HXC-1001..1009/1016-1018/1021/1024/1026-1027/1030-1037/1042-1045/1062-1063) |
-| `dbed10c` | Foundation wave 1: anti-bluff remediation of etcd/lock/infra/build/security/crypto/jwt/hxcregistry/storage/wasm (verified) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `366a436` |
-| **Timestamp** | 2026-06-01T13:02:42Z |
+| **Commit** | `44db918` |
+| **Timestamp** | 2026-06-01T13:04:06Z |
 
 ## §3: Active Work
 

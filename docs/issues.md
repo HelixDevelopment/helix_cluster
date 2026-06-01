@@ -1,14 +1,14 @@
 # Issues
 
-**Revision:** 12
-**Last modified:** 2026-06-01T12:11:50Z
+**Revision:** 13
+**Last modified:** 2026-06-01T13:04:05Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **550**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **540**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (6 active)
+## Foundation (anti-bluff) (5 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -17,19 +17,11 @@ Total active items: **550**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-018 | Task | P1 | Queued |  |
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
-| HXC-1014 | Feature | P1 | Queued | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end |
 
-## MVP (71 active)
+## MVP (62 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1075 | Feature | P0 | Queued | Implement NATS/JetStream client wrapper (pkg/events) |
-| HXC-1076 | Feature | P0 | Queued | Implement etcd client wrapper (pkg/etcd) |
-| HXC-1077 | Feature | P0 | Queued | Implement etcd discovery backend (pkg/discovery) |
-| HXC-1078 | Feature | P0 | Queued | Implement real Kafka producer/consumer (pkg/pubsub) |
-| HXC-1079 | Feature | P0 | Queued | Implement cgroups v2 + /proc resource reader (pkg/resources) |
-| HXC-1080 | Feature | P0 | Queued | Implement Omega-model scheduler core (pkg/scheduler, internal/scheduler) |
-| HXC-1081 | Feature | P0 | Queued | Implement optimistic-concurrency versioning for scheduler pool |
 | HXC-1084 | Feature | P0 | Queued | Upgrade tmux backend to control-mode (-CC) with streaming I/O (pkg/session) |
 | HXC-1085 | Feature | P0 | Queued | Implement CRDT session state and lifecycle (create/attach/migrate) |
 | HXC-1086 | Feature | P0 | Queued | Implement real Node gRPC handlers serving helixv1 Node API (internal/node) |
@@ -51,8 +43,6 @@ Total active items: **550**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1121 | Task | P0 | Queued | Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS) |
 | HXC-1135 | Feature | P0 | Queued | Implement two-node cluster formation end-to-end (exit gate) |
 | HXC-1136 | Feature | P0 | Queued | Implement session-create end-to-end path (htmux new exit gate) |
-| HXC-1082 | Feature | P1 | Queued | Implement HTCondor ClassAds matching in scheduler (pkg/classads) |
-| HXC-1083 | Feature | P1 | Queued | Implement gang scheduling and preemption in scheduler |
 | HXC-1090 | Feature | P1 | Queued | Implement WireGuard NAT traversal / STUN hole-punch (pkg/wireguard) |
 | HXC-1095 | Feature | P1 | Queued | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) |
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |

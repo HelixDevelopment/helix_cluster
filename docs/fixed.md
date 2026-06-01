@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 12
-**Last modified:** 2026-06-01T12:11:50Z
+**Revision:** 13
+**Last modified:** 2026-06-01T13:04:05Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **90**.
+Total completed: **100**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -38,6 +38,7 @@ Total completed: **90**.
 | HXC-1011 | Feature | P0 | Make pkg/infra Health probe real services and report false on failure | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1012 | Feature | P1 | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1013 | Feature | P1 | Make pkg/infra Scale create real replicas verified via runtime query | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
+| HXC-1014 | Feature | P1 | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-1015 | Feature | P2 | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect | 85ee85e85f221075dfc5f0304e3577e1df5bc930 |
 | HXC-1016 | Feature | P0 | Add EtcdLocker integration tests against real etcd (block/acquire/lease) | dbed10c |
 | HXC-1017 | Bug | P0 | Rewrite TestMemoryLockerConcurrent to detect a broken lock without -race | dbed10c |
@@ -98,5 +99,14 @@ Total completed: **90**.
 | HXC-1072 | Bug | P2 | Pin pkg/validator error contract via errors.Is and remove/wire unused sentinels | a084eb1 |
 | HXC-1073 | Task | P3 | Add pkg/validator uint min/max, IsValidID empty, oneof/email boundary tests | a084eb1 |
 | HXC-1074 | Task | P0 | Establish fleet-wide -race CI gate across concurrency-sensitive packages | a084eb1 |
+| HXC-1075 | Feature | P0 | Implement NATS/JetStream client wrapper (pkg/events) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1076 | Feature | P0 | Implement etcd client wrapper (pkg/etcd) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1077 | Feature | P0 | Implement etcd discovery backend (pkg/discovery) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1078 | Feature | P0 | Implement real Kafka producer/consumer (pkg/pubsub) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1079 | Feature | P0 | Implement cgroups v2 + /proc resource reader (pkg/resources) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1080 | Feature | P0 | Implement Omega-model scheduler core (pkg/scheduler, internal/scheduler) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1081 | Feature | P0 | Implement optimistic-concurrency versioning for scheduler pool | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1082 | Feature | P1 | Implement HTCondor ClassAds matching in scheduler (pkg/classads) | 44db9182bb5abe8f00ff83a53eb512506031932e |
+| HXC-1083 | Feature | P1 | Implement gang scheduling and preemption in scheduler | 44db9182bb5abe8f00ff83a53eb512506031932e |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
