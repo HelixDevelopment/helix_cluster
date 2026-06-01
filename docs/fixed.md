@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 33
-**Last modified:** 2026-06-01T23:14:38Z
+**Revision:** 34
+**Last modified:** 2026-06-01T23:30:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **188**.
+Total completed: **191**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -194,7 +194,10 @@ Total completed: **188**.
 | HXC-1247 | Feature | P1 | Implement pure-Go in-sim chaos faults toward 25+ (ClockSkew, DiskFill, MessageReorder, Byzantine, etc.) | 1c0d943 |
 | HXC-1248 | Feature | P0 | Build YAML chaos Scenario Engine with phases, blast radius and abort-on-SLO-breach | e93fad6 |
 | HXC-1249 | Feature | P0 | Implement emergency-stop and auto-recovery with <=2s halt latency | 15977c0 |
+| HXC-1254 | Feature | P1 | Implement TestRunner with parallel suite execution and result collection | aba565b |
+| HXC-1255 | Feature | P1 | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) | aba565b |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |
+| HXC-1267 | Feature | P0 | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands | aba565b |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

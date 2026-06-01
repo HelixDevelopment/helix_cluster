@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 84 <strong>Last modified:</strong>
-2026-06-01T23:30:01Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 85 <strong>Last modified:</strong>
+2026-06-01T23:30:49Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,31 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>aba565b</code></td>
+<td>Foundation wave 25: 2 new test-orchestration pkgs + 1
+verified-already-done. HXC-1254 parallel TestRunner (NEW
+pkg/testing/runner: Suite registration + bounded-worker-pool parallel
+execution + result collection/aggregate Report sorted deterministically;
+barrier-proof concurrency test (serial runner deadlocks under a
+ctx-deadline guard), atomic peak counter proves MaxConcurrency cap,
+result counts incl Err-&gt;Failed (defense-in-depth: both guards must be
+removed to break the want-3-got-4 bite — mutation-verified), Register
+dup/empty-name errors). HXC-1255 session test FSM (NEW
+pkg/testing/sessionfsm:
+Idle-&gt;Setup-&gt;Running-&gt;ChaosInject-&gt;Verify-&gt;Done +
+any-nonterminal-&gt;Failed; legal-transition table,
+IllegalTransitionError leaves state unchanged, per-state callbacks fire
+in order, History(); mutation guard-always-allow -&gt; illegal
+transition test FAILS). HXC-1267 helix-test CLI VERIFIED already
+complete (cmd/helix-test dst/chaos/device/snapshot subcommands wired to
+real pkg/testing packages w/ 13 mutation-sensitive tests; device subcmd
+lists real T1-T8) — verified+marked, not rebuilt. ZERO new deps, ZERO
+edits to existing files. Gate: build/vet/vet-integration clean, full
+-short -race green, dataplane ok, tmux clean (W23 fix holds); mutation
+spot-checks: FSM guard bites, TestRunner Err-&gt;Failed bites (both
+guards), cap-peak&lt;=2 + barrier verified by review.</td>
+</tr>
 <tr>
 <td><code>ace79d4</code></td>
 <td>Foundation wave 24: mark HXC-1162 Completed — E2E multi-node session
@@ -409,14 +434,6 @@ build/vet/vet-integration clean, full -short -race green, dataplane ok;
 mutation spot-checks B blast-radius + C node-restart bite; A sidecar
 exact-value scrape verified.</td>
 </tr>
-<tr>
-<td><code>b7f988f</code></td>
-<td>Foundation wave 19: mark 3 items Completed (HXC-1142/1096/1125) —
-batch/interactive mode switching+preemption / GPU /proc parser
-(fixture-tested) / Setup Wizard orchestrator (review caught+fixed a
-critical not-wired-into-main CLAUDE-1 bluff; node-config now real,
-verified sink-side). Registry 177-&gt;180 Completed / 459 Queued.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -434,11 +451,11 @@ verified sink-side). Registry 177-&gt;180 Completed / 459 Queued.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>ace79d4</code></td>
+<td><code>aba565b</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:30:01Z</td>
+<td>2026-06-01T23:30:49Z</td>
 </tr>
 </tbody>
 </table>
