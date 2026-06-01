@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 56
-**Last modified:** 2026-06-01T17:28:49Z
+**Revision:** 57
+**Last modified:** 2026-06-01T18:10:21Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `546c68d` | Foundation wave 10: mark 3 items Completed (HXC-1131/1134/1144) — integration-proven vs real vault/etcd/postgres |
 | `467a6dc` | Foundation wave 10: Vault secret injection + rotation (KV v2, no-downtime refresh), WireGuard mesh segmentation policy engine (DENY-wins label selectors + enforcement ruleset), Backup service (etcd clientv3 snapshot + pg_dump/restore state-match) — integration-proven vs real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files (unused ctx, unused require import) |
 | `f1e920b` | Foundation wave 9: mark 4 items Completed (HXC-1104/1116/1127/1132) — integration-proven vs real redis/mTLS/opa/HTTP; CLAUDE-2 macOS CPU utilization now real |
 | `7634fbb` | Foundation wave 9: Redis store (routing TTL + NodeEvent pub/sub, go-redis/v9), SPIFFE SVID issuance + mTLS identity (go-spiffe/v2), OPA policy engine + HelixConstitution scheduling (open-policy-agent/opa), metrics collector scrape endpoint — integration-proven vs real redis/mTLS/opa/HTTP. GATE FIXES: tmux ControlModeAttach EOF-before-drain race; pkg/resources DarwinReader now samples REAL macOS CPU utilization via top (CLAUDE-2: no more 0%% on macOS); redis test mutex-copy vet violation |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `e12003a` | Foundation wave 7: session WS-vertical (htmux attach+PTY-over-WS+msgpack envelope), e2ee ML-KEM record + sw-attestation, RBAC scopes, ratelimit token-bucket + etcd key namespace, postgres 15-table primary schema — integration-proven (real tmux/etcd/postgres); gate fixed tmux-CC subscribe race + pg applier host-path-in-container bug |
 | `6882b02` | Foundation wave 6: mark 5 items Completed (HXC-1084/1085/1090/1095/1099) |
 | `1367dca` | Foundation wave 6: session(tmux -CC + CRDT) / wireguard STUN-NAT / postgres registry / build orchestrator — integration-proven |
-| `e0d3938` | Wave 5 deferred resolved: mark HXC-1086/1088/1093 Completed (integration-proven) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `467a6dc` |
-| **Timestamp** | 2026-06-01T17:28:49Z |
+| **Commit** | `546c68d` |
+| **Timestamp** | 2026-06-01T18:10:21Z |
 
 ## §3: Active Work
 

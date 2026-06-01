@@ -1,0 +1,19 @@
+// compute.fbs — FlatBuffers schema for GPU compute payloads.
+// Helix Cluster OS — pkg/computeproto
+
+namespace computeproto;
+
+table Tensor {
+  name:string;
+  dims:[int];
+  dtype:string;
+}
+
+table ComputeTask {
+  id:string;
+  kernel:string;
+  inputs:[Tensor];
+  outputs:[Tensor];
+}
+
+root_type ComputeTask;
