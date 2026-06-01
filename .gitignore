@@ -83,3 +83,6 @@ qa-results/docs_chain/
 
 # built engine binaries (docs_chain etc.)
 /bin/
+
+# runtime test evidence (§7.1 capture); closure evidence is referenced in HXC item_history
+qa-results/
