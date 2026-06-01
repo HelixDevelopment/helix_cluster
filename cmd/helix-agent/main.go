@@ -18,6 +18,7 @@ import (
 	"io"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -52,12 +53,13 @@ func buildConfig(args []string, stderr io.Writer) (*node.Config, error) {
 	fs.SetOutput(stderr)
 
 	var (
-		id       = fs.String("id", "", "node unique identifier")
-		region   = fs.String("region", "us-east-1", "node region")
-		bindAddr = fs.String("bind-addr", "127.0.0.1", "SWIM bind address")
-		bindPort = fs.Int("bind-port", 7946, "SWIM bind port")
-		wgPort   = fs.Int("wg-port", 51820, "WireGuard listen port")
-		wgKey    = fs.String("wg-key", "", "WireGuard private key (base64)")
+		id            = fs.String("id", "", "node unique identifier")
+		region        = fs.String("region", "us-east-1", "node region")
+		bindAddr      = fs.String("bind-addr", "127.0.0.1", "SWIM bind address")
+		bindPort      = fs.Int("bind-port", 7946, "SWIM bind port")
+		wgPort        = fs.Int("wg-port", 51820, "WireGuard listen port")
+		wgKey         = fs.String("wg-key", "", "WireGuard private key (base64)")
+		etcdEndpoints = fs.String("etcd-endpoints", "", "comma-separated etcd client endpoints")
 	)
 	if err := fs.Parse(args); err != nil {
 		return nil, err
@@ -82,6 +84,22 @@ func buildConfig(args []string, stderr io.Writer) (*node.Config, error) {
 		key = priv
 	}
 
+	// Resolve etcd endpoints: flag takes precedence over env var
+	// HELIX_ETCD_ENDPOINTS (mirrors helix-node's HELIX_NODE_ADDR env-overlay
+	// style). When neither is set, EtcdEndpoints stays nil, selecting the
+	// in-memory discovery backend.
+	rawEndpoints := *etcdEndpoints
+	if rawEndpoints == "" {
+		rawEndpoints = strings.TrimSpace(os.Getenv("HELIX_ETCD_ENDPOINTS"))
+	}
+	var endpoints []string
+	for _, ep := range strings.Split(rawEndpoints, ",") {
+		ep = strings.TrimSpace(ep)
+		if ep != "" {
+			endpoints = append(endpoints, ep)
+		}
+	}
+
 	return &node.Config{
 		ID:                   *id,
 		Region:               *region,
@@ -92,6 +110,7 @@ func buildConfig(args []string, stderr io.Writer) (*node.Config, error) {
 		WgNoOp:               true,
 		DiscoveryTTL:         30 * time.Second,
 		ResourcePollInterval: 30 * time.Second,
+		EtcdEndpoints:        endpoints,
 	}, nil
 }
 
