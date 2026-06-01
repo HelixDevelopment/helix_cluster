@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net"
+	"os/exec"
 	"testing"
 	"time"
 
@@ -10,6 +11,18 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
+
+// killSession removes a real tmux session created by the server during a test
+// so the suite leaves ZERO leaked sessions even on failure (PTY-exhaustion
+// guard; the server-assigned id doubles as the tmux session name). Errors are
+// ignored: the session may already be gone.
+func killSession(t *testing.T, id string) {
+	t.Helper()
+	if id == "" {
+		return
+	}
+	t.Cleanup(func() { _ = exec.Command("tmux", "kill-session", "-t", id).Run() })
+}
 
 // startRun launches run() on an ephemeral 127.0.0.1 port and blocks until the
 // listener is accepting. It returns the bound address, a function to read the
@@ -76,6 +89,7 @@ func TestRunServesRealRPC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateSession: %v", err)
 	}
+	killSession(t, resp.GetId())
 	if resp.Name != "cli-e2e" {
 		t.Errorf("name = %q, want cli-e2e", resp.Name)
 	}
@@ -99,12 +113,14 @@ func TestRunGracefulShutdownStopsServing(t *testing.T) {
 
 	client, closeConn := dial(t, addr)
 	ctx, c := context.WithTimeout(context.Background(), 5*time.Second)
-	if _, err := client.CreateSession(ctx, &helixv1.CreateSessionRequest{Name: "pre", Owner: "trinity"}); err != nil {
+	preResp, err := client.CreateSession(ctx, &helixv1.CreateSessionRequest{Name: "pre", Owner: "trinity"})
+	if err != nil {
 		c()
 		closeConn()
 		cancel()
 		t.Fatalf("pre-shutdown CreateSession: %v", err)
 	}
+	killSession(t, preResp.GetId())
 	c()
 	closeConn()
 

@@ -33,6 +33,10 @@ func TestTmuxBackend_CreateAndKill(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create failed: %v", err)
 	}
+	// Defer kill first so the session is removed even if an assertion fails
+	// mid-test — prevents a leaked "test-create-kill" tmux session.
+	t.Cleanup(func() { _ = b.Kill(id) })
+
 	if id == "" {
 		t.Fatalf("expected non-empty id")
 	}
@@ -53,6 +57,7 @@ func TestTmuxBackend_CreateAndKill(t *testing.T) {
 		t.Fatalf("created session not found in list: %+v", list)
 	}
 
+	// Explicit kill so we can assert the sink-side disappearance.
 	if err := b.Kill(id); err != nil {
 		t.Fatalf("kill failed: %v", err)
 	}
@@ -538,6 +543,8 @@ func TestTmuxBackend_Lifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create failed: %v", err)
 	}
+	// Defer kill so the session is removed even if an assertion fails mid-test.
+	t.Cleanup(func() { _ = b.Kill(id) })
 
 	list, err := b.List()
 	if err != nil {
