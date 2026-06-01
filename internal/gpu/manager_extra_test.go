@@ -14,10 +14,7 @@ import (
 // always grabs a new Available GPU -> the two IDs differ and the count of
 // allocated GPUs becomes 2, failing this test.
 func TestAllocateGPUIdempotentPerJob(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	first, err := mgr.AllocateGPU("job-x")
 	if err != nil {
@@ -49,10 +46,7 @@ func TestAllocateGPUIdempotentPerJob(t *testing.T) {
 // Mutation: remove the `if jobID == ""` guard in AllocateGPU -> the empty
 // jobID succeeds and err is nil, failing this test.
 func TestAllocateGPUEmptyJobRejected(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 	if _, err := mgr.AllocateGPU(""); err == nil {
 		t.Fatal("expected error allocating with empty jobID")
 	}
@@ -65,32 +59,30 @@ func TestAllocateGPUEmptyJobRejected(t *testing.T) {
 }
 
 // TestAllocateBeforeDetectRejected proves the started lifecycle guard is real:
-// allocation on a Manager that has not run DetectGPUs is refused with a clear
-// error instead of silently returning "no available GPUs" (or, worse, being
-// treated as a usable empty pool). This is the assertion that gives the
+// allocation on a Manager whose inventory has not been populated is refused with
+// a clear error instead of silently returning "no available GPUs" (or, worse,
+// being treated as a usable empty pool). This is the assertion that gives the
 // `started atomic.Bool` field its meaning.
-// Mutation: delete `m.started.Store(true)` in DetectGPUs (or the
+// Mutation: delete `m.started.Store(true)` in InjectGPUsForTest (or the
 // `if !m.started.Load()` guard in AllocateGPU) -> either the guard fires even
-// after detection (DetectGPUs path) or allocation proceeds pre-detection
-// (guard path); both break one of the two assertions below.
+// after the inventory is populated (Inject path) or allocation proceeds before
+// it (guard path); both break one of the two assertions below.
 func TestAllocateBeforeDetectRejected(t *testing.T) {
 	mgr := NewManager()
 
-	// Before DetectGPUs: both allocation entry points must refuse.
+	// Before the inventory is populated: both allocation entry points refuse.
 	if _, err := mgr.AllocateGPU("early-job"); err == nil {
-		t.Fatal("expected error allocating before DetectGPUs")
+		t.Fatal("expected error allocating before inventory populated")
 	}
 	if _, err := mgr.AllocateGPUByMemory("early-job", 1024); err == nil {
-		t.Fatal("expected error allocating-by-memory before DetectGPUs")
+		t.Fatal("expected error allocating-by-memory before inventory populated")
 	}
 
-	// After DetectGPUs: allocation must now succeed, proving the guard is gated
-	// on detection and not unconditionally on.
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	// After populating the inventory: allocation must now succeed, proving the
+	// guard is gated on detection and not unconditionally on.
+	mgr.InjectGPUsForTest(mockInventory())
 	if _, err := mgr.AllocateGPU("ready-job"); err != nil {
-		t.Fatalf("expected allocation to succeed after DetectGPUs, got %v", err)
+		t.Fatalf("expected allocation to succeed after inventory populated, got %v", err)
 	}
 }
 
@@ -102,10 +94,7 @@ func TestAllocateBeforeDetectRejected(t *testing.T) {
 // `>` (worst fit) -> the 30000MB request grabs an 81920 GPU and the assertion
 // on returned MemoryMB fails.
 func TestAllocateGPUByMemoryBestFit(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	g, err := mgr.AllocateGPUByMemory("small-job", 30000)
 	if err != nil {
@@ -121,10 +110,7 @@ func TestAllocateGPUByMemoryBestFit(t *testing.T) {
 // Mutation: change `gpu.MemoryMB < minMemoryMB` skip-condition to
 // `gpu.MemoryMB < 0` -> an undersized GPU gets allocated and err is nil.
 func TestAllocateGPUByMemoryInsufficient(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 	if _, err := mgr.AllocateGPUByMemory("huge-job", 1_000_000); err == nil {
 		t.Fatal("expected error: no GPU large enough")
 	}
@@ -135,10 +121,7 @@ func TestAllocateGPUByMemoryInsufficient(t *testing.T) {
 // Mutation: delete the `gpu.MemoryMB < minMemoryMB` undersized check in the
 // idempotency branch -> it returns the small GPU with nil err, failing here.
 func TestAllocateGPUByMemoryIdempotentUndersized(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 	if _, err := mgr.AllocateGPUByMemory("job-y", 30000); err != nil {
 		t.Fatalf("initial allocation failed: %v", err)
 	}
@@ -154,10 +137,7 @@ func TestAllocateGPUByMemoryIdempotentUndersized(t *testing.T) {
 // Available -> FreeMemoryMB after one allocation no longer drops, failing the
 // assertion below.
 func TestStatsReflectInventory(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	before := mgr.Stats()
 	if before.Total == 0 {
@@ -195,10 +175,7 @@ func TestStatsReflectInventory(t *testing.T) {
 // Mutation: remove the `if gpu.Status == Allocated { return err }` guard in
 // SetOffline -> the allocated GPU is forced Offline and err is nil.
 func TestSetOfflineRejectsAllocated(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	g, err := mgr.AllocateGPU("busy-job")
 	if err != nil {
@@ -223,10 +200,7 @@ func TestSetOfflineRejectsAllocated(t *testing.T) {
 // GPU stays allocatable and the "no allocation while one offline" check below
 // fails (the drained GPU gets allocated).
 func TestSetOfflineThenOnlineRoundTrip(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	all := mgr.ListGPUs()
 	target := all[0].ID
@@ -275,10 +249,7 @@ func TestSetOfflineThenOnlineRoundTrip(t *testing.T) {
 // Mutation: remove the `if gpu.Status == Offline` guard in SetOnline -> the
 // allocated GPU is reset to Available and its job binding is lost.
 func TestSetOnlineLeavesAllocatedUnchanged(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 	g, err := mgr.AllocateGPU("keep-job")
 	if err != nil {
 		t.Fatalf("AllocateGPU failed: %v", err)
@@ -298,10 +269,7 @@ func TestSetOnlineLeavesAllocatedUnchanged(t *testing.T) {
 // loop goroutine never runs, no metrics are refreshed, temperatures stay 0.0
 // (< 30.0), and the assertion fails.
 func TestManagerMonitoringWiring(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -417,7 +385,7 @@ func TestDetectGPUsFromParsesInformation(t *testing.T) {
 }
 
 // TestDetectGPUsFromMissingPath proves a non-existent base path is a hard error
-// (so DetectGPUs falls back to mock) rather than returning a phantom GPU list.
+// (which DetectGPUs surfaces honestly) rather than returning a phantom GPU list.
 // Mutation: swallow the os.ReadDir error and `return nil, nil` -> err is nil
 // here, failing the assertion.
 func TestDetectGPUsFromMissingPath(t *testing.T) {

@@ -8,21 +8,21 @@ import (
 )
 
 const (
-	defaultMonitorInterval   = 5 * time.Second
-	defaultTemperatureThreshold = 95.0 // Celsius
+	defaultMonitorInterval      = 5 * time.Second
+	defaultTemperatureThreshold = 95.0  // Celsius
 	defaultUtilizationThreshold = 100.0 // Percent
 )
 
 // Monitor periodically checks GPU health and updates metrics.
 type Monitor struct {
-	mu        sync.RWMutex
-	manager   *Manager
-	interval  time.Duration
-	tempThreshold    float64
-	utilThreshold    float64
-	cancel    context.CancelFunc
-	wg        sync.WaitGroup
-	running   bool
+	mu            sync.RWMutex
+	manager       *Manager
+	interval      time.Duration
+	tempThreshold float64
+	utilThreshold float64
+	cancel        context.CancelFunc
+	wg            sync.WaitGroup
+	running       bool
 }
 
 // MonitorOption configures the Monitor.
@@ -133,9 +133,9 @@ func (m *Monitor) checkAll() {
 
 func (m *Monitor) checkGPU(id string) {
 	// Mock metrics: simulate temperature, memory usage, and utilization.
-	temp := 30.0 + rand.Float64()*70.0       // 30-100 C
-	util := rand.Float64() * 100.0           // 0-100%
-	memUsed := rand.Float64() * 0.9          // 0-90% of total memory
+	temp := 30.0 + rand.Float64()*70.0 // 30-100 C
+	util := rand.Float64() * 100.0     // 0-100%
+	memUsed := rand.Float64() * 0.9    // 0-90% of total memory
 
 	m.manager.updateGPU(id, func(gpu *GPU) {
 		if gpu.Status == Offline {

@@ -7,11 +7,11 @@ import (
 
 // NodeAggregator collects resources from multiple readers and maintains node state.
 type NodeAggregator struct {
-	mu       sync.RWMutex
-	readers  []Reader
-	nodes    map[string]*nodeState
-	ttl      time.Duration
-	clock    func() time.Time
+	mu      sync.RWMutex
+	readers []Reader
+	nodes   map[string]*nodeState
+	ttl     time.Duration
+	clock   func() time.Time
 }
 
 // NewNodeAggregator creates an aggregator with the given TTL for stale data.

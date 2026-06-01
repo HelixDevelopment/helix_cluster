@@ -8,18 +8,18 @@ import (
 	"time"
 )
 
-func TestDetectGPUsMock(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+// TestInjectGPUsForTestSeam proves the test-only injection seam installs a
+// controlled inventory and marks the Manager started (so allocation works)
+// without touching real hardware. This replaces the former DetectGPUs->mock
+// path that production no longer has.
+// Mutation: drop `m.started.Store(true)` in InjectGPUsForTest -> AllocateGPU
+// below fails the "not detected" guard.
+func TestInjectGPUsForTestSeam(t *testing.T) {
+	mgr := newManagerWithMockInventory()
 
 	gpus := mgr.ListGPUs()
-	if len(gpus) == 0 {
-		t.Fatal("expected at least one mock GPU")
-	}
-	if len(gpus) < 2 || len(gpus) > 4 {
-		t.Fatalf("expected 2-4 mock GPUs, got %d", len(gpus))
+	if len(gpus) != 4 {
+		t.Fatalf("expected 4 injected GPUs, got %d", len(gpus))
 	}
 
 	for _, gpu := range gpus {
@@ -36,13 +36,15 @@ func TestDetectGPUsMock(t *testing.T) {
 			t.Errorf("expected status Available, got %s", gpu.Status)
 		}
 	}
+
+	// Injection must also start the Manager so allocation is permitted.
+	if _, err := mgr.AllocateGPU("seam-job"); err != nil {
+		t.Fatalf("expected allocation after injection, got %v", err)
+	}
 }
 
 func TestAllocateAndReleaseGPU(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	jobID := "job-123"
 	gpu, err := mgr.AllocateGPU(jobID)
@@ -89,10 +91,7 @@ func TestAllocateAndReleaseGPU(t *testing.T) {
 }
 
 func TestAllocateGPUExhaustion(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	gpus := mgr.ListGPUs()
 	// Allocate all GPUs
@@ -111,10 +110,7 @@ func TestAllocateGPUExhaustion(t *testing.T) {
 }
 
 func TestConcurrentAllocation(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	gpus := mgr.ListGPUs()
 	numGPUs := len(gpus)
@@ -185,10 +181,7 @@ func TestGPUJSONSerialization(t *testing.T) {
 }
 
 func TestMonitorLifecycle(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	mon := newMonitor(mgr, WithInterval(100*time.Millisecond))
 	if mon.IsRunning() {
@@ -215,10 +208,7 @@ func TestMonitorLifecycle(t *testing.T) {
 }
 
 func TestMonitorUpdatesGPUHealth(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	// Use very low thresholds so mock random values will exceed them frequently
 	mon := newMonitor(mgr, WithInterval(50*time.Millisecond), WithTemperatureThreshold(1.0), WithUtilizationThreshold(1.0))
@@ -250,10 +240,7 @@ func TestMonitorUpdatesGPUHealth(t *testing.T) {
 }
 
 func TestGetGPUByID(t *testing.T) {
-	mgr := NewManager()
-	if err := mgr.DetectGPUs(); err != nil {
-		t.Fatalf("DetectGPUs failed: %v", err)
-	}
+	mgr := newManagerWithMockInventory()
 
 	gpus := mgr.ListGPUs()
 	if len(gpus) == 0 {

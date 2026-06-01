@@ -1,12 +1,23 @@
-//go:build !linux && !darwin
+//go:build darwin
 
 package resources
 
+// On darwin, proc_mock.go is excluded from the production build (CLAUDE-2
+// compliance: darwin must use the real DarwinReader). However, package_test.go
+// still relies on MockReader / NewMockReader for aggregator and concurrency
+// tests that do not test proc/sysctl behaviour.  This file provides a
+// compile-only shim so those tests continue to compile and run on darwin.
+//
+// NOTE: MockReader is used ONLY in aggregator/concurrency/unit tests that
+// need an injectable deterministic Reader.  It is NOT registered as the
+// production darwin reader anywhere in non-test code.
+
 import "fmt"
 
-// MockReader returns synthetic resource data for development on non-Linux platforms.
+// MockReader returns synthetic resource data for use in aggregator unit tests.
+// It is present at test-compile time on darwin because proc_mock.go is
+// excluded from the darwin production build.
 type MockReader struct {
-	// Synthetic values that can be overridden in tests.
 	Cores       int
 	Model       string
 	Frequency   float64
@@ -23,11 +34,11 @@ func NewMockReader() *MockReader {
 		Cores:       8,
 		Model:       "Mock CPU",
 		Frequency:   2400.0,
-		TotalKB:     16 * 1024 * 1024, // 16 GB in KB
-		AvailableKB: 8 * 1024 * 1024,  // 8 GB in KB
+		TotalKB:     16 * 1024 * 1024,
+		AvailableKB: 8 * 1024 * 1024,
 		GPUCount:    2,
 		GPUModel:    "Mock GPU",
-		GPUMemory:   8192, // MB
+		GPUMemory:   8192,
 	}
 }
 
@@ -59,7 +70,7 @@ func (m *MockReader) Read(nodeID string) (NodeResources, error) {
 			Memory: m.GPUMemory,
 		},
 		Disk: DiskInfo{
-			TotalKB: 500 * 1024 * 1024, // 500 GB
+			TotalKB: 500 * 1024 * 1024,
 			UsedKB:  100 * 1024 * 1024,
 		},
 		Network: NetworkInfo{

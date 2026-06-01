@@ -199,9 +199,9 @@ func TestClassAdEndToEndSchedulerPicksPreferredNode(t *testing.T) {
 
 	// Three nodes, all GPU-capable; only two satisfy GPU>=2; among those the
 	// Rank "GPU" must steer the binding onto the richer one.
-	tiny := &Node{ID: "tiny", AvailableResources: Resources{GPU: 1}}    // filtered out
-	mid := &Node{ID: "mid", AvailableResources: Resources{GPU: 2}}      // satisfies, lower rank
-	big := &Node{ID: "big", AvailableResources: Resources{GPU: 7}}      // satisfies, higher rank
+	tiny := &Node{ID: "tiny", AvailableResources: Resources{GPU: 1}} // filtered out
+	mid := &Node{ID: "mid", AvailableResources: Resources{GPU: 2}}   // satisfies, lower rank
+	big := &Node{ID: "big", AvailableResources: Resources{GPU: 7}}   // satisfies, higher rank
 	s.RegisterNode(tiny)
 	s.RegisterNode(mid)
 	s.RegisterNode(big)

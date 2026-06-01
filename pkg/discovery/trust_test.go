@@ -28,11 +28,11 @@ func seedTrustFleet(t *testing.T) *TrustRegistry {
 		id   string
 		tier TrustTier
 	}{
-		{"root-1", TrustRoot},          // 15
-		{"dc-1", TrustDatacenter},      // 11 (== TrustHigh)
-		{"dc-2", TrustDatacenter},      // 11
-		{"internal-1", TrustInternal},  // 8  (== TrustMedium)
-		{"volunteer-1", TrustVolunteer},// 2
+		{"root-1", TrustRoot},              // 15
+		{"dc-1", TrustDatacenter},          // 11 (== TrustHigh)
+		{"dc-2", TrustDatacenter},          // 11
+		{"internal-1", TrustInternal},      // 8  (== TrustMedium)
+		{"volunteer-1", TrustVolunteer},    // 2
 		{"public-1", TrustPublicAnonymous}, // 1
 	}
 	for _, f := range fleet {

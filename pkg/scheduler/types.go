@@ -20,12 +20,12 @@ type Resources struct {
 
 // Job is a unit of work to be scheduled.
 type Job struct {
-	ID       string
-	Command  string
+	ID        string
+	Command   string
 	Resources Resources
-	Priority int
-	Status   JobStatus
-	Labels   map[string]string // requirements / constraints
+	Priority  int
+	Status    JobStatus
+	Labels    map[string]string // requirements / constraints
 }
 
 // Node is a cluster node that can run jobs.

@@ -218,6 +218,39 @@ func TestRealOrchestrator_Scale_ThreeReplicasVerifiedByList(t *testing.T) {
 	t.Logf("REAL scale proof: runtime.List reports %d running replicas", len(list))
 }
 
+// ─── HXC-1014 integration: VMSpawn/VMSSH real session ─────────────────────────
+
+// TestRealVMSSH_EchoOkOverRealSession spawns ONE real local-container VM node
+// via real podman, establishes a REAL command session into it via VMSSH, and
+// asserts stdout=="ok". This is the sink-side proof for HXC-1014: VMSpawn/VMSSH
+// establish a real session end-to-end and run 'echo ok' over it.
+//
+// It HARD-FAILS (no skip) when a container runtime is available — a skip on a
+// present runtime would be a PASS-bluff per CLAUDE-1. It only skips when
+// runtime.AutoDetect fails (no runtime at all).
+func TestRealVMSSH_EchoOkOverRealSession(t *testing.T) {
+	rt := integrationRuntime(t) // SKIPs only when AutoDetect fails
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	defer cancel()
+
+	o := realOrchestrator(t, rt)
+	// No RemoteExecutor is wired, so VMSSH uses the real container-session path
+	// (runtime.Exec into the node container). The default VMNodeImage
+	// (busybox) + VMNodeCommand (sleep 3600) keep the node alive.
+
+	nodes, err := o.VMSpawn(ctx, 1)
+	require.NoError(t, err, "VMSpawn must create a real local-container node")
+	require.Len(t, nodes, 1)
+	nodeID := nodes[0].ID
+	defer cleanupContainer(context.Background(), rt, nodeID)
+
+	stdout, err := o.VMSSH(ctx, nodeID)
+	require.NoError(t, err, "VMSSH must establish a real session into the node and run echo ok")
+	require.Equal(t, "ok", stdout,
+		"VMSSH must return 'ok' from the real command session into the node — sink-side proof")
+	t.Logf("REAL VMSSH proof: ran 'echo ok' over a real session into node %s, stdout=%q", nodeID, stdout)
+}
+
 // ─── HXC-1015 integration: Partition observable ───────────────────────────────
 
 // TestRealOrchestrator_Partition_ObservableEffect verifies the partition/recover

@@ -30,26 +30,26 @@ const (
 	TrustUnknown TrustTier = iota // 0
 
 	// --- Untrusted / external edge ---
-	TrustPublicAnonymous   // 1  anonymous public device, no identity
-	TrustVolunteer         // 2  volunteer-donated compute (BOINC-style)
-	TrustUntrustedEdge     // 3  edge device outside any trust boundary
-	TrustCommunity         // 4  community-operated, weakly identified
+	TrustPublicAnonymous // 1  anonymous public device, no identity
+	TrustVolunteer       // 2  volunteer-donated compute (BOINC-style)
+	TrustUntrustedEdge   // 3  edge device outside any trust boundary
+	TrustCommunity       // 4  community-operated, weakly identified
 
 	// --- Partner / managed external ---
-	TrustPartner           // 5  contractually-bound partner operator
-	TrustManagedEdge       // 6  managed but off-premises edge node
-	TrustTenant            // 7  tenant-owned node inside a shared cluster
+	TrustPartner     // 5  contractually-bound partner operator
+	TrustManagedEdge // 6  managed but off-premises edge node
+	TrustTenant      // 7  tenant-owned node inside a shared cluster
 
 	// --- On-premise / internal ---
-	TrustInternal          // 8  internal, organization-owned host
-	TrustOnPrem            // 9  on-premise host inside the trust boundary
-	TrustZoneLocal         // 10 same availability-zone datacenter host
+	TrustInternal  // 8  internal, organization-owned host
+	TrustOnPrem    // 9  on-premise host inside the trust boundary
+	TrustZoneLocal // 10 same availability-zone datacenter host
 
 	// --- Datacenter hardened ---
-	TrustDatacenter        // 11 core datacenter host
-	TrustHardened          // 12 hardened / security-baselined host
-	TrustAttested          // 13 remotely-attested (TPM/measured boot) host
-	TrustSecureEnclave     // 14 confidential-compute / secure-enclave host
+	TrustDatacenter    // 11 core datacenter host
+	TrustHardened      // 12 hardened / security-baselined host
+	TrustAttested      // 13 remotely-attested (TPM/measured boot) host
+	TrustSecureEnclave // 14 confidential-compute / secure-enclave host
 
 	// TrustRoot is the maximum tier: the fully-trusted control-plane root of
 	// trust. Nothing ranks above it.

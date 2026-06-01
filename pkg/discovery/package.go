@@ -17,14 +17,14 @@ var (
 
 // Instance represents a service instance.
 type Instance struct {
-	ID        string
-	Service   string
-	Address   string
-	Port      int
-	Metadata  map[string]string
-	Healthy   bool
-	LastSeen  time.Time
-	TTL       time.Duration
+	ID       string
+	Service  string
+	Address  string
+	Port     int
+	Metadata map[string]string
+	Healthy  bool
+	LastSeen time.Time
+	TTL      time.Duration
 	// Weight biases health-aware load balancing. A value <= 0 is treated as 1.
 	Weight int
 }
@@ -63,8 +63,8 @@ type Backend interface {
 
 // BackendEvent is a low-level backend change.
 type BackendEvent struct {
-	Type    EventType
-	Key     string
+	Type     EventType
+	Key      string
 	Instance *Instance
 }
 
@@ -315,15 +315,15 @@ func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
 
 	r.mu.Lock()
 	cacheInst := &Instance{
-		ID:        inst.ID,
-		Service:   inst.Service,
-		Address:   inst.Address,
-		Port:      inst.Port,
-		Metadata:  inst.Metadata,
-		Healthy:   true,
-		LastSeen:  inst.LastSeen,
-		TTL:       inst.TTL,
-		Weight:    inst.Weight,
+		ID:       inst.ID,
+		Service:  inst.Service,
+		Address:  inst.Address,
+		Port:     inst.Port,
+		Metadata: inst.Metadata,
+		Healthy:  true,
+		LastSeen: inst.LastSeen,
+		TTL:      inst.TTL,
+		Weight:   inst.Weight,
 	}
 	r.instances[key] = cacheInst
 	backendInst := *cacheInst

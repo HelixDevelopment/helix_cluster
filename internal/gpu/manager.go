@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -31,17 +30,25 @@ func NewManager() *Manager {
 	}
 }
 
-// DetectGPUs detects available GPUs. It attempts real detection on Linux,
-// then falls back to mock GPUs for testing or non-Linux platforms.
+// DetectGPUs detects available GPUs using real, OS-native sources via the
+// build-tag-selected detectGPUsPlatform (NVIDIA /proc on Linux, system_profiler
+// on macOS, an explicit "unsupported" error elsewhere).
+//
+// Production NEVER falls back to a mock inventory: if detection fails OR finds
+// zero devices, DetectGPUs returns that error honestly so callers observe "no
+// GPUs detected" rather than fabricated hardware (CLAUDE-1/CLAUDE-2). Tests that
+// need a controlled inventory must use InjectGPUsForTest instead.
 func (m *Manager) DetectGPUs() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
-	gpus, err := detectGPUsReal()
-	if err != nil || len(gpus) == 0 {
-		gpus = detectGPUsMock()
+	gpus, err := detectGPUsPlatform()
+	if err != nil {
+		return fmt.Errorf("GPU detection failed: %w", err)
+	}
+	if len(gpus) == 0 {
+		return fmt.Errorf("no GPUs detected")
 	}
 
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.gpus = gpus
 	m.started.Store(true)
 	return nil
@@ -50,16 +57,6 @@ func (m *Manager) DetectGPUs() error {
 // nvidiaProcPath is the kernel-exposed directory describing NVIDIA GPUs. It is
 // a package var (not a const) so tests can point detection at a synthetic tree.
 var nvidiaProcPath = "/proc/driver/nvidia/gpus"
-
-// detectGPUsReal attempts to read NVIDIA GPU information from
-// /proc/driver/nvidia/gpus/. Returns an error on non-Linux platforms or when
-// the path does not exist.
-func detectGPUsReal() ([]*GPU, error) {
-	if runtime.GOOS != "linux" {
-		return nil, fmt.Errorf("real GPU detection only supported on Linux")
-	}
-	return detectGPUsFrom(nvidiaProcPath)
-}
 
 // detectGPUsFrom parses NVIDIA GPU descriptors from basePath. It is the
 // platform-independent core of detectGPUsReal and is exercised directly by
@@ -114,38 +111,16 @@ func detectGPUsFrom(basePath string) ([]*GPU, error) {
 	return gpus, nil
 }
 
-// detectGPUsMock returns simulated GPUs for testing.
-func detectGPUsMock() []*GPU {
-	return []*GPU{
-		{
-			ID:       "gpu-0",
-			UUID:     "GPU-MOCK-0000-0000-0000-000000000001",
-			Model:    "NVIDIA A100-SXM4-40GB",
-			MemoryMB: 40960,
-			Status:   Available,
-		},
-		{
-			ID:       "gpu-1",
-			UUID:     "GPU-MOCK-0000-0000-0000-000000000002",
-			Model:    "NVIDIA A100-SXM4-40GB",
-			MemoryMB: 40960,
-			Status:   Available,
-		},
-		{
-			ID:       "gpu-2",
-			UUID:     "GPU-MOCK-0000-0000-0000-000000000003",
-			Model:    "NVIDIA H100-SXM5-80GB",
-			MemoryMB: 81920,
-			Status:   Available,
-		},
-		{
-			ID:       "gpu-3",
-			UUID:     "GPU-MOCK-0000-0000-0000-000000000004",
-			Model:    "NVIDIA H100-SXM5-80GB",
-			MemoryMB: 81920,
-			Status:   Available,
-		},
-	}
+// InjectGPUsForTest installs a controlled GPU inventory and marks the Manager
+// as started, bypassing real hardware detection. It exists SOLELY as a test
+// seam so unit tests can exercise allocation/stats/offline logic against a
+// deterministic multi-GPU inventory on any host. Production code paths use
+// DetectGPUs, which reads real hardware and never invokes this.
+func (m *Manager) InjectGPUsForTest(gpus []*GPU) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	m.gpus = gpus
+	m.started.Store(true)
 }
 
 // AllocateGPU allocates an available GPU to the given jobID. Allocation is

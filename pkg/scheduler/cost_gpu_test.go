@@ -256,8 +256,8 @@ func TestCostAwareGPUUnparseableLabelFallsBack(t *testing.T) {
 
 func TestCostAwareGPUSchedulerPicksCheaperNode(t *testing.T) {
 	s := NewScheduler()
-	s.AddPlugin(&NodeResourcesFit{})       // resource accounting + GPU fit
-	s.AddPlugin(&CostAwareGPUPlacement{})  // cost preference
+	s.AddPlugin(&NodeResourcesFit{})      // resource accounting + GPU fit
+	s.AddPlugin(&CostAwareGPUPlacement{}) // cost preference
 
 	// Two adequate GPU nodes at different prices, plus one too small.
 	s.RegisterNode(&Node{ID: "expensive", AvailableResources: Resources{CPU: 8, Memory: 8192, GPU: 2},

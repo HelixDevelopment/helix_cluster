@@ -4,6 +4,7 @@ go 1.25.0
 
 require (
 	digital.vasic.containers v0.0.0-00010101000000-000000000000
+	digital.vasic.eventbus v0.0.0-00010101000000-000000000000
 	github.com/bytecodealliance/wasmtime-go/v29 v29.0.0
 	github.com/creack/pty v1.1.24
 	github.com/google/uuid v1.6.0
@@ -40,13 +41,16 @@ require (
 	github.com/hashicorp/vault/api v1.23.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/josharian/native v1.1.0 // indirect
+	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mdlayher/genetlink v1.3.2 // indirect
 	github.com/mdlayher/netlink v1.7.2 // indirect
 	github.com/mdlayher/socket v0.5.1 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
+	github.com/pierrec/lz4/v4 v4.1.15 // indirect
 	github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 // indirect
 	github.com/ryanuber/go-glob v1.0.0 // indirect
+	github.com/segmentio/kafka-go v0.4.51 // indirect
 	github.com/spf13/pflag v1.0.10 // indirect
 	go.etcd.io/etcd/api/v3 v3.6.11 // indirect
 	go.etcd.io/etcd/client/pkg/v3 v3.6.11 // indirect
@@ -66,3 +70,5 @@ require (
 replace github.com/HelixDevelopment/HelixConstitution => ./HelixConstitution
 
 replace digital.vasic.containers => ./containers
+
+replace digital.vasic.eventbus => ./EventBus

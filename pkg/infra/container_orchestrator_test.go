@@ -254,14 +254,20 @@ type fakeRuntime struct {
 	logsContent string
 	startErr    map[string]error
 	statusErr   map[string]error
+	// execStdout overrides the canned stdout returned by Exec (default "ok").
+	execStdout string
+	// execErr, when set, makes Exec return an error (simulating a session that
+	// cannot be established into the node container).
+	execErr error
 }
 
 func newFakeRuntime() *fakeRuntime {
 	return &fakeRuntime{
-		exec:      newFakeExecutor(),
+		exec:       newFakeExecutor(),
 		containers: make(map[string]*runtime.ContainerStatus),
 		startErr:   make(map[string]error),
 		statusErr:  make(map[string]error),
+		execStdout: "ok",
 	}
 }
 
@@ -373,7 +379,26 @@ func (r *fakeRuntime) Stats(ctx context.Context, id string) (*runtime.ContainerS
 func (r *fakeRuntime) Exec(ctx context.Context, id string, cmd []string) (*runtime.ExecResult, error) {
 	args := append([]string{"exec", id}, cmd...)
 	_, _ = r.exec.Execute(ctx, "podman", args...)
-	return &runtime.ExecResult{ExitCode: 0, Stdout: "ok"}, nil
+	r.mu.Lock()
+	out := r.execStdout
+	err := r.execErr
+	r.mu.Unlock()
+	if err != nil {
+		return nil, err
+	}
+	return &runtime.ExecResult{ExitCode: 0, Stdout: out}, nil
+}
+
+func (r *fakeRuntime) setExecStdout(out string) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.execStdout = out
+}
+
+func (r *fakeRuntime) setExecError(err error) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.execErr = err
 }
 
 func (r *fakeRuntime) Logs(ctx context.Context, id string, opts ...runtime.LogOption) (io.ReadCloser, error) {
@@ -412,6 +437,13 @@ func newTestOrchestrator(t *testing.T, rt *fakeRuntime, rexec remote.RemoteExecu
 		BootReadinessTimeout: 500 * time.Millisecond,
 		ServicePorts:         make(map[string]string),
 		ContainerImages:      make(map[string]string),
+		// Inject the podman seam into the runtime's fake executor so the real
+		// "podman run …" argv issued by runContainerSpec (used by Scale and
+		// VMSpawn) is captured WITHOUT touching a real daemon — keeping unit
+		// tests hermetic.
+		runPodman: func(ctx context.Context, args ...string) ([]byte, error) {
+			return rt.exec.Execute(ctx, "podman", args...)
+		},
 	}
 	o, err := NewContainerOrchestrator(cfg)
 	require.NoError(t, err)
@@ -739,7 +771,8 @@ func TestContainerOrchestrator_Scale_ListsReplicasByServicePrefix(t *testing.T) 
 // ─── HXC-1014: VMSSH real ────────────────────────────────────────────────────
 
 // TestContainerOrchestrator_VMSSH_EchoOk injects a fakeRemoteExec and asserts
-// VMSSH runs "echo ok" over it and returns stdout "ok".
+// VMSSH runs "echo ok" over the true-VM RemoteExecutor seam and returns the
+// trimmed stdout "ok".
 //
 // §1.1 mutation proof: changing the Execute result's Stdout from "ok\n" to ""
 // caused the assert.Equal("ok", …) to fail. Source restored.
@@ -768,14 +801,73 @@ func TestContainerOrchestrator_VMSSH_EchoOk(t *testing.T) {
 		"VMSSH must return the trimmed stdout from the remote executor ('ok')")
 }
 
-// TestContainerOrchestrator_VMSSH_ErrorsWithoutRemoteExecutor verifies the
-// fallback when no RemoteExecutor is configured.
+// TestContainerOrchestrator_VMSpawn_CreatesRealNodeContainer asserts the HXC-1014
+// realisation: VMSpawn issues the REAL "podman run" argv that creates the node's
+// backing container from the configured VMNodeImage with the keep-alive command.
+// This is the sink-side proof that the node is a real local-container, not a
+// fabricated record.
 //
-// §1.1 mutation proof: removing the `if o.remote == nil` guard caused a nil
-// pointer panic instead of a clear error. Source restored.
-func TestContainerOrchestrator_VMSSH_ErrorsWithoutRemoteExecutor(t *testing.T) {
+// §1.1 mutation proof: removing the runContainerSpec call from VMSpawn caused
+// assertCalled to fail with "no call contained all of [podman run --name vm-1
+// docker.io/library/busybox:latest sleep 3600]". Source restored.
+func TestContainerOrchestrator_VMSpawn_CreatesRealNodeContainer(t *testing.T) {
 	rt := newFakeRuntime()
-	o := newTestOrchestrator(t, rt, nil) // nil RemoteExec
+	o := newTestOrchestrator(t, rt, nil)
+	ctx := context.Background()
+
+	nodes, err := o.VMSpawn(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, nodes, 1)
+
+	// Sink-side proof: the real "podman run" argv for the node image + keep-alive
+	// command was issued through the injectable podman seam.
+	rt.exec.assertCalled(t, "VMSpawn creates real node container",
+		"podman", "run", "--name", "vm-1",
+		"docker.io/library/busybox:latest", "sleep", "3600")
+}
+
+// TestContainerOrchestrator_VMSSH_RealContainerSessionEchoOk asserts that with
+// NO RemoteExecutor configured, VMSSH establishes a REAL command session INTO
+// the node's container via runtime.Exec with ["sh","-c","echo ok"] and returns
+// the parsed, trimmed stdout "ok" (the fake runtime returns "ok\n").
+//
+// §1.1 mutation proof #1 (parse): changing the fake Exec stdout to "nope\n"
+// makes assert.Equal("ok", …) fail — proving the value is the real parsed
+// session output, not a fabricated "ok".
+// §1.1 mutation proof #2 (command): changing the VMSSH Exec command from
+// {"sh","-c","echo ok"} to {"sh","-c","echo no"} makes assertCalled for
+// "sh -c echo ok" fail. Both observed; source restored.
+func TestContainerOrchestrator_VMSSH_RealContainerSessionEchoOk(t *testing.T) {
+	rt := newFakeRuntime()
+	rt.setExecStdout("ok\n")             // real session output, with trailing newline to trim
+	o := newTestOrchestrator(t, rt, nil) // nil RemoteExec → container-session path
+	ctx := context.Background()
+
+	nodes, err := o.VMSpawn(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, nodes, 1)
+
+	stdout, err := o.VMSSH(ctx, nodes[0].ID)
+	require.NoError(t, err)
+
+	// Sink-side proof: a real runtime.Exec session with the echo command was
+	// issued into the node container.
+	rt.exec.assertCalled(t, "VMSSH container session",
+		"podman", "exec", "vm-1", "sh", "-c", "echo ok")
+	assert.Equal(t, "ok", stdout,
+		"VMSSH must return the trimmed stdout parsed from the real container session ('ok')")
+}
+
+// TestContainerOrchestrator_VMSSH_SurfacesSessionError verifies VMSSH surfaces a
+// real error when the command session into the node cannot be established,
+// rather than fabricating success.
+//
+// §1.1 mutation proof: making VMSSH ignore the Exec error and return "ok"
+// regardless caused this require.Error to fail. Source restored.
+func TestContainerOrchestrator_VMSSH_SurfacesSessionError(t *testing.T) {
+	rt := newFakeRuntime()
+	rt.setExecError(fmt.Errorf("no such container session"))
+	o := newTestOrchestrator(t, rt, nil)
 	ctx := context.Background()
 
 	nodes, _ := o.VMSpawn(ctx, 1)
@@ -783,9 +875,32 @@ func TestContainerOrchestrator_VMSSH_ErrorsWithoutRemoteExecutor(t *testing.T) {
 
 	_, err := o.VMSSH(ctx, nodes[0].ID)
 	require.Error(t, err,
-		"VMSSH must return an error when no RemoteExecutor is configured")
-	assert.Contains(t, err.Error(), "RemoteExecutor",
-		"error must mention RemoteExecutor to aid debugging")
+		"VMSSH must surface the real session error, not fabricate 'ok'")
+}
+
+// TestContainerOrchestrator_VMDestroy_StopsAndRemovesContainer asserts VMDestroy
+// actually stops AND removes the node's backing container and drops the record.
+//
+// §1.1 mutation proof: removing the rt.Remove call from VMDestroy caused the
+// "podman rm vm-1" assertion to fail. Source restored.
+func TestContainerOrchestrator_VMDestroy_StopsAndRemovesContainer(t *testing.T) {
+	rt := newFakeRuntime()
+	o := newTestOrchestrator(t, rt, nil)
+	ctx := context.Background()
+
+	nodes, err := o.VMSpawn(ctx, 1)
+	require.NoError(t, err)
+	require.Len(t, nodes, 1)
+
+	require.NoError(t, o.VMDestroy(ctx, nodes[0].ID))
+
+	// Sink-side proof: stop and remove were issued for the backing container.
+	rt.exec.assertCalled(t, "VMDestroy stops container", "podman", "stop", "vm-1")
+	rt.exec.assertCalled(t, "VMDestroy removes container", "podman", "rm", "vm-1")
+
+	// The node record is gone.
+	_, statusErr := o.VMStatus(ctx, nodes[0].ID)
+	require.Error(t, statusErr, "VMStatus must error after the node is destroyed")
 }
 
 // TestContainerOrchestrator_VMSpawn_RecordsNodes ensures VMSpawn creates node

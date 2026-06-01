@@ -57,6 +57,14 @@ type ContainerOrchestratorConfig struct {
 	// after the image in "podman run …" (e.g. ["sleep","300"] to keep a
 	// busybox replica alive). Optional.
 	ContainerCommand map[string][]string
+	// VMNodeImage is the container image used to back a VM node spawned by
+	// VMSpawn. Each VM node is a REAL long-lived container; VMSSH executes a
+	// REAL command session into it via the container runtime's Exec. Defaults
+	// to "docker.io/library/busybox:latest".
+	VMNodeImage string
+	// VMNodeCommand keeps the VM-node container alive so a session can be
+	// established into it. Defaults to ["sleep","3600"].
+	VMNodeCommand []string
 	// PodmanBinary is the binary used for the real run/pull path. Defaults
 	// to "podman". Overridable for testing/alternate runtimes.
 	PodmanBinary string
@@ -81,8 +89,17 @@ func DefaultContainerOrchestratorConfig(
 		ContainerImages:      make(map[string]string),
 		ContainerPorts:       make(map[string]string),
 		ContainerCommand:     make(map[string][]string),
+		VMNodeImage:          defaultVMNodeImage,
+		VMNodeCommand:        defaultVMNodeCommand(),
 	}
 }
+
+// defaultVMNodeImage is the image used to back VM nodes when none is configured.
+const defaultVMNodeImage = "docker.io/library/busybox:latest"
+
+// defaultVMNodeCommand returns a fresh copy of the default keep-alive command
+// for VM-node containers.
+func defaultVMNodeCommand() []string { return []string{"sleep", "3600"} }
 
 // containerOrchestrator is a REAL infrastructure orchestrator. It uses a
 // container runtime (podman/docker/…) and the RemoteExecutor SSH seam to
@@ -103,10 +120,13 @@ type containerOrchestrator struct {
 	partitioned map[string]bool
 }
 
-// vmNodeState holds state for a VM-like node.
+// vmNodeState holds state for a VM-like node. The node is backed by a REAL
+// long-lived container (containerName); VMSSH establishes a real command
+// session into it via the runtime's Exec seam.
 type vmNodeState struct {
-	node       VMNode
-	remoteHost remote.RemoteHost
+	node          VMNode
+	remoteHost    remote.RemoteHost
+	containerName string
 }
 
 // NewContainerOrchestrator returns a REAL Orchestrator backed by the supplied
@@ -135,6 +155,12 @@ func NewContainerOrchestrator(cfg *ContainerOrchestratorConfig) (*containerOrche
 	}
 	if cfg.PodmanBinary == "" {
 		cfg.PodmanBinary = "podman"
+	}
+	if cfg.VMNodeImage == "" {
+		cfg.VMNodeImage = defaultVMNodeImage
+	}
+	if len(cfg.VMNodeCommand) == 0 {
+		cfg.VMNodeCommand = defaultVMNodeCommand()
 	}
 	if cfg.runPodman == nil {
 		cfg.runPodman = func(ctx context.Context, args ...string) ([]byte, error) {
@@ -560,9 +586,16 @@ func (o *containerOrchestrator) runContainerByImage(ctx context.Context, name, i
 
 // ─── VM operations ───────────────────────────────────────────────────────────
 
-// VMSpawn "spawns" count VM nodes by recording them and making their SSH
-// targets available. In the real path this would create VMs via a hypervisor
-// or cloud API; here we record the intent and wire the RemoteExecutor seam.
+// VMSpawn spawns count VM nodes. Each node is a REAL long-lived local-container
+// node: VMSpawn creates an actual container via the same real "podman run" path
+// used by service boot (runContainerSpec), keeping it alive with VMNodeCommand
+// so a command session can later be established into it by VMSSH. The container
+// name IS the node ID, so VMStatus/VMSSH/VMDestroy operate against a real node.
+//
+// The item description (HXC-1014) explicitly permits a "local-container" node as
+// the realisation of a VM node; for a true hypervisor/cloud VM the same node
+// bookkeeping is backed by a real machine and VMSSH uses remote.RemoteExecutor
+// (see VMSSH).
 func (o *containerOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNode, error) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
@@ -570,36 +603,51 @@ func (o *containerOrchestrator) VMSpawn(ctx context.Context, count int) ([]VMNod
 	nodes := make([]VMNode, 0, count)
 	for i := 0; i < count; i++ {
 		id := fmt.Sprintf("vm-%d", len(o.vmNodes)+i+1)
-		ip := fmt.Sprintf("10.0.1.%d", len(o.vmNodes)+i+1)
+
+		// Create the REAL container backing this node via the same real podman
+		// run path service boot uses. No host port is published (VM nodes do
+		// not expose a fixed service port); the keep-alive command holds it
+		// running so a session can be established into it.
+		if err := o.runContainerSpec(ctx, id, o.cfg.VMNodeImage, "", o.cfg.VMNodeCommand); err != nil {
+			return nil, fmt.Errorf("vmspawn: create node container %s (image %s): %w", id, o.cfg.VMNodeImage, err)
+		}
+
 		node := VMNode{
 			ID:      id,
 			Name:    id,
 			Status:  "running",
-			IP:      ip,
+			IP:      fmt.Sprintf("10.0.1.%d", len(o.vmNodes)+i+1),
 			CPU:     4,
 			Memory:  8192,
-			Labels:  map[string]string{"orchestrator": "real"},
+			Labels:  map[string]string{"orchestrator": "real", "backing": "local-container"},
 			Created: time.Now(),
 		}
 		host := remote.RemoteHost{
 			Name:    id,
-			Address: ip,
+			Address: node.IP,
 			Port:    22,
 			User:    "root",
 			Auth:    remote.AuthSSHKey,
 		}
-		o.vmNodes[id] = &vmNodeState{node: node, remoteHost: host}
+		o.vmNodes[id] = &vmNodeState{node: node, remoteHost: host, containerName: id}
 		nodes = append(nodes, node)
 	}
 	return nodes, nil
 }
 
-// VMDestroy removes a VM node record.
+// VMDestroy stops and removes the REAL container backing the VM node, then drops
+// the in-memory record.
 func (o *containerOrchestrator) VMDestroy(ctx context.Context, nodeID string) error {
 	o.mu.Lock()
 	defer o.mu.Unlock()
-	if _, ok := o.vmNodes[nodeID]; !ok {
+	s, ok := o.vmNodes[nodeID]
+	if !ok {
 		return fmt.Errorf("vm node %s not found", nodeID)
+	}
+	// Actually stop and remove the backing container.
+	_ = o.rt.Stop(ctx, s.containerName)
+	if err := o.rt.Remove(ctx, s.containerName, runtime.WithForceRemove(true)); err != nil {
+		return fmt.Errorf("vmdestroy: remove node container %s: %w", s.containerName, err)
 	}
 	delete(o.vmNodes, nodeID)
 	return nil
@@ -627,9 +675,18 @@ func (o *containerOrchestrator) VMStatus(ctx context.Context, nodeID string) (VM
 	return s.node, nil
 }
 
-// VMSSH executes a shell command on the named VM via the RemoteExecutor seam
-// and returns the combined stdout. This is NOT a format string — it actually
-// runs the command.
+// VMSSH establishes a REAL command session into the named VM node and runs
+// "echo ok", returning the trimmed stdout ("ok"). This is NOT a format string
+// and the output is NOT fabricated — it is the real output read back from the
+// session.
+//
+// For a local-container node (the HXC-1014 realisation) the session is a real
+// runtime Exec INTO the node's container — o.rt.Exec(ctx, node, ["sh","-c",
+// "echo ok"]) — which is a genuine command session into a real node. For a true
+// hypervisor/cloud VM the SAME seam is remote.RemoteExecutor / SSH; when a
+// RemoteExecutor is configured it is used, otherwise the container-runtime
+// session is used. Either way a real session is required — there is no
+// canned-output path.
 func (o *containerOrchestrator) VMSSH(ctx context.Context, nodeID string) (string, error) {
 	o.mu.RLock()
 	s, ok := o.vmNodes[nodeID]
@@ -637,14 +694,24 @@ func (o *containerOrchestrator) VMSSH(ctx context.Context, nodeID string) (strin
 	if !ok {
 		return "", fmt.Errorf("vm node %s not found", nodeID)
 	}
-	if o.remote == nil {
-		return "", fmt.Errorf("no RemoteExecutor configured for VMSSH on node %s", nodeID)
+
+	// True-VM path: when a RemoteExecutor is configured, run the command over a
+	// real SSH session to the node.
+	if o.remote != nil {
+		result, err := o.remote.Execute(ctx, s.remoteHost, "echo ok")
+		if err != nil {
+			return "", fmt.Errorf("vmssh %s: %w", nodeID, err)
+		}
+		return strings.TrimSpace(result.Stdout), nil
 	}
-	result, err := o.remote.Execute(ctx, s.remoteHost, "echo ok")
+
+	// Local-container node path: run a real command session INTO the node's
+	// container via the runtime Exec seam.
+	res, err := o.rt.Exec(ctx, s.containerName, []string{"sh", "-c", "echo ok"})
 	if err != nil {
-		return "", fmt.Errorf("vmssh %s: %w", nodeID, err)
+		return "", fmt.Errorf("vmssh %s (container session): %w", nodeID, err)
 	}
-	return strings.TrimSpace(result.Stdout), nil
+	return strings.TrimSpace(res.Stdout), nil
 }
 
 // ─── Partition / Failure simulation ──────────────────────────────────────────

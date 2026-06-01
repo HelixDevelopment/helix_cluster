@@ -1,0 +1,18 @@
+Graphics/Displays:
+
+    Apple M1 Pro:
+
+      Chipset Model: Apple M1 Pro
+      Type: GPU
+      Bus: Built-In
+      Total Number of Cores: 16
+      Vendor: Apple (0x106b)
+      Metal Support: Metal 3
+      Displays:
+        Color LCD:
+          Display Type: Built-in Liquid Retina XDR Display
+          Resolution: 3456 x 2234 Retina
+          Main Display: Yes
+          Mirror: Off
+          Online: Yes
+

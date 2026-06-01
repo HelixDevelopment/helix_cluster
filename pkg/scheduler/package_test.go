@@ -489,7 +489,7 @@ func TestMutationBindFails(t *testing.T) {
 
 type bindRejectPlugin struct{}
 
-func (b *bindRejectPlugin) Name() string                { return "BindReject" }
+func (b *bindRejectPlugin) Name() string                     { return "BindReject" }
 func (b *bindRejectPlugin) Filter(job *Job, node *Node) bool { return true }
 func (b *bindRejectPlugin) Score(job *Job, node *Node) int   { return 0 }
 func (b *bindRejectPlugin) Bind(job *Job, node *Node) bool   { return false }

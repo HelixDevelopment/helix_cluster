@@ -9,36 +9,36 @@ import (
 
 // ServiceStatus represents the status of an infrastructure service.
 type ServiceStatus struct {
-	Name      string            `json:"name"`
-	Status    string            `json:"status"`
-	Healthy   bool              `json:"healthy"`
-	Uptime    time.Duration     `json:"uptime"`
-	Ports     []string          `json:"ports"`
-	Latency   time.Duration     `json:"latency"`
-	Message   string            `json:"message"`
-	Labels    map[string]string `json:"labels"`
-	Replicas  int               `json:"replicas"`
+	Name     string            `json:"name"`
+	Status   string            `json:"status"`
+	Healthy  bool              `json:"healthy"`
+	Uptime   time.Duration     `json:"uptime"`
+	Ports    []string          `json:"ports"`
+	Latency  time.Duration     `json:"latency"`
+	Message  string            `json:"message"`
+	Labels   map[string]string `json:"labels"`
+	Replicas int               `json:"replicas"`
 }
 
 // VMNode represents a virtual machine node.
 type VMNode struct {
-	ID       string            `json:"id"`
-	Name     string            `json:"name"`
-	Status   string            `json:"status"`
-	IP       string            `json:"ip"`
-	CPU      int               `json:"cpu"`
-	Memory   int64             `json:"memory"`
-	Labels   map[string]string `json:"labels"`
-	Created  time.Time         `json:"created"`
+	ID      string            `json:"id"`
+	Name    string            `json:"name"`
+	Status  string            `json:"status"`
+	IP      string            `json:"ip"`
+	CPU     int               `json:"cpu"`
+	Memory  int64             `json:"memory"`
+	Labels  map[string]string `json:"labels"`
+	Created time.Time         `json:"created"`
 }
 
 // InfraConfig holds configuration for the infrastructure orchestrator.
 type InfraConfig struct {
-	ConfigPath       string        `json:"config_path"`
-	ProjectName      string        `json:"project_name"`
-	DefaultTimeout   time.Duration `json:"default_timeout"`
-	WaitForHealthy   bool          `json:"wait_for_healthy"`
-	Services         []string      `json:"services"`
+	ConfigPath     string        `json:"config_path"`
+	ProjectName    string        `json:"project_name"`
+	DefaultTimeout time.Duration `json:"default_timeout"`
+	WaitForHealthy bool          `json:"wait_for_healthy"`
+	Services       []string      `json:"services"`
 }
 
 // DefaultConfig returns a default InfraConfig.
