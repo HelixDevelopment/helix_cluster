@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 67
-**Last modified:** 2026-06-01T20:57:15Z
+**Revision:** 68
+**Last modified:** 2026-06-01T20:58:30Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `75f076f` | Foundation wave 16: 6 disjoint pure-Go DST/testing-infra streams. HXC-1238 BUGGIFY framework (pkg/testing/dst/buggify.go: Buggify type + Engine.Buggify(p) driven by seeded PRNG, ~25% FireQuarter, enabled gate, BuggifyDuration 60s->0.1s timeout compression; determinism + 100k-trial fire-rate proofs). HXC-1239 virtual-time compression (NEW pkg/testing/dstcompress: Measure() real-wall-vs-virtual ratio + BatchSchedule; proves ~2e9:1 over 24h virtual horizon, >=8:1 at 1000 nodes). HXC-1240 1000+ node scale (NEW pkg/testing/dstscale: RunScale measured throughput/mem/virtual-span; -short 1000-node correctness + integration 1000x100k @ 253k ev/s, 12.8KB/node). HXC-1241 FoundationDB 4-phase workload (NEW pkg/testing/dstworkload: SETUP/EXECUTION/CHECK/METRICS over dst+chaos; real task-assignment protocol, chaos mutates Node.Online, NoLostTasks/NoDoubleAssignment/Quorum>=3 invariants that BITE, throughput+p99). HXC-1138 coverage+mutation gate tool (NEW pkg/covgate: ParseCoverProfile + threshold verdict + mutation-pairing scanner vs run_mutations.sh convention; fixture-driven FAIL cases). HXC-1199 edge sensor-fusion (NEW pkg/edgefusion: deterministic windowed multi-stream fusion, distinct workload class, exact-output assertion). Adversarial review caught+fixed 3 real CLAUDE-1 bluffs (B always-true WallElapsed<0 + self-referential same-timestamp; C always-true ClockMonotonic removed->measured ProcessedRatio; D structurally-dead NoDoubleAssignment map-loop -> duplicates seam). ZERO new deps, zero edits to existing files (6 disjoint dirs). Gate: build/vet/vet-integration clean, full -short -race green, dstscale integration 253k ev/s, mutation spot-check confirms D+F invariants bite. |
 | `888a5a3` | Foundation wave 15: mark 4 items Completed (HXC-1136/1137/1231/1260) — session-create EXIT GATE proven vs real tmux / scheduler-latency EXIT GATE <100ms / provisioner-lifecycle-FSM / KPI-quality-gate. MVP exit-gate triad complete (1135+1136+1137). Registry 161->165 Completed / 474 Queued. |
 | `553a043` | Foundation wave 15: 4 streams, 4 items incl 2 MVP exit gates. HXC-1136 session-create EXIT GATE — wired pkg/session.Manager to a REAL tmux/PTY backend via BackendAdapter (fixed the nil-backend StatusRunning PASS-bluff in internal/session.NewServer; added NewServerWithTmuxBackend seam + SessionExists sink-probe); E2E proves htmux create -> helix-session -> real tmux session visible running in 388ms (<3s). HXC-1137 scheduler decision-latency EXIT GATE (<100ms across 10 jobs, histogram + placement-correctness + 120ms-slow-plugin mutation). NEW pkg/testing/instance Provisioner/Instance lifecycle FSM (provisioned->booting->ready->stopped on virtual clock, illegal-transition reject). NEW pkg/qualitygate KPI baseline validation + critical-severity CI gate (8 rules). ZERO new deps. GATE caught+fixed a real regression: 1136's real backend exposed test/chaos+test/e2e relying on the no-op bluff (1000 free sessions -> 509 leaked tmux -> PTY exhaustion) -> switched those harnesses to the in-memory NewServerWithTmuxBackend(nil) seam + added SessionExists to the test double. Full -short -race green, 1136 real-tmux E2E + 1231/1260 integration green, live mutation spot-check on qualitygate critical gate confirmed real. |
 | `34efa5d` | Foundation wave 14: mark 4 items Completed (HXC-1135/1229/1247/1261) — MVP two-node-formation EXIT GATE proven vs real etcd / chaos-sequencer+Byzantine / device-profile-registry / Welch-t-test. Registry 157->161 Completed / 478 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `23df87b` | Foundation wave 12: mark 14 items Completed (HXC-1148/1149/1150/1151/1156/1157/1188/1191/1195/1196/1211/1212/1214/1215) — 12 integration-proven vs real etcd/minio + 2 gate-verified already-implemented (STUN/OTLP). Registry 137->151 Completed / 488 Queued. |
 | `7718c20` | Foundation wave 12: 5 disjoint-package streams, 12 items integration-proven vs real etcd/minio. pkg/wireguard typed ErrUnsupported (errors.Is) + key-rotation grace/overlap ActiveKeys() consumed by mesh; pkg/scheduler named ClassAdFilter/ScorePlugin (classads Requirements/Rank) + thermal-aware plugin (filter/score on temp_c threshold); internal/scheduler real PREEMPTED lifecycle event (terminal, ordered); NEW pkg/edge trust model (FULL/STANDARD/SEMI/EDGE_DONOR) + workload restriction matrix + work-unit resource-limit executor (kill-after duration) + declarative per-tier ScheduleRule engine; NEW internal/verifier SEMI output verification (sha256 redundant-recompute reject tamper) + pkg/discovery etcd TTL-lifecycle integration test + pkg/storage real-minio S3 round-trip integration test. ZERO new deps. GATE: build/vet/vet-integration clean, full -short -race green, integration tier vs real etcd(:38623 ephemeral)+minio(:9000) green, mutation spot-check on verifier confirmed real. |
 | `6715b3a` | Foundation wave 11: mark 3 items Completed (HXC-1122/1123/1124) — integration-proven vs real capnp/clang++/libzmq |
-| `63822b3` | Foundation wave 11: Cap'n Proto zero-copy serde (node.capnp + capnpc-go, AllocsPerRun==0), FlatBuffers GPU compute payloads (compute.fbs + flatc Go + pooled builder + clang++ C++ consumer harness), ZeroMQ data-plane (ROUTER/DEALER correlated + PUSH/PULL at-least-once, pebbe/zmq4) — integration-proven (real capnp/clang++/libzmq). Toolchains capnp/flatc/libzmq + Go runtimes wired. GATE: fixed C++ harness flatc root-accessor (GetRootAsComputeTask->GetComputeTask) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `888a5a3` |
-| **Timestamp** | 2026-06-01T20:57:15Z |
+| **Commit** | `75f076f` |
+| **Timestamp** | 2026-06-01T20:58:30Z |
 
 ## §3: Active Work
 

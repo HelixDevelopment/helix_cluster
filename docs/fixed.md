@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 25
-**Last modified:** 2026-06-01T19:59:47Z
+**Revision:** 26
+**Last modified:** 2026-06-01T20:58:23Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **165**.
+Total completed: **171**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -147,6 +147,7 @@ Total completed: **165**.
 | HXC-1135 | Feature | P0 | Implement two-node cluster formation end-to-end (exit gate) | 1c0d943 |
 | HXC-1136 | Feature | P0 | Implement session-create end-to-end path (htmux new exit gate) | 553a043 |
 | HXC-1137 | Task | P1 | Benchmark job scheduling decision latency under 100ms (exit gate) | 553a043 |
+| HXC-1138 | Task | P1 | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) | 75f076f |
 | HXC-1144 | Feature | P2 | Implement WireGuard mesh network policies (segmentation) | 467a6dc62cc792f48a64c687cab03209ff99ff27 |
 | HXC-1148 | Feature | P1 | Replace pkg/wireguard NAT discovery with RFC 5389 STUN client | 7718c20 |
 | HXC-1149 | Task | P3 | Return typed ErrUnsupported for UPnP/NAT-PMP in pkg/wireguard | 7718c20 |
@@ -161,6 +162,7 @@ Total completed: **165**.
 | HXC-1195 | Feature | P0 | Implement edge trust-level model (STANDARD/SEMI/EDGE_DONOR) | 7718c20 |
 | HXC-1196 | Feature | P0 | Enforce workload restriction matrix by trust level | 7718c20 |
 | HXC-1198 | Feature | P1 | Implement offline sync protocol with delta compression | 203c42a |
+| HXC-1199 | Feature | P1 | Implement edge sensor-fusion framework and stream workload type | 75f076f |
 | HXC-1210 | Bug | P0 | Wire EtcdBackend into the node agent for cluster-wide discovery | 203c42a |
 | HXC-1211 | Bug | P0 | Make internal/scheduler.StreamJobEvents a real event stream | 7718c20 |
 | HXC-1212 | Feature | P0 | Connect pkg/classads to scheduler Filter/Score stages | 7718c20 |
@@ -170,6 +172,10 @@ Total completed: **165**.
 | HXC-1220 | Task | P2 | Replace custom policy engine with OPA/Rego | 203c42a |
 | HXC-1229 | Task | P0 | Build device profile registry with versioned YAML schema for T1-T8 | 1c0d943 |
 | HXC-1231 | Feature | P1 | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) | 553a043 |
+| HXC-1238 | Feature | P1 | Implement BUGGIFY macro framework with ~25% deterministic fire rate | 75f076f |
+| HXC-1239 | Feature | P1 | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods | 75f076f |
+| HXC-1240 | Feature | P1 | Achieve 1,000+ simulated nodes in a single DST process | 75f076f |
+| HXC-1241 | Feature | P1 | Author DST consensus+gossip workloads using SETUP→EXECUTION→CHECK→METRICS pattern | 75f076f |
 | HXC-1247 | Feature | P1 | Implement pure-Go in-sim chaos faults toward 25+ (ClockSkew, DiskFill, MessageReorder, Byzantine, etc.) | 1c0d943 |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |

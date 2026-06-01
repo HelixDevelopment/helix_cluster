@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 25
-**Last modified:** 2026-06-01T19:59:47Z
+**Revision:** 26
+**Last modified:** 2026-06-01T20:58:23Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **469**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,7 +18,7 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (22 active)
+## MVP (21 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -31,7 +31,6 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1112 | Task | P1 | Queued | Wire pkg/health gRPC health protocol on every service (pkg/health, cmd/helix-*) |
 | HXC-1119 | Feature | P1 | Queued | Implement Avro event schemas and schema-validated routing (Event Bus) |
 | HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
-| HXC-1138 | Task | P1 | Queued | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) |
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
 | HXC-1098 | Feature | P2 | Queued | Implement GPU sharing modes (MPS, time-slice, MIG, exclusive) |
 | HXC-1113 | Bug | P2 | Queued | Remove dangling pkg/gpuattest placeholder and reuse security/pkg/gpuattest |
@@ -67,7 +66,7 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1165 | Task | P2 | Queued | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end |
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 
-## Phase 3 (41 active)
+## Phase 3 (40 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -97,7 +96,6 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1192 | Feature | P1 | Queued | Implement unified NPU backend with ONNX model converter |
 | HXC-1193 | Feature | P1 | Queued | Implement per-tier workload quantization selection |
 | HXC-1194 | Feature | P1 | Queued | Integrate MLC LLM universal engine for mobile inference |
-| HXC-1199 | Feature | P1 | Queued | Implement edge sensor-fusion framework and stream workload type |
 | HXC-1200 | Feature | P1 | Queued | Implement Jetson CUDA-on-ARM GPU backend |
 | HXC-1203 | Task | P1 | Queued | Implement Armbian TV-box provisioning path (RK3588/Amlogic) |
 | HXC-1204 | Task | P1 | Queued | Implement ADB-over-WiFi fleet provisioning for Android cluster |
@@ -113,7 +111,7 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (65 active)
+## Phase 4 (61 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -141,10 +139,6 @@ Total active items: **475**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1228 | Feature | P1 | Queued | Implement Docker + binfmt_misc protocol stubs for T7 iOS and T8 HarmonyOS |
 | HXC-1230 | Feature | P1 | Queued | Implement automated tier detection validating host KVM/ARM64/binfmt capabilities |
 | HXC-1233 | Feature | P1 | Queued | Implement qcow2 copy-on-write overlay management with 10-deep chain limit |
-| HXC-1238 | Feature | P1 | Queued | Implement BUGGIFY macro framework with ~25% deterministic fire rate |
-| HXC-1239 | Feature | P1 | Queued | Implement 10:1 DST virtual-time compression by fast-forwarding idle periods |
-| HXC-1240 | Feature | P1 | Queued | Achieve 1,000+ simulated nodes in a single DST process |
-| HXC-1241 | Feature | P1 | Queued | Author DST consensus+gossip workloads using SETUP→EXECUTION→CHECK→METRICS pattern |
 | HXC-1245 | Feature | P1 | Queued | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
 | HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
 | HXC-1254 | Feature | P1 | Queued | Implement TestRunner with parallel suite execution and result collection |
