@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 16
-**Last modified:** 2026-06-01T15:15:45Z
+**Revision:** 17
+**Last modified:** 2026-06-01T16:14:38Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **113**.
+Total completed: **122**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -121,5 +121,14 @@ Total completed: **113**.
 | HXC-1094 | Feature | P0 | Implement distributed lock primitives over etcd (pkg/lock) | 2f27ac9001d3fc0a900f0386a1b9df198890e411 |
 | HXC-1095 | Feature | P1 | Implement Postgres-backed internal artifact registry (pkg/hxcregistry) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
 | HXC-1099 | Feature | P1 | Implement Build Service orchestrator and worker pool (internal/build) | 1367dca3bd532a491adb1a55b417151f0ae3cd2e |
+| HXC-1101 | Feature | P0 | Implement e2ee transport record protocol (security/pkg/e2ee) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1102 | Feature | P1 | Implement software-rooted attestation (security/pkg/attestation) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1103 | Feature | P0 | Implement RBAC scopes and identity bindings (internal/security) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1105 | Feature | P0 | Implement htmux CLI raw-mode terminal client (cmd/htmux) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1106 | Feature | P0 | Implement session I/O PTY-over-WebSocket forwarding (cmd/helix-session) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1107 | Feature | P0 | Implement WebSocket envelope and MessagePack framing (pkg/websocket) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1114 | Feature | P0 | Provision PostgreSQL primary schema with 15 tables, indexes, and triggers | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1115 | Task | P0 | Define etcd key namespace and key-builder constants (pkg/etcd) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
+| HXC-1133 | Feature | P1 | Implement token-bucket rate limiter for API gateway (pkg/ratelimit) | e12003abbb68db0e08fa13f44cfbf7c57c46c8b8 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

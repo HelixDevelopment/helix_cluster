@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 16
-**Last modified:** 2026-06-01T15:15:45Z
+**Revision:** 17
+**Last modified:** 2026-06-01T16:14:38Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **527**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **518**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,17 +18,10 @@ Total active items: **527**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (49 active)
+## MVP (40 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1101 | Feature | P0 | Queued | Implement e2ee transport record protocol (security/pkg/e2ee) |
-| HXC-1103 | Feature | P0 | Queued | Implement RBAC scopes and identity bindings (internal/security) |
-| HXC-1105 | Feature | P0 | Queued | Implement htmux CLI raw-mode terminal client (cmd/htmux) |
-| HXC-1106 | Feature | P0 | Queued | Implement session I/O PTY-over-WebSocket forwarding (cmd/helix-session) |
-| HXC-1107 | Feature | P0 | Queued | Implement WebSocket envelope and MessagePack framing (pkg/websocket) |
-| HXC-1114 | Feature | P0 | Queued | Provision PostgreSQL primary schema with 15 tables, indexes, and triggers |
-| HXC-1115 | Task | P0 | Queued | Define etcd key namespace and key-builder constants (pkg/etcd) |
 | HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
 | HXC-1121 | Task | P0 | Queued | Configure NATS JetStream streams (HELIX_NODES/SESSIONS/SCHEDULER/HEALTH/ALERTS) |
 | HXC-1135 | Feature | P0 | Queued | Implement two-node cluster formation end-to-end (exit gate) |
@@ -36,7 +29,6 @@ Total active items: **527**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
 | HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
 | HXC-1100 | Feature | P1 | Queued | Implement real Bazel RBE build execution (internal/build) |
-| HXC-1102 | Feature | P1 | Queued | Implement software-rooted attestation (security/pkg/attestation) |
 | HXC-1104 | Feature | P1 | Queued | Implement SPIFFE/SPIRE SVID issuance and mTLS identity (internal/security) |
 | HXC-1108 | Feature | P1 | Queued | Implement HelixQA live-service Challenge runner (cmd/helix-test) |
 | HXC-1109 | Feature | P1 | Queued | Implement deterministic-sim, chaos, and device-sim test harness (cmd/helix-test) |
@@ -50,7 +42,6 @@ Total active items: **527**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1125 | Feature | P1 | Queued | Implement Setup Wizard single-command node onboarding (cmd, BASH+Go) |
 | HXC-1127 | Feature | P1 | Queued | Implement OPA/WASM Policy Engine with HelixConstitution enforcement |
 | HXC-1132 | Feature | P1 | Queued | Implement Metrics Collector node scrape endpoint and GPU metrics aggregation |
-| HXC-1133 | Feature | P1 | Queued | Implement token-bucket rate limiter for API gateway (pkg/ratelimit) |
 | HXC-1137 | Task | P1 | Queued | Benchmark job scheduling decision latency under 100ms (exit gate) |
 | HXC-1138 | Task | P1 | Queued | Enforce >60% pkg/ line coverage and paired mutation tests (Constitution 1.1) |
 | HXC-1140 | Task | P1 | Queued | Publish v1.0.0-dev-mvp release across all modules with packaging |
