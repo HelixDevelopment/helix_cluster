@@ -176,14 +176,21 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 7 <strong>Last modified:</strong>
-2026-06-01T09:59:17Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 8 <strong>Last modified:</strong>
+2026-06-01T10:29:18Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>17</strong>.</p>
+<p>Total completed: <strong>47</strong>.</p>
 <table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
 <thead>
 <tr>
 <th>HXC</th>
@@ -298,6 +305,238 @@ canonical; edit via cmd/hxc-registry, not by hand)</p>
 <td>P1</td>
 <td></td>
 <td></td>
+</tr>
+<tr>
+<td>HXC-1001</td>
+<td>Task</td>
+<td>P0</td>
+<td>Stand up embedded-etcd integration harness for pkg/etcd tests</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1002</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Prove etcd Put/Get round-trip and missing-key semantics against real
+etcd</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1003</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Prove etcd GetPrefix returns exactly matching multi-key set</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1004</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Prove etcd Delete/DeletePrefix remove keys (sink-side absence)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1005</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Prove etcd Watch fires correct event and closes on ctx cancel</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1006</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Prove etcd Lease/PutWithLease/RevokeLease/KeepAlive TTL
+behavior</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1007</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Prove etcd distributed Lock mutual exclusion (highest-risk
+path)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1008</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add mutation-paired etcd New() default-timeout injection test</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1009</td>
+<td>Task</td>
+<td>P2</td>
+<td>Prove etcd error-wrapping on dead endpoint</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1016</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Add EtcdLocker integration tests against real etcd
+(block/acquire/lease)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1017</td>
+<td>Bug</td>
+<td>P0</td>
+<td>Rewrite TestMemoryLockerConcurrent to detect a broken lock without
+-race</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1018</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add explicit block-then-acquire ordering test for MemoryLocker</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1021</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Drive pkg/build StateFailed via a genuine build failure not the
+‘fail’ sentinel</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1024</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Enforce or document pkg/build content-addressable cache digest
+integrity</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1026</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Add real mTLS handshake test for pkg/security (valid client
+succeeds, no/foreign cert rejected)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1027</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Assert MinVersion==TLS13 on the client TLS path in pkg/security</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1030</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Verify pkg/hxcregistry item_history audit-sink rows after
+Create/Update</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1031</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Assert exact and stable ComputeHeadingHash value in
+pkg/hxcregistry</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1032</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add pkg/hxcregistry failure-path tests (dup PK, missing-id
+Get/Update)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1033</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Make pkg/hxcregistry concurrent test do concurrent writes (or
+rename)</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1034</td>
+<td>Task</td>
+<td>P3</td>
+<td>Prove pkg/hxcregistry timestamp round-trip and DB CHECK-constraint
+enforcement</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1035</td>
+<td>Bug</td>
+<td>P0</td>
+<td>Wire pkg/wasm WasmPlugin.Execute to real WASM output and prove
+transformed result</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1036</td>
+<td>Task</td>
+<td>P1</td>
+<td>Add pkg/wasm negative tests for missing execute export and corrupt
+module Init</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1037</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Prove pkg/wasm init/shutdown exports actually run via memory
+side-effect</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1042</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Convert pkg/storage error tests to errors.Is on exported
+sentinels</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1043</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Reconcile and test pkg/storage FileStore vs MemoryStore copy
+semantics</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1044</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add pkg/storage overwrite, missing-delete, and List edge tests for
+both stores</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1045</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Add pkg/storage -race concurrent Put/Get/Delete test to prove
+RWMutex</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1062</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Add pkg/crypto SHA-256 known-answer vectors and sentinel errors.Is
+checks</td>
+<td>dbed10c</td>
+</tr>
+<tr>
+<td>HXC-1063</td>
+<td>Task</td>
+<td>P3</td>
+<td>Add pkg/crypto AES-128/192, wrong-key decrypt, short-ciphertext,
+PBKDF2 vector tests</td>
+<td>dbed10c</td>
 </tr>
 <tr>
 <td>HXC-902</td>

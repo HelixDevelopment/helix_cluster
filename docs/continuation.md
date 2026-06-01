@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 30
-**Last modified:** 2026-06-01T10:27:45Z
+**Revision:** 31
+**Last modified:** 2026-06-01T10:29:29Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `dbed10c` | Foundation wave 1: anti-bluff remediation of etcd/lock/infra/build/security/crypto/jwt/hxcregistry/storage/wasm (verified) |
 | `8d7030c` | Foundation: add pkg/testing/evidence — §7.1 positive-evidence test helper (TDD + §1.1 mutation-paired) |
 | `47b6d91` | Phase 0: ingest 614-item phase ledger into hxc_registry.db (HXC-1001..1614); DB-as-source-of-truth |
 | `a15c272` | Phase 0: wire docs_chain (§11.4.106) — tracked_docs context, engine wrapper, commit gate sync+verify, canonical doc dedup manifest |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `31c4490` | Phase 8B gaps: GPU pool manager, cost broker, burst hysteresis, local GPU TCO, provider adapter (PCS-6/CLAUDE-1) |
 | `8b04418` | Phase 8 gaps: chutes inference client+SSE+crypto seams, marketplace adapter+scorer, GPU dual-class reservation (PCS-6/CLAUDE-1) |
 | `ded59ff` | Phase 7 gaps: hashslot CRC16, largest-subcluster voting, SLURM backfill, health startup tier, N+K admission, BOINC trust (PCS-6/CLAUDE-1) |
-| `a31c0de` | Phase 6 gaps: HLC, CRDTs+merkle anti-entropy, federation cell registry/FSM, SWIM phi-accrual (PCS-6/CLAUDE-1) |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `8d7030c` |
-| **Timestamp** | 2026-06-01T10:27:45Z |
+| **Commit** | `dbed10c` |
+| **Timestamp** | 2026-06-01T10:29:29Z |
 
 ## §3: Active Work
 

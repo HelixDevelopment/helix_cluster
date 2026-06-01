@@ -1,50 +1,33 @@
 # Issues
 
-**Revision:** 7
-**Last modified:** 2026-06-01T09:59:17Z
+**Revision:** 8
+**Last modified:** 2026-06-01T10:29:18Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **623**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **593**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (79 active)
+## Foundation (anti-bluff) (49 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1001 | Task | P0 | Queued | Stand up embedded-etcd integration harness for pkg/etcd tests |
-| HXC-1002 | Feature | P0 | Queued | Prove etcd Put/Get round-trip and missing-key semantics against real etcd |
-| HXC-1005 | Feature | P0 | Queued | Prove etcd Watch fires correct event and closes on ctx cancel |
-| HXC-1007 | Feature | P0 | Queued | Prove etcd distributed Lock mutual exclusion (highest-risk path) |
 | HXC-1010 | Feature | P0 | Queued | Replace pkg/infra map-echo orchestrator with real service Boot via testcontainers |
 | HXC-1011 | Feature | P0 | Queued | Make pkg/infra Health probe real services and report false on failure |
-| HXC-1016 | Feature | P0 | Queued | Add EtcdLocker integration tests against real etcd (block/acquire/lease) |
-| HXC-1017 | Bug | P0 | Queued | Rewrite TestMemoryLockerConcurrent to detect a broken lock without -race |
 | HXC-1020 | Feature | P0 | Queued | Wire a real Builder behind pkg/build Service and prove image is pullable |
-| HXC-1026 | Feature | P0 | Queued | Add real mTLS handshake test for pkg/security (valid client succeeds, no/foreign cert rejected) |
 | HXC-1028 | Feature | P0 | Queued | Locate/build production Vault client and add dev-Vault integration test (KVv2 + PKI) |
-| HXC-1035 | Bug | P0 | Queued | Wire pkg/wasm WasmPlugin.Execute to real WASM output and prove transformed result |
 | HXC-1074 | Task | P0 | Queued | Establish fleet-wide -race CI gate across concurrency-sensitive packages |
 | HXC-016 | Task | P1 | Queued |  |
 | HXC-017 | Task | P1 | Queued |  |
 | HXC-018 | Task | P1 | Queued |  |
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
-| HXC-1003 | Feature | P1 | Queued | Prove etcd GetPrefix returns exactly matching multi-key set |
-| HXC-1004 | Feature | P1 | Queued | Prove etcd Delete/DeletePrefix remove keys (sink-side absence) |
-| HXC-1006 | Feature | P1 | Queued | Prove etcd Lease/PutWithLease/RevokeLease/KeepAlive TTL behavior |
 | HXC-1012 | Feature | P1 | Queued | Make pkg/infra Logs capture real sink-side output honoring tail/since/timestamps |
 | HXC-1013 | Feature | P1 | Queued | Make pkg/infra Scale create real replicas verified via runtime query |
 | HXC-1014 | Feature | P1 | Queued | Make pkg/infra VMSpawn/VMSSH establish a real session end-to-end |
-| HXC-1021 | Bug | P1 | Queued | Drive pkg/build StateFailed via a genuine build failure not the 'fail' sentinel |
 | HXC-1022 | Bug | P1 | Queued | Make pkg/build List/Concurrent tests Start() the service and assert terminal states |
-| HXC-1027 | Bug | P1 | Queued | Assert MinVersion==TLS13 on the client TLS path in pkg/security |
-| HXC-1030 | Bug | P1 | Queued | Verify pkg/hxcregistry item_history audit-sink rows after Create/Update |
-| HXC-1036 | Task | P1 | Queued | Add pkg/wasm negative tests for missing execute export and corrupt module Init |
 | HXC-1039 | Bug | P1 | Queued | Replace self-defeating pkg/semaphore TestSemaphore_ReleaseTooMany_Mutation |
 | HXC-1040 | Feature | P1 | Queued | Add pkg/semaphore M>>N concurrency invariant test under -race |
-| HXC-1042 | Bug | P1 | Queued | Convert pkg/storage error tests to errors.Is on exported sentinels |
-| HXC-1045 | Feature | P1 | Queued | Add pkg/storage -race concurrent Put/Get/Delete test to prove RWMutex |
 | HXC-1046 | Bug | P1 | Queued | Gate -race in CI for pkg/metrics concurrency mutation tests |
 | HXC-1050 | Bug | P1 | Queued | Test pkg/grpcutil LoggingStreamInterceptor recv/send counters |
 | HXC-1053 | Bug | P1 | Queued | Add pkg/context TestDetach_PreservesValues for the value-retention guarantee |
@@ -53,20 +36,10 @@ Total active items: **623**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1057 | Bug | P1 | Queued | Make pkg/errors concurrency test honest via locked GetFields path + -race |
 | HXC-1064 | Bug | P1 | Queued | Add pkg/log prefix-field proof catching the SetLevel prefix-loss bug |
 | HXC-1069 | Bug | P1 | Queued | Bring pkg/retry DoWithResult to behavioral parity with Do |
-| HXC-1008 | Task | P2 | Queued | Add mutation-paired etcd New() default-timeout injection test |
-| HXC-1009 | Task | P2 | Queued | Prove etcd error-wrapping on dead endpoint |
 | HXC-1015 | Feature | P2 | Queued | Make pkg/infra VMSimulateFailure/VMSimulatePartition assert observable network effect |
-| HXC-1018 | Task | P2 | Queued | Add explicit block-then-acquire ordering test for MemoryLocker |
 | HXC-1019 | Bug | P2 | Queued | Characterize or fix MemoryLocker.Lock context-cancellation goroutine leak |
 | HXC-1023 | Task | P2 | Queued | Replace time.Sleep polling in pkg/build with completion sync and add state-machine mutation tests |
-| HXC-1024 | Bug | P2 | Queued | Enforce or document pkg/build content-addressable cache digest integrity |
 | HXC-1025 | Task | P2 | Queued | Cover pkg/build cancel-mid-flight branch sets StateCancelled |
-| HXC-1031 | Bug | P2 | Queued | Assert exact and stable ComputeHeadingHash value in pkg/hxcregistry |
-| HXC-1032 | Task | P2 | Queued | Add pkg/hxcregistry failure-path tests (dup PK, missing-id Get/Update) |
-| HXC-1033 | Bug | P2 | Queued | Make pkg/hxcregistry concurrent test do concurrent writes (or rename) |
-| HXC-1037 | Bug | P2 | Queued | Prove pkg/wasm init/shutdown exports actually run via memory side-effect |
-| HXC-1043 | Bug | P2 | Queued | Reconcile and test pkg/storage FileStore vs MemoryStore copy semantics |
-| HXC-1044 | Task | P2 | Queued | Add pkg/storage overwrite, missing-delete, and List edge tests for both stores |
 | HXC-1047 | Bug | P2 | Queued | Complete pkg/metrics Prometheus exposition assertions (+Inf, _sum, ordering) |
 | HXC-1048 | Task | P2 | Queued | Add pkg/metrics duplicate-registration and histogram edge tests |
 | HXC-1051 | Bug | P2 | Queued | Strengthen pkg/grpcutil log assertions to dynamic behavior-dependent fields |
@@ -75,18 +48,15 @@ Total active items: **623**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1058 | Task | P2 | Queued | Pin pkg/errors Code enum exact values, distinctness, and WithFields nil receiver |
 | HXC-1059 | Bug | P2 | Queued | Replace tautological pkg/backoff cap-mutation test and pin Default() |
 | HXC-1060 | Bug | P2 | Queued | Assert pkg/classads parser AST Op per operator and paren precedence |
-| HXC-1062 | Bug | P2 | Queued | Add pkg/crypto SHA-256 known-answer vectors and sentinel errors.Is checks |
 | HXC-1067 | Feature | P2 | Queued | Add pkg/pubsub -race concurrency test and explicit drop-boundary assertion |
 | HXC-1068 | Bug | P2 | Queued | Prove pkg/ratelimit bucket starts full and add Limiter conformance + -race tests |
 | HXC-1070 | Task | P2 | Queued | Add pkg/retry transient-recovery, jitter-bound, and computeDelay table tests |
 | HXC-1072 | Bug | P2 | Queued | Pin pkg/validator error contract via errors.Is and remove/wire unused sentinels |
 | HXC-1029 | Task | P3 | Queued | Replace pkg/security non-nil-only TestNewTLSConfigBuilder with meaningful assertion |
-| HXC-1034 | Task | P3 | Queued | Prove pkg/hxcregistry timestamp round-trip and DB CHECK-constraint enforcement |
 | HXC-1038 | Task | P3 | Queued | Cover pkg/wasm Host.Call ErrUnexpectedResult branch |
 | HXC-1041 | Task | P3 | Queued | Add pkg/semaphore New(0) barrier and exact-capacity boundary tests |
 | HXC-1049 | Task | P3 | Queued | Add pkg/metrics /metrics integration test via httptest.Server |
 | HXC-1061 | Task | P3 | Queued | Add pkg/classads eval failure-path and regexp non-match tests |
-| HXC-1063 | Task | P3 | Queued | Add pkg/crypto AES-128/192, wrong-key decrypt, short-ciphertext, PBKDF2 vector tests |
 | HXC-1065 | Task | P3 | Queued | Strengthen pkg/log Warn test, add Debug-suppression, remove dead captureOutput scaffolding |
 | HXC-1066 | Task | P3 | Queued | Add pkg/lru boundary, cold-miss, and struct-value round-trip tests |
 | HXC-1071 | Task | P3 | Queued | Strengthen pkg/serde MustMarshal exact-content and add Unmarshal failure tests |

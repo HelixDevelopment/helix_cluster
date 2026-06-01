@@ -176,17 +176,17 @@
 <h1 class="title">issues</h1>
 </header>
 <h1 id="issues">Issues</h1>
-<p><strong>Revision:</strong> 7 <strong>Last modified:</strong>
-2026-06-01T09:59:17Z <strong>Description:</strong> Active workable-item
+<p><strong>Revision:</strong> 8 <strong>Last modified:</strong>
+2026-06-01T10:29:18Z <strong>Description:</strong> Active workable-item
 registry for Helix Cluster OS <strong>Authority:</strong> Constitution
 §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total active items: <strong>623</strong>. Canonical source:
+<p>Total active items: <strong>593</strong>. Canonical source:
 <code>data/hxc_registry.db</code>. Full per-item detail (description,
 closure criteria, required test types, source refs) lives in the DB and
 <code>docs/research/_ledger/*.json</code>.</p>
-<h2 id="foundation-anti-bluff-79-active">Foundation (anti-bluff) (79
+<h2 id="foundation-anti-bluff-49-active">Foundation (anti-bluff) (49
 active)</h2>
 <table>
 <colgroup>
@@ -207,36 +207,6 @@ active)</h2>
 </thead>
 <tbody>
 <tr>
-<td>HXC-1001</td>
-<td>Task</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Stand up embedded-etcd integration harness for pkg/etcd tests</td>
-</tr>
-<tr>
-<td>HXC-1002</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Prove etcd Put/Get round-trip and missing-key semantics against real
-etcd</td>
-</tr>
-<tr>
-<td>HXC-1005</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Prove etcd Watch fires correct event and closes on ctx cancel</td>
-</tr>
-<tr>
-<td>HXC-1007</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Prove etcd distributed Lock mutual exclusion (highest-risk
-path)</td>
-</tr>
-<tr>
 <td>HXC-1010</td>
 <td>Feature</td>
 <td>P0</td>
@@ -253,22 +223,6 @@ testcontainers</td>
 failure</td>
 </tr>
 <tr>
-<td>HXC-1016</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Add EtcdLocker integration tests against real etcd
-(block/acquire/lease)</td>
-</tr>
-<tr>
-<td>HXC-1017</td>
-<td>Bug</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Rewrite TestMemoryLockerConcurrent to detect a broken lock without
--race</td>
-</tr>
-<tr>
 <td>HXC-1020</td>
 <td>Feature</td>
 <td>P0</td>
@@ -277,28 +231,12 @@ failure</td>
 pullable</td>
 </tr>
 <tr>
-<td>HXC-1026</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Add real mTLS handshake test for pkg/security (valid client
-succeeds, no/foreign cert rejected)</td>
-</tr>
-<tr>
 <td>HXC-1028</td>
 <td>Feature</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Locate/build production Vault client and add dev-Vault integration
 test (KVv2 + PKI)</td>
-</tr>
-<tr>
-<td>HXC-1035</td>
-<td>Bug</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Wire pkg/wasm WasmPlugin.Execute to real WASM output and prove
-transformed result</td>
 </tr>
 <tr>
 <td>HXC-1074</td>
@@ -344,28 +282,6 @@ packages</td>
 <td></td>
 </tr>
 <tr>
-<td>HXC-1003</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Prove etcd GetPrefix returns exactly matching multi-key set</td>
-</tr>
-<tr>
-<td>HXC-1004</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Prove etcd Delete/DeletePrefix remove keys (sink-side absence)</td>
-</tr>
-<tr>
-<td>HXC-1006</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Prove etcd Lease/PutWithLease/RevokeLease/KeepAlive TTL
-behavior</td>
-</tr>
-<tr>
 <td>HXC-1012</td>
 <td>Feature</td>
 <td>P1</td>
@@ -390,43 +306,12 @@ query</td>
 end-to-end</td>
 </tr>
 <tr>
-<td>HXC-1021</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Drive pkg/build StateFailed via a genuine build failure not the
-‘fail’ sentinel</td>
-</tr>
-<tr>
 <td>HXC-1022</td>
 <td>Bug</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Make pkg/build List/Concurrent tests Start() the service and assert
 terminal states</td>
-</tr>
-<tr>
-<td>HXC-1027</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Assert MinVersion==TLS13 on the client TLS path in pkg/security</td>
-</tr>
-<tr>
-<td>HXC-1030</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Verify pkg/hxcregistry item_history audit-sink rows after
-Create/Update</td>
-</tr>
-<tr>
-<td>HXC-1036</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/wasm negative tests for missing execute export and corrupt
-module Init</td>
 </tr>
 <tr>
 <td>HXC-1039</td>
@@ -443,22 +328,6 @@ TestSemaphore_ReleaseTooMany_Mutation</td>
 <td>Queued</td>
 <td>Add pkg/semaphore M&gt;&gt;N concurrency invariant test under
 -race</td>
-</tr>
-<tr>
-<td>HXC-1042</td>
-<td>Bug</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Convert pkg/storage error tests to errors.Is on exported
-sentinels</td>
-</tr>
-<tr>
-<td>HXC-1045</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add pkg/storage -race concurrent Put/Get/Delete test to prove
-RWMutex</td>
 </tr>
 <tr>
 <td>HXC-1046</td>
@@ -521,33 +390,12 @@ bug</td>
 <td>Bring pkg/retry DoWithResult to behavioral parity with Do</td>
 </tr>
 <tr>
-<td>HXC-1008</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add mutation-paired etcd New() default-timeout injection test</td>
-</tr>
-<tr>
-<td>HXC-1009</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Prove etcd error-wrapping on dead endpoint</td>
-</tr>
-<tr>
 <td>HXC-1015</td>
 <td>Feature</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Make pkg/infra VMSimulateFailure/VMSimulatePartition assert
 observable network effect</td>
-</tr>
-<tr>
-<td>HXC-1018</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add explicit block-then-acquire ordering test for MemoryLocker</td>
 </tr>
 <tr>
 <td>HXC-1019</td>
@@ -566,67 +414,11 @@ leak</td>
 state-machine mutation tests</td>
 </tr>
 <tr>
-<td>HXC-1024</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Enforce or document pkg/build content-addressable cache digest
-integrity</td>
-</tr>
-<tr>
 <td>HXC-1025</td>
 <td>Task</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Cover pkg/build cancel-mid-flight branch sets StateCancelled</td>
-</tr>
-<tr>
-<td>HXC-1031</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Assert exact and stable ComputeHeadingHash value in
-pkg/hxcregistry</td>
-</tr>
-<tr>
-<td>HXC-1032</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/hxcregistry failure-path tests (dup PK, missing-id
-Get/Update)</td>
-</tr>
-<tr>
-<td>HXC-1033</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Make pkg/hxcregistry concurrent test do concurrent writes (or
-rename)</td>
-</tr>
-<tr>
-<td>HXC-1037</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Prove pkg/wasm init/shutdown exports actually run via memory
-side-effect</td>
-</tr>
-<tr>
-<td>HXC-1043</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Reconcile and test pkg/storage FileStore vs MemoryStore copy
-semantics</td>
-</tr>
-<tr>
-<td>HXC-1044</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/storage overwrite, missing-delete, and List edge tests for
-both stores</td>
 </tr>
 <tr>
 <td>HXC-1047</td>
@@ -692,14 +484,6 @@ Default()</td>
 precedence</td>
 </tr>
 <tr>
-<td>HXC-1062</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add pkg/crypto SHA-256 known-answer vectors and sentinel errors.Is
-checks</td>
-</tr>
-<tr>
 <td>HXC-1067</td>
 <td>Feature</td>
 <td>P2</td>
@@ -740,14 +524,6 @@ unused sentinels</td>
 meaningful assertion</td>
 </tr>
 <tr>
-<td>HXC-1034</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Prove pkg/hxcregistry timestamp round-trip and DB CHECK-constraint
-enforcement</td>
-</tr>
-<tr>
 <td>HXC-1038</td>
 <td>Task</td>
 <td>P3</td>
@@ -775,14 +551,6 @@ tests</td>
 <td>P3</td>
 <td>Queued</td>
 <td>Add pkg/classads eval failure-path and regexp non-match tests</td>
-</tr>
-<tr>
-<td>HXC-1063</td>
-<td>Task</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Add pkg/crypto AES-128/192, wrong-key decrypt, short-ciphertext,
-PBKDF2 vector tests</td>
 </tr>
 <tr>
 <td>HXC-1065</td>
