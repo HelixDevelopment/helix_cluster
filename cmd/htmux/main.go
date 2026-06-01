@@ -58,15 +58,20 @@ type env struct {
 	// lookupOwner resolves the default session owner when none is supplied.
 	lookupOwner func() (string, error)
 	log         *slog.Logger
+	// stream holds the injectable WebSocket streaming dependencies used by
+	// handleAttach. If nil, defaultStreamEnv() is used at call time.
+	stream *streamEnv
 }
 
 func main() {
+	se := defaultStreamEnv()
 	e := &env{
 		stdout:      os.Stdout,
 		stderr:      os.Stderr,
 		dial:        dialGRPC,
 		lookupOwner: currentUsername,
 		log:         slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelWarn})),
+		stream:      &se,
 	}
 	os.Exit(run(context.Background(), os.Args[1:], e))
 }
@@ -178,11 +183,26 @@ func handleAttach(ctx context.Context, e *env, flags map[string]string, addr str
 
 	fmt.Fprintf(e.stdout, "Attaching to session %s (%s) on node %s...\n", sess.Name, sess.ID, sess.NodeID)
 
-	// The current SessionService API does not expose a streaming attach RPC.
-	// We report attachment intent without entering raw mode here; interactive
-	// raw-mode bridging lives in terminal.go and is exercised separately.
-	fmt.Fprintln(e.stdout, "(attach simulation: no streaming RPC available in current API)")
-	return nil
+	// Resolve the WebSocket address: --wsaddr flag overrides, otherwise use
+	// the same host:port as the gRPC endpoint (helix-session serves WS and
+	// gRPC on the same port via separate handlers when configured that way,
+	// or the operator may supply a distinct --wsaddr).
+	wsAddr := flags["wsaddr"]
+	if wsAddr == "" {
+		wsAddr = addr
+	}
+
+	// Resolve stream dependencies: use the injected seam (for tests) or the
+	// real default wired in main().
+	se := defaultStreamEnv()
+	if e.stream != nil {
+		se = *e.stream
+	}
+
+	// streamSession blocks until the WS connection closes or an error occurs.
+	// ctx cancellation (e.g. commandTimeout) propagates via the WS read/write
+	// deadlines inside streamSession.
+	return streamSession(sess.ID, wsAddr, se)
 }
 
 func handleList(ctx context.Context, e *env, flags map[string]string, addr string) error {

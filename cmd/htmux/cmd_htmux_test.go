@@ -304,18 +304,78 @@ func TestRunKillNotFoundExitCode(t *testing.T) {
 }
 
 func TestRunAttachReportsSession(t *testing.T) {
+	// HXC-1105 fix: handleAttach must call streamSession, not print a stub.
+	//
+	// This test proves the full production code path from the CLI entrypoint
+	// (run → handleAttach → streamSession) works end-to-end:
+	//
+	//   1. A real in-process gRPC server holds the session (sink-side: GetSession RPC).
+	//   2. A scripted WS server sends an Output envelope carrying a per-run UUID.
+	//   3. The UUID appears in stdout — proving streamSession was called (not the stub).
+	//
+	// Mutation: if handleAttach returned after printing the banner without calling
+	// streamSession, stdout would NOT contain attachUUID and the test fails.
 	addr, srv, _ := startMockServer(t)
 	defer srv.Stop()
 
+	// Create the session in the gRPC server so GetSession succeeds.
 	ec, _, _ := testEnv(addr)
 	require.Equal(t, 0, run(context.Background(), []string{"create", "-s", "live", "--node", "n1", "--addr", addr}, ec))
 
-	e, out, _ := testEnv(addr)
-	code := run(context.Background(), []string{"attach", "-s", "sess-1", "--addr", addr}, e)
-	require.Equal(t, 0, code)
-	// Mutation: changing the attach banner or fetching the wrong session id
-	// breaks this exact prefix on a real GetSession round-trip.
-	assert.Equal(t, "Attaching to session live (sess-1) on node n1...\n(attach simulation: no streaming RPC available in current API)\n", out.String())
+	// Scripted WS server: sends one Output envelope carrying a UUID, then
+	// holds the connection open until the client disconnects.
+	attachUUID := "hxc1105-attach-" + perHTMuxRunUUID
+	wsSrv := &scriptedWSServer{outputs: [][]byte{[]byte(attachUUID)}}
+	_, wsDial := startScriptedServer(t, wsSrv)
+
+	// syncBuffer is goroutine-safe: the banner is written by the main goroutine
+	// (fmt.Fprintf(e.stdout, ...)) and the WS payload is written by streamSession's
+	// receive goroutine — both concurrently after run is called.
+	out := &syncBuffer{}
+	stdin := new(infiniteReader)
+
+	se := streamEnv{
+		wsDial:        wsDial,
+		streamStdin:   stdin,
+		streamStdout:  out,
+		streamStdinFd: -1, // not a terminal; skip raw mode
+	}
+
+	e := &env{
+		stdout:      out,
+		stderr:      &syncBuffer{},
+		dial:        dialGRPC,
+		lookupOwner: func() (string, error) { return "default-user", nil },
+		log:         slog.New(slog.NewTextHandler(io.Discard, nil)),
+		stream:      &se,
+	}
+
+	// run in a goroutine: handleAttach blocks inside streamSession until stdin
+	// is closed.
+	runDone := make(chan int, 1)
+	go func() {
+		runDone <- run(context.Background(), []string{"attach", "-s", "sess-1", "--addr", addr, "--wsaddr", "ignored"}, e)
+	}()
+
+	// Assert: banner (from GetSession gRPC round-trip) AND UUID (from WS Output
+	// envelope decoded by streamSession) both appear within 2 s.
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		if out.Contains([]byte("Attaching to session live (sess-1) on node n1...")) &&
+			out.Contains([]byte(attachUUID)) {
+			stdin.close() // unblock streamSession's stdin read goroutine
+			return        // PASS
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	stdin.close()
+	select {
+	case <-runDone:
+	case <-time.After(500 * time.Millisecond):
+	}
+
+	t.Errorf("attach stdout = %q\n  want: banner + UUID %q", out.Bytes(), attachUUID)
 }
 
 func TestRunRenameSurfacesUnsupported(t *testing.T) {

@@ -34,16 +34,44 @@ func NodeKey(uuid string) string {
 	return fmt.Sprintf("%s/%s", NamespaceNodes, uuid)
 }
 
+// NodeStatusKey returns the canonical etcd key for a node's status sub-record.
+// The key is /clusteros/nodes/<uuid>/status.
+// Status records are written by the SWIM layer on health transitions.
+func NodeStatusKey(uuid string) string {
+	return fmt.Sprintf("%s/%s/status", NamespaceNodes, uuid)
+}
+
+// NodeHeartbeatKey returns the canonical etcd key for a node's heartbeat sub-record.
+// The key is /clusteros/nodes/<uuid>/heartbeat.
+// Heartbeat records are written by the health-check agent on each interval.
+func NodeHeartbeatKey(uuid string) string {
+	return fmt.Sprintf("%s/%s/heartbeat", NamespaceNodes, uuid)
+}
+
 // SessionKey returns the canonical etcd key for a session record.
 // The key is /clusteros/sessions/<sessionID>.
 func SessionKey(sessionID string) string {
 	return fmt.Sprintf("%s/%s", NamespaceSessions, sessionID)
 }
 
+// SessionRoutingKey returns the canonical etcd key for a session's routing sub-record.
+// The key is /clusteros/sessions/<sessionID>/routing.
+// Routing records map a session to its current backend node.
+func SessionRoutingKey(sessionID string) string {
+	return fmt.Sprintf("%s/%s/routing", NamespaceSessions, sessionID)
+}
+
 // SchedulerPoolKey returns the canonical etcd key for a scheduler pool entry.
 // The key is /clusteros/scheduler/<poolID>.
 func SchedulerPoolKey(poolID string) string {
 	return fmt.Sprintf("%s/%s", NamespaceScheduler, poolID)
+}
+
+// SchedulerQueueKey returns the canonical etcd key for a scheduler queue entry.
+// The key is /clusteros/scheduler/<queueID>/queue.
+// Queue records hold pending task batches waiting for placement.
+func SchedulerQueueKey(queueID string) string {
+	return fmt.Sprintf("%s/%s/queue", NamespaceScheduler, queueID)
 }
 
 // SecurityKey returns the canonical etcd key for a security record.

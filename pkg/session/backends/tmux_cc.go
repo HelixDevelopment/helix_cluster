@@ -37,6 +37,19 @@ type ControlModeSession struct {
 	// subs is the fan-out set of subscriber channels.
 	subs   []chan ControlEvent
 	subsMu sync.Mutex
+	// pending buffers events fanned out BEFORE the first subscriber registers,
+	// so the initial control-mode burst (handshake / %layout / early %output)
+	// is not lost in the window between session start and the first Subscribe.
+	// It is flushed into — and cleared by — the first Subscribe, after which
+	// fanOut delivers live (and full subscribers drop, as documented).
+	pending       []ControlEvent
+	hadSubscriber bool
+	// terminated is set true (under subsMu) by the pump's deferred close, in the
+	// SAME critical section that closes existing subscriber channels. Subscribe
+	// reads it under subsMu to decide, atomically, whether the pump will close a
+	// freshly-registered channel (terminated=false) or whether Subscribe must
+	// close it itself (terminated=true) — eliminating a lost-close hang.
+	terminated bool
 
 	// done is closed when the reader loop exits.
 	done chan struct{}
@@ -108,6 +121,28 @@ func (cs *ControlModeSession) Subscribe() <-chan ControlEvent {
 	ch := make(chan ControlEvent, 64)
 	cs.subsMu.Lock()
 	cs.subs = append(cs.subs, ch)
+	// Flush any events buffered before the first subscriber existed, then mark
+	// the session as having had a subscriber so fanOut switches to live (drop)
+	// delivery. Late subscribers do NOT get history (pending is already empty).
+	if !cs.hadSubscriber {
+		cs.hadSubscriber = true
+		for _, e := range cs.pending {
+			select {
+			case ch <- e:
+			default:
+				// First subscriber's buffer is full; drop the overflow, matching
+				// the documented full-subscriber drop semantics.
+			}
+		}
+		cs.pending = nil
+	}
+	// If the pump already terminated, it will never close this newly-registered
+	// channel. Close it here (atomically w.r.t. the pump via terminated+subsMu)
+	// so a range loop over a post-termination Subscribe still sees EOF after
+	// draining any flushed events.
+	if cs.terminated {
+		close(ch)
+	}
 	cs.subsMu.Unlock()
 	return ch
 }
@@ -174,8 +209,11 @@ func (cs *ControlModeSession) Err() error {
 // It runs in a dedicated goroutine and closes cs.done when it exits.
 func (cs *ControlModeSession) pump(r io.Reader) {
 	defer func() {
-		// Close all subscriber channels so receivers see EOF.
+		// Close all subscriber channels so receivers see EOF. Set terminated
+		// under the SAME lock so a concurrent Subscribe either registers before
+		// this (and gets closed here) or observes terminated and self-closes.
 		cs.subsMu.Lock()
+		cs.terminated = true
 		for _, ch := range cs.subs {
 			close(ch)
 		}
@@ -226,6 +264,14 @@ func (cs *ControlModeSession) fanOut(evs []ControlEvent) {
 		return
 	}
 	cs.subsMu.Lock()
+	// Before any subscriber has registered, buffer events instead of dropping
+	// them so the initial burst survives the start->Subscribe window. The first
+	// Subscribe flushes and clears this buffer.
+	if !cs.hadSubscriber {
+		cs.pending = append(cs.pending, evs...)
+		cs.subsMu.Unlock()
+		return
+	}
 	subs := cs.subs
 	cs.subsMu.Unlock()
 

@@ -17,9 +17,15 @@ import (
 
 // fakeControlModeSession builds a ControlModeSession whose pump reads from
 // the supplied script (io.Reader) instead of a real tmux process. It returns
-// the session and a channel that is closed when the pump finishes. The caller
-// must NOT call cs.Close() because there is no real tmux process to kill.
-func fakeControlModeSession(script io.Reader) (*ControlModeSession, <-chan struct{}) {
+// the session, a start func that launches the pump goroutine, and a channel
+// that is closed when the pump finishes. The caller must NOT call cs.Close()
+// because there is no real tmux process to kill.
+//
+// The pump is started by the returned start func — NOT eagerly — so callers
+// can register every subscriber BEFORE any event is fanned out. This makes the
+// multi-subscriber tests deterministic and removes the subscribe-after-publish
+// race that otherwise surfaces only under parallel-suite load.
+func fakeControlModeSession(script io.Reader) (*ControlModeSession, func(), <-chan struct{}) {
 	cs := &ControlModeSession{
 		done: make(chan struct{}),
 	}
@@ -28,9 +34,8 @@ func fakeControlModeSession(script io.Reader) (*ControlModeSession, <-chan struc
 	_ = pr // discard
 	cs.stdin = pw
 
-	// Start the pump directly against the scripted reader.
-	go cs.pump(script)
-	return cs, cs.done
+	start := func() { go cs.pump(script) }
+	return cs, start, cs.done
 }
 
 // TestControlModeSession_PumpDeliversOutputEvent proves that the pump
@@ -42,8 +47,9 @@ func fakeControlModeSession(script io.Reader) (*ControlModeSession, <-chan struc
 //	subscriber never receives the event; the timeout fires -> FAIL.
 func TestControlModeSession_PumpDeliversOutputEvent(t *testing.T) {
 	script := strings.NewReader("%output %2 hello\n%exit\n")
-	cs, done := fakeControlModeSession(script)
+	cs, start, done := fakeControlModeSession(script)
 	sub := cs.Subscribe()
+	start()
 
 	// Wait for pump to finish.
 	select {
@@ -85,8 +91,9 @@ func TestControlModeSession_PumpDeliversBeginEndBlock(t *testing.T) {
 		"%exit",
 	}, "\n") + "\n"
 
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
 	sub := cs.Subscribe()
+	start()
 
 	select {
 	case <-done:
@@ -129,8 +136,9 @@ func TestControlModeSession_PumpDeliversBeginEndBlock(t *testing.T) {
 // pump's own %exit handling terminates it, making the mutation detectable.
 func TestControlModeSession_PumpStopsOnExit(t *testing.T) {
 	pr, pw := io.Pipe()
-	cs, done := fakeControlModeSession(pr)
+	cs, start, done := fakeControlModeSession(pr)
 	_ = cs.Subscribe() // drain so fanOut doesn't block
+	start()
 
 	// Write some output then %exit, but leave the pipe open (no EOF).
 	if _, err := io.WriteString(pw, "%output %0 before-exit\n"); err != nil {
@@ -162,12 +170,13 @@ func TestControlModeSession_PumpConcurrentSubscribers(t *testing.T) {
 	const numSubs = 5
 	script := "%output %1 data\n%output %1 more\n%exit\n"
 
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
 
 	subs := make([]<-chan ControlEvent, numSubs)
 	for i := range subs {
 		subs[i] = cs.Subscribe()
 	}
+	start()
 
 	select {
 	case <-done:
@@ -195,8 +204,9 @@ func TestControlModeSession_PumpConcurrentSubscribers(t *testing.T) {
 //
 //	for-range never terminates; t.Fatal("range did not end") fires -> FAIL.
 func TestControlModeSession_SubscriberChannelClosed(t *testing.T) {
-	cs, _ := fakeControlModeSession(strings.NewReader("%exit\n"))
+	cs, start, _ := fakeControlModeSession(strings.NewReader("%exit\n"))
 	sub := cs.Subscribe()
+	start()
 
 	done := make(chan struct{})
 	go func() {
@@ -221,8 +231,9 @@ func TestControlModeSession_SubscriberChannelClosed(t *testing.T) {
 //	the second pane check fails (got %0, want %9) -> FAIL.
 func TestControlModeSession_PumpMultiPaneRouting(t *testing.T) {
 	script := "%output %0 zero\n%output %9 nine\n%exit\n"
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
 	sub := cs.Subscribe()
+	start()
 
 	select {
 	case <-done:
@@ -255,8 +266,9 @@ func TestControlModeSession_PumpMultiPaneRouting(t *testing.T) {
 func TestControlModeSession_PumpOctalDecoding(t *testing.T) {
 	// \015\012 == CR LF; \040 == space.
 	script := "%output %4 hello\\040world\\015\\012\n%exit\n"
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
 	sub := cs.Subscribe()
+	start()
 
 	select {
 	case <-done:
@@ -285,11 +297,12 @@ func TestControlModeSession_PumpOctalDecoding(t *testing.T) {
 //	wrong-pane output leaks into the buffer; cross-pane assert fires -> FAIL.
 func TestControlModeAttach_ReadWriteDelivery(t *testing.T) {
 	script := "%output %3 ABCD\n%output %7 WRONG\n%exit\n"
-	cs, _ := fakeControlModeSession(strings.NewReader(script))
+	cs, start, _ := fakeControlModeSession(strings.NewReader(script))
 
 	// Only subscribe to pane %3.
 	cma := NewControlModeAttach(cs, "%3")
 	defer cma.Close()
+	start()
 
 	// Drain from cma.Read until EOF.
 	var received []byte
@@ -339,7 +352,8 @@ func TestControlModeAttach_ReadWriteDelivery(t *testing.T) {
 //	(but this is an error-path test, so the test only fires if the real
 //	implementation correctly propagates the send error).
 func TestControlModeAttach_WriteIsNonBlocking(t *testing.T) {
-	cs, _ := fakeControlModeSession(strings.NewReader("%exit\n"))
+	cs, start, _ := fakeControlModeSession(strings.NewReader("%exit\n"))
+	start()
 	// Wait for pump to exit so stdin is known-closed.
 	select {
 	case <-cs.done:
@@ -374,8 +388,9 @@ func TestControlModeAttach_WriteIsNonBlocking(t *testing.T) {
 func TestControlModeSession_ErrorOnMalformedLine(t *testing.T) {
 	// "bare text" outside a block is a protocol violation (not %*).
 	script := "%output %0 ok\nbare text outside block\n%exit\n"
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
 	_ = cs.Subscribe()
+	start()
 
 	select {
 	case <-done:
@@ -406,7 +421,8 @@ func TestControlModeSession_FanOut_NilSafeEmpty(t *testing.T) {
 // unsynchronised access.
 func TestControlModeSession_PumpConcurrencyRace(t *testing.T) {
 	script := strings.Repeat("%output %0 x\n", 200) + "%exit\n"
-	cs, done := fakeControlModeSession(strings.NewReader(script))
+	cs, start, done := fakeControlModeSession(strings.NewReader(script))
+	start()
 
 	var wg sync.WaitGroup
 	for i := 0; i < 10; i++ {
