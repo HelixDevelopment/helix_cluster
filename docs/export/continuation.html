@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 63 <strong>Last modified:</strong>
-2026-06-01T19:30:15Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 64 <strong>Last modified:</strong>
+2026-06-01T19:31:01Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,23 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>1c0d943</code></td>
+<td>Foundation wave 14: 4 disjoint streams, 4 items incl the MVP
+two-node-formation EXIT GATE. cmd/helix-agent
+–etcd-endpoints/HELIX_ETCD_ENDPOINTS wiring + HXC-1135 E2E (two REAL
+helix-agent processes form a cluster via real etcd, both visible &lt;60s
+w/ per-run UUID + formation timestamp + evidence file);
+pkg/testing/chaos seeded deterministic fault sequencer (reproducible
+injection log) + Byzantine equivocation fault; NEW pkg/deviceprofile
+versioned-YAML device profile registry T1-T8 + schema
+validation/rejection; NEW pkg/stats Welch t-test regression detector
+(t-stat/Welch-Satterthwaite df/p-value). ZERO new deps. GATE:
+build/vet/vet-integration clean, full -short -race green, 1135
+two-process formation PROVEN vs REAL etcd (2.76s), deviceprofile+stats
+integration green, live mutation spot-check on Welch significance
+confirmed real.</td>
+</tr>
 <tr>
 <td><code>e1dab02</code></td>
 <td>Foundation wave 13: mark 6 items Completed
@@ -353,17 +370,6 @@ real vault/etcd/postgres. GATE: fixed 2 non-compiling integration files
 — integration-proven vs real redis/mTLS/opa/HTTP; CLAUDE-2 macOS CPU
 utilization now real</td>
 </tr>
-<tr>
-<td><code>7634fbb</code></td>
-<td>Foundation wave 9: Redis store (routing TTL + NodeEvent pub/sub,
-go-redis/v9), SPIFFE SVID issuance + mTLS identity (go-spiffe/v2), OPA
-policy engine + HelixConstitution scheduling (open-policy-agent/opa),
-metrics collector scrape endpoint — integration-proven vs real
-redis/mTLS/opa/HTTP. GATE FIXES: tmux ControlModeAttach EOF-before-drain
-race; pkg/resources DarwinReader now samples REAL macOS CPU utilization
-via top (CLAUDE-2: no more 0%% on macOS); redis test mutex-copy vet
-violation</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -381,11 +387,11 @@ violation</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>e1dab02</code></td>
+<td><code>1c0d943</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T19:30:15Z</td>
+<td>2026-06-01T19:31:01Z</td>
 </tr>
 </tbody>
 </table>

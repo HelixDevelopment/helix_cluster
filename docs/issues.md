@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 23
-**Last modified:** 2026-06-01T19:08:03Z
+**Revision:** 24
+**Last modified:** 2026-06-01T19:30:54Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **479**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -18,12 +18,11 @@ Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 
-## MVP (25 active)
+## MVP (24 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1117 | Task | P0 | Queued | Define and generate proto service stubs (node/session/scheduler/health/auth) |
-| HXC-1135 | Feature | P0 | Queued | Implement two-node cluster formation end-to-end (exit gate) |
 | HXC-1136 | Feature | P0 | Queued | Implement session-create end-to-end path (htmux new exit gate) |
 | HXC-1096 | Feature | P1 | Queued | Implement GPU resource probe with /proc parser (internal/gpu) |
 | HXC-1097 | Feature | P1 | Queued | Define vendor-agnostic GPUBackend interface and registry (internal/gpu) |
@@ -116,14 +115,13 @@ Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1221 | Docs | P2 | Queued | Document Phase 3 edge multi-platform agent architecture diagrams |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (70 active)
+## Phase 4 (67 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1222 | Feature | P0 | Queued | Build K3s orchestration substrate with RuntimeClasses for firecracker/kata/runc |
 | HXC-1223 | Feature | P0 | Queued | Implement Firecracker microVM provisioner for T1-T3 with vsock and virtio-net |
 | HXC-1224 | Feature | P0 | Queued | Implement Firecracker golden snapshot create/restore pipeline (<=28ms restore) |
-| HXC-1229 | Task | P0 | Queued | Build device profile registry with versioned YAML schema for T1-T8 |
 | HXC-1232 | Feature | P0 | Queued | Implement unified golden snapshot + COW instant-reset across all simulator backends |
 | HXC-1234 | Feature | P0 | Queued | Build Rust DST engine: single-threaded SimLoop with virtual clock and seeded PRNG |
 | HXC-1235 | Feature | P0 | Queued | Integrate Rust turmoil for deterministic simulated TCP/UDP networking |
@@ -151,7 +149,6 @@ Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1240 | Feature | P1 | Queued | Achieve 1,000+ simulated nodes in a single DST process |
 | HXC-1241 | Feature | P1 | Queued | Author DST consensus+gossip workloads using SETUP→EXECUTION→CHECK→METRICS pattern |
 | HXC-1245 | Feature | P1 | Queued | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
-| HXC-1247 | Feature | P1 | Queued | Implement pure-Go in-sim chaos faults toward 25+ (ClockSkew, DiskFill, MessageReorder, Byzantine, etc.) |
 | HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
 | HXC-1254 | Feature | P1 | Queued | Implement TestRunner with parallel suite execution and result collection |
 | HXC-1255 | Feature | P1 | Queued | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) |
@@ -159,7 +156,6 @@ Total active items: **483**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1258 | Feature | P1 | Queued | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing |
 | HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
 | HXC-1260 | Feature | P1 | Queued | Implement metrics validation against baseline KPI table with severity gating |
-| HXC-1261 | Feature | P1 | Queued | Implement Welch's t-test statistical regression detector for HelixQA |
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
 | HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
 | HXC-1264 | Task | P1 | Queued | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter |
