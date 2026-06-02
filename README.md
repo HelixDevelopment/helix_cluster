@@ -58,13 +58,13 @@ The `pkg/` library provides the pure-Go, deterministic, well-tested primitives t
 | **Consensus & coordination** | `voting` (largest-subcluster quorum), `failconfirm` (SWIM two-phase PFAIL→FAIL), `leader`, `lock`, `splitbrain` / `splitbrainalert`, `heartbeatcoalescer` (Multi-Raft) |
 | **Membership & discovery** | `swim` (+ phi-accrual, hierarchical), `discovery` (+ federated), `nattraversal` (STUN), `ice`, `cellmesh` |
 | **Replication & state** | `crdt` (+ `merkle`, LWW/ORSet/G/PN-counters/vector-clock), `mvcc` (B-tree time-travel store), `antientropy` (hinted-handoff + read-repair + Merkle diff), `watchmanager` (synced/unsynced/victim), `hlc`, `offlinesync`, `checkpoint_merge` |
-| **Scheduling & placement** | `scheduler` (Omega/ClassAd/gang/preempt), `constraints` (Pacemaker 4-type), `preempt` (value-multiplier), `priorityqueue` (multifactor aging), `backfill` (SLURM), `admissioncontrol` (N+K reserve), `budgetcap`, `qos`, `suitability`, `ewmarank`, `workclaim` (SKIP LOCKED) |
-| **GPU & resource mgmt** | `pool`, `local` (TCO), `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto), `capability`, `deviceprofile`, `device`, `tierdef`, `tiersec`, `quantization` |
+| **Scheduling & placement** | `scheduler` (Omega/ClassAd/gang/preempt), `constraints` (Pacemaker 4-type), `preempt` (value-multiplier), `priorityqueue` (multifactor aging), `backfill` (SLURM), `admissioncontrol` (N+K reserve), `budgetcap`, `qos`, `suitability`, `ewmarank`, `workclaim` (SKIP LOCKED), `providerchain` (multi-tier fallback cascade), `modelrouter` (strategy→default model), `gepetto` (local-vs-Chutes arbitration) |
+| **GPU & resource mgmt** | `pool`, `local` (TCO), `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto), `capability`, `deviceprofile`, `device`, `tierdef`, `tiersec`, `quantization`, `gpucatalog` (compute-multiplier catalog + attested scoring) |
 | **Federation & multi-cluster** | `federation` (+ `suspicion`), `fedtopology`, `fedtrust`, `configsync`, `residency`, `raftprofile`, `spiffefed`, `doublecrypt` |
 | **Messaging & flow** | `flowcontrol` (K8s APF), `workqueue` (rate-limited), `ratelimit`, `backoff`, `retry`, `idempotent` (exactly-once), `rebalance` (cooperative-sticky), `fiber`, `fallbackchain`, `pubsub`, `events` |
 | **Routing & sessions** | `hashslot` (CRC16 + MOVED/ASK), `session`, `slotmigration` (atomic live migration), `edge`, `edgeregistry`, `edgeverify`, `edgefusion` |
-| **Security & verification** | `crypto`, `jwt`, `modelintegrity` (SHA-256 gate), `redundantexec` (BOINC trust), `attestadmit`, `doublecrypt`, `spiffefed` |
-| **Burst & economics** | `burst` (hysteresis autoscaler), `cloudspot`, `marketplace` |
+| **Security & verification** | `crypto`, `jwt`, `modelintegrity` (SHA-256 gate), `redundantexec` (BOINC trust), `attestadmit`, `doublecrypt`, `spiffefed`, `gravaladmit` (HMAC GraVal admission), `gravalverify` (VRAM-ratio attestation + BatchVerify KPI) |
+| **Burst & economics** | `burst` (hysteresis autoscaler), `bursthysteresis` (MONITOR→SPILL→RECOVER dead-band), `cloudspot`, `marketplace`, `chutesaccount` (Chutes API model-list + balance client) |
 | **Testing & simulation** | `testing/dst` (+ BUGGIFY, chaos, turmoil), `timefault`, `chaosexp`, `fmea`, `phasegate`, `qualitygate`, `phase7matrix`, `stats`, `covgate`, `sandbox` |
 | **Observability** | `metrics`, `tracing` (W3C), `health`, `grafanadash`, `log` |
 
@@ -125,6 +125,10 @@ cd web && npm install && npm run dev
 - [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards
 - [`DEVELOPMENT.md`](DEVELOPMENT.md) — development workflow
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
+
+### Documentation Synchronization (CLAUDE-3 / §11.4.106)
+
+Every change to code, services, components, architecture, or schema MUST update all affected materials — README, docs, user guides, manuals, websites, diagrams, and SQL/schema definitions — together with **all** of their exports. This is mechanically enforced out-of-the-box by the `docs_chain` engine via `.docs_chain/contexts/*.yaml` (Markdown → HTML/PDF/DOCX) and gated by `docs_chain verify`, with no escape hatch. The mandate restates and cites Constitution §11.4.106 and the project rules CLAUDE-3 / AGENT-2 / QWEN-2.
 
 ## Development Model
 

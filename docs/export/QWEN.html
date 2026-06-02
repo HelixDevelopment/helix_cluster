@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>QWEN</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">QWEN</h1>
+</header>
+<h1 id="helix-cluster-os-qwen.md">Helix Cluster OS — QWEN.md</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-05-30</td>
+</tr>
+<tr>
+<td>Last modified</td>
+<td>2026-05-30T20:43:00Z</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<h2 id="inherited-from-helixconstitutionqwen.md">INHERITED FROM
+HelixConstitution/QWEN.md</h2>
+<p>All rules in <code>HelixConstitution/QWEN.md</code> (and the
+<code>HelixConstitution/Constitution.md</code>,
+<code>HelixConstitution/CLAUDE.md</code>, and
+<code>HelixConstitution/AGENTS.md</code> it references) apply
+unconditionally. The project-specific rules below extend them.</p>
+<h2 id="project-specific-extensions">Project-Specific Extensions</h2>
+<h3 id="agent-context">Agent Context</h3>
+<ul>
+<li>This is the Helix Cluster OS — a distributed cluster operating
+system.</li>
+<li>Seven-layer stack (L0-L7), 14 control plane microservices, SWIM
+gossip + Raft consensus.</li>
+<li>Cross-platform parity mandatory: Linux, macOS, Windows/WSL2
+per-feature.</li>
+<li>GPU backend coverage mandatory: NVIDIA CUDA, AMD ROCm, Intel oneAPI,
+Apple MLX on real hardware.</li>
+</ul>
+<h3 id="codegraph-integration">CodeGraph Integration</h3>
+<ul>
+<li>CodeGraph is installed, indexed, and wired via MCP.</li>
+<li>Qwen Code SHOULD use CodeGraph for symbol resolution and
+cross-reference queries.</li>
+<li>See <code>docs/CODEGRAPH.md</code> for setup and usage.</li>
+</ul>
+<h3 id="critical-base-rules-restated">Critical Base Rules Restated</h3>
+<ul>
+<li>Anti-bluff covenant — END-USER QUALITY GUARANTEE (§11.4).</li>
+<li>Mutation-paired gates (§1.1).</li>
+<li>Credentials-handling mandate (§11.4.10) + pre-store leak audit
+(§11.4.10.A).</li>
+<li>Subagent-driven-by-default (§11.4.20).</li>
+<li>Fetch-before-edit (§11.4.37).</li>
+<li>CodeGraph code-intelligence mandate (§11.4.78) — installed and
+active.</li>
+</ul>
+<h3
+id="qwen-1-end-user-usability-guarantee-7.1-11.4.39-reinforcement">QWEN-1:
+End-User Usability Guarantee (§7.1 + §11.4.39 Reinforcement)</h3>
+<p><strong>Forensic anchor — verbatim user mandate:</strong> &gt; “We
+had been in position that all tests do execute with success and all
+Challenges as well, but in reality the most of the features does not
+work and can’t be used! This MUST NOT be the case and execution of tests
+and Challenges MUST guarantee the quality, the completition and full
+usability by end users of the product!”</p>
+<p><strong>Operative rules for QA agents:</strong> 1. <strong>Tests are
+necessary but NOT sufficient.</strong> Every feature under QA MUST be
+validated with: - Unit tests (with paired mutation per §1.1) -
+Integration tests against REAL services (not mocks) - End-to-end tests
+that exercise the feature as an end user would - Challenge validation
+via HelixQA framework 2. <strong>A test that passes on a non-functional
+feature is a PASS-bluff</strong> — severity equivalent to §7.1
+violation. You MUST file a defect and block release. 3. <strong>Every
+test MUST prove the feature works for end users</strong>, not just that
+code executes without panic. Validate actual user journeys and
+observable outcomes. 4. <strong>Challenges (HelixQA) are bound
+equally</strong> — a Challenge PASS on a broken feature is the same
+class of defect as a unit test PASS on broken code. Treat both with
+equal severity. 5. <strong>No mock-only validation</strong> for features
+that claim real-world operation. Mocks are permitted ONLY in unit tests
+per §11.4.27. Reject any feature validated solely with mocks. 6.
+<strong>Sink-side evidence required:</strong> Every feature closure MUST
+include captured evidence (screenshot, log, metrics) proving
+end-user-visible operation. Your sign-off is contingent on this
+evidence.</p>
+<h3
+id="qwen-2-documentation-materials-continuous-sync-guarantee-11.4.106-docs-chain-family">QWEN-2:
+Documentation &amp; Materials Continuous-Sync Guarantee (§11.4.106
+docs-chain + family)</h3>
+<p><strong>Forensic anchor — verbatim user mandate:</strong> &gt; “while
+we continuously change the project … whatever we do on project or any of
+its services, components, architecture or anything else MUST trigger
+proper updateing of main README document, all project documentation,
+user guides, manuals, webiste(s) (if any), diagrams, graphs, schemes,
+SQL defintions and all other related materials! … Connect all this with
+docs_chain Submodule and make sure that all this is achieved out of the
+box, never forgotten or skipped and all docs and materials maintained
+regularly!”</p>
+<p>Restates + cites the binding master rule (Constitution
+<strong>§11.4.106 <code>docs-chain-mechanical-sync</code></strong> +
+anchor family §11.4.12/45/53/56/57/59/60/65/86/93/95, §12.10, §11.4.44;
+“No documentation ever can be out of sync with its codebase”). Per
+§11.4.35 inheritance.</p>
+<p><strong>Operative rules for QA agents:</strong> 1. <strong>Block
+release on stale docs.</strong> A change that ships
+code/service/component/architecture/schema/script changes without
+updating every affected material — main <code>README.md</code>, all
+<code>docs/**</code>, user guides, manuals, website(s),
+diagrams/graphs/schemes, SQL/schema definitions, and ALL their exports
+(md → html/pdf/docx) — is a §11.4.106 violation; file a defect and
+block. 2. <strong>Verify via docs_chain.</strong> Gate on
+<code>docs_chain verify</code> (deterministic sink-side check over
+byte-stable transforms); confirm new materials are registered in
+<code>.docs_chain/contexts/*.yaml</code> so enforcement is automatic and
+out of the box. Reject hand-maintained exports. 3. <strong>No fake
+PASS.</strong> A metadata-only / absence-of-error / config-only PASS at
+the sync layer is a §11.4 PASS-bluff; require real captured evidence at
+<code>qa-results/docs_chain/&lt;run-id&gt;/</code>. 4.
+<strong>Continuous maintenance</strong> — documentation sync is
+validated every wave, not just at release; treat a stale doc with the
+same severity as a failing test.</p>
+</body>
+</html>

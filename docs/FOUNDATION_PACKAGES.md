@@ -21,6 +21,7 @@ Every foundation package follows the same engineering contract:
 | `leader`, `lock` | Leadership and advisory locking primitives. |
 | `splitbrain`, `splitbrainalert` | Split-brain detection and alerting. |
 | `phasegate` | Sub-phase dependency-gate validation. |
+| `epochresolve` | Config-epoch failover slot-ownership conflict resolution (highest-epoch wins, deterministic lexicographic equal-epoch tiebreak, order-independent convergence). |
 
 ## Membership & Discovery
 
@@ -42,6 +43,7 @@ Every foundation package follows the same engineering contract:
 | `watchmanager` | etcd-style persistent watch manager with synced / unsynced / victim watcher groups. |
 | `hlc` | Hybrid logical clocks. |
 | `offlinesync`, `checkpoint_merge` | Offline delta sync and checkpoint merging. |
+| `tieredcache` | Hot(memory)/warm(NVMe)/cold(SSD) tiered cache with injected backends + injected clock, idle-demotion + promotion, and per-tier hit stats. |
 
 ## Scheduling & Placement
 
@@ -59,6 +61,10 @@ Every foundation package follows the same engineering contract:
 | `suitability` | HPC-vs-inference workload classifier and placement routing. |
 | `ewmarank` | Utilization-aware EWMA candidate ranking with sticky-client routing. |
 | `fallbackchain` | Per-task ordered fallback chains with dedup, attempt cap, and empty-result handling. |
+| `providerchain` | Ordered multi-tier provider fallback cascade with retriable/terminal error classification and injected-clock failover SLA. |
+| `modelrouter` | Strategy-to-default-model resolution (latency / throughput / quality / cost) with a typed unknown-strategy error. |
+| `gepetto` | HelixGepetto dual-resource local-vs-Chutes arbitration with a monotonic reserve schedule and a strict `>0.80` high-water anti-starvation zero-capacity cut-off. |
+| `smartrouter` | Intelligent ModelRouter (latency / throughput / cost / TEE / balanced) that always excludes unhealthy models, with a typed no-eligible-model error. |
 
 ## GPU, Resource & Cost Management
 
@@ -75,6 +81,8 @@ Every foundation package follows the same engineering contract:
 | `capability`, `deviceprofile`, `device`, `devicemap` | Capability negotiation and device profiling. |
 | `tierdef`, `tiersec` | Tier definitions and tier security. |
 | `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
+| `bursthysteresis` | `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band. |
+| `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
 
 ## Federation & Multi-cluster
 
@@ -118,6 +126,8 @@ Every foundation package follows the same engineering contract:
 |---|---|
 | `crypto`, `jwt` | Cryptographic primitives and JWT auth. |
 | `modelintegrity` | HF-cache verification gate (SHA-256 + size). |
+| `gravaladmit` | HMAC-SHA256 GraVal challenge-response provider admission gate with single-use nonce and a `graval.verified` label. |
+| `gravalverify` | GraVal GPU attestation with a VRAM-ratio `>= 0.95` gate and a concurrent, race-clean `BatchVerify` pass-rate KPI. |
 | `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
 
 ## Testing, Simulation & Quality
@@ -130,6 +140,12 @@ Every foundation package follows the same engineering contract:
 | `fmea` | FMEA catalogue + RPN validator. |
 | `phasegate`, `phase7matrix` | Phase dependency gates and the Phase-7 gap-matrix verifier. |
 | `qualitygate`, `covgate`, `stats`, `sandbox` | Quality gates, coverage gates, statistics (Welch t-test), sandboxing. |
+
+## External Provider Integration
+
+| Package | Purpose |
+|---|---|
+| `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 
 ## Observability
 

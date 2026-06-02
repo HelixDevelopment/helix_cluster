@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CLAUDE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CLAUDE</h1>
+</header>
+<h1 id="helix-cluster-os-claude.md">Helix Cluster OS — CLAUDE.md</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-05-30</td>
+</tr>
+<tr>
+<td>Last modified</td>
+<td>2026-05-30T20:43:00Z</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<h2 id="inherited-from-helixconstitutionclaude.md">INHERITED FROM
+HelixConstitution/CLAUDE.md</h2>
+<p>All rules in <code>HelixConstitution/CLAUDE.md</code> (and the
+<code>HelixConstitution/Constitution.md</code> it references) apply
+unconditionally. The project-specific rules below extend them.</p>
+<h2 id="project-specific-extensions">Project-Specific Extensions</h2>
+<h3 id="technology-stack">Technology Stack</h3>
+<ul>
+<li>Go 1.24+ for microservices</li>
+<li>Zig 0.14+ for system primitives</li>
+<li>C/C++ for GPU kernels</li>
+<li>PostgreSQL 16+, Redis Cluster 7+, etcd, NATS, Kafka</li>
+</ul>
+<h3 id="architecture">Architecture</h3>
+<ul>
+<li>Seven-layer stack (L0-L7)</li>
+<li>14 control plane microservices</li>
+<li>SWIM gossip + Raft consensus</li>
+<li>Omega-model scheduler with optimistic concurrency</li>
+</ul>
+<h3
+id="claude-1-end-user-usability-guarantee-7.1-11.4.39-reinforcement">CLAUDE-1:
+End-User Usability Guarantee (§7.1 + §11.4.39 Reinforcement)</h3>
+<p><strong>Forensic anchor — verbatim user mandate:</strong> &gt; “We
+had been in position that all tests do execute with success and all
+Challenges as well, but in reality the most of the features does not
+work and can’t be used! This MUST NOT be the case and execution of tests
+and Challenges MUST guarantee the quality, the completition and full
+usability by end users of the product!”</p>
+<p><strong>Operative rules for AI agents:</strong> 1. <strong>Tests are
+necessary but NOT sufficient.</strong> When implementing or reviewing a
+feature, you MUST verify: - Unit tests exist (with paired mutation per
+§1.1) - Integration tests against REAL services (not mocks) - End-to-end
+tests that exercise the feature as an end user would - Challenge
+validation via HelixQA framework 2. <strong>A test that passes on a
+non-functional feature is a PASS-bluff</strong> — severity equivalent to
+§7.1 violation. You MUST flag this during code review. 3. <strong>Every
+test MUST prove the feature works for end users</strong>, not just that
+code executes without panic. Verify sink-side behavior, not just
+function return values. 4. <strong>Challenges (HelixQA) are bound
+equally</strong> — a Challenge PASS on a broken feature is the same
+class of defect as a unit test PASS on broken code. 5. <strong>No
+mock-only validation</strong> for features that claim real-world
+operation. Mocks are permitted ONLY in unit tests per §11.4.27. 6.
+<strong>Sink-side evidence required:</strong> Before declaring a feature
+complete, you MUST require captured evidence (screenshot, log, metrics)
+proving end-user-visible operation.</p>
+<h3 id="claude-2-cross-platform-parity-guarantee">CLAUDE-2:
+Cross-Platform Parity Guarantee</h3>
+<p><strong>Forensic anchor — verbatim user mandate:</strong> &gt; “For
+any Linux specific technology we MUST implement for other platforms
+(macOS) proper equivalents so on every OS we use proper system
+equivalents!”</p>
+<p><strong>Operative rules for AI agents:</strong> 1. <strong>No OS may
+run on a mock/stub for a feature that claims real operation.</strong>
+Where a capability is implemented with a Linux-specific mechanism
+(cgroup-v2, <code>/proc</code>, DRM/sysfs, netlink, kernel WireGuard,
+namespaces, etc.), you MUST implement a <em>real</em> equivalent for
+every supported OS using that OS’s proper system facility (macOS:
+<code>sysctl</code>/<code>host_statistics64</code>/<code>mach</code>/<code>vm_stat</code>/IOKit/Metal/<code>wireguard-go</code>,
+etc.). A <code>_mock.go</code> / <code>_other.go</code> stub behind a
+<code>!linux</code> build tag for a real-operation feature is a CLAUDE-1
+PASS-bluff and is FORBIDDEN. 2. <strong>Platform code is split by build
+tags</strong> behind ONE shared interface
+(e.g. <code>reader_linux.go</code> / <code>reader_darwin.go</code>
+implementing <code>ResourceReader</code>). Each implementation returns
+real, measured values for its OS. 3. <strong>Tests prove the feature on
+the HOST OS — never blanket-skip non-Linux.</strong> An integration test
+must exercise the real per-OS path and assert against an independent OS
+oracle (Linux: <code>free -b</code>, <code>/proc</code>; macOS:
+<code>sysctl -n hw.memsize</code>, <code>vm_stat</code>).
+<code>t.Skip</code> is permitted ONLY for a capability that genuinely
+has no equivalent on that OS — and that must be justified in writing,
+not used to hide an unimplemented port. 4. <strong>Known Linux-specific
+hotspots requiring macOS equivalents:</strong>
+<code>pkg/resources</code> (<code>proc_mock.go</code>→real
+<code>proc_darwin.go</code>; <code>drm_other.go</code>→real macOS GPU
+probe), <code>pkg/wireguard</code> (kernel WG →
+<code>wireguard-go</code> userspace on macOS), any future
+<code>/proc</code>/cgroup/netlink/namespace use. 5. <strong>Applies
+retroactively and going forward:</strong> new features ship with all-OS
+equivalents in the same wave; existing <code>!linux</code> stubs are
+tracked as defects to remediate.</p>
+<h3
+id="claude-3-documentation-materials-continuous-sync-guarantee-11.4.106-docs-chain-11.4.5759606544-constitution-line-no-documentation-ever-can-be-out-of-sync-with-its-codebase">CLAUDE-3:
+Documentation &amp; Materials Continuous-Sync Guarantee (§11.4.106
+docs-chain + §11.4.57/59/60/65/44 + Constitution line “No documentation
+ever can be out of sync with its codebase”)</h3>
+<p><strong>Forensic anchor — verbatim user mandate:</strong> &gt; “while
+we continuously change the project, by extending it, implementing new
+features, applying fixes and changes, whatever we do on project or any
+of its services, components, architecture or anything else MUST trigger
+proper updateing of main README document, all project documentation,
+user guides, manuals, webiste(s) (if any), diagrams, graphs, schemes,
+SQL defintions and all other related materials! We MUST be sure that
+proper changes are applied or new materials created so the documentation
+and related materials are all ALWAYS up to date and in sync (and all of
+its exports)! Connect all this with docs_chain Submodule and make sure
+that all this is achieved out of the box, never forgotten or skipped and
+all docs and materials maintained regularly!”</p>
+<p>This rule <strong>restates and cites</strong> the already-binding
+master mandate — it does NOT redefine it. The canonical authority is
+<code>HelixConstitution/Constitution.md</code> <strong>§11.4.106
+(<code>docs-chain-mechanical-sync</code>)</strong> and its anchor family
+(§11.4.12/45/53/56/57/59/60/65/86/93/95, §12.10, §11.4.44), under the
+absolute Constitution rule: <strong>“No documentation ever can be out of
+sync with its codebase.”</strong> Per §11.4.35 inheritance, this project
+restates + cites it here.</p>
+<p><strong>Operative rules for AI agents (binding on every change —
+code, service, component, architecture, schema, script, or
+config):</strong> 1. <strong>Every change triggers a documentation pass
+— no exceptions.</strong> Whenever you extend the project, add a
+feature, apply a fix, or change architecture/services/components, in the
+SAME work unit you MUST update (or newly author) every affected
+material: the main <code>README.md</code>, all <code>docs/**</code>,
+user guides, manuals, website(s) if any, diagrams/graphs/schemes,
+SQL/schema definitions, and <strong>all their exports</strong> (md →
+html/pdf/docx). A change that ships code but leaves docs stale is a
+§11.4.106 / CLAUDE-3 violation and a release blocker. 2.
+<strong>docs_chain is the mechanical enforcer — out of the box, never
+skipped.</strong> Documentation/DB sync MUST be driven through the
+<code>docs_chain</code> engine (the
+<code>vasic-digital/docs_chain</code> submodule, §11.4.106), with this
+project’s chains registered as data in
+<code>.docs_chain/contexts/*.yaml</code>. Every tracked canonical
+Markdown source MUST have its derived exports kept in sync by
+<code>docs_chain sync</code>; <code>docs_chain verify</code> is the
+deterministic pre-build/CI sink-side gate. New materials MUST be added
+to a <code>.docs_chain</code> context so they are enforced automatically
+— never maintained by hand or by retired ad-hoc scripts. 3. <strong>No
+escape hatch.</strong> There is no <code>--skip-docs-chain</code> /
+<code>--ad-hoc-sync-ok</code> / <code>--fake-transform</code>. A
+both-dirty pair is a surfaced conflict (never a silent merge); an absent
+transform tool surfaces a typed <code>ToolAbsentError</code> + honest
+§11.4.3 SKIP-with-reason — never a fake PASS. Captured evidence lands at
+<code>qa-results/docs_chain/&lt;run-id&gt;/</code>. 4. <strong>Coverage
+is complete and current.</strong> <code>.docs_chain/contexts/</code>
+MUST track the main README, the governance docs (CLAUDE/AGENTS/QWEN),
+the foundation-package catalogue, the changelog, architecture diagrams,
+and SQL/schema definitions — not only issues/fixed/registry. When you
+add a new document or material type, register it in the same change. 5.
+<strong>Runs regularly, not just at release.</strong> Documentation sync
+is maintained continuously (every wave / every change), so materials
+never drift. Treat a stale doc the same as a failing test. 6.
+<strong>This is a standing parallel work stream.</strong> Documentation
+maintenance runs alongside implementation, using subagent-driven
+development where it helps — it is never deferred “until later.”</p>
+<h3 id="applied-fixes-table">Applied Fixes Table</h3>
+<table>
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 14%" />
+<col style="width: 19%" />
+<col style="width: 21%" />
+<col style="width: 31%" />
+</colgroup>
+<thead>
+<tr>
+<th>Fix</th>
+<th>Date</th>
+<th>Commit</th>
+<th>Release</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CLAUDE-3 docs-sync guarantee</td>
+<td>2026-06-02</td>
+<td>(this wave)</td>
+<td>Unreleased</td>
+<td>Added CLAUDE-3 / AGENT-2 / QWEN-2 restating+citing Constitution
+§11.4.106 docs-chain mandate; extended
+<code>.docs_chain/contexts/tracked_docs.yaml</code> to enforce README +
+CLAUDE/AGENTS/QWEN + FOUNDATION_PACKAGES + CHANGELOG export-sync out of
+the box.</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

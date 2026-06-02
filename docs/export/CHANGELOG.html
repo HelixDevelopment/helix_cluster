@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CHANGELOG</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CHANGELOG</h1>
+</header>
+<h1 id="changelog">Changelog</h1>
+<p>All notable changes to this project will be documented in this
+file.</p>
+<p>The format is based on <a
+href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>, and
+this project adheres to <a
+href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
+<h2 id="unreleased">[Unreleased]</h2>
+<h3 id="added">Added</h3>
+<ul>
+<li><strong>Foundation distributed-systems library
+(<code>pkg/</code>)</strong> — a large, growing pure-Go, deterministic,
+mutation-tested package set. Recent additions include:
+<ul>
+<li>Consensus/coordination: <code>voting</code>,
+<code>failconfirm</code>, <code>heartbeatcoalescer</code>,
+<code>splitbrainalert</code>.</li>
+<li>Replication/state: <code>mvcc</code> (B-tree time-travel store),
+<code>antientropy</code> (hinted-handoff + read-repair + Merkle diff),
+<code>watchmanager</code> (synced/unsynced/victim watch groups),
+<code>crdt</code>/<code>merkle</code>.</li>
+<li>Scheduling/placement: <code>constraints</code> (Pacemaker 4-type),
+<code>preempt</code> (value-multiplier), <code>priorityqueue</code>
+(multifactor aging), <code>workclaim</code> (SKIP-LOCKED),
+<code>admissioncontrol</code> (N+K reserve), <code>budgetcap</code>,
+<code>qos</code>, <code>suitability</code>, <code>ewmarank</code>,
+<code>fallbackchain</code>.</li>
+<li>GPU/resource &amp; cost: <code>costsched</code>,
+<code>latencysched</code>, <code>healthmonitor</code>,
+<code>gpuattest</code> (attestation crypto: challenge/response,
+proof-of-GPU-work, O(1) spot-check, device-sealing),
+<code>attestadmit</code>, <code>quantization</code>, <code>local</code>
+(TCO), <code>pool</code>, <code>burst</code>.</li>
+<li>Messaging/flow &amp; edge: <code>flowcontrol</code> (K8s APF),
+<code>idempotent</code> (exactly-once), <code>rebalance</code>
+(cooperative-sticky), <code>informer</code> (list-watch cache),
+<code>redundantexec</code> (BOINC trust), <code>edgeregistry</code>,
+<code>edgeverify</code>, <code>slotmigration</code>,
+<code>hashslot</code>, <code>healthprobe</code>.</li>
+<li>Testing/simulation: <code>timefault</code> (clock
+skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
+<code>phase7matrix</code> (gap-matrix verifier).</li>
+<li>This session (12 pure-Go units):
+<ul>
+<li><code>bursthysteresis</code> — <code>BurstController</code> with a
+MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
+(HXC-1504).</li>
+<li><code>providerchain</code> — ordered multi-tier provider fallback
+cascade with retriable/terminal error classification and injected-clock
+failover SLA (HXC-1508).</li>
+<li><code>gpucatalog</code> — <code>SUPPORTED_GPUS</code>
+compute-multiplier catalog, <code>LookupMultiplier</code>, and
+attestation-aware <code>Score</code> (attested above un-attested)
+(HXC-1592).</li>
+<li><code>gravaladmit</code> — HMAC-SHA256 GraVal challenge-response
+provider admission gate with single-use nonce and
+<code>graval.verified</code> label (HXC-1523).</li>
+<li><code>modelrouter</code> — strategy-to-default-model resolution
+(latency/throughput/quality/cost) with a typed unknown-strategy error
+(HXC-1430).</li>
+<li><code>gravalverify</code> — GraVal GPU attestation with a VRAM-ratio
+<code>&gt;= 0.95</code> gate and a concurrent, race-clean
+<code>BatchVerify</code> pass-rate KPI (HXC-1435, HXC-1436).</li>
+<li><code>gepetto</code> — HelixGepetto dual-resource local-vs-Chutes
+arbitration with a monotonic reserve schedule and a strict
+<code>&gt;0.80</code> high-water anti-starvation zero-capacity cut-off
+(HXC-1446).</li>
+<li><code>chutesaccount</code> — Chutes API model-list (TEE/price
+fields) and <code>/users/me</code> account-balance client over HTTP with
+<code>Authorization: Bearer</code> (HXC-1429).</li>
+<li><code>cmd/burst-controller</code> — utilization-driven binary
+driving <code>bursthysteresis</code>; emits a “burst allocation request”
+on SPILL and a RECOVER line, runID-stamped (HXC-1531).</li>
+<li><code>tieredcache</code> — hot(memory)/warm(NVMe)/cold(SSD) tiered
+cache with injected backends + injected clock, idle-demotion +
+promotion, and per-tier hit stats (HXC-1418).</li>
+<li><code>smartrouter</code> — intelligent ModelRouter
+(latency/throughput/cost/TEE/balanced) that always excludes unhealthy
+models, with a typed no-eligible-model error (HXC-1539).</li>
+<li><code>epochresolve</code> — config-epoch failover slot-ownership
+conflict resolution (highest-epoch wins, deterministic lexicographic
+equal-epoch tiebreak, order-independent convergence) (HXC-1397).</li>
+</ul></li>
+</ul></li>
+<li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
+in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are
+now atomic, with a concurrent-replay <code>-race</code> regression
+test.</li>
+<li>Every foundation package ships with tests that fail under mutation
+of the logic they cover (CLAUDE-1 enforcement) and are gated by
+whole-tree <code>build</code>/<code>vet</code> +
+<code>-race</code>.</li>
+<li>Initial project scaffold with Go workspace.</li>
+<li>29 submodules integrated at project root.</li>
+<li>Directory structure: <code>cmd/</code>, <code>pkg/</code>,
+<code>internal/</code>, <code>api/</code>, <code>web/</code>,
+<code>scripts/</code>, <code>deploy/</code>, <code>test/</code>.</li>
+</ul>
+<h3 id="changed">Changed</h3>
+<ul>
+<li><strong>Governance:</strong> CLAUDE-3 / AGENT-2 / QWEN-2
+documentation continuous-sync guarantee added (restates and cites
+Constitution §11.4.106 docs-chain);
+<code>.docs_chain/contexts/tracked_docs.yaml</code> extended to enforce
+README, CLAUDE/AGENTS/QWEN, CHANGELOG, FOUNDATION_PACKAGES, and
+CODEGRAPH export-sync.</li>
+</ul>
+<h2 id="dev---2026-05-30">[0.1.0-dev] - 2026-05-30</h2>
+<h3 id="added-1">Added</h3>
+<ul>
+<li>Phase 0 bootstrap: submodule cloning and workspace
+initialization.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>README</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">README</h1>
+</header>
+<h1 id="helix-cluster-os">Helix Cluster OS</h1>
+<p>Helix Cluster OS is a next-generation distributed operating system
+for orchestrating compute workloads across heterogeneous nodes — from
+datacenter GPUs down to edge SBCs and handhelds. It unifies HPC
+scheduling, container orchestration, AI/ML inference, federated
+multi-cluster operation, and secure multi-tenant session management
+under a single control plane.</p>
+<blockquote>
+<p><strong>Engineering guarantee (CLAUDE-1 / CLAUDE-2):</strong> every
+feature ships with tests that prove real end-user behaviour — never
+green tests over stubs — and every OS-specific capability uses a real
+native facility per platform (no Linux-only mocks). See <a
+href="CLAUDE.md"><code>CLAUDE.md</code></a> and <a
+href="Constitution.md"><code>Constitution.md</code></a>.</p>
+</blockquote>
+<h2 id="features">Features</h2>
+<ul>
+<li><strong>Heterogeneous Node Management</strong> — Register, monitor,
+and schedule across tiers T1–T8 (datacenter → microcontroller) with
+structured health scoring and capability negotiation.</li>
+<li><strong>Omega-model Scheduler</strong> — Pluggable placement with
+optimistic concurrency, ClassAd matching, gang scheduling,
+value-multiplier preemption, multifactor (age/fairshare/size/QoS)
+priority queues, and constraint-based
+(location/colocation/order/stickiness) placement.</li>
+<li><strong>Distributed-Systems Foundation</strong> — A large pure-Go
+library (<code>pkg/</code>) of consensus, membership (SWIM gossip),
+replication (CRDT, MVCC, anti-entropy), and federation primitives. See
+<a href="#foundation-packages">Foundation Packages</a>.</li>
+<li><strong>Federation &amp; Multi-cluster</strong> — Cross-cell trust,
+topology patterns, CRDT config sync, data-residency admission,
+split-brain detection, and quorum-based failure confirmation.</li>
+<li><strong>GPU &amp; Cost Orchestration</strong> — GPU pool management,
+TCO-aware local cost modelling, cost/latency-aware schedulers,
+burst-to-cloud autoscaling, N+K failover capacity reserve, and global
+budget caps.</li>
+<li><strong>Security &amp; Attestation</strong> — SPIFFE identity, JWT
+auth, ML-KEM-768 post-quantum E2EE, device attestation
+(challenge/response, proof-of-GPU-work, device sealing), and
+attestation-gated admission.</li>
+<li><strong>Deterministic Simulation Testing (DST)</strong> —
+FoundationDB-style seeded simulation, BUGGIFY fault injection, Turmoil
+network simulation, and clock-fault injectors for reproducible
+distributed-systems testing.</li>
+<li><strong>Observability</strong> — Built-in metrics, W3C distributed
+tracing, structured logging, and Grafana dashboard generation.</li>
+<li><strong>Multi-Protocol APIs</strong> — gRPC services with Protocol
+Buffer definitions for all subsystems.</li>
+</ul>
+<h2 id="architecture">Architecture</h2>
+<p>Helix is organised as a seven-layer stack (L0–L7) with 14
+control-plane microservices, coordinated via SWIM gossip for membership
+and Raft consensus for strongly-consistent state. The scheduler is an
+Omega-model two-level design with optimistic concurrency.</p>
+<p>The repository is a Go workspace combining a core module with git
+submodules for the larger services.</p>
+<pre><code>.
+├── api/v1/            # Protocol Buffer definitions (NodeService, SessionService, SchedulerService, ...)
+├── cmd/               # Service binaries and CLIs
+├── internal/          # Private application packages (console, gateway, scheduler, node, health, policy, trust, ...)
+├── pkg/               # Shared pure-Go foundation library (see &quot;Foundation Packages&quot;)
+├── web/               # React + TypeScript + Vite dashboard
+├── docs/              # Documentation (see &quot;Documentation&quot;)
+├── data/              # HXC registry (SQLite) and runtime data
+├── scripts/           # Build, test, and utility scripts
+│
+├── HelixConstitution/ # Governance &amp; constitution (submodule)
+├── security/          # Security service: identity, E2EE, attestation (submodule)
+├── helixqa/           # HelixQA challenge/validation framework (submodule)
+├── EventBus/          # Event bus (submodule)
+├── Messaging/         # Messaging service (submodule)
+├── discovery/         # Service discovery (submodule; pkg/discovery is the editable root)
+├── containers/        # Container runtime (submodule)
+├── recovery/          # Recovery service (submodule)
+├── config/            # Configuration service (submodule)
+├── challenges/        # Challenge platform (submodule)
+├── DocProcessor/      # Document processing (submodule)
+├── LLMOrchestrator/   # LLM orchestration (submodule)
+├── Herald/            # Notification service (submodule)
+└── docs_chain/        # Documentation-chain engine (submodule)</code></pre>
+<h2 id="foundation-packages">Foundation Packages</h2>
+<p>The <code>pkg/</code> library provides the pure-Go, deterministic,
+well-tested primitives the control plane is built from. Highlights by
+domain:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Domain</th>
+<th>Packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Consensus &amp; coordination</strong></td>
+<td><code>voting</code> (largest-subcluster quorum),
+<code>failconfirm</code> (SWIM two-phase PFAIL→FAIL),
+<code>leader</code>, <code>lock</code>, <code>splitbrain</code> /
+<code>splitbrainalert</code>, <code>heartbeatcoalescer</code>
+(Multi-Raft)</td>
+</tr>
+<tr>
+<td><strong>Membership &amp; discovery</strong></td>
+<td><code>swim</code> (+ phi-accrual, hierarchical),
+<code>discovery</code> (+ federated), <code>nattraversal</code> (STUN),
+<code>ice</code>, <code>cellmesh</code></td>
+</tr>
+<tr>
+<td><strong>Replication &amp; state</strong></td>
+<td><code>crdt</code> (+ <code>merkle</code>,
+LWW/ORSet/G/PN-counters/vector-clock), <code>mvcc</code> (B-tree
+time-travel store), <code>antientropy</code> (hinted-handoff +
+read-repair + Merkle diff), <code>watchmanager</code>
+(synced/unsynced/victim), <code>hlc</code>, <code>offlinesync</code>,
+<code>checkpoint_merge</code></td>
+</tr>
+<tr>
+<td><strong>Scheduling &amp; placement</strong></td>
+<td><code>scheduler</code> (Omega/ClassAd/gang/preempt),
+<code>constraints</code> (Pacemaker 4-type), <code>preempt</code>
+(value-multiplier), <code>priorityqueue</code> (multifactor aging),
+<code>backfill</code> (SLURM), <code>admissioncontrol</code> (N+K
+reserve), <code>budgetcap</code>, <code>qos</code>,
+<code>suitability</code>, <code>ewmarank</code>, <code>workclaim</code>
+(SKIP LOCKED), <code>providerchain</code> (multi-tier fallback cascade),
+<code>modelrouter</code> (strategy→default model), <code>gepetto</code>
+(local-vs-Chutes arbitration)</td>
+</tr>
+<tr>
+<td><strong>GPU &amp; resource mgmt</strong></td>
+<td><code>pool</code>, <code>local</code> (TCO), <code>costsched</code>,
+<code>latencysched</code>, <code>healthmonitor</code>,
+<code>gpuattest</code> (attestation crypto), <code>capability</code>,
+<code>deviceprofile</code>, <code>device</code>, <code>tierdef</code>,
+<code>tiersec</code>, <code>quantization</code>, <code>gpucatalog</code>
+(compute-multiplier catalog + attested scoring)</td>
+</tr>
+<tr>
+<td><strong>Federation &amp; multi-cluster</strong></td>
+<td><code>federation</code> (+ <code>suspicion</code>),
+<code>fedtopology</code>, <code>fedtrust</code>,
+<code>configsync</code>, <code>residency</code>,
+<code>raftprofile</code>, <code>spiffefed</code>,
+<code>doublecrypt</code></td>
+</tr>
+<tr>
+<td><strong>Messaging &amp; flow</strong></td>
+<td><code>flowcontrol</code> (K8s APF), <code>workqueue</code>
+(rate-limited), <code>ratelimit</code>, <code>backoff</code>,
+<code>retry</code>, <code>idempotent</code> (exactly-once),
+<code>rebalance</code> (cooperative-sticky), <code>fiber</code>,
+<code>fallbackchain</code>, <code>pubsub</code>,
+<code>events</code></td>
+</tr>
+<tr>
+<td><strong>Routing &amp; sessions</strong></td>
+<td><code>hashslot</code> (CRC16 + MOVED/ASK), <code>session</code>,
+<code>slotmigration</code> (atomic live migration), <code>edge</code>,
+<code>edgeregistry</code>, <code>edgeverify</code>,
+<code>edgefusion</code></td>
+</tr>
+<tr>
+<td><strong>Security &amp; verification</strong></td>
+<td><code>crypto</code>, <code>jwt</code>, <code>modelintegrity</code>
+(SHA-256 gate), <code>redundantexec</code> (BOINC trust),
+<code>attestadmit</code>, <code>doublecrypt</code>,
+<code>spiffefed</code>, <code>gravaladmit</code> (HMAC GraVal
+admission), <code>gravalverify</code> (VRAM-ratio attestation +
+BatchVerify KPI)</td>
+</tr>
+<tr>
+<td><strong>Burst &amp; economics</strong></td>
+<td><code>burst</code> (hysteresis autoscaler),
+<code>bursthysteresis</code> (MONITOR→SPILL→RECOVER dead-band),
+<code>cloudspot</code>, <code>marketplace</code>,
+<code>chutesaccount</code> (Chutes API model-list + balance client)</td>
+</tr>
+<tr>
+<td><strong>Testing &amp; simulation</strong></td>
+<td><code>testing/dst</code> (+ BUGGIFY, chaos, turmoil),
+<code>timefault</code>, <code>chaosexp</code>, <code>fmea</code>,
+<code>phasegate</code>, <code>qualitygate</code>,
+<code>phase7matrix</code>, <code>stats</code>, <code>covgate</code>,
+<code>sandbox</code></td>
+</tr>
+<tr>
+<td><strong>Observability</strong></td>
+<td><code>metrics</code>, <code>tracing</code> (W3C),
+<code>health</code>, <code>grafanadash</code>, <code>log</code></td>
+</tr>
+</tbody>
+</table>
+<p>Each package is standard-library-only where possible, deterministic
+(injected clocks, seeded PRNGs), and proven by tests that fail under
+mutation of the logic they cover.</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li><strong>Go 1.26+</strong> (workspace uses <code>go.work</code>)</li>
+<li>Node.js 20+ (for the web UI)</li>
+<li>SQLite 3 (the HXC registry lives at
+<code>data/hxc_registry.db</code>)</li>
+<li>Docker &amp; Docker Compose (for integration services)</li>
+<li>Protocol Buffer compiler + <code>protoc-gen-go</code> (optional, for
+API regeneration)</li>
+</ul>
+<h3 id="setup-build-test">Setup / Build / Test</h3>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/setup.sh</span>     <span class="co"># initialise submodules and toolchains</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/build.sh</span>     <span class="co"># go build ./...</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/test.sh</span>      <span class="co"># go test ./...</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/lint.sh</span>      <span class="co"># go vet + linters</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/format.sh</span>    <span class="co"># gofmt</span></span></code></pre></div>
+<p>To run the full race suite for a package:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> test <span class="at">-race</span> <span class="at">-count</span><span class="op">=</span>1 ./pkg/<span class="op">&lt;</span>package<span class="op">&gt;</span>/...</span></code></pre></div>
+<h2 id="api">API</h2>
+<p>Protocol Buffer definitions live in <code>api/v1/</code>. Core
+services:</p>
+<ul>
+<li><code>NodeService</code> — Node lifecycle management</li>
+<li><code>SessionService</code> — Session CRUD operations</li>
+<li><code>SchedulerService</code> — Job scheduling and monitoring</li>
+<li><code>HealthService</code> — Health checks and reporting</li>
+<li><code>AdvisoryService</code> — Distributed locks and advisory
+events</li>
+<li><code>SecurityService</code> — Authentication and authorization</li>
+<li><code>BuildService</code> — Build pipeline management</li>
+</ul>
+<h2 id="web-ui">Web UI</h2>
+<p>The web dashboard is built with React, TypeScript, and Vite.</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> web <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> install <span class="kw">&amp;&amp;</span> <span class="ex">npm</span> run dev</span></code></pre></div>
+<h2 id="documentation">Documentation</h2>
+<ul>
+<li><a href="CLAUDE.md"><code>CLAUDE.md</code></a> — AI-agent
+engineering rules (end-user usability &amp; cross-platform parity
+guarantees)</li>
+<li><a href="Constitution.md"><code>Constitution.md</code></a> / <a
+href="HelixConstitution/"><code>HelixConstitution/</code></a> — project
+governance</li>
+<li><a
+href="docs/FOUNDATION_PACKAGES.md"><code>docs/FOUNDATION_PACKAGES.md</code></a>
+— full catalogue of <code>pkg/</code> packages</li>
+<li><a href="docs/HXC_REGISTRY.md"><code>docs/HXC_REGISTRY.md</code></a>
+— the work-item registry model</li>
+<li><a
+href="CODING_STANDARDS_GO.md"><code>CODING_STANDARDS_GO.md</code></a> /
+<a href="CODING_STANDARDS_C.md"><code>CODING_STANDARDS_C.md</code></a> /
+<a
+href="CODING_STANDARDS_ZIG.md"><code>CODING_STANDARDS_ZIG.md</code></a>
+— language standards</li>
+<li><a href="DEVELOPMENT.md"><code>DEVELOPMENT.md</code></a> —
+development workflow</li>
+<li><a href="CHANGELOG.md"><code>CHANGELOG.md</code></a> — release
+history</li>
+</ul>
+<h3 id="documentation-synchronization-claude-3-11.4.106">Documentation
+Synchronization (CLAUDE-3 / §11.4.106)</h3>
+<p>Every change to code, services, components, architecture, or schema
+MUST update all affected materials — README, docs, user guides, manuals,
+websites, diagrams, and SQL/schema definitions — together with
+<strong>all</strong> of their exports. This is mechanically enforced
+out-of-the-box by the <code>docs_chain</code> engine via
+<code>.docs_chain/contexts/*.yaml</code> (Markdown → HTML/PDF/DOCX) and
+gated by <code>docs_chain verify</code>, with no escape hatch. The
+mandate restates and cites Constitution §11.4.106 and the project rules
+CLAUDE-3 / AGENT-2 / QWEN-2.</p>
+<h2 id="development-model">Development Model</h2>
+<p>Work is tracked in an SQLite registry
+(<code>data/hxc_registry.db</code>) of <code>HXC-####</code> items
+across 11 phases (0–10). Items move
+<code>Queued → In progress → Completed</code> and are implemented in
+parallel “waves”: disjoint new packages built via an implement →
+adversarial-review → fix pipeline, then gated with whole-tree
+<code>build</code>/<code>vet</code>, <code>-race</code> tests, and an
+independent mutation bite per item that must fail the item’s named guard
+test. No item is marked Completed without that proof.</p>
+<h2 id="contributing">Contributing</h2>
+<ol type="1">
+<li>Create a feature branch</li>
+<li>Implement with tests that prove real behaviour (and fail under
+mutation)</li>
+<li>Run
+<code>go build ./... &amp;&amp; go vet ./... &amp;&amp; go test -race ./...</code></li>
+<li>Commit and open a Pull Request</li>
+</ol>
+<h2 id="license">License</h2>
+<p>See <a href="LICENSE">LICENSE</a> for details.</p>
+</body>
+</html>

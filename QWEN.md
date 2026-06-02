@@ -47,3 +47,15 @@ All rules in `HelixConstitution/QWEN.md` (and the `HelixConstitution/Constitutio
 4. **Challenges (HelixQA) are bound equally** — a Challenge PASS on a broken feature is the same class of defect as a unit test PASS on broken code. Treat both with equal severity.
 5. **No mock-only validation** for features that claim real-world operation. Mocks are permitted ONLY in unit tests per §11.4.27. Reject any feature validated solely with mocks.
 6. **Sink-side evidence required:** Every feature closure MUST include captured evidence (screenshot, log, metrics) proving end-user-visible operation. Your sign-off is contingent on this evidence.
+
+### QWEN-2: Documentation & Materials Continuous-Sync Guarantee (§11.4.106 docs-chain + family)
+**Forensic anchor — verbatim user mandate:**
+> "while we continuously change the project ... whatever we do on project or any of its services, components, architecture or anything else MUST trigger proper updateing of main README document, all project documentation, user guides, manuals, webiste(s) (if any), diagrams, graphs, schemes, SQL defintions and all other related materials! ... Connect all this with docs_chain Submodule and make sure that all this is achieved out of the box, never forgotten or skipped and all docs and materials maintained regularly!"
+
+Restates + cites the binding master rule (Constitution **§11.4.106 `docs-chain-mechanical-sync`** + anchor family §11.4.12/45/53/56/57/59/60/65/86/93/95, §12.10, §11.4.44; "No documentation ever can be out of sync with its codebase"). Per §11.4.35 inheritance.
+
+**Operative rules for QA agents:**
+1. **Block release on stale docs.** A change that ships code/service/component/architecture/schema/script changes without updating every affected material — main `README.md`, all `docs/**`, user guides, manuals, website(s), diagrams/graphs/schemes, SQL/schema definitions, and ALL their exports (md → html/pdf/docx) — is a §11.4.106 violation; file a defect and block.
+2. **Verify via docs_chain.** Gate on `docs_chain verify` (deterministic sink-side check over byte-stable transforms); confirm new materials are registered in `.docs_chain/contexts/*.yaml` so enforcement is automatic and out of the box. Reject hand-maintained exports.
+3. **No fake PASS.** A metadata-only / absence-of-error / config-only PASS at the sync layer is a §11.4 PASS-bluff; require real captured evidence at `qa-results/docs_chain/<run-id>/`.
+4. **Continuous maintenance** — documentation sync is validated every wave, not just at release; treat a stale doc with the same severity as a failing test.

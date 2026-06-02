@@ -34,6 +34,38 @@ nodes:
   reg_html:  { kind: html,     path: docs/export/HXC_REGISTRY.html }
   reg_pdf:   { kind: pdf,      path: docs/export/HXC_REGISTRY.pdf }
   reg_docx:  { kind: docx,     path: docs/export/HXC_REGISTRY.docx }
+  # --- main README (§11.4.57 doc-link section + §11.4.59 always-sync export) ---
+  readme_md:   { kind: markdown, path: README.md }
+  readme_html: { kind: html,     path: docs/export/README.html }
+  readme_pdf:  { kind: pdf,      path: docs/export/README.pdf }
+  readme_docx: { kind: docx,     path: docs/export/README.docx }
+  # --- CHANGELOG (§5 changelog discipline + multi-format export) ---
+  chlog_md:   { kind: markdown, path: CHANGELOG.md }
+  chlog_html: { kind: html,     path: docs/export/CHANGELOG.html }
+  chlog_pdf:  { kind: pdf,      path: docs/export/CHANGELOG.pdf }
+  chlog_docx: { kind: docx,     path: docs/export/CHANGELOG.docx }
+  # --- foundation-package catalogue (kept in sync as packages are added) ---
+  found_md:   { kind: markdown, path: docs/FOUNDATION_PACKAGES.md }
+  found_html: { kind: html,     path: docs/export/FOUNDATION_PACKAGES.html }
+  found_pdf:  { kind: pdf,      path: docs/export/FOUNDATION_PACKAGES.pdf }
+  found_docx: { kind: docx,     path: docs/export/FOUNDATION_PACKAGES.docx }
+  # --- governance docs (CLAUDE-3 / AGENT-2 / QWEN-2 — restated docs-sync rule kept exported) ---
+  claude_md:   { kind: markdown, path: CLAUDE.md }
+  claude_html: { kind: html,     path: docs/export/CLAUDE.html }
+  claude_pdf:  { kind: pdf,      path: docs/export/CLAUDE.pdf }
+  claude_docx: { kind: docx,     path: docs/export/CLAUDE.docx }
+  agents_md:   { kind: markdown, path: AGENTS.md }
+  agents_html: { kind: html,     path: docs/export/AGENTS.html }
+  agents_pdf:  { kind: pdf,      path: docs/export/AGENTS.pdf }
+  agents_docx: { kind: docx,     path: docs/export/AGENTS.docx }
+  qwen_md:   { kind: markdown, path: QWEN.md }
+  qwen_html: { kind: html,     path: docs/export/QWEN.html }
+  qwen_pdf:  { kind: pdf,      path: docs/export/QWEN.pdf }
+  qwen_docx: { kind: docx,     path: docs/export/QWEN.docx }
+  codegraph_md:   { kind: markdown, path: docs/CODEGRAPH.md }
+  codegraph_html: { kind: html,     path: docs/export/CODEGRAPH.html }
+  codegraph_pdf:  { kind: pdf,      path: docs/export/CODEGRAPH.pdf }
+  codegraph_docx: { kind: docx,     path: docs/export/CODEGRAPH.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -53,6 +85,27 @@ edges:
   - { type: derive-from, from: reg_md,   to: reg_html,  transform: md2html }
   - { type: derive-from, from: reg_html, to: reg_pdf,   transform: html2pdf }
   - { type: derive-from, from: reg_md,   to: reg_docx,  transform: md2docx }
+  - { type: derive-from, from: readme_md,   to: readme_html, transform: md2html }
+  - { type: derive-from, from: readme_html, to: readme_pdf,  transform: html2pdf }
+  - { type: derive-from, from: readme_md,   to: readme_docx, transform: md2docx }
+  - { type: derive-from, from: chlog_md,   to: chlog_html, transform: md2html }
+  - { type: derive-from, from: chlog_html, to: chlog_pdf,  transform: html2pdf }
+  - { type: derive-from, from: chlog_md,   to: chlog_docx, transform: md2docx }
+  - { type: derive-from, from: found_md,   to: found_html, transform: md2html }
+  - { type: derive-from, from: found_html, to: found_pdf,  transform: html2pdf }
+  - { type: derive-from, from: found_md,   to: found_docx, transform: md2docx }
+  - { type: derive-from, from: claude_md,   to: claude_html, transform: md2html }
+  - { type: derive-from, from: claude_html, to: claude_pdf,  transform: html2pdf }
+  - { type: derive-from, from: claude_md,   to: claude_docx, transform: md2docx }
+  - { type: derive-from, from: agents_md,   to: agents_html, transform: md2html }
+  - { type: derive-from, from: agents_html, to: agents_pdf,  transform: html2pdf }
+  - { type: derive-from, from: agents_md,   to: agents_docx, transform: md2docx }
+  - { type: derive-from, from: qwen_md,   to: qwen_html, transform: md2html }
+  - { type: derive-from, from: qwen_html, to: qwen_pdf,  transform: html2pdf }
+  - { type: derive-from, from: qwen_md,   to: qwen_docx, transform: md2docx }
+  - { type: derive-from, from: codegraph_md,   to: codegraph_html, transform: md2html }
+  - { type: derive-from, from: codegraph_html, to: codegraph_pdf,  transform: html2pdf }
+  - { type: derive-from, from: codegraph_md,   to: codegraph_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }
