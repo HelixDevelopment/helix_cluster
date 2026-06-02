@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 36
-**Last modified:** 2026-06-01T23:59:30Z
+**Revision:** 37
+**Last modified:** 2026-06-02T00:16:14Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **444**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **441**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -152,7 +152,7 @@ Total active items: **444**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (44 active)
+## Phase 5 (41 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -169,14 +169,11 @@ Total active items: **444**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1300 | Feature | P0 | Queued | Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU |
 | HXC-1310 | Feature | P0 | Queued | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) |
 | HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
-| HXC-1301 | Feature | P1 | Queued | Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks |
 | HXC-1302 | Feature | P1 | Queued | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook |
-| HXC-1303 | Feature | P1 | Queued | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router |
 | HXC-1304 | Feature | P1 | Queued | Implement pkg/inference LocalBackend wrapping internal/llm manager |
 | HXC-1305 | Feature | P1 | Queued | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) |
 | HXC-1306 | Feature | P1 | Queued | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) |
 | HXC-1309 | Feature | P1 | Queued | Implement capability manifest generation + control-plane negotiation |
-| HXC-1311 | Docs | P1 | Queued | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints |
 | HXC-1312 | Feature | P1 | Queued | Build multi-arch universal agent container (amd64/arm64/riscv64) via buildx + distroless |
 | HXC-1313 | Feature | P1 | Queued | Implement riscv64 cross-compilation pipeline + RVV extension detection (DEFERRED CI) |
 | HXC-1315 | Feature | P1 | Queued | Package Steam Deck Flatpak agent with systemd integration (DEFERRED hw) |

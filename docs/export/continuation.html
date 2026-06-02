@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 90 <strong>Last modified:</strong>
-2026-06-02T00:15:38Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 91 <strong>Last modified:</strong>
+2026-06-02T00:16:20Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,30 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>d4829d1</code></td>
+<td>Foundation wave 28: HXC-1311 implemented + HXC-1301/1303
+verified-already-done. HXC-1311 T1-T15 tier definitions (NEW
+pkg/tierdef: //go:embed tierdef.yaml with all 15 ascending tiers +
+min_requirements; LoadTiers parse+validate (rejects bad schema_version,
+missing/dup/out-of-order/wrong-count), Default();
+TierDef.Meets(DeviceCaps) inclusive &gt;= per-dimension
+(cpu/mem/gpu/vram/net); 73 test cases assert exact parsed T1/T15 values
++ per-dimension below-boundary false + exact-boundary true; mutation
+&lt; -&gt; &lt;= fails TestMeets_ExactBoundary_True). HXC-1301
+pkg/cloudspot PreemptionWatcher VERIFIED already complete (injectable
+PreemptionSource + 3-step graceful drain
+StopAdmission/Checkpoint/Deregister + deadline ForceStop + FakeSource +
+9 mutation-killing tests). HXC-1303 pkg/inference provider-agnostic
+Backend interface + Router registry VERIFIED already complete
+(capability-aware Candidates/Route fallback + ReferenceBackend labeled
+output + ErrUnsupported; DUAL-LAYER capability correctness confirmed by
+me via mutation: neutering BOTH the Candidates filter AND the backend
+model gate fails TestRouterPicksCapabilityMatch/UnsupportedErrors –
+defense-in-depth, not a bluff). ZERO new deps. Gate:
+build/vet/vet-integration clean, full -short -race green, dataplane ok,
+tmux clean; 1311 boundary mutation + 1303 dual-layer mutation bite.</td>
+</tr>
 <tr>
 <td><code>5745f9f</code></td>
 <td>Foundation wave 27: mark 2 items Completed (HXC-1237/1278) — swim
@@ -408,13 +432,6 @@ TestClusterLifecycleSuite FAIL only under heavy concurrent full-suite
 -race load, PASS isolated (load-induced timing flakes, not
 regressions).</td>
 </tr>
-<tr>
-<td><code>639e479</code></td>
-<td>Foundation wave 22: mark 2 items Completed (HXC-1152/1160) —
-container-checkpoint migration CRDT merge / tmux full functional Attach
-(send-keys+capture-pane, real marker round-trip). Mutation spot-checks
-confirm bites. Registry 185-&gt;187 Completed / 452 Queued.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -432,11 +449,11 @@ confirm bites. Registry 185-&gt;187 Completed / 452 Queued.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>5745f9f</code></td>
+<td><code>d4829d1</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-02T00:15:38Z</td>
+<td>2026-06-02T00:16:20Z</td>
 </tr>
 </tbody>
 </table>
