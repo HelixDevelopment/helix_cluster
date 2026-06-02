@@ -32,6 +32,7 @@ Every foundation package follows the same engineering contract:
 | `nattraversal` | STUN-based NAT traversal. |
 | `ice` | ICE connectivity establishment. |
 | `cellmesh` | Cross-cell mesh networking. |
+| `scan` | Oracle-SCAN-style stable virtual client endpoint: least-loaded healthy-backend routing with a membership-stable name and injected clock. |
 
 ## Replication & State
 
@@ -44,6 +45,7 @@ Every foundation package follows the same engineering contract:
 | `hlc` | Hybrid logical clocks. |
 | `offlinesync`, `checkpoint_merge` | Offline delta sync and checkpoint merging. |
 | `tieredcache` | Hot(memory)/warm(NVMe)/cold(SSD) tiered cache with injected backends + injected clock, idle-demotion + promotion, and per-tier hit stats. |
+| `deltacrdt` | Standalone delta-state CRDTs (G-counter / PN-counter / observed-remove OR-set / LWW-map) with delta-mutators and a convergent (commutative/associative/idempotent) merge. |
 
 ## Scheduling & Placement
 
@@ -65,6 +67,7 @@ Every foundation package follows the same engineering contract:
 | `modelrouter` | Strategy-to-default-model resolution (latency / throughput / quality / cost) with a typed unknown-strategy error. |
 | `gepetto` | HelixGepetto dual-resource local-vs-Chutes arbitration with a monotonic reserve schedule and a strict `>0.80` high-water anti-starvation zero-capacity cut-off. |
 | `smartrouter` | Intelligent ModelRouter (latency / throughput / cost / TEE / balanced) that always excludes unhealthy models, with a typed no-eligible-model error. |
+| `llmfailover` | Error-classified LLM failover taxonomy (deterministic per-class fallback paths) plus a sandbox scheduling-hint contract. |
 
 ## GPU, Resource & Cost Management
 
@@ -83,6 +86,8 @@ Every foundation package follows the same engineering contract:
 | `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
 | `bursthysteresis` | `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band. |
 | `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
+| `gputopo` | Topology-aware NUMA/NVLink GPU placement scoring that prefers NVLink-connected GPU pairs and falls back to PCIe. |
+| `balancemonitor` | USD account-balance monitor with a strict low-balance floor warning, over HTTP with `Authorization: Bearer`. |
 
 ## Federation & Multi-cluster
 
@@ -128,6 +133,7 @@ Every foundation package follows the same engineering contract:
 | `modelintegrity` | HF-cache verification gate (SHA-256 + size). |
 | `gravaladmit` | HMAC-SHA256 GraVal challenge-response provider admission gate with single-use nonce and a `graval.verified` label. |
 | `gravalverify` | GraVal GPU attestation with a VRAM-ratio `>= 0.95` gate and a concurrent, race-clean `BatchVerify` pass-rate KPI. |
+| `fsresidency` | Filesystem residency challenge: per-byte-range `ReadAt` + SHA-256 verification proving a model file is really present on disk; truncated / missing / mismatch all fail. |
 | `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
 
 ## Testing, Simulation & Quality
@@ -146,6 +152,7 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
+| `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
 
 ## Observability
 

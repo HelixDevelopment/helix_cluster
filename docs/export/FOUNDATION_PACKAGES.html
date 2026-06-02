@@ -281,6 +281,12 @@ hierarchical tiers.</td>
 <td><code>cellmesh</code></td>
 <td>Cross-cell mesh networking.</td>
 </tr>
+<tr>
+<td><code>scan</code></td>
+<td>Oracle-SCAN-style stable virtual client endpoint: least-loaded
+healthy-backend routing with a membership-stable name and injected
+clock.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="replication-state">Replication &amp; State</h2>
@@ -329,6 +335,12 @@ watcher groups.</td>
 <td>Hot(memory)/warm(NVMe)/cold(SSD) tiered cache with injected backends
 + injected clock, idle-demotion + promotion, and per-tier hit
 stats.</td>
+</tr>
+<tr>
+<td><code>deltacrdt</code></td>
+<td>Standalone delta-state CRDTs (G-counter / PN-counter /
+observed-remove OR-set / LWW-map) with delta-mutators and a convergent
+(commutative/associative/idempotent) merge.</td>
 </tr>
 </tbody>
 </table>
@@ -424,6 +436,11 @@ anti-starvation zero-capacity cut-off.</td>
 balanced) that always excludes unhealthy models, with a typed
 no-eligible-model error.</td>
 </tr>
+<tr>
+<td><code>llmfailover</code></td>
+<td>Error-classified LLM failover taxonomy (deterministic per-class
+fallback paths) plus a sandbox scheduling-hint contract.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="gpu-resource-cost-management">GPU, Resource &amp; Cost
@@ -505,6 +522,16 @@ two-threshold hysteresis dead-band.</td>
 <td><code>SUPPORTED_GPUS</code> compute-multiplier catalog,
 <code>LookupMultiplier</code>, and attestation-aware <code>Score</code>
 (attested scores rank above un-attested).</td>
+</tr>
+<tr>
+<td><code>gputopo</code></td>
+<td>Topology-aware NUMA/NVLink GPU placement scoring that prefers
+NVLink-connected GPU pairs and falls back to PCIe.</td>
+</tr>
+<tr>
+<td><code>balancemonitor</code></td>
+<td>USD account-balance monitor with a strict low-balance floor warning,
+over HTTP with <code>Authorization: Bearer</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -677,6 +704,12 @@ gate and a concurrent, race-clean <code>BatchVerify</code> pass-rate
 KPI.</td>
 </tr>
 <tr>
+<td><code>fsresidency</code></td>
+<td>Filesystem residency challenge: per-byte-range <code>ReadAt</code> +
+SHA-256 verification proving a model file is really present on disk;
+truncated / missing / mismatch all fail.</td>
+</tr>
+<tr>
 <td><code>redundantexec</code>, <code>attestadmit</code>,
 <code>gpuattest</code></td>
 <td>See above — redundancy trust, attestation admission, attestation
@@ -748,6 +781,11 @@ Integration</h2>
 <td>Chutes API client over HTTP (<code>Authorization: Bearer</code>):
 model-list (TEE / price fields) and <code>/users/me</code>
 account-balance retrieval.</td>
+</tr>
+<tr>
+<td><code>llmadapter</code></td>
+<td>Claude Messages / OpenAI Responses-API request and response shape
+adapters to OpenAI chat-completions, preserving tool-call order.</td>
 </tr>
 </tbody>
 </table>

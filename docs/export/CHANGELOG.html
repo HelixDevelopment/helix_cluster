@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (12 pure-Go units):
+<li>This session (19 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -257,6 +257,28 @@ models, with a typed no-eligible-model error (HXC-1539).</li>
 <li><code>epochresolve</code> — config-epoch failover slot-ownership
 conflict resolution (highest-epoch wins, deterministic lexicographic
 equal-epoch tiebreak, order-independent convergence) (HXC-1397).</li>
+<li><code>balancemonitor</code> — USD account-balance monitor with a
+strict low-balance floor warning, over HTTP with
+<code>Authorization: Bearer</code> (HXC-1512).</li>
+<li><code>scan</code> — Oracle-SCAN-style stable virtual client
+endpoint: least-loaded healthy-backend routing with a membership-stable
+name and injected clock (HXC-1403).</li>
+<li><code>llmfailover</code> — error-classified LLM failover taxonomy
+(deterministic per-class fallback paths) plus a sandbox scheduling-hint
+contract (HXC-1600).</li>
+<li><code>llmadapter</code> — Claude Messages / OpenAI Responses-API
+request and response shape adapters to OpenAI chat-completions,
+preserving tool-call order (HXC-1599).</li>
+<li><code>deltacrdt</code> — standalone delta-state CRDTs (G-counter /
+PN-counter / observed-remove OR-set / LWW-map) with delta-mutators and a
+convergent (commutative/associative/idempotent) merge (HXC-1409).</li>
+<li><code>gputopo</code> — topology-aware NUMA/NVLink GPU placement
+scoring that prefers NVLink-connected GPU pairs and falls back to PCIe
+(HXC-1406).</li>
+<li><code>fsresidency</code> — filesystem residency challenge:
+per-byte-range <code>ReadAt</code> + SHA-256 verification proving a
+model file is really present on disk; truncated/missing/mismatch all
+fail (HXC-1572).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

@@ -348,15 +348,17 @@ domain:</p>
 <td><strong>Membership &amp; discovery</strong></td>
 <td><code>swim</code> (+ phi-accrual, hierarchical),
 <code>discovery</code> (+ federated), <code>nattraversal</code> (STUN),
-<code>ice</code>, <code>cellmesh</code></td>
+<code>ice</code>, <code>cellmesh</code>, <code>scan</code> (Oracle-SCAN
+stable virtual endpoint)</td>
 </tr>
 <tr>
 <td><strong>Replication &amp; state</strong></td>
 <td><code>crdt</code> (+ <code>merkle</code>,
-LWW/ORSet/G/PN-counters/vector-clock), <code>mvcc</code> (B-tree
-time-travel store), <code>antientropy</code> (hinted-handoff +
-read-repair + Merkle diff), <code>watchmanager</code>
-(synced/unsynced/victim), <code>hlc</code>, <code>offlinesync</code>,
+LWW/ORSet/G/PN-counters/vector-clock), <code>deltacrdt</code>
+(delta-state G/PN/OR-set/LWW-map), <code>mvcc</code> (B-tree time-travel
+store), <code>antientropy</code> (hinted-handoff + read-repair + Merkle
+diff), <code>watchmanager</code> (synced/unsynced/victim),
+<code>hlc</code>, <code>offlinesync</code>,
 <code>checkpoint_merge</code></td>
 </tr>
 <tr>
@@ -369,7 +371,8 @@ reserve), <code>budgetcap</code>, <code>qos</code>,
 <code>suitability</code>, <code>ewmarank</code>, <code>workclaim</code>
 (SKIP LOCKED), <code>providerchain</code> (multi-tier fallback cascade),
 <code>modelrouter</code> (strategy→default model), <code>gepetto</code>
-(local-vs-Chutes arbitration)</td>
+(local-vs-Chutes arbitration), <code>llmfailover</code>
+(error-classified failover taxonomy)</td>
 </tr>
 <tr>
 <td><strong>GPU &amp; resource mgmt</strong></td>
@@ -378,7 +381,9 @@ reserve), <code>budgetcap</code>, <code>qos</code>,
 <code>gpuattest</code> (attestation crypto), <code>capability</code>,
 <code>deviceprofile</code>, <code>device</code>, <code>tierdef</code>,
 <code>tiersec</code>, <code>quantization</code>, <code>gpucatalog</code>
-(compute-multiplier catalog + attested scoring)</td>
+(compute-multiplier catalog + attested scoring), <code>gputopo</code>
+(NUMA/NVLink topology-aware placement), <code>balancemonitor</code> (USD
+balance floor warning)</td>
 </tr>
 <tr>
 <td><strong>Federation &amp; multi-cluster</strong></td>
@@ -411,14 +416,17 @@ reserve), <code>budgetcap</code>, <code>qos</code>,
 <code>attestadmit</code>, <code>doublecrypt</code>,
 <code>spiffefed</code>, <code>gravaladmit</code> (HMAC GraVal
 admission), <code>gravalverify</code> (VRAM-ratio attestation +
-BatchVerify KPI)</td>
+BatchVerify KPI), <code>fsresidency</code> (per-range ReadAt + SHA-256
+file-residency challenge)</td>
 </tr>
 <tr>
 <td><strong>Burst &amp; economics</strong></td>
 <td><code>burst</code> (hysteresis autoscaler),
 <code>bursthysteresis</code> (MONITOR→SPILL→RECOVER dead-band),
 <code>cloudspot</code>, <code>marketplace</code>,
-<code>chutesaccount</code> (Chutes API model-list + balance client)</td>
+<code>chutesaccount</code> (Chutes API model-list + balance client),
+<code>llmadapter</code> (Claude/OpenAI request/response shape
+adapters)</td>
 </tr>
 <tr>
 <td><strong>Testing &amp; simulation</strong></td>
