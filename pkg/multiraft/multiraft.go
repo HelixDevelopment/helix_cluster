@@ -59,6 +59,11 @@ type MultiRaftManager struct {
 	// electionTick/heartbeatTick configure every shard's raft nodes.
 	electionTick  int
 	heartbeatTick int
+	// leases tracks leaseholder-local read leases per shard (CockroachDB pattern);
+	// nil until EnableLeaseholderReads is called. readEnabled records that the
+	// transport's read handlers have been wired so Read may take its fast path.
+	leases      *LeaseTracker
+	readEnabled bool
 }
 
 // NewMultiRaftManager constructs a manager using the supplied transport. The
@@ -120,10 +125,13 @@ func (m *MultiRaftManager) CreateShard(id ShardID, peers []uint64) error {
 	// Register inboxes AFTER all nodes exist so a delivered message always finds
 	// its destination node within this shard.
 	//
-	// WHY no lock in the handler: every Send happens synchronously from inside
-	// processReadyLocked, which already holds sh.mu. Re-locking here would
-	// deadlock. Serialization of all raft stepping for this shard is guaranteed
-	// by sh.mu being held throughout the drive, so the handler steps directly.
+	// WHY no lock in the handler: this relies on the RaftTransport SYNCHRONOUS-
+	// DELIVERY CONTRACT (see transport.go) — Send delivers in-band on the caller's
+	// goroutine while the source shard's sh.mu is held inside processReadyLocked.
+	// That serializes every step/dst.stopped access for this shard under one lock,
+	// so the handler steps directly; re-locking sh.mu here would deadlock against
+	// the held lock. An async transport that violated that contract would have to
+	// serialize delivery per shard on its receiving side instead.
 	for _, n := range sh.nodes {
 		n := n
 		m.transport.RegisterPeer(id, n.id, func(msg pb.Message) {
@@ -137,6 +145,18 @@ func (m *MultiRaftManager) CreateShard(id ShardID, peers []uint64) error {
 	}
 
 	m.shards[id] = sh
+
+	// If leaseholder reads were already enabled before this shard existed, wire its
+	// nodes' read handlers now. Without this, a follower Read against this newly
+	// created shard's leaseholder would fail with ErrNoReadHandler even though
+	// leaseholder reads are "enabled" — the create-after-enable ordering gap.
+	// registerShardReadHandlers takes sh.mu (not yet held here); we still hold m.mu,
+	// which is the established lock order (manager lock outermost).
+	if m.readEnabled {
+		if rt, ok := m.transport.(ReadRouter); ok {
+			registerShardReadHandlers(rt, sh)
+		}
+	}
 	return nil
 }
 
@@ -265,7 +285,41 @@ func (m *MultiRaftManager) StopNode(shardID ShardID, nodeID uint64) error {
 		return fmt.Errorf("multiraft: shard %q has no node %d", shardID, nodeID)
 	}
 	m.transport.UnregisterPeer(shardID, nodeID)
+	// Stale-leaseholder safety: stopping a node that still holds a clock-valid
+	// lease MUST immediately revoke that lease and tear down its read handler.
+	// Otherwise a follower's slow-path Read would find the recorded lease still
+	// "valid" and route SendRead to this stopped node's still-registered handler,
+	// returning a frozen committed value until pure time expiry — exactly the
+	// invariant lease.go forbids ("a stale node could serve a value after another
+	// node took over"). Revoke is wired to the node-loss event here.
+	m.revokeReadAccess(shardID, nodeID)
 	return nil
+}
+
+// revokeReadAccess drops any lease held by (shardID,nodeID) and unregisters its
+// transport read handler, so neither the local fast path nor a routed SendRead
+// can serve a read from a node that has lost membership/leadership. It is the
+// single wiring point between a node-loss/leadership-loss event and the lease +
+// read-handler teardown. Safe to call even when leaseholder reads are not
+// enabled (it then does nothing). It MUST NOT be called while holding sh.mu —
+// it takes only the manager lock and the LeaseTracker/transport locks.
+func (m *MultiRaftManager) revokeReadAccess(shardID ShardID, nodeID uint64) {
+	m.mu.RLock()
+	lt := m.leases
+	enabled := m.readEnabled
+	m.mu.RUnlock()
+	if lt != nil {
+		// Only revoke if THIS node is the recorded holder — revoking a lease held
+		// by a still-live peer would needlessly force a re-acquire.
+		if holder, ok := lt.Leaseholder(shardID); ok && holder == nodeID {
+			lt.Revoke(shardID)
+		}
+	}
+	if enabled {
+		if rt, ok := m.transport.(ReadRouter); ok {
+			rt.UnregisterReadHandler(shardID, nodeID)
+		}
+	}
 }
 
 // RemoveShard tears down a shard and unregisters all its peers from transport.
@@ -280,11 +334,30 @@ func (m *MultiRaftManager) RemoveShard(shardID ShardID) error {
 		return fmt.Errorf("%w: %q", ErrShardNotFound, shardID)
 	}
 	sh.mu.Lock()
+	ids := make([]uint64, 0, len(sh.nodes))
 	for id := range sh.nodes {
+		ids = append(ids, id)
 		m.transport.UnregisterPeer(shardID, id)
 	}
 	sh.nodes = nil
 	sh.mu.Unlock()
+	// Stale-leaseholder safety (same rationale as StopNode): a removed shard's
+	// leaseholder must not keep serving routed reads. Revoke the shard's lease and
+	// unregister every node's read handler so SendRead to any of them now returns
+	// ErrNoReadHandler instead of a stale value.
+	m.mu.RLock()
+	lt := m.leases
+	enabled := m.readEnabled
+	rr, isRouter := m.transport.(ReadRouter)
+	m.mu.RUnlock()
+	if lt != nil {
+		lt.Revoke(shardID)
+	}
+	if enabled && isRouter {
+		for _, id := range ids {
+			rr.UnregisterReadHandler(shardID, id)
+		}
+	}
 	return nil
 }
 
