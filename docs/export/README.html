@@ -373,7 +373,9 @@ reserve), <code>budgetcap</code>, <code>qos</code>,
 <code>modelrouter</code> (strategy→default model), <code>gepetto</code>
 (local-vs-Chutes arbitration), <code>llmfailover</code>
 (error-classified failover taxonomy), <code>carbonsched</code>
-(carbon-aware placement + per-job kWh/gCO2 metering)</td>
+(carbon-aware placement + per-job kWh/gCO2 metering),
+<code>workloadrouter</code> (UnifiedManager concurrent-pricing weighted
+composite routing + TEE multiplier)</td>
 </tr>
 <tr>
 <td><strong>GPU &amp; resource mgmt</strong></td>
@@ -449,8 +451,9 @@ adapters)</td>
 </tr>
 <tr>
 <td><strong>Observability</strong></td>
-<td><code>metrics</code>, <code>tracing</code> (W3C),
-<code>health</code>, <code>grafanadash</code>, <code>log</code></td>
+<td><code>metrics</code> (+ tier/cost/provider-health series),
+<code>tracing</code> (W3C), <code>health</code>,
+<code>grafanadash</code>, <code>log</code></td>
 </tr>
 </tbody>
 </table>

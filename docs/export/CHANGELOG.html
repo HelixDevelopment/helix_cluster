@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (27 pure-Go units):
+<li>This session (29 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -312,6 +312,16 @@ tiebreak) with per-job kWh / gCO2 metering (HXC-1480).</li>
 multi-GPU node enumeration: an N-GPU node descriptor yields N distinct,
 independently-verifiable per-device attestation proofs keyed by GPU
 UUID; rejects duplicate/empty descriptors (HXC-1573).</li>
+<li><code>workloadrouter</code> —
+<code>UnifiedManager.RouteWorkload</code>: concurrent per-marketplace
+price probes + a weighted composite score (inverse price/latency,
+health) with a TEE multiplier that re-ranks confidential offers when the
+workload requires a TEE (HXC-1455).</li>
+<li><code>metrics</code> (additive <code>tiermetrics.go</code>) —
+<code>TierMetrics</code> exposes <code>gpu_tier_utilization</code>,
+<code>gpu_cost_per_hour</code>, and <code>provider_health</code>
+Prometheus-text series with deterministic ordering and concurrent-safe
+setters (HXC-1535).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

@@ -532,6 +532,13 @@ latency-eligible region (deterministic name tiebreak) with per-job kWh /
 gCO2 metering.</td>
 </tr>
 <tr>
+<td><code>workloadrouter</code></td>
+<td><code>UnifiedManager.RouteWorkload</code>: concurrent
+per-marketplace price probes + a weighted composite score (inverse
+price/latency, health) with a TEE multiplier re-ranking confidential
+offers when the workload requires a TEE.</td>
+</tr>
+<tr>
 <td><code>economics</code></td>
 <td><code>RewardDistributor</code> multi-token distribution with
 treasury/reinvest splits and a conservation invariant, plus
@@ -845,6 +852,10 @@ adapters to OpenAI chat-completions, preserving tool-call order.</td>
 </table>
 <h2 id="observability">Observability</h2>
 <table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
 <thead>
 <tr>
 <th>Package</th>
@@ -854,7 +865,11 @@ adapters to OpenAI chat-completions, preserving tool-call order.</td>
 <tbody>
 <tr>
 <td><code>metrics</code></td>
-<td>Metrics collection.</td>
+<td>Metrics collection (Prometheus-text <code>NodeCollector</code>);
+plus <code>TierMetrics</code> (<code>tiermetrics.go</code>) exposing
+<code>gpu_tier_utilization</code>, <code>gpu_cost_per_hour</code>, and
+<code>provider_health</code> series with deterministic ordering and
+concurrent-safe setters.</td>
 </tr>
 <tr>
 <td><code>tracing</code></td>

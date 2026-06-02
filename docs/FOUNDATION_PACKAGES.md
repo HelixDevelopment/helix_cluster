@@ -87,6 +87,7 @@ Every foundation package follows the same engineering contract:
 | `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
 | `revenueopt` | `RevenueOptimizer.OptimizeAllocation` greedy GPU→marketplace assignment maximising expected revenue, with a TEE→Chutes revenue bias. |
 | `carbonsched` | Carbon-aware job placement: selects the lowest-carbon-intensity latency-eligible region (deterministic name tiebreak) with per-job kWh / gCO2 metering. |
+| `workloadrouter` | `UnifiedManager.RouteWorkload`: concurrent per-marketplace price probes + a weighted composite score (inverse price/latency, health) with a TEE multiplier re-ranking confidential offers when the workload requires a TEE. |
 | `economics` | `RewardDistributor` multi-token distribution with treasury/reinvest splits and a conservation invariant, plus `GetParticipantROI` (ROI% + break-even days, typed unknown-participant error). |
 | `bursthysteresis` | `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band. |
 | `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
@@ -166,7 +167,7 @@ Every foundation package follows the same engineering contract:
 
 | Package | Purpose |
 |---|---|
-| `metrics` | Metrics collection. |
+| `metrics` | Metrics collection (Prometheus-text `NodeCollector`); plus `TierMetrics` (`tiermetrics.go`) exposing `gpu_tier_utilization`, `gpu_cost_per_hour`, and `provider_health` series with deterministic ordering and concurrent-safe setters. |
 | `tracing` | W3C distributed tracing. |
 | `health` | Health aggregation. |
 | `grafanadash` | Grafana dashboard generation + validation. |
