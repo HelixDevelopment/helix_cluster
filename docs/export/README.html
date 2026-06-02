@@ -342,9 +342,11 @@ domain:</p>
 <code>failconfirm</code> (SWIM two-phase PFAIL→FAIL),
 <code>leader</code>, <code>lock</code>, <code>splitbrain</code> /
 <code>splitbrainalert</code>, <code>heartbeatcoalescer</code>
-(Multi-Raft), <code>multiraft</code> (per-shard etcd-raft groups,
-throughput scales with shard count), <code>stonith</code> (STONITH
-fencing: IPMI/EC2/Azure/SBD + multi-level fallback)</td>
+(Multi-Raft), <code>multiraft</code> (per-shard etcd-raft groups +
+<code>LeaseTracker</code> leaseholder local reads, throughput scales
+with shard count), <code>stonith</code> (STONITH fencing:
+IPMI/EC2/Azure/SBD + multi-level fallback), <code>kraft</code>
+(KRaft-style self-managed Raft metadata quorum, no ZooKeeper)</td>
 </tr>
 <tr>
 <td><strong>Membership &amp; discovery</strong></td>
@@ -454,6 +456,10 @@ adapters)</td>
 <tr>
 <td><strong>Testing &amp; simulation</strong></td>
 <td><code>testing/dst</code> (+ BUGGIFY, chaos, turmoil),
+<code>dst</code> (standalone seeded-RNG deterministic sim harness +
+byte-for-byte replay), <code>porcupine</code> (WGL linearizability
+checker + recorder), <code>internal/chaos</code>
+(PodKill/partition/disk-stall/clock-skew injectors + canary rollback),
 <code>timefault</code>, <code>chaosexp</code>, <code>fmea</code>,
 <code>phasegate</code>, <code>qualitygate</code>,
 <code>phase7matrix</code>, <code>stats</code>, <code>covgate</code>,

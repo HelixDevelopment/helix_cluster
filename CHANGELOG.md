@@ -56,6 +56,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `deviceplugin` — Nomad/K8s-style gRPC device-plugin / GRES fingerprinting framework over real gRPC: plugins register full device fingerprints, the registry parses GRES descriptors, atomically applies fingerprints, allocates by request, and rejects oversubscription (HXC-1407).
     - `internal/gpu` (additive `manager_helixpow.go`) — dual-workload capacity reservation: `ReserveForHelixPoW(fraction)` + `ChutesCapacity()` reporting only the non-reserved remainder, with a strict `>0.80` Helix-load Gepetto starvation guard that zeroes Chutes capacity (HXC-1447).
     - `chutes` (additive `config.go`) — `ChutesMinerConfig` and `ValidatorConfig` deployment descriptors with `Validate()` invariants (non-empty IDs/hotkeys, `GPUCount>0`, non-negative cost, positive cache size, TEE consistency) (HXC-1439).
+  - Wave 68 (5 units, subagent-driven, 5 parallel streams in disjoint packages, run concurrently with wave 69):
+    - `dst` — standalone FoundationDB-style deterministic simulation harness: single-threaded seeded-RNG event loop with injectable network/disk/logical-clock; same seed => byte-for-byte identical trace + exact failure replay; 1000+ seeded sims (HXC-1419).
+    - `porcupine` — self-contained WGL linearizability checker + concurrent history recorder: PASS on linearizable, FAIL (with violating op) on a seeded non-linearizable history (HXC-1421).
+    - `kraft` — KRaft-style self-managed Raft metadata quorum (`go.etcd.io/raft/v3`, no ZooKeeper): replicated `CreateTopic`/`ListTopics` + partition-leader assignment, controller election + controller-loss failover (HXC-1417).
+    - `internal/chaos` — fault-injection library (PodKill/NetworkPartition/DiskStall/ClockSkew) + canary-guarded runner with automatic rollback on health<SLO; deterministic via injected clock + seeded selection (HXC-1422).
+    - `multiraft` (additive `lease.go`) — `LeaseTracker` CockroachDB-style leaseholder local reads (no Raft round-trip), follower routing via `RaftTransport.SendRead`, lease-expiry re-route against an injected clock (HXC-1389).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

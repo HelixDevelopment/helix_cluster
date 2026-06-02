@@ -22,7 +22,8 @@ Every foundation package follows the same engineering contract:
 | `splitbrain`, `splitbrainalert` | Split-brain detection and alerting. |
 | `phasegate` | Sub-phase dependency-gate validation. |
 | `epochresolve` | Config-epoch failover slot-ownership conflict resolution (highest-epoch wins, deterministic lexicographic equal-epoch tiebreak, order-independent convergence). |
-| `multiraft` | `MultiRaftManager` partitioning cluster state into independent per-shard `go.etcd.io/raft/v3` groups (own leader each) with per-shard `Propose` routing and an in-process `RaftTransport`; write throughput scales with shard count instead of hitting the single-leader ceiling, and a shard re-elects on leader loss while others keep committing. |
+| `multiraft` | `MultiRaftManager` partitioning cluster state into independent per-shard `go.etcd.io/raft/v3` groups (own leader each) with per-shard `Propose` routing and an in-process `RaftTransport`; write throughput scales with shard count instead of hitting the single-leader ceiling, and a shard re-elects on leader loss while others keep committing. Includes a `LeaseTracker` for CockroachDB-style leaseholder local reads (no Raft round-trip; follower reads route via `RaftTransport.SendRead`; lease expiry re-routes the fast path). |
+| `kraft` | KRaft-style self-managed Raft metadata quorum (`go.etcd.io/raft/v3`, no ZooKeeper): replicated `CreateTopic`/`ListTopics` + partition-leader assignment via a controller quorum, with controller election and controller-loss failover. |
 | `stonith` | Shoot-The-Other-Node-In-The-Head fencing: a `FencingAgent` interface with IPMI / AWS-EC2 / Azure-ARM / SBD-shared-disk / NoOp drivers and a `MultiLevelFencer` multi-level fallback, with sink-side fence confirmation (target reachable→unreachable). |
 
 ## Membership & Discovery
@@ -154,6 +155,8 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `testing/dst` (+ BUGGIFY, `chaos`, `turmoil`) | FoundationDB-style deterministic simulation testing, BUGGIFY fault macros, network simulation. |
+| `dst` | Standalone FoundationDB-style deterministic simulation harness: single-threaded seeded-RNG event loop with injectable network (drop/delay/reorder) / disk (fault/stall) / logical clock; same seed yields a byte-for-byte identical trace and exact failure replay (independent of `testing/dst`). |
+| `porcupine` | Self-contained WGL linearizability checker + concurrent history recorder: `CheckOperations(model, history)` returns linearizable PASS / FAIL with the violating operation; verifies distributed-op histories under fault injection. |
 | `timefault` | Clock-fault injectors (skew / freeze / monotonic-violation) + skew detector for split-brain avoidance. |
 | `chaosexp` | Chaos experiment suite with delivery-level steady-state. |
 | `fmea` | FMEA catalogue + RPN validator. |

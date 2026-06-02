@@ -252,7 +252,19 @@ independent per-shard <code>go.etcd.io/raft/v3</code> groups (own leader
 each) with per-shard <code>Propose</code> routing and an in-process
 <code>RaftTransport</code>; write throughput scales with shard count
 instead of hitting the single-leader ceiling, and a shard re-elects on
-leader loss while others keep committing.</td>
+leader loss while others keep committing. Includes a
+<code>LeaseTracker</code> for CockroachDB-style leaseholder local reads
+(no Raft round-trip; follower reads route via
+<code>RaftTransport.SendRead</code>; lease expiry re-routes the fast
+path).</td>
+</tr>
+<tr>
+<td><code>kraft</code></td>
+<td>KRaft-style self-managed Raft metadata quorum
+(<code>go.etcd.io/raft/v3</code>, no ZooKeeper): replicated
+<code>CreateTopic</code>/<code>ListTopics</code> + partition-leader
+assignment via a controller quorum, with controller election and
+controller-loss failover.</td>
 </tr>
 <tr>
 <td><code>stonith</code></td>
@@ -830,6 +842,21 @@ Quality</h2>
 <code>turmoil</code>)</td>
 <td>FoundationDB-style deterministic simulation testing, BUGGIFY fault
 macros, network simulation.</td>
+</tr>
+<tr>
+<td><code>dst</code></td>
+<td>Standalone FoundationDB-style deterministic simulation harness:
+single-threaded seeded-RNG event loop with injectable network
+(drop/delay/reorder) / disk (fault/stall) / logical clock; same seed
+yields a byte-for-byte identical trace and exact failure replay
+(independent of <code>testing/dst</code>).</td>
+</tr>
+<tr>
+<td><code>porcupine</code></td>
+<td>Self-contained WGL linearizability checker + concurrent history
+recorder: <code>CheckOperations(model, history)</code> returns
+linearizable PASS / FAIL with the violating operation; verifies
+distributed-op histories under fault injection.</td>
 </tr>
 <tr>
 <td><code>timefault</code></td>
