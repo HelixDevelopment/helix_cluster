@@ -169,6 +169,11 @@ func (p *PoolManager) HourlyTCO() float64 {
 // Scale-down can leave the pool above target if too many instances are busy:
 // the manager will not evict a live lease. Callers can re-invoke once leases
 // are returned.
+//
+// Scale-up is best-effort, not all-or-nothing. If a Provision call fails
+// mid-loop, all already-provisioned instances for this call are retained in
+// the pool and the partial size is returned alongside the error. Callers must
+// not assume the pool reaches target on a non-nil return.
 func (p *PoolManager) ScaleTo(ctx context.Context, target int) (int, error) {
 	if target < 0 {
 		return 0, fmt.Errorf("pool: negative target %d", target)
@@ -252,11 +257,19 @@ func (p *PoolManager) scaleDownLocked(ctx context.Context, n int) error {
 	return nil
 }
 
-// Acquire leases one idle instance, marking it busy, and returns it. If no idle
-// instance is available it returns ErrPoolEmpty (the caller may ScaleTo a
-// larger target first). The returned Instance must be handed back via
-// ReturnToPool when the caller is done.
+// Acquire leases one idle instance, marking it busy, and returns it. It
+// checks ctx.Err() before attempting the acquire so a cancelled or timed-out
+// context is respected immediately; Acquire does not block waiting for an idle
+// instance to become available. If no idle instance is available it returns
+// ErrPoolEmpty (the caller may ScaleTo a larger target first). The returned
+// Instance must be handed back via ReturnToPool when the caller is done.
 func (p *PoolManager) Acquire(ctx context.Context) (Instance, error) {
+	// Honour context cancellation/timeout before touching pool state so callers
+	// that time out during concurrent scale-ups observe a clean abort.
+	if err := ctx.Err(); err != nil {
+		return Instance{}, err
+	}
+
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
@@ -269,6 +282,12 @@ func (p *PoolManager) Acquire(ctx context.Context) (Instance, error) {
 	if len(ids) == 0 {
 		return Instance{}, ErrPoolEmpty
 	}
+	// Sort for deterministic selection (always picks the lexicographically
+	// smallest idle ID). This is intentionally optimised for correctness and
+	// reproducibility rather than throughput: for the documented small-pool
+	// scale (tens of instances) the O(n log n) cost is negligible. A
+	// production pool with hundreds of instances could replace this with a
+	// single O(n) min-scan without allocation.
 	sort.Strings(ids)
 	s := p.tracked[ids[0]]
 	s.busy = true

@@ -63,6 +63,12 @@ type Gateway struct {
 	// /v1/pool/utilization, /openapi.json) before the proxy dispatch logic.
 	// Installed via the WithREST option.
 	restAPI *RESTAPI
+
+	// inference, when non-nil, handles the internal AI inference route
+	// (/v1/ai/infer) by routing to an injected Chutes inference client, with
+	// TEERequired requests taking the E2EE-wrapping path. Installed via the
+	// WithInference option (HXC-1469).
+	inference *inferenceAPI
 }
 
 // NewGateway creates a new Gateway with the default route table.
@@ -125,6 +131,13 @@ func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// own validation as needed).
 	if g.restAPI != nil && restAPIPath(r.URL.Path) {
 		g.restAPI.ServeHTTP(w, r)
+		return
+	}
+
+	// Dispatch the internal AI inference route before the proxy logic so the
+	// Chutes-backed handler (and its TEE/E2EE path) owns /v1/ai/infer.
+	if g.inference != nil && inferencePath(r.URL.Path) {
+		g.inference.ServeHTTP(w, r)
 		return
 	}
 

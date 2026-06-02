@@ -187,6 +187,37 @@ func TestTieBreakDeterministic(t *testing.T) {
 	}
 }
 
+// TestQuantQualityUnknown proves that Quant.Quality() returns 0 for an unknown
+// quantization level. The default: branch in Quality() is the target here; it
+// ensures unknown levels never win a tie-break against any known level.
+//
+// Coverage fix: the default: arm of Quality was previously untested. Adding this
+// test closes the gap noted in the code-quality review (§[Minor] coverage gap).
+//
+// Mutation guard: if the default: arm were removed entirely the compiler would
+// warn about a missing return; if it returned a non-zero value (e.g. 1) this
+// test would fail on the got != 0 assertion.
+func TestQuantQualityUnknown(t *testing.T) {
+	unknown := Quant("bf16-hypothetical")
+	got := unknown.Quality()
+	t.Logf("run %s: Quality(%q) = %d", runUUID, unknown, got)
+	if got != 0 {
+		t.Errorf("Quality(%q): want 0 for unknown Quant, got %d", unknown, got)
+	}
+
+	// Also assert that the empty string is treated as unknown.
+	empty := Quant("")
+	gotEmpty := empty.Quality()
+	if gotEmpty != 0 {
+		t.Errorf("Quality(%q): want 0 for empty Quant, got %d", empty, gotEmpty)
+	}
+
+	// Sanity: a known level must score higher so unknown never wins a tie-break.
+	if Quant(QuantINT4).Quality() <= 0 {
+		t.Errorf("INT4 Quality must be > 0 (> unknown level 0), got %d", Quant(QuantINT4).Quality())
+	}
+}
+
 // TestEmptyCandidates proves the empty-input contract.
 //
 // Mutation: removing the empty-slice guard would index an empty eligible slice
