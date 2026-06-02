@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 95
-**Last modified:** 2026-06-02T00:45:17Z
+**Revision:** 96
+**Last modified:** 2026-06-02T00:59:25Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `9327930` | Foundation wave 30: mark 3 items Completed (HXC-1302/1299/1291) — wireguard spot-drain teardown / discovery 15-tier registry / device.Probe real host detection. Mutation spot-checks confirm bites. Registry 202->205 Completed / 434 Queued. |
 | `e4f0b03` | Foundation wave 30: 3 disjoint streams (all approved no-fix; mutation spot-checks bite). HXC-1302 wireguard preemption-safe teardown (pkg/wireguard/teardown.go: MeshCoordinator.TeardownPeers Stop+RemovePeer-all idempotent + SpotDrainHook(mc) cloudspot.Hooks.StopAdmission; tests w/ real curve25519 keys: add N -> teardown -> ListPeers==0, idempotent, FakeSource+Handler.Run drain removes peers; mutation skip-RemovePeer fails). HXC-1299 discovery 15-tier registry (pkg/discovery/tier_registry.go: TierRegistry.Register+SelectByTier(minTier) rank>=min via tierdef.Default() T1-T15 ordering, ordered exact-set; mutation >=->< fails TestSelectByTier_T8 got T1/T5 want T8/T12/T15). HXC-1291 device.Probe (pkg/device/probe.go + probe_{darwin,linux,other}.go: real Arch(GOARCH)/CPUCores(NumCPU)/MemoryBytes(sysctl hw.memsize / syscall.Sysinfo / MemStats fallback) + REAL os.Hostname-based ID, honest 0 for GPU/NPU/power; tests assert vs runtime oracle + real sysctl). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; B mutation bite + A/C reviewer-verified. |
 | `1e88aec` | Foundation wave 29: mark 3 items Completed (HXC-1298/1296/1310) — handheld scheduling policy / device<->pb mapping (honest lossy) / per-tier security model. Mutation spot-checks confirm bites. Registry 199->202 Completed (crossed 200) / 437 Queued. |
 | `441c7fe` | Foundation wave 29: 3 disjoint streams (all approved; A minor dead-helper + comment-lie fixed by me). HXC-1298 power/battery/thermal-aware handheld scheduling policy (pkg/scheduler/handheld.go HandheldPolicy Plugin reusing edgeaware battery/thermal/charging helpers: filter low-battery/over-thermal/unavailable/discharging-below-floor, score by battery/thermal/charging; absent-label assume-safe; 22 tests; mutation pct< -> pct> fails LowBatteryRejected). HXC-1296 device.Descriptor<->pb.Node round-trip mapping (NEW pkg/devicemap: DescriptorToNode/NodeToDescriptor over MAPPABLE fields; HONEST lossy -- round-trip identity over mapped subset + explicit test that device-only fields NPU/power/battery/trust are LOST (no false-recovery bluff); no import cycle; 7 tests). HXC-1310 per-tier security model enforcement (NEW pkg/tiersec reusing sandbox.Capability+edge+tierdef: ProfileForTier + Enforce(tier,op)->Decision over capability/data-class(inclusive)/network-egress CIDR allowlist via stdlib net; low-tier denied / high-tier allowed both directions; 24 tests; mutation data-class > -> >= fails inclusive-boundary). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; A+C mutations bite, B honest-loss reviewer-verified. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `656bec1` | Foundation wave 27: 2 disjoint streams (both approved no-fix; mutation spot-checks bite). HXC-1237 swim prod+sim transport parity (pkg/swim: minimal additive Config.Transport injection seam in NewProtocol -- nil => real UDP NewTransport as before, non-nil => injected MessageTransport; prod behavior unchanged. NEW simparity_test.go runs the REAL swim membership protocol over the deterministic SimNetwork: 3-node full-mesh converges (all see StateAlive, 12 msgs), 4-node determinism (same seed identical), seam-load-bearing test asserts sim addr 127.0.0.1:18200. mutation: ignore cfg.Transport -> node sees only itself, convergence FAILS). HXC-1278 property-based + coverage-guided fuzzing (4 native Go FuzzXxx targets, NEW files only): FuzzParseCoverProfile (no-panic + Covered<=Total + Aggregate in [0,100]), FuzzParseTraceParent (no-panic + String() round-trip stable + valid hex ids), FuzzApply (checkpoint_merge no-panic on arbitrary checkpoint bytes via real checksum/gob path), FuzzCRDTCheckpointRoundTrip (NewCRDTCheckpoint->RestoreCRDT Fingerprint-stable + corrupt-bytes no-panic). All assert falsifiable invariants on non-empty seed corpora, run under plain go test (no -fuzz needed); mutation: break TraceParent.String() round-trip FAILS. ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; 2 mutation spot-checks bite. |
 | `5707d6b` | Foundation wave 26: mark 3 items Completed (HXC-1268/1265/1236) — helix-snapshot CLI / capability sandbox+resource-limits+audit / HelixNetwork trait (prod+sim). Mutation spot-checks + real-binary verified. Registry 191->194 Completed / 445 Queued. |
 | `7c41c2f` | Foundation wave 26: 3 disjoint streams (all approved; A minor comment-lie fixed by me). HXC-1268 standalone cmd/helix-snapshot CLI (run() dispatch + create/restore/compare/list/delete wiring real snapshot.Manager via -dir; 11 tests w/ real temp-dir fs assertions + exit codes; verified by me running the REAL binary: create writes .golden, list shows it, compare rc=0, delete removes it). HXC-1265 capability sandbox + REAL resource-limit enforcement + audit (NEW pkg/sandbox: Capability deny-by-default grant model + Guard.Check (deny ungranted) + atomic.Int64 cumulative MaxOps/MaxBytes/MaxDuration enforcement -- the genuine gap vs pkg/wasm caps -- + MemAudit allow/deny log; in-process model, OS syscall isolation honestly out-of-scope not faked; mutation neuter-Has -> ungranted allowed FAILS). HXC-1236 HelixNetwork trait prod+sim (NEW pkg/helixnet: HelixNetwork interface + ProdNetwork real in-process channel fabric (bytes genuinely move A->B, deliver errors on unknown/closed dst) + SimNetwork deterministic via dst.Engine; zero pkg/swim edits -- that's 1237; mutation drop-delivery -> send/unknown-addr tests FAIL). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green (only the known internal/advisory load-flake, passes isolated), dataplane ok, tmux/screen clean; 3 mutation spot-checks bite + helix-snapshot real-binary verified. |
-| `02cd05a` | Foundation wave 25: mark 3 items Completed (HXC-1254/1255/1267) — parallel TestRunner / session test FSM / helix-test CLI (verified already complete). Mutation spot-checks confirm bites. Registry 188->191 Completed / 448 Queued. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `e4f0b03` |
-| **Timestamp** | 2026-06-02T00:45:17Z |
+| **Commit** | `9327930` |
+| **Timestamp** | 2026-06-02T00:59:25Z |
 
 ## §3: Active Work
 

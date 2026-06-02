@@ -1,9 +1,9 @@
 package device
 
-// Tier is a device's compute-class tier. Tiers form a documented 8-rung ladder
-// from T1 (lowest: deeply-constrained microcontroller/handheld) to T8 (highest:
-// multi-GPU server-class). Higher tiers are numerically greater, so tiers are
-// directly comparable with <, >, etc.
+// Tier is a device's compute-class tier. Tiers form a documented 15-rung ladder
+// from T1 (lowest: deeply-constrained microcontroller/handheld) to T15 (highest:
+// extreme multi-GPU server-class). Higher tiers are numerically greater, so tiers
+// are directly comparable with <, >, etc.
 type Tier int
 
 const (
@@ -25,6 +25,20 @@ const (
 	T7
 	// T8 — server-class accelerated: top compute (>=128 cores or multi-GPU farm).
 	T8
+	// T9 — server+: dual-socket capable, multi-GPU.
+	T9
+	// T10 — HPC entry: 64-core class + 4 GPUs.
+	T10
+	// T11 — HPC mid: high-bandwidth interconnect, 4 large GPUs.
+	T11
+	// T12 — HPC upper: 128 cores + 4 large GPUs.
+	T12
+	// T13 — AI server: 8-GPU node.
+	T13
+	// T14 — large AI server: 8 large-VRAM GPUs.
+	T14
+	// T15 — extreme multi-GPU server: flagship tier.
+	T15
 )
 
 // String returns the canonical tier label (e.g. "T3"), or "T0" for TierUnknown.
@@ -46,6 +60,20 @@ func (t Tier) String() string {
 		return "T7"
 	case T8:
 		return "T8"
+	case T9:
+		return "T9"
+	case T10:
+		return "T10"
+	case T11:
+		return "T11"
+	case T12:
+		return "T12"
+	case T13:
+		return "T13"
+	case T14:
+		return "T14"
+	case T15:
+		return "T15"
 	default:
 		return "T0"
 	}
