@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 41
-**Last modified:** 2026-06-02T01:13:03Z
+**Revision:** 42
+**Last modified:** 2026-06-02T01:25:59Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **421**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -188,7 +188,7 @@ Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1326 | Research | P3 | Queued | Implement pkg/quantum Qiskit Runtime plugin for async circuit submission (DEFERRED) |
 | HXC-1330 | Docs | P3 | Queued | Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k) |
 
-## Phase 6 (46 active)
+## Phase 6 (43 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -198,9 +198,7 @@ Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1352 | Feature | P0 | Queued | Implement internal/cell WireGuard inter-cell mesh manager |
 | HXC-1369 | Feature | P0 | Queued | Implement cmd/helix-federation binary and helixctl federation CLI |
 | HXC-1384 | Task | P0 | Queued | Establish multi-cell integration testbed for CLAUDE-1 usability gate |
-| HXC-1339 | Feature | P1 | Queued | Implement Vector Clock causality type for Tier-2 operational state |
 | HXC-1342 | Feature | P1 | Queued | Implement pkg/federation federated API aggregation with partial failure |
-| HXC-1343 | Feature | P1 | Queued | Implement Phi-accrual failure detector in pkg/swim |
 | HXC-1345 | Feature | P1 | Queued | Implement gateway-relayed cross-cell suspicion propagation |
 | HXC-1346 | Feature | P1 | Queued | Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT, cloud, mDNS) |
 | HXC-1347 | Feature | P1 | Queued | Implement mDNS/DNS-SD local cell discovery advertiser and browser |
@@ -216,7 +214,6 @@ Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1367 | Feature | P1 | Queued | Implement pkg/gitops ArgoCD ApplicationSet federation client |
 | HXC-1370 | Feature | P1 | Queued | Extend internal/node cell agent: gossip-tier selection + federation identity attestation |
 | HXC-1371 | Task | P1 | Queued | Enforce etcd-stays-within-cell static-analysis lint gate |
-| HXC-1373 | Feature | P1 | Queued | Implement split-brain prevention and partition-classification logic |
 | HXC-1380 | Feature | P1 | Queued | Implement split-brain detection PromQL alerts with runbook links |
 | HXC-1385 | Task | P1 | Queued | Validate Phase 6 exit-gate KPIs against the live federation |
 | HXC-1386 | Task | P1 | Queued | Verify sub-phase dependency gates 6a->6b->6c->6d soak conditions |

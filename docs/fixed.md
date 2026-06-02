@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 41
-**Last modified:** 2026-06-02T01:13:03Z
+**Revision:** 42
+**Last modified:** 2026-06-02T01:25:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **216**.
+Total completed: **219**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -222,7 +222,10 @@ Total completed: **216**.
 | HXC-1336 | Feature | P0 | Implement pkg/crdt LWW-Register with HLC last-writer-wins tiebreak | 0346e1c |
 | HXC-1337 | Feature | P0 | Implement pkg/crdt OR-Set with unique-tag add/remove semantics | 0346e1c |
 | HXC-1338 | Feature | P1 | Implement pkg/crdt/merkle anti-entropy tree with divergent-key Diff | 0346e1c |
+| HXC-1339 | Feature | P1 | Implement Vector Clock causality type for Tier-2 operational state | 37c2a9a |
 | HXC-1340 | Feature | P0 | Implement pkg/federation Cell model and lifecycle state machine | 0346e1c |
 | HXC-1341 | Feature | P0 | Implement thread-safe Cell Registry with add/remove/list/snapshot | 0346e1c |
+| HXC-1343 | Feature | P1 | Implement Phi-accrual failure detector in pkg/swim | 37c2a9a |
+| HXC-1373 | Feature | P1 | Implement split-brain prevention and partition-classification logic | 37c2a9a |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

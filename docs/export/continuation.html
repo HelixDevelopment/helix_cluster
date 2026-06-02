@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 100 <strong>Last modified:</strong>
-2026-06-02T01:25:23Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 101 <strong>Last modified:</strong>
+2026-06-02T01:26:06Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,26 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>37c2a9a</code></td>
+<td>Foundation wave 33: 2 builds + 1 verified. HXC-1339 Vector Clock
+causality (pkg/crdt/vectorclock.go: VectorClock map[ReplicaID]uint64 +
+Increment/Merge(per-replica
+max)/Compare(Before/After/Equal/CONCURRENT)/HappensBefore; 23 tests;
+Concurrent case (disjoint advances both flags) is the bite — a
+single-flag Compare returns Before and fails). HXC-1373 split-brain
+prevention + partition classification (NEW pkg/splitbrain:
+Classify(reachable,total,witness)-&gt;(Partition,Action) via 2*reachable
+vs total — HasQuorum/Tie/Minority/TotalIsolation + Decide
+leader-step-down; 22 subtests; 2-of-5=Minority NOT Tie (integer-division
+trap caught), 2-of-4=Tie, witness flips tie action; mutation &gt; -&gt;
+&gt;= fails 2-of-4 tie). HXC-1343 phi-accrual failure detector VERIFIED
+already complete (pkg/swim/phi_accrual.go sliding-window mean/variance +
+-log10 tail prob + Suspect; mutation Phi-return-0 fails monotonic-rise
+test). ZERO new deps, ZERO edits to existing files. Gate:
+build/vet/vet-integration clean, full -short -race green, dataplane ok,
+tmux clean; B quorum-tie + A Concurrent + 1343 phi mutations bite.</td>
+</tr>
 <tr>
 <td><code>752a2da</code></td>
 <td>Foundation wave 32: mark 8 items Completed (HXC-1334 HLC drift-clamp
@@ -390,30 +410,6 @@ T1-T15 tier definitions / cloudspot PreemptionWatcher (verified) /
 inference Backend+Router (verified, dual-layer mutation). Registry
 196-&gt;199 Completed / 440 Queued.</td>
 </tr>
-<tr>
-<td><code>d4829d1</code></td>
-<td>Foundation wave 28: HXC-1311 implemented + HXC-1301/1303
-verified-already-done. HXC-1311 T1-T15 tier definitions (NEW
-pkg/tierdef: //go:embed tierdef.yaml with all 15 ascending tiers +
-min_requirements; LoadTiers parse+validate (rejects bad schema_version,
-missing/dup/out-of-order/wrong-count), Default();
-TierDef.Meets(DeviceCaps) inclusive &gt;= per-dimension
-(cpu/mem/gpu/vram/net); 73 test cases assert exact parsed T1/T15 values
-+ per-dimension below-boundary false + exact-boundary true; mutation
-&lt; -&gt; &lt;= fails TestMeets_ExactBoundary_True). HXC-1301
-pkg/cloudspot PreemptionWatcher VERIFIED already complete (injectable
-PreemptionSource + 3-step graceful drain
-StopAdmission/Checkpoint/Deregister + deadline ForceStop + FakeSource +
-9 mutation-killing tests). HXC-1303 pkg/inference provider-agnostic
-Backend interface + Router registry VERIFIED already complete
-(capability-aware Candidates/Route fallback + ReferenceBackend labeled
-output + ErrUnsupported; DUAL-LAYER capability correctness confirmed by
-me via mutation: neutering BOTH the Candidates filter AND the backend
-model gate fails TestRouterPicksCapabilityMatch/UnsupportedErrors –
-defense-in-depth, not a bluff). ZERO new deps. Gate:
-build/vet/vet-integration clean, full -short -race green, dataplane ok,
-tmux clean; 1311 boundary mutation + 1303 dual-layer mutation bite.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -431,11 +427,11 @@ tmux clean; 1311 boundary mutation + 1303 dual-layer mutation bite.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>752a2da</code></td>
+<td><code>37c2a9a</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-02T01:25:23Z</td>
+<td>2026-06-02T01:26:06Z</td>
 </tr>
 </tbody>
 </table>
