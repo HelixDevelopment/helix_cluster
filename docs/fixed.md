@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 39
-**Last modified:** 2026-06-02T00:45:10Z
+**Revision:** 40
+**Last modified:** 2026-06-02T01:00:01Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **205**.
+Total completed: **208**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -204,8 +204,11 @@ Total completed: **205**.
 | HXC-1267 | Feature | P0 | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands | aba565b |
 | HXC-1268 | Feature | P1 | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot | 7c41c2f |
 | HXC-1278 | Research | P3 | Add property-based + coverage-guided fuzzing for cluster operations | 656bec1 |
+| HXC-1290 | Feature | P0 | Implement pkg/device universal capability Descriptor with 15-tier + trust enums | 9baae11 |
 | HXC-1291 | Feature | P0 | Implement device.Probe(ctx) arch/CPU/mem auto-detection with override labels | e4f0b03 |
+| HXC-1292 | Feature | P0 | Implement device.AssignTier decision tree per §50 taxonomy (riscv64->T10, x86+open-fw->T1, GPU+battery->T9) | 9baae11 |
 | HXC-1296 | Feature | P0 | Implement device.Descriptor <-> pb.Node round-trip mapping helpers | 441c7fe |
+| HXC-1297 | Feature | P0 | Implement pkg/scheduler tier-aware + power-aware Plugin (tier_power.go) | 9baae11 |
 | HXC-1298 | Feature | P0 | Implement power-aware T9 HANDHELD scheduling policy (battery/thermal/gaming-active gating) | 441c7fe |
 | HXC-1299 | Feature | P0 | Implement pkg/discovery 15-tier registry + SelectByTier(tier, minTrust) | e4f0b03 |
 | HXC-1301 | Feature | P1 | Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks | d4829d1 |
