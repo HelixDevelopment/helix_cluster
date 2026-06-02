@@ -74,6 +74,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `quantization` (additive `awq.go`) — AWQ 4-bit default serving format + `EstimateVRAM` (~25% of fp16) + budget-aware `SelectFormat` preferring AWQ when fp16 won't fit (HXC-1473).
     - `internal/gateway` (additive `inference.go`) — inference route forwarding to an injectable Chutes client; `TEERequired` => `X-E2EE-Enabled` routing marker; client failure => 502 (HXC-1469).
     - `internal/gpu` (additive `mig.go`) — MIG profile management: standardized vGPU tiers (1g.10gb/2g.20gb/3g.40gb/7g.80gb), in-memory partitioning with oversubscription rejection + fixed-at-creation immutability (HXC-1449).
+  - Wave 71 (5 units, subagent-driven, 5 parallel streams in disjoint packages, run concurrently with wave 70; closes 4 prior follow-ups):
+    - `multiraft` — RaftTransport async-delivery safety: inbox handler Steps under the shard mutex, outbound messages deferred + flushed after unlock; a new async-transport `-race` test proves a goroutine-delivering transport is race-free and still commits (HXC-909).
+    - `kraft` — `CreateTopic` returns `ErrTopicExists` on a conflicting re-create (different partition count); identical re-create stays idempotent (HXC-912).
+    - `porcupine` — WGL state-dedup memoization via `Model.Equal`: verdict-preserving pruning (memo fires on backtracking histories; identical PASS/FAIL + witness vs `Equal==nil`) (HXC-913).
+    - `chutes` — `StreamChannel` honors ctx cancellation on a blocked read (prompt channel close, no goroutine leak) and closes the owned reader (HXC-911).
+    - `marketplaceadapter` (additive `akash.go`) — Akash (Cosmos/AKT) adapter over an injectable client: reverse-auction pricing, SDL submission, provider-reputation gate, registered in the `Name()`-dispatch Registry (HXC-1458).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

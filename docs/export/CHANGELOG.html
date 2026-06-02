@@ -461,6 +461,29 @@ profile management: standardized vGPU tiers
 oversubscription rejection + fixed-at-creation immutability
 (HXC-1449).</li>
 </ul></li>
+<li>Wave 71 (5 units, subagent-driven, 5 parallel streams in disjoint
+packages, run concurrently with wave 70; closes 4 prior follow-ups):
+<ul>
+<li><code>multiraft</code> — RaftTransport async-delivery safety: inbox
+handler Steps under the shard mutex, outbound messages deferred +
+flushed after unlock; a new async-transport <code>-race</code> test
+proves a goroutine-delivering transport is race-free and still commits
+(HXC-909).</li>
+<li><code>kraft</code> — <code>CreateTopic</code> returns
+<code>ErrTopicExists</code> on a conflicting re-create (different
+partition count); identical re-create stays idempotent (HXC-912).</li>
+<li><code>porcupine</code> — WGL state-dedup memoization via
+<code>Model.Equal</code>: verdict-preserving pruning (memo fires on
+backtracking histories; identical PASS/FAIL + witness vs
+<code>Equal==nil</code>) (HXC-913).</li>
+<li><code>chutes</code> — <code>StreamChannel</code> honors ctx
+cancellation on a blocked read (prompt channel close, no goroutine leak)
+and closes the owned reader (HXC-911).</li>
+<li><code>marketplaceadapter</code> (additive <code>akash.go</code>) —
+Akash (Cosmos/AKT) adapter over an injectable client: reverse-auction
+pricing, SDL submission, provider-reputation gate, registered in the
+<code>Name()</code>-dispatch Registry (HXC-1458).</li>
+</ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
 in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are
