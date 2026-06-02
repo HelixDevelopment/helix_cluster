@@ -379,7 +379,9 @@ reserve), <code>budgetcap</code>, <code>qos</code>,
 <td><code>pool</code>, <code>local</code> (TCO), <code>costsched</code>,
 <code>latencysched</code>, <code>healthmonitor</code>,
 <code>gpuattest</code> (attestation crypto), <code>capability</code>,
-<code>deviceprofile</code>, <code>device</code>, <code>tierdef</code>,
+<code>deviceprofile</code>, <code>device</code>,
+<code>devicecatalog</code> (machine-readable device taxonomy →
+tier/trust/compute-class lookup), <code>tierdef</code>,
 <code>tiersec</code>, <code>quantization</code>, <code>gpucatalog</code>
 (compute-multiplier catalog + attested scoring), <code>gputopo</code>
 (NUMA/NVLink topology-aware placement), <code>balancemonitor</code> (USD
@@ -417,13 +419,17 @@ balance floor warning)</td>
 <code>spiffefed</code>, <code>gravaladmit</code> (HMAC GraVal
 admission), <code>gravalverify</code> (VRAM-ratio attestation +
 BatchVerify KPI), <code>fsresidency</code> (per-range ReadAt + SHA-256
-file-residency challenge)</td>
+file-residency challenge), <code>exportcontrol</code> (country-tier KYC
+gate on controlled-GPU node onboarding)</td>
 </tr>
 <tr>
 <td><strong>Burst &amp; economics</strong></td>
 <td><code>burst</code> (hysteresis autoscaler),
 <code>bursthysteresis</code> (MONITOR→SPILL→RECOVER dead-band),
 <code>cloudspot</code>, <code>marketplace</code>,
+<code>revenueopt</code> (greedy GPU→marketplace revenue maximiser,
+TEE→Chutes bias), <code>economics</code> (multi-token RewardDistributor
+with treasury/reinvest conservation + participant ROI/break-even),
 <code>chutesaccount</code> (Chutes API model-list + balance client),
 <code>llmadapter</code> (Claude/OpenAI request/response shape
 adapters)</td>

@@ -503,6 +503,13 @@ gates).</td>
 <td>Capability negotiation and device profiling.</td>
 </tr>
 <tr>
+<td><code>devicecatalog</code></td>
+<td>Machine-readable 64-device taxonomy with case-insensitive substring
+<code>Lookup</code> resolving a discovered CPU model
+(e.g. <code>Rockchip RK3588</code>) to its tier / trust-level /
+compute-class.</td>
+</tr>
+<tr>
 <td><code>tierdef</code>, <code>tiersec</code></td>
 <td>Tier definitions and tier security.</td>
 </tr>
@@ -511,6 +518,19 @@ gates).</td>
 <code>marketplace</code></td>
 <td>Burst-to-cloud autoscaling, spot pricing, and compute
 marketplace.</td>
+</tr>
+<tr>
+<td><code>revenueopt</code></td>
+<td><code>RevenueOptimizer.OptimizeAllocation</code> greedy
+GPU→marketplace assignment maximising expected revenue, with a
+TEE→Chutes revenue bias.</td>
+</tr>
+<tr>
+<td><code>economics</code></td>
+<td><code>RewardDistributor</code> multi-token distribution with
+treasury/reinvest splits and a conservation invariant, plus
+<code>GetParticipantROI</code> (ROI% + break-even days, typed
+unknown-participant error).</td>
 </tr>
 <tr>
 <td><code>bursthysteresis</code></td>
@@ -708,6 +728,13 @@ KPI.</td>
 <td>Filesystem residency challenge: per-byte-range <code>ReadAt</code> +
 SHA-256 verification proving a model file is really present on disk;
 truncated / missing / mismatch all fail.</td>
+</tr>
+<tr>
+<td><code>exportcontrol</code></td>
+<td>Export-control / country-code KYC gate on node onboarding: a
+controlled GPU (<code>H100</code>/<code>A100</code>) from a Tier-3
+(embargoed) or unknown jurisdiction is rejected with
+<code>ErrExportDenied</code>; Tier-1 is allowed.</td>
 </tr>
 <tr>
 <td><code>redundantexec</code>, <code>attestadmit</code>,

@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (19 pure-Go units):
+<li>This session (23 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -279,6 +279,23 @@ scoring that prefers NVLink-connected GPU pairs and falls back to PCIe
 per-byte-range <code>ReadAt</code> + SHA-256 verification proving a
 model file is really present on disk; truncated/missing/mismatch all
 fail (HXC-1572).</li>
+<li><code>economics</code> — <code>RewardDistributor</code> multi-token
+distribution with treasury/reinvest splits and a conservation invariant
+(<code>sum(ledger)+treasury+reinvest == total</code>), plus
+<code>GetParticipantROI</code> (ROI% + break-even days, typed
+unknown-participant error) (HXC-1460, HXC-1461).</li>
+<li><code>revenueopt</code> —
+<code>RevenueOptimizer.OptimizeAllocation</code> greedy GPU→marketplace
+assignment maximising expected revenue, with a TEE→Chutes revenue bias;
+self-contained types (HXC-1456).</li>
+<li><code>exportcontrol</code> — export-control / country-code KYC gate:
+a controlled GPU (<code>H100</code>/<code>A100</code>) from a Tier-3
+(embargoed) or unknown jurisdiction is rejected with
+<code>ErrExportDenied</code>; Tier-1 is allowed (HXC-1482).</li>
+<li><code>devicecatalog</code> — machine-readable 64-device taxonomy
+with case-insensitive substring <code>Lookup</code> resolving a
+discovered CPU model (e.g. <code>Rockchip RK3588</code>) to its tier /
+trust-level / compute-class (HXC-1331).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

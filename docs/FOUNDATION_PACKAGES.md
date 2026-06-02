@@ -82,8 +82,11 @@ Every foundation package follows the same engineering contract:
 | `attestadmit` | Attestation-gated scheduler admission predicate (uses `gpuattest`). |
 | `quantization` | Per-tier model-variant selection (memory-fit + backend-support gates). |
 | `capability`, `deviceprofile`, `device`, `devicemap` | Capability negotiation and device profiling. |
+| `devicecatalog` | Machine-readable 64-device taxonomy with case-insensitive substring `Lookup` resolving a discovered CPU model (e.g. `Rockchip RK3588`) to its tier / trust-level / compute-class. |
 | `tierdef`, `tiersec` | Tier definitions and tier security. |
 | `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
+| `revenueopt` | `RevenueOptimizer.OptimizeAllocation` greedy GPU→marketplace assignment maximising expected revenue, with a TEE→Chutes revenue bias. |
+| `economics` | `RewardDistributor` multi-token distribution with treasury/reinvest splits and a conservation invariant, plus `GetParticipantROI` (ROI% + break-even days, typed unknown-participant error). |
 | `bursthysteresis` | `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band. |
 | `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
 | `gputopo` | Topology-aware NUMA/NVLink GPU placement scoring that prefers NVLink-connected GPU pairs and falls back to PCIe. |
@@ -134,6 +137,7 @@ Every foundation package follows the same engineering contract:
 | `gravaladmit` | HMAC-SHA256 GraVal challenge-response provider admission gate with single-use nonce and a `graval.verified` label. |
 | `gravalverify` | GraVal GPU attestation with a VRAM-ratio `>= 0.95` gate and a concurrent, race-clean `BatchVerify` pass-rate KPI. |
 | `fsresidency` | Filesystem residency challenge: per-byte-range `ReadAt` + SHA-256 verification proving a model file is really present on disk; truncated / missing / mismatch all fail. |
+| `exportcontrol` | Export-control / country-code KYC gate on node onboarding: a controlled GPU (`H100`/`A100`) from a Tier-3 (embargoed) or unknown jurisdiction is rejected with `ErrExportDenied`; Tier-1 is allowed. |
 | `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
 
 ## Testing, Simulation & Quality
