@@ -349,6 +349,38 @@ enforced: <code>archlint</code> parses the component-map table and fails
 the build if any documented component maps to a package path that does
 not exist on disk (HXC-1424).</li>
 </ul></li>
+<li>Wave 67 (5 units, subagent-driven, 5 parallel streams in disjoint
+packages):
+<ul>
+<li><code>multiraft</code> — <code>MultiRaftManager</code> partitioning
+cluster state into independent per-shard <code>go.etcd.io/raft/v3</code>
+groups, each electing its own leader and committing independently via
+per-shard <code>Propose</code> routing over an in-process
+<code>RaftTransport</code>; write throughput scales with shard count and
+a shard re-elects on leader loss while others keep committing
+(HXC-1387).</li>
+<li><code>stonith</code> — STONITH fencing: a <code>FencingAgent</code>
+interface with IPMI / AWS-EC2 / Azure-ARM / SBD-shared-disk / NoOp
+drivers and a <code>MultiLevelFencer</code> multi-level fallback, with
+sink-side fence confirmation; the IPMI real-binary path is an honest
+SKIP-with-reason when <code>ipmitool</code> is absent (HXC-1401).</li>
+<li><code>deviceplugin</code> — Nomad/K8s-style gRPC device-plugin /
+GRES fingerprinting framework over real gRPC: plugins register full
+device fingerprints, the registry parses GRES descriptors, atomically
+applies fingerprints, allocates by request, and rejects oversubscription
+(HXC-1407).</li>
+<li><code>internal/gpu</code> (additive
+<code>manager_helixpow.go</code>) — dual-workload capacity reservation:
+<code>ReserveForHelixPoW(fraction)</code> +
+<code>ChutesCapacity()</code> reporting only the non-reserved remainder,
+with a strict <code>&gt;0.80</code> Helix-load Gepetto starvation guard
+that zeroes Chutes capacity (HXC-1447).</li>
+<li><code>chutes</code> (additive <code>config.go</code>) —
+<code>ChutesMinerConfig</code> and <code>ValidatorConfig</code>
+deployment descriptors with <code>Validate()</code> invariants
+(non-empty IDs/hotkeys, <code>GPUCount&gt;0</code>, non-negative cost,
+positive cache size, TEE consistency) (HXC-1439).</li>
+</ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
 in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are

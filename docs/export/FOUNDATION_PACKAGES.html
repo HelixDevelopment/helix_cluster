@@ -245,6 +245,23 @@ liveness preserved.</td>
 (highest-epoch wins, deterministic lexicographic equal-epoch tiebreak,
 order-independent convergence).</td>
 </tr>
+<tr>
+<td><code>multiraft</code></td>
+<td><code>MultiRaftManager</code> partitioning cluster state into
+independent per-shard <code>go.etcd.io/raft/v3</code> groups (own leader
+each) with per-shard <code>Propose</code> routing and an in-process
+<code>RaftTransport</code>; write throughput scales with shard count
+instead of hitting the single-leader ceiling, and a shard re-elects on
+leader loss while others keep committing.</td>
+</tr>
+<tr>
+<td><code>stonith</code></td>
+<td>Shoot-The-Other-Node-In-The-Head fencing: a
+<code>FencingAgent</code> interface with IPMI / AWS-EC2 / Azure-ARM /
+SBD-shared-disk / NoOp drivers and a <code>MultiLevelFencer</code>
+multi-level fallback, with sink-side fence confirmation (target
+reachable→unreachable).</td>
+</tr>
 </tbody>
 </table>
 <h2 id="membership-discovery">Membership &amp; Discovery</h2>
@@ -566,6 +583,15 @@ NVLink-connected GPU pairs and falls back to PCIe.</td>
 <td>USD account-balance monitor with a strict low-balance floor warning,
 over HTTP with <code>Authorization: Bearer</code>.</td>
 </tr>
+<tr>
+<td><code>deviceplugin</code></td>
+<td>Nomad/K8s-style gRPC device-plugin / GRES fingerprinting framework:
+device plugins register over real gRPC reporting model / memory / driver
+/ PCIe / capabilities / health / utilization; the registry parses GRES
+descriptors (<code>gpu:rtx3080:1,memory:10Gi</code>), atomically applies
+fingerprints, allocates by request, and rejects oversubscription beyond
+reported device count.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="federation-multi-cluster">Federation &amp; Multi-cluster</h2>
@@ -844,6 +870,14 @@ Integration</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>chutes</code></td>
+<td>Chutes inference client + attestation + E2EE envelope/stream, plus
+<code>ChutesMinerConfig</code> / <code>ValidatorConfig</code> deployment
+descriptors with <code>Validate()</code> invariants (non-empty
+IDs/hotkeys, <code>GPUCount&gt;0</code>, non-negative cost, TEE
+consistency).</td>
+</tr>
 <tr>
 <td><code>chutesaccount</code></td>
 <td>Chutes API client over HTTP (<code>Authorization: Bearer</code>):

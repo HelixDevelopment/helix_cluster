@@ -22,6 +22,8 @@ Every foundation package follows the same engineering contract:
 | `splitbrain`, `splitbrainalert` | Split-brain detection and alerting. |
 | `phasegate` | Sub-phase dependency-gate validation. |
 | `epochresolve` | Config-epoch failover slot-ownership conflict resolution (highest-epoch wins, deterministic lexicographic equal-epoch tiebreak, order-independent convergence). |
+| `multiraft` | `MultiRaftManager` partitioning cluster state into independent per-shard `go.etcd.io/raft/v3` groups (own leader each) with per-shard `Propose` routing and an in-process `RaftTransport`; write throughput scales with shard count instead of hitting the single-leader ceiling, and a shard re-elects on leader loss while others keep committing. |
+| `stonith` | Shoot-The-Other-Node-In-The-Head fencing: a `FencingAgent` interface with IPMI / AWS-EC2 / Azure-ARM / SBD-shared-disk / NoOp drivers and a `MultiLevelFencer` multi-level fallback, with sink-side fence confirmation (target reachable→unreachable). |
 
 ## Membership & Discovery
 
@@ -93,6 +95,7 @@ Every foundation package follows the same engineering contract:
 | `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
 | `gputopo` | Topology-aware NUMA/NVLink GPU placement scoring that prefers NVLink-connected GPU pairs and falls back to PCIe. |
 | `balancemonitor` | USD account-balance monitor with a strict low-balance floor warning, over HTTP with `Authorization: Bearer`. |
+| `deviceplugin` | Nomad/K8s-style gRPC device-plugin / GRES fingerprinting framework: device plugins register over real gRPC reporting model / memory / driver / PCIe / capabilities / health / utilization; the registry parses GRES descriptors (`gpu:rtx3080:1,memory:10Gi`), atomically applies fingerprints, allocates by request, and rejects oversubscription beyond reported device count. |
 
 ## Federation & Multi-cluster
 
@@ -161,6 +164,7 @@ Every foundation package follows the same engineering contract:
 
 | Package | Purpose |
 |---|---|
+| `chutes` | Chutes inference client + attestation + E2EE envelope/stream, plus `ChutesMinerConfig` / `ValidatorConfig` deployment descriptors with `Validate()` invariants (non-empty IDs/hotkeys, `GPUCount>0`, non-negative cost, TEE consistency). |
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 | `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
 | `marketplaceadapter` | `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry` and an HTTP-backed `ChutesAdapter` (non-2xx rejected); routes work to the named marketplace. |

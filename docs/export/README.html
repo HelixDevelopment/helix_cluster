@@ -342,7 +342,9 @@ domain:</p>
 <code>failconfirm</code> (SWIM two-phase PFAIL→FAIL),
 <code>leader</code>, <code>lock</code>, <code>splitbrain</code> /
 <code>splitbrainalert</code>, <code>heartbeatcoalescer</code>
-(Multi-Raft)</td>
+(Multi-Raft), <code>multiraft</code> (per-shard etcd-raft groups,
+throughput scales with shard count), <code>stonith</code> (STONITH
+fencing: IPMI/EC2/Azure/SBD + multi-level fallback)</td>
 </tr>
 <tr>
 <td><strong>Membership &amp; discovery</strong></td>
@@ -388,7 +390,10 @@ tier/trust/compute-class lookup), <code>tierdef</code>,
 <code>tiersec</code>, <code>quantization</code>, <code>gpucatalog</code>
 (compute-multiplier catalog + attested scoring), <code>gputopo</code>
 (NUMA/NVLink topology-aware placement), <code>balancemonitor</code> (USD
-balance floor warning)</td>
+balance floor warning), <code>deviceplugin</code> (gRPC device-plugin /
+GRES fingerprinting + oversubscription rejection),
+<code>internal/gpu</code> dual-workload reservation (Helix-PoW reserve +
+&gt;0.80 starvation guard)</td>
 </tr>
 <tr>
 <td><strong>Federation &amp; multi-cluster</strong></td>
@@ -441,6 +446,8 @@ Name()-dispatch registry + Chutes HTTP adapter), <code>revenueopt</code>
 <code>economics</code> (multi-token RewardDistributor with
 treasury/reinvest conservation + participant ROI/break-even),
 <code>chutesaccount</code> (Chutes API model-list + balance client),
+<code>chutes</code> (inference client + attestation + E2EE envelope +
+<code>ChutesMinerConfig</code>/<code>ValidatorConfig</code> validation),
 <code>llmadapter</code> (Claude/OpenAI request/response shape
 adapters)</td>
 </tr>
