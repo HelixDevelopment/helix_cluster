@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 92
-**Last modified:** 2026-06-02T00:31:12Z
+**Revision:** 93
+**Last modified:** 2026-06-02T00:31:55Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `441c7fe` | Foundation wave 29: 3 disjoint streams (all approved; A minor dead-helper + comment-lie fixed by me). HXC-1298 power/battery/thermal-aware handheld scheduling policy (pkg/scheduler/handheld.go HandheldPolicy Plugin reusing edgeaware battery/thermal/charging helpers: filter low-battery/over-thermal/unavailable/discharging-below-floor, score by battery/thermal/charging; absent-label assume-safe; 22 tests; mutation pct< -> pct> fails LowBatteryRejected). HXC-1296 device.Descriptor<->pb.Node round-trip mapping (NEW pkg/devicemap: DescriptorToNode/NodeToDescriptor over MAPPABLE fields; HONEST lossy -- round-trip identity over mapped subset + explicit test that device-only fields NPU/power/battery/trust are LOST (no false-recovery bluff); no import cycle; 7 tests). HXC-1310 per-tier security model enforcement (NEW pkg/tiersec reusing sandbox.Capability+edge+tierdef: ProfileForTier + Enforce(tier,op)->Decision over capability/data-class(inclusive)/network-egress CIDR allowlist via stdlib net; low-tier denied / high-tier allowed both directions; 24 tests; mutation data-class > -> >= fails inclusive-boundary). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; A+C mutations bite, B honest-loss reviewer-verified. |
 | `634aa09` | Foundation wave 28: mark 3 items Completed (HXC-1311/1301/1303) — T1-T15 tier definitions / cloudspot PreemptionWatcher (verified) / inference Backend+Router (verified, dual-layer mutation). Registry 196->199 Completed / 440 Queued. |
 | `d4829d1` | Foundation wave 28: HXC-1311 implemented + HXC-1301/1303 verified-already-done. HXC-1311 T1-T15 tier definitions (NEW pkg/tierdef: //go:embed tierdef.yaml with all 15 ascending tiers + min_requirements; LoadTiers parse+validate (rejects bad schema_version, missing/dup/out-of-order/wrong-count), Default(); TierDef.Meets(DeviceCaps) inclusive >= per-dimension (cpu/mem/gpu/vram/net); 73 test cases assert exact parsed T1/T15 values + per-dimension below-boundary false + exact-boundary true; mutation < -> <= fails TestMeets_ExactBoundary_True). HXC-1301 pkg/cloudspot PreemptionWatcher VERIFIED already complete (injectable PreemptionSource + 3-step graceful drain StopAdmission/Checkpoint/Deregister + deadline ForceStop + FakeSource + 9 mutation-killing tests). HXC-1303 pkg/inference provider-agnostic Backend interface + Router registry VERIFIED already complete (capability-aware Candidates/Route fallback + ReferenceBackend labeled output + ErrUnsupported; DUAL-LAYER capability correctness confirmed by me via mutation: neutering BOTH the Candidates filter AND the backend model gate fails TestRouterPicksCapabilityMatch/UnsupportedErrors -- defense-in-depth, not a bluff). ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; 1311 boundary mutation + 1303 dual-layer mutation bite. |
 | `5745f9f` | Foundation wave 27: mark 2 items Completed (HXC-1237/1278) — swim prod+sim transport parity (real protocol over deterministic SimNetwork) / property-based fuzzing (4 Go fuzz targets). Mutation spot-checks confirm bites. Registry 194->196 Completed / 443 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `02cd05a` | Foundation wave 25: mark 3 items Completed (HXC-1254/1255/1267) — parallel TestRunner / session test FSM / helix-test CLI (verified already complete). Mutation spot-checks confirm bites. Registry 188->191 Completed / 448 Queued. |
 | `aba565b` | Foundation wave 25: 2 new test-orchestration pkgs + 1 verified-already-done. HXC-1254 parallel TestRunner (NEW pkg/testing/runner: Suite registration + bounded-worker-pool parallel execution + result collection/aggregate Report sorted deterministically; barrier-proof concurrency test (serial runner deadlocks under a ctx-deadline guard), atomic peak counter proves MaxConcurrency cap, result counts incl Err->Failed (defense-in-depth: both guards must be removed to break the want-3-got-4 bite — mutation-verified), Register dup/empty-name errors). HXC-1255 session test FSM (NEW pkg/testing/sessionfsm: Idle->Setup->Running->ChaosInject->Verify->Done + any-nonterminal->Failed; legal-transition table, IllegalTransitionError leaves state unchanged, per-state callbacks fire in order, History(); mutation guard-always-allow -> illegal transition test FAILS). HXC-1267 helix-test CLI VERIFIED already complete (cmd/helix-test dst/chaos/device/snapshot subcommands wired to real pkg/testing packages w/ 13 mutation-sensitive tests; device subcmd lists real T1-T8) — verified+marked, not rebuilt. ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean (W23 fix holds); mutation spot-checks: FSM guard bites, TestRunner Err->Failed bites (both guards), cap-peak<=2 + barrier verified by review. |
 | `ace79d4` | Foundation wave 24: mark HXC-1162 Completed — E2E multi-node session CRDT convergence (5 replicas, arbitrary-order gossip, converge to identical Fingerprint + canonical truth; mutation-verified bite). Registry 187->188 Completed / 451 Queued. |
-| `8e8cebb` | Foundation wave 24: HXC-1162 E2E multi-node session CRDT convergence (pkg/session/convergence_hxc1162_test.go, test-only, ZERO edits). Proves STRONG EVENTUAL CONSISTENCY beyond the existing 2-replica tests: 5 independent replicas each seeded with a DISJOINT partition of 100 ops, gossiped via seeded-random ARBITRARY-ORDER pairwise merges (dst = dst.Clone().Merge(src)) until 3-sweep quiescence; asserts (a) ALL 5 replicas reach an identical Fingerprint AND (b) that fingerprint equals a canonical truth replica that applied all 100 ops sequentially — over 20 seeds. Reuses existing genUpdates/replicaFrom/buildUpdate + CRDTSessionState Merge/Clone/Fingerprint. Builds on W22 pkg/checkpoint_merge: this is the convergence guarantee that makes coordinator-free session migration safe. Gate: build/vet/vet-integration clean, full -short -race green (zero failures this run), dataplane ok, tmux ls clean (W23 leak fix holds); INDEPENDENT MUTATION SPOT-CHECK: order-dependent equal-version pane tiebreak (paneWins 'return false') -> replicas DIVERGE -> 'CONVERGENCE FAILED replica 0 and 1 diverged' (the N-node convergence bite is genuinely real). ZERO new deps. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `634aa09` |
-| **Timestamp** | 2026-06-02T00:31:12Z |
+| **Commit** | `441c7fe` |
+| **Timestamp** | 2026-06-02T00:31:55Z |
 
 ## §3: Active Work
 

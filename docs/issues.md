@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 37
-**Last modified:** 2026-06-02T00:16:14Z
+**Revision:** 38
+**Last modified:** 2026-06-02T00:31:47Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **441**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **438**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -152,7 +152,7 @@ Total active items: **441**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (41 active)
+## Phase 5 (38 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -162,12 +162,9 @@ Total active items: **441**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1293 | Feature | P0 | Queued | Extend api/v1/node.proto with tier, trust_level, compute_class, arch fields |
 | HXC-1294 | Feature | P0 | Queued | Create api/v1/resources.proto with npu_tops, fpga_logic_elements, tflops_gpu |
 | HXC-1295 | Feature | P0 | Queued | Extend api/v1/scheduler.proto with tier constraints and power_budget |
-| HXC-1296 | Feature | P0 | Queued | Implement device.Descriptor <-> pb.Node round-trip mapping helpers |
 | HXC-1297 | Feature | P0 | Queued | Implement pkg/scheduler tier-aware + power-aware Plugin (tier_power.go) |
-| HXC-1298 | Feature | P0 | Queued | Implement power-aware T9 HANDHELD scheduling policy (battery/thermal/gaming-active gating) |
 | HXC-1299 | Feature | P0 | Queued | Implement pkg/discovery 15-tier registry + SelectByTier(tier, minTrust) |
 | HXC-1300 | Feature | P0 | Queued | Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU |
-| HXC-1310 | Feature | P0 | Queued | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) |
 | HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
 | HXC-1302 | Feature | P1 | Queued | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook |
 | HXC-1304 | Feature | P1 | Queued | Implement pkg/inference LocalBackend wrapping internal/llm manager |

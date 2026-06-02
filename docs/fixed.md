@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 37
-**Last modified:** 2026-06-02T00:16:14Z
+**Revision:** 38
+**Last modified:** 2026-06-02T00:31:47Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **199**.
+Total completed: **202**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -204,8 +204,11 @@ Total completed: **199**.
 | HXC-1267 | Feature | P0 | Implement cmd/helix-test CLI with dst/chaos/device/snapshot subcommands | aba565b |
 | HXC-1268 | Feature | P1 | Build cmd/helix-snapshot standalone CLI reusing pkg/testing/snapshot | 7c41c2f |
 | HXC-1278 | Research | P3 | Add property-based + coverage-guided fuzzing for cluster operations | 656bec1 |
+| HXC-1296 | Feature | P0 | Implement device.Descriptor <-> pb.Node round-trip mapping helpers | 441c7fe |
+| HXC-1298 | Feature | P0 | Implement power-aware T9 HANDHELD scheduling policy (battery/thermal/gaming-active gating) | 441c7fe |
 | HXC-1301 | Feature | P1 | Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks | d4829d1 |
 | HXC-1303 | Feature | P1 | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router | d4829d1 |
+| HXC-1310 | Feature | P0 | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) | 441c7fe |
 | HXC-1311 | Docs | P1 | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints | d4829d1 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

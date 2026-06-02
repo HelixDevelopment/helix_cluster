@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 92 <strong>Last modified:</strong>
-2026-06-02T00:31:12Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 93 <strong>Last modified:</strong>
+2026-06-02T00:31:55Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,30 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>441c7fe</code></td>
+<td>Foundation wave 29: 3 disjoint streams (all approved; A minor
+dead-helper + comment-lie fixed by me). HXC-1298
+power/battery/thermal-aware handheld scheduling policy
+(pkg/scheduler/handheld.go HandheldPolicy Plugin reusing edgeaware
+battery/thermal/charging helpers: filter
+low-battery/over-thermal/unavailable/discharging-below-floor, score by
+battery/thermal/charging; absent-label assume-safe; 22 tests; mutation
+pct&lt; -&gt; pct&gt; fails LowBatteryRejected). HXC-1296
+device.Descriptor&lt;-&gt;pb.Node round-trip mapping (NEW pkg/devicemap:
+DescriptorToNode/NodeToDescriptor over MAPPABLE fields; HONEST lossy –
+round-trip identity over mapped subset + explicit test that device-only
+fields NPU/power/battery/trust are LOST (no false-recovery bluff); no
+import cycle; 7 tests). HXC-1310 per-tier security model enforcement
+(NEW pkg/tiersec reusing sandbox.Capability+edge+tierdef: ProfileForTier
++ Enforce(tier,op)-&gt;Decision over
+capability/data-class(inclusive)/network-egress CIDR allowlist via
+stdlib net; low-tier denied / high-tier allowed both directions; 24
+tests; mutation data-class &gt; -&gt; &gt;= fails inclusive-boundary).
+ZERO new deps, ZERO edits to existing files. Gate:
+build/vet/vet-integration clean, full -short -race green, dataplane ok,
+tmux clean; A+C mutations bite, B honest-loss reviewer-verified.</td>
+</tr>
 <tr>
 <td><code>634aa09</code></td>
 <td>Foundation wave 28: mark 3 items Completed (HXC-1311/1301/1303) —
@@ -396,27 +420,6 @@ CRDT convergence (5 replicas, arbitrary-order gossip, converge to
 identical Fingerprint + canonical truth; mutation-verified bite).
 Registry 187-&gt;188 Completed / 451 Queued.</td>
 </tr>
-<tr>
-<td><code>8e8cebb</code></td>
-<td>Foundation wave 24: HXC-1162 E2E multi-node session CRDT convergence
-(pkg/session/convergence_hxc1162_test.go, test-only, ZERO edits). Proves
-STRONG EVENTUAL CONSISTENCY beyond the existing 2-replica tests: 5
-independent replicas each seeded with a DISJOINT partition of 100 ops,
-gossiped via seeded-random ARBITRARY-ORDER pairwise merges (dst =
-dst.Clone().Merge(src)) until 3-sweep quiescence; asserts (a) ALL 5
-replicas reach an identical Fingerprint AND (b) that fingerprint equals
-a canonical truth replica that applied all 100 ops sequentially — over
-20 seeds. Reuses existing genUpdates/replicaFrom/buildUpdate +
-CRDTSessionState Merge/Clone/Fingerprint. Builds on W22
-pkg/checkpoint_merge: this is the convergence guarantee that makes
-coordinator-free session migration safe. Gate: build/vet/vet-integration
-clean, full -short -race green (zero failures this run), dataplane ok,
-tmux ls clean (W23 leak fix holds); INDEPENDENT MUTATION SPOT-CHECK:
-order-dependent equal-version pane tiebreak (paneWins ‘return false’)
--&gt; replicas DIVERGE -&gt; ‘CONVERGENCE FAILED replica 0 and 1
-diverged’ (the N-node convergence bite is genuinely real). ZERO new
-deps.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -434,11 +437,11 @@ deps.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>634aa09</code></td>
+<td><code>441c7fe</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-02T00:31:12Z</td>
+<td>2026-06-02T00:31:55Z</td>
 </tr>
 </tbody>
 </table>
