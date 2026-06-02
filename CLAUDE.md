@@ -2,9 +2,9 @@
 
 | Field | Value |
 |---|---|
-| Revision | 1 |
+| Revision | 2 |
 | Created | 2026-05-30 |
-| Last modified | 2026-05-30T20:43:00Z |
+| Last modified | 2026-06-02T09:49:46Z |
 | Status | active |
 
 ## INHERITED FROM HelixConstitution/CLAUDE.md
