@@ -848,6 +848,14 @@ account-balance retrieval.</td>
 <td>Claude Messages / OpenAI Responses-API request and response shape
 adapters to OpenAI chat-completions, preserving tool-call order.</td>
 </tr>
+<tr>
+<td><code>marketplaceadapter</code></td>
+<td><code>MarketplaceAdapter</code> interface
+(<code>Name</code>/<code>GetCurrentPricing</code>/<code>SubmitWork</code>)
+with a <code>Name()</code>-keyed dispatch <code>Registry</code> and an
+HTTP-backed <code>ChutesAdapter</code> (non-2xx rejected); routes work
+to the named marketplace.</td>
+</tr>
 </tbody>
 </table>
 <h2 id="observability">Observability</h2>

@@ -162,6 +162,7 @@ Every foundation package follows the same engineering contract:
 |---|---|
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 | `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
+| `marketplaceadapter` | `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry` and an HTTP-backed `ChutesAdapter` (non-2xx rejected); routes work to the named marketplace. |
 
 ## Observability
 

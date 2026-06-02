@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GPU/resource & cost: `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto: challenge/response, proof-of-GPU-work, O(1) spot-check, device-sealing), `attestadmit`, `quantization`, `local` (TCO), `pool`, `burst`.
   - Messaging/flow & edge: `flowcontrol` (K8s APF), `idempotent` (exactly-once), `rebalance` (cooperative-sticky), `informer` (list-watch cache), `redundantexec` (BOINC trust), `edgeregistry`, `edgeverify`, `slotmigration`, `hashslot`, `healthprobe`.
   - Testing/simulation: `timefault` (clock skew/freeze/monotonic injectors), BUGGIFY in `testing/dst`, `phase7matrix` (gap-matrix verifier).
-  - This session (29 pure-Go units):
+  - This session (31 pure-Go units):
     - `bursthysteresis` — `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band (HXC-1504).
     - `providerchain` — ordered multi-tier provider fallback cascade with retriable/terminal error classification and injected-clock failover SLA (HXC-1508).
     - `gpucatalog` — `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested above un-attested) (HXC-1592).
@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `gpuattest` (additive `multigpu.go`) — multi-GPU node enumeration: an N-GPU node descriptor yields N distinct, independently-verifiable per-device attestation proofs keyed by GPU UUID; rejects duplicate/empty descriptors (HXC-1573).
     - `workloadrouter` — `UnifiedManager.RouteWorkload`: concurrent per-marketplace price probes + a weighted composite score (inverse price/latency, health) with a TEE multiplier that re-ranks confidential offers when the workload requires a TEE (HXC-1455).
     - `metrics` (additive `tiermetrics.go`) — `TierMetrics` exposes `gpu_tier_utilization`, `gpu_cost_per_hour`, and `provider_health` Prometheus-text series with deterministic ordering and concurrent-safe setters (HXC-1535).
+    - `cmd/gpu-pool-manager` — GPU pool manager HTTP front-end: `POST /allocate` returns the tier-correct (lowest-tier healthy, name tiebreak) provider as JSON (`503` when none healthy) and `GET /providers` lists providers with health; httptest-gated, self-contained (HXC-1530).
+    - `marketplaceadapter` — `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry` and a `ChutesAdapter` over HTTP (httptest fixture, non-2xx rejected) (HXC-1454).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

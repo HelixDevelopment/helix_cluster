@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (29 pure-Go units):
+<li>This session (31 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -322,6 +322,17 @@ workload requires a TEE (HXC-1455).</li>
 <code>gpu_cost_per_hour</code>, and <code>provider_health</code>
 Prometheus-text series with deterministic ordering and concurrent-safe
 setters (HXC-1535).</li>
+<li><code>cmd/gpu-pool-manager</code> — GPU pool manager HTTP front-end:
+<code>POST /allocate</code> returns the tier-correct (lowest-tier
+healthy, name tiebreak) provider as JSON (<code>503</code> when none
+healthy) and <code>GET /providers</code> lists providers with health;
+httptest-gated, self-contained (HXC-1530).</li>
+<li><code>marketplaceadapter</code> — <code>MarketplaceAdapter</code>
+interface
+(<code>Name</code>/<code>GetCurrentPricing</code>/<code>SubmitWork</code>)
+with a <code>Name()</code>-keyed dispatch <code>Registry</code> and a
+<code>ChutesAdapter</code> over HTTP (httptest fixture, non-2xx
+rejected) (HXC-1454).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
