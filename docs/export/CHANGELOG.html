@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (31 pure-Go units):
+<li>This session (33 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -333,6 +333,16 @@ interface
 with a <code>Name()</code>-keyed dispatch <code>Registry</code> and a
 <code>ChutesAdapter</code> over HTTP (httptest fixture, non-2xx
 rejected) (HXC-1454).</li>
+<li><code>cmd/e2ee-proxy</code> — transparent ML-KEM-768
+(<code>crypto/mlkem</code>) + AES-256-GCM encrypting proxy:
+<code>EncryptingTransport</code> seals request bodies and
+<code>DecryptingHandler</code> opens them, so the on-wire payload
+between proxy and upstream is ciphertext-only while the client receives
+the correct plaintext; tampered ciphertext is rejected (HXC-1532).</li>
+<li><code>e2eebench</code> — <code>MeasureHandshakeLatency</code>
+benchmarks the <code>hybridkex</code> full handshake (median + P95),
+proving median &lt; 1ms on host and enforcing per-iteration key
+agreement (<code>ErrKeyDisagreement</code>) (HXC-1556).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

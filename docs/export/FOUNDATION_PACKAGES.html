@@ -758,6 +758,13 @@ shared secrets via HKDF-SHA256 (negotiated group
 key, and a tampered ML-KEM ciphertext yields a non-matching key.</td>
 </tr>
 <tr>
+<td><code>e2eebench</code></td>
+<td><code>MeasureHandshakeLatency</code> benchmarks the
+<code>hybridkex</code> full handshake (median + P95 over many
+iterations), proving median &lt; 1ms on host and enforcing per-iteration
+key agreement (<code>ErrKeyDisagreement</code>).</td>
+</tr>
+<tr>
 <td><code>compliancedoc</code></td>
 <td>EU AI Act compliance-documentation pipeline: generates a model card
 + technical-documentation artifact from attestation-log records with a

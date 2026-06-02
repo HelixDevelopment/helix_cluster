@@ -141,6 +141,7 @@ Every foundation package follows the same engineering contract:
 | `fsresidency` | Filesystem residency challenge: per-byte-range `ReadAt` + SHA-256 verification proving a model file is really present on disk; truncated / missing / mismatch all fail. |
 | `exportcontrol` | Export-control / country-code KYC gate on node onboarding: a controlled GPU (`H100`/`A100`) from a Tier-3 (embargoed) or unknown jurisdiction is rejected with `ErrExportDenied`; Tier-1 is allowed. |
 | `hybridkex` | Hybrid post-quantum key exchange combining X25519 (`crypto/ecdh`) + ML-KEM-768 (`crypto/mlkem`) shared secrets via HKDF-SHA256 (negotiated group `X25519MLKEM768`); both parties derive an identical 32-byte key, and a tampered ML-KEM ciphertext yields a non-matching key. |
+| `e2eebench` | `MeasureHandshakeLatency` benchmarks the `hybridkex` full handshake (median + P95 over many iterations), proving median < 1ms on host and enforcing per-iteration key agreement (`ErrKeyDisagreement`). |
 | `compliancedoc` | EU AI Act compliance-documentation pipeline: generates a model card + technical-documentation artifact from attestation-log records with a SHA-256 provenance hash bound to the record content; empty logs → `ErrNoAttestations`. |
 | `gpuattest` (`multigpu.go`) | Multi-GPU node enumeration: an N-GPU node descriptor yields N distinct, independently-verifiable per-device attestation proofs keyed by GPU UUID; rejects duplicate/empty descriptors. |
 | `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
