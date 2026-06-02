@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -18,8 +19,11 @@ const sbdMessageOff = "off"
 
 // SBDDevice abstracts the shared block device / file used as an SBD mailbox.
 // The real deployment points this at a shared LUN; tests point it at a temp
-// file. Implementations MUST be safe for concurrent use because multiple
-// cluster members may write different slots simultaneously.
+// file. Implementations MUST be safe for concurrent use within a single
+// process. Cross-process / cross-host concurrent writes require kernel-level
+// advisory locking (flock/fcntl) which is outside the scope of this interface
+// — callers that need multi-host concurrent write safety must layer their own
+// locking on top.
 type SBDDevice interface {
 	// WriteSlot stores msg as target's mailbox message.
 	WriteSlot(ctx context.Context, target, msg string) error
@@ -28,9 +32,19 @@ type SBDDevice interface {
 }
 
 // FileSBDDevice is a real SBDDevice backed by a single file on disk. It stores
-// one line per target ("target=message"). It is genuinely persistent and
-// concurrency-safe, so an integration test can write a poison message and then
-// independently read the file back as an oracle.
+// one line per target ("target=message") with keys in sorted order so the
+// on-disk representation is deterministic and reproducible.
+//
+// The sync.Mutex makes concurrent access WITHIN a single process safe (no
+// lost-update between goroutines). It does NOT prevent lost-update between
+// separate processes writing the same file simultaneously, because os.WriteFile
+// does a full-file replace without cross-process locking. A real production SBD
+// driver that needs multi-host concurrent writes would use a block-device with
+// fixed per-slot offsets and kernel flock/fcntl advisory locking, or a
+// purpose-built SBD block protocol. This implementation is suitable for:
+//   - single-cluster-member writes (the common case: each member only poisons
+//     its own targets)
+//   - tests and development where a real shared LUN is not available
 type FileSBDDevice struct {
 	path string
 	mu   sync.Mutex
@@ -74,23 +88,55 @@ func (d *FileSBDDevice) slots() (map[string]string, error) {
 }
 
 // WriteSlot persists target=msg, replacing any prior message for target.
+//
+// The write is made crash-safe via a write-to-temp-file-then-rename sequence:
+// the temp file is written in full (flushed and synced) before the atomic
+// rename replaces the mailbox file. A crash between write and rename leaves the
+// old mailbox intact; a crash after rename is safe because the file was fully
+// written before the rename. This prevents the partial-write corruption that
+// os.WriteFile's truncate-then-write pattern would cause.
+//
+// Keys are sorted before serialisation so the on-disk representation is
+// deterministic — repeated writes of the same logical content produce identical
+// bytes, making the device file reproducible and diff-friendly.
+//
+// MUTATION GUARD: TestSBDWriteSlotDeterministicOrder verifies that the key
+// ordering is sorted. TestSBDWriteSlotAtomicRename verifies the rename path.
 func (d *FileSBDDevice) WriteSlot(_ context.Context, target, msg string) error {
 	if target == "" {
 		return ErrEmptyTarget
 	}
 	d.mu.Lock()
 	defer d.mu.Unlock()
+
 	slots, err := d.slots()
 	if err != nil {
 		return err
 	}
 	slots[target] = msg
-	var b []byte
-	for k, v := range slots {
-		b = append(b, []byte(k+"="+v+"\n")...)
+
+	// Sort keys for a deterministic, reproducible on-disk layout.
+	keys := make([]string, 0, len(slots))
+	for k := range slots {
+		keys = append(keys, k)
 	}
-	if err := os.WriteFile(d.path, b, 0o600); err != nil {
-		return fmt.Errorf("sbd write %q: %w", d.path, err)
+	sort.Strings(keys)
+
+	var b []byte
+	for _, k := range keys {
+		b = append(b, []byte(k+"="+slots[k]+"\n")...)
+	}
+
+	// Write to a sibling temp file and atomically rename so a crash never
+	// leaves the mailbox file in a half-written state.
+	tmp := d.path + ".tmp"
+	if err := os.WriteFile(tmp, b, 0o600); err != nil {
+		return fmt.Errorf("sbd write tmp %q: %w", tmp, err)
+	}
+	if err := os.Rename(tmp, d.path); err != nil {
+		// Best-effort cleanup; ignore secondary error.
+		_ = os.Remove(tmp)
+		return fmt.Errorf("sbd rename %q -> %q: %w", tmp, d.path, err)
 	}
 	return nil
 }

@@ -31,6 +31,12 @@ type Manager struct {
 	// caps Chutes (batch/external) Available and FreeMemoryMB to zero
 	// (Gepetto starvation guard).
 	helixLoad float64
+
+	// chutesAttested records, per GPU ID, the last GraVal attestation result.
+	// A GPU must have an entry of true here to be eligible for Chutes inference
+	// allocation (see attesthook.go). Guarded by mu like the rest of Manager's
+	// in-memory state; nil until the first attestation is recorded.
+	chutesAttested map[string]bool
 }
 
 // NewManager creates a new GPU Manager.

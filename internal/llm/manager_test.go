@@ -1,11 +1,49 @@
 package llm
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
 	"time"
 )
+
+// echoBackend is a REAL in-process inference backend used by tests. It is not a
+// mock of an external system: it actually computes a deterministic result
+// derived from the (model, prompt) it is given and records which model it was
+// asked to run. Tests assert on lastModel to prove the Manager's router (not a
+// hardcoded string) selected and dispatched to that model. This satisfies
+// CLAUDE-1: the feature is exercised end-to-end through a genuine backend seam,
+// and the response is provably derived from the inputs, not fabricated.
+type echoBackend struct {
+	mu        sync.Mutex
+	lastModel string
+	calls     int
+}
+
+func (b *echoBackend) Generate(model, prompt string) (string, error) {
+	b.mu.Lock()
+	b.lastModel = model
+	b.calls++
+	b.mu.Unlock()
+	// Real, input-derived output. The "ECHO" marker proves the response came
+	// from this backend and NOT from the retired "[stub inference ...]" path.
+	return fmt.Sprintf("ECHO[%s]:%s", model, prompt), nil
+}
+
+func (b *echoBackend) last() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.lastModel
+}
+
+// failBackend always errors; used to prove inference surfaces backend failures
+// honestly rather than fabricating a result.
+type failBackend struct{}
+
+func (failBackend) Generate(model, prompt string) (string, error) {
+	return "", fmt.Errorf("backend exploded for %s", model)
+}
 
 func TestManagerRegisterAndList(t *testing.T) {
 	m := NewManager()
@@ -48,7 +86,8 @@ func TestManagerLoadUnload(t *testing.T) {
 }
 
 func TestManagerInference(t *testing.T) {
-	m := NewManager()
+	be := &echoBackend{}
+	m := WithBackend(be)
 	_ = m.RegisterModel("m1", "/models/m1", "gguf")
 	if err := m.LoadModel("m1"); err != nil {
 		t.Fatal(err)
@@ -60,6 +99,37 @@ func TestManagerInference(t *testing.T) {
 	}
 	if resp == "" {
 		t.Error("expected non-empty response")
+	}
+	if be.last() != "m1" {
+		t.Errorf("backend ran model %q, want m1", be.last())
+	}
+}
+
+// TestManagerInferenceNoBackend proves that without a backend installed,
+// inference fails with a typed error instead of returning a fabricated string.
+// Mutation that fails this: in Inference, drop the `if backend == nil` guard
+// (a nil backend would then panic, not return an honest error).
+func TestManagerInferenceNoBackend(t *testing.T) {
+	m := NewManager()
+	_ = m.RegisterModel("m1", "/models/m1", "gguf")
+	_ = m.LoadModel("m1")
+	if _, err := m.Inference("m1", "hello"); err == nil {
+		t.Error("expected error when no backend installed")
+	}
+}
+
+// TestManagerInferenceSurfacesBackendError proves a backend failure is returned
+// as-is, not swallowed and replaced by a synthetic success.
+func TestManagerInferenceSurfacesBackendError(t *testing.T) {
+	m := WithBackend(failBackend{})
+	_ = m.RegisterModel("m1", "/models/m1", "gguf")
+	_ = m.LoadModel("m1")
+	resp, err := m.Inference("m1", "hello")
+	if err == nil {
+		t.Fatalf("expected backend error, got response %q", resp)
+	}
+	if resp != "" {
+		t.Errorf("expected empty response on backend error, got %q", resp)
 	}
 }
 
@@ -75,7 +145,7 @@ func TestManagerInferenceMissingModel(t *testing.T) {
 // response for a registered-but-unloaded model — the core usability guarantee.
 // Mutation that fails this: in Inference, change `if !loaded {` to `if false {`.
 func TestManagerInferenceRequiresLoaded(t *testing.T) {
-	m := NewManager()
+	m := WithBackend(&echoBackend{})
 	if err := m.RegisterModel("m1", "/models/m1", "gguf"); err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +171,7 @@ func TestManagerInferenceRequiresLoaded(t *testing.T) {
 // TestManagerInferenceEmptyPrompt proves an empty prompt is rejected.
 // Mutation that fails this: delete the `if prompt == ""` guard in Inference.
 func TestManagerInferenceEmptyPrompt(t *testing.T) {
-	m := NewManager()
+	m := WithBackend(&echoBackend{})
 	_ = m.RegisterModel("m1", "/models/m1", "gguf")
 	_ = m.LoadModel("m1")
 	if _, err := m.Inference("m1", ""); err == nil {
@@ -110,10 +180,13 @@ func TestManagerInferenceEmptyPrompt(t *testing.T) {
 }
 
 // TestManagerInferenceEchoesPromptAndName proves the response is derived from
-// the actual inputs, not a constant — sink-side evidence of the call.
-// Mutation that fails this: make Inference return a fixed string "ok".
+// the actual inputs via the REAL backend, not a constant — sink-side evidence of
+// the call. It also pins the anti-bluff guarantee: the response must NOT be the
+// retired "[stub inference ...]" synthetic string.
+// Mutation that fails this: have Inference ignore the backend and return
+// fmt.Sprintf("[stub inference from %s] Response to: %s", name, prompt).
 func TestManagerInferenceEchoesPromptAndName(t *testing.T) {
-	m := NewManager()
+	m := WithBackend(&echoBackend{})
 	_ = m.RegisterModel("alpha", "/models/alpha", "gguf")
 	_ = m.LoadModel("alpha")
 	resp, err := m.Inference("alpha", "what is 2+2")
@@ -125,6 +198,12 @@ func TestManagerInferenceEchoesPromptAndName(t *testing.T) {
 	}
 	if !strings.Contains(resp, "what is 2+2") {
 		t.Errorf("response %q does not reference prompt", resp)
+	}
+	if strings.Contains(resp, "stub inference") {
+		t.Errorf("response %q is the retired synthetic stub string (PASS-bluff)", resp)
+	}
+	if !strings.HasPrefix(resp, "ECHO[") {
+		t.Errorf("response %q did not come from the injected backend", resp)
 	}
 }
 
@@ -259,4 +338,222 @@ func TestManagerConcurrentAccess(t *testing.T) {
 		go func() { defer wg.Done(); _ = m.ListModels(); _ = m.IsLoaded(name) }()
 	}
 	wg.Wait()
+}
+
+// routableManager builds a Manager with three loaded, healthy models whose
+// metrics differ on every axis, so each strategy has a UNIQUE correct choice:
+//
+//	model     LatencyMS  ThroughputTPS  Quality  CostPer1K   wins on
+//	--------  ---------  -------------  -------  ---------   ----------
+//	fast        10           50          0.70      5.0       latency
+//	bulk       200          900          0.80      2.0       throughput, cost
+//	precise    150          120          0.99      9.0       quality
+//
+// "bulk" deliberately wins both throughput AND cost to keep the table compact;
+// the per-strategy assertions still pin distinct latency/quality picks.
+func routableManager(t *testing.T, be Backend) *Manager {
+	t.Helper()
+	m := WithBackend(be)
+	specs := []struct {
+		name string
+		mt   Metrics
+	}{
+		{"fast", Metrics{LatencyMS: 10, ThroughputTPS: 50, Quality: 0.70, CostPer1K: 5.0}},
+		{"bulk", Metrics{LatencyMS: 200, ThroughputTPS: 900, Quality: 0.80, CostPer1K: 2.0}},
+		{"precise", Metrics{LatencyMS: 150, ThroughputTPS: 120, Quality: 0.99, CostPer1K: 9.0}},
+	}
+	for _, s := range specs {
+		if err := m.RegisterModel(s.name, "/models/"+s.name, "gguf"); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.LoadModel(s.name); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.SetMetrics(s.name, s.mt); err != nil {
+			t.Fatal(err)
+		}
+	}
+	return m
+}
+
+// TestManagerRouteStrategySelection proves different strategies select different
+// models from the same configured set, per their metrics. This is the core
+// CLAUDE-1 closure criterion #2.
+// Mutation that fails this: in strategyScore, drop the negation for
+// StrategyLatency (return mt.LatencyMS) — latency would then pick "bulk".
+func TestManagerRouteStrategySelection(t *testing.T) {
+	m := routableManager(t, &echoBackend{})
+	cases := []struct {
+		strategy Strategy
+		want     string
+	}{
+		{StrategyLatency, "fast"},
+		{StrategyThroughput, "bulk"},
+		{StrategyQuality, "precise"},
+		{StrategyCost, "bulk"},
+	}
+	for _, c := range cases {
+		got, err := m.Route(c.strategy)
+		if err != nil {
+			t.Fatalf("Route(%s): %v", c.strategy, err)
+		}
+		if got != c.want {
+			t.Errorf("Route(%s) = %q, want %q", c.strategy, got, c.want)
+		}
+	}
+}
+
+// TestManagerRouteInferenceUsesSelectedBackend proves RouteInference selects per
+// strategy AND dispatches to that exact model through the real backend, and that
+// the response is the backend's (never the retired stub). Closure criterion #1.
+// Mutation that fails this: have RouteInference ignore the router and call
+// backend.Generate("fast", prompt) unconditionally.
+func TestManagerRouteInferenceUsesSelectedBackend(t *testing.T) {
+	be := &echoBackend{}
+	m := routableManager(t, be)
+
+	selected, resp, err := m.RouteInference(StrategyQuality, "prove it")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selected != "precise" {
+		t.Errorf("selected = %q, want precise (quality strategy)", selected)
+	}
+	if be.last() != "precise" {
+		t.Errorf("backend ran %q, want precise — router did not drive dispatch", be.last())
+	}
+	if resp != "ECHO[precise]:prove it" {
+		t.Errorf("response %q is not the backend's output for the selected model", resp)
+	}
+	if strings.Contains(resp, "stub inference") {
+		t.Errorf("response %q is the retired synthetic stub (PASS-bluff)", resp)
+	}
+
+	// A different strategy must dispatch to a different model on the same set.
+	selected2, _, err := m.RouteInference(StrategyLatency, "again")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if selected2 != "fast" {
+		t.Errorf("latency selected = %q, want fast", selected2)
+	}
+	if be.last() != "fast" {
+		t.Errorf("backend ran %q, want fast", be.last())
+	}
+}
+
+// TestManagerRouteNoEligibleModel proves routing returns a typed error (not a
+// fabricated pick) when no model is loaded+healthy. Closure criterion #3.
+// Mutation that fails this: in Route, treat unhealthy/unloaded models as
+// eligible (remove the `if model.LoadedAt == nil || !model.Healthy` skip).
+func TestManagerRouteNoEligibleModel(t *testing.T) {
+	be := &echoBackend{}
+	m := routableManager(t, be)
+	// Make every model ineligible: unload two, mark the third unhealthy.
+	if err := m.UnloadModel("fast"); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.UnloadModel("bulk"); err != nil {
+		t.Fatal(err)
+	}
+	if err := m.SetHealth("precise", false); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := m.Route(StrategyQuality)
+	if err == nil {
+		t.Fatalf("expected ErrNoEligibleModel, got pick %q", got)
+	}
+	if !IsNoEligibleModel(err) {
+		t.Errorf("error %v is not ErrNoEligibleModel", err)
+	}
+
+	// RouteInference must also refuse — and must NOT have called the backend.
+	before := be.calls
+	if _, _, err := m.RouteInference(StrategyQuality, "x"); !IsNoEligibleModel(err) {
+		t.Errorf("RouteInference error = %v, want ErrNoEligibleModel", err)
+	}
+	if be.calls != before {
+		t.Error("backend was invoked despite no eligible model — fabricated dispatch")
+	}
+}
+
+// TestManagerRouteExcludesUnhealthy proves a healthy-but-lower model is chosen
+// over an unhealthy best. Here "precise" is the quality winner but unhealthy, so
+// quality must fall back to the next healthy best ("bulk", Quality 0.80).
+// Mutation that fails this: remove `!model.Healthy` from the skip condition.
+func TestManagerRouteExcludesUnhealthy(t *testing.T) {
+	m := routableManager(t, &echoBackend{})
+	if err := m.SetHealth("precise", false); err != nil {
+		t.Fatal(err)
+	}
+	got, err := m.Route(StrategyQuality)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != "bulk" {
+		t.Errorf("Route(quality) = %q, want bulk (precise is unhealthy)", got)
+	}
+}
+
+// TestManagerRouteExcludesUnloaded proves an unloaded best is skipped.
+// Mutation that fails this: remove `model.LoadedAt == nil` from the skip.
+func TestManagerRouteExcludesUnloaded(t *testing.T) {
+	m := routableManager(t, &echoBackend{})
+	if err := m.UnloadModel("fast"); err != nil {
+		t.Fatal(err)
+	}
+	got, err := m.Route(StrategyLatency)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got == "fast" {
+		t.Error("Route(latency) picked unloaded model 'fast'")
+	}
+	if got != "precise" {
+		t.Errorf("Route(latency) = %q, want precise (next-lowest latency among loaded)", got)
+	}
+}
+
+// TestManagerRouteUnknownStrategy proves an unrecognised strategy is a typed
+// error, not a silent default.
+// Mutation that fails this: make validStrategy always return true.
+func TestManagerRouteUnknownStrategy(t *testing.T) {
+	m := routableManager(t, &echoBackend{})
+	got, err := m.Route(Strategy("bogus"))
+	if err == nil {
+		t.Fatalf("expected ErrUnknownStrategy, got pick %q", got)
+	}
+	if !IsUnknownStrategy(err) {
+		t.Errorf("error %v is not ErrUnknownStrategy", err)
+	}
+}
+
+// TestManagerRouteTieBreakDeterministic proves equal scores break by name.
+// Mutation that fails this: remove the `score == bestScore && model.Name < best`
+// tie-break branch (selection would become map-iteration-order dependent).
+func TestManagerRouteTieBreakDeterministic(t *testing.T) {
+	m := WithBackend(&echoBackend{})
+	// Two models with identical quality; "aaa" must win over "zzz".
+	for _, n := range []string{"zzz", "aaa", "mmm"} {
+		if err := m.RegisterModel(n, "/p/"+n, "gguf"); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.LoadModel(n); err != nil {
+			t.Fatal(err)
+		}
+		if err := m.SetMetrics(n, Metrics{Quality: 0.5}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// Run several times; deterministic tie-break must always yield "aaa".
+	for i := 0; i < 20; i++ {
+		got, err := m.Route(StrategyQuality)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got != "aaa" {
+			t.Fatalf("tie-break = %q, want aaa (lowest name)", got)
+		}
+	}
 }

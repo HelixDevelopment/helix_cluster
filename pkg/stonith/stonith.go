@@ -48,6 +48,14 @@ var (
 
 	// ErrEmptyTarget means a fence was requested without a target identifier.
 	ErrEmptyTarget = errors.New("stonith: empty target")
+
+	// ErrTargetMismatch means the target passed to an agent does not match the
+	// node the agent was configured for. Acting on a mismatched target is a
+	// wrong-node-fence hazard (fencing the wrong machine while emitting a
+	// Confirmation claiming the right one was fenced), so we surface it as an
+	// explicit typed error that callers — and MultiLevelFencer — can detect and
+	// reject without falling through to a worse outcome.
+	ErrTargetMismatch = errors.New("stonith: target does not match agent configuration")
 )
 
 // Confirmation is the sink-side evidence that a fence actually took effect.
