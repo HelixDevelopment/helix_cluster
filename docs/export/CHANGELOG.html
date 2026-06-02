@@ -407,6 +407,35 @@ Raft round-trip), follower routing via
 <code>RaftTransport.SendRead</code>, lease-expiry re-route against an
 injected clock (HXC-1389).</li>
 </ul></li>
+<li>Wave 69 (5 units, subagent-driven, 5 parallel streams in disjoint
+packages, run concurrently with wave 68):
+<ul>
+<li><code>stonith</code> — IPMI credential hardening: BMC password
+delivered via the <code>IPMI_PASSWORD</code> env + <code>-E</code>
+(never on the argv / process table) with redacted argv in error strings;
+tests assert the password appears in neither argv nor errors (HXC-908,
+closing a wave-67 follow-up).</li>
+<li><code>deviceplugin</code> — concurrency test driving
+<code>ApplyFingerprint</code>/<code>Allocate</code>/<code>Release</code>
+from 50+ goroutines under <code>-race</code>, proving the Registry never
+oversubscribes (mutex removal trips the race detector) (HXC-910, closing
+a wave-67 follow-up).</li>
+<li><code>internal/llm</code> — replaced the stub <code>Inference</code>
+with a real strategy-based router (latency/throughput/quality/cost) over
+the live model registry, excluding unhealthy/unloaded models with a
+typed no-eligible-model error and a real injectable <code>Backend</code>
+seam (HXC-1470).</li>
+<li><code>metrics</code> (additive <code>earningsmetrics.go</code>) —
+<code>EarningsMetrics</code> exposing <code>tao_earnings_total</code> /
+<code>graval_attestation_status</code> / <code>token_throughput</code> /
+<code>gpu_utilization</code> Prometheus-text series with deterministic
+(sorted) ordering + concurrent-safe setters (HXC-1483).</li>
+<li><code>internal/gpu</code> (additive <code>attesthook.go</code>) —
+GraVal attestation hook: <code>AllocateForChutes</code> refuses a GPU
+that has not passed attestation (<code>ErrAttestationRequired</code>),
+even on the idempotent re-allocation path; injectable
+<code>ChutesAttestor</code> seam (HXC-1448).</li>
+</ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
 in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are

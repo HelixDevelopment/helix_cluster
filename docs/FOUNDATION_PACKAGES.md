@@ -176,7 +176,7 @@ Every foundation package follows the same engineering contract:
 
 | Package | Purpose |
 |---|---|
-| `metrics` | Metrics collection (Prometheus-text `NodeCollector`); plus `TierMetrics` (`tiermetrics.go`) exposing `gpu_tier_utilization`, `gpu_cost_per_hour`, and `provider_health` series with deterministic ordering and concurrent-safe setters. |
+| `metrics` | Metrics collection (Prometheus-text `NodeCollector`); plus `TierMetrics` (`tiermetrics.go`) exposing `gpu_tier_utilization`, `gpu_cost_per_hour`, and `provider_health` series, and `EarningsMetrics` (`earningsmetrics.go`) exposing `tao_earnings_total`, `graval_attestation_status`, `token_throughput`, and `gpu_utilization` series — all with deterministic ordering and concurrent-safe setters. |
 | `tracing` | W3C distributed tracing. |
 | `health` | Health aggregation. |
 | `grafanadash` | Grafana dashboard generation + validation. |

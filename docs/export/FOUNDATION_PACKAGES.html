@@ -944,8 +944,11 @@ to the named marketplace.</td>
 <td>Metrics collection (Prometheus-text <code>NodeCollector</code>);
 plus <code>TierMetrics</code> (<code>tiermetrics.go</code>) exposing
 <code>gpu_tier_utilization</code>, <code>gpu_cost_per_hour</code>, and
-<code>provider_health</code> series with deterministic ordering and
-concurrent-safe setters.</td>
+<code>provider_health</code> series, and <code>EarningsMetrics</code>
+(<code>earningsmetrics.go</code>) exposing
+<code>tao_earnings_total</code>, <code>graval_attestation_status</code>,
+<code>token_throughput</code>, and <code>gpu_utilization</code> series —
+all with deterministic ordering and concurrent-safe setters.</td>
 </tr>
 <tr>
 <td><code>tracing</code></td>
