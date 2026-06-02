@@ -80,9 +80,19 @@ func Decode(b []byte) (Timestamp, error) {
 	}, nil
 }
 
+// DefaultMaxDrift is the default upper bound on how far a remote physical
+// timestamp is allowed to drag the local clock ahead of wall-clock time.
+// Remotes more than DefaultMaxDrift nanoseconds in the future are clamped to
+// (physicalNow + DefaultMaxDrift) before the HLC merge, bounding the
+// permanent skew that a faulty or malicious sender can inject. 500 ms is a
+// conventional choice: well above typical NTP dispersion but low enough that
+// forwarded timestamps cannot stray far.
+const DefaultMaxDrift = 500_000_000 * time.Nanosecond // 500 ms
+
 // Clock is a thread-safe hybrid logical clock. Construct one with New.
 type Clock struct {
-	now func() time.Time
+	now      func() time.Time
+	maxDrift int64 // nanoseconds; 0 means DefaultMaxDrift
 
 	mu   sync.Mutex
 	last Timestamp
@@ -91,11 +101,27 @@ type Clock struct {
 // New returns a Clock that reads physical time from now. now MUST be non-nil;
 // pass time.Now for production use or a deterministic stub for tests. The core
 // never calls time.Now() directly — all physical time flows through now.
+// The drift clamp defaults to DefaultMaxDrift; use NewWithMaxDrift to override.
 func New(now func() time.Time) *Clock {
 	if now == nil {
 		panic("hlc: New requires a non-nil now function")
 	}
-	return &Clock{now: now}
+	return &Clock{now: now, maxDrift: int64(DefaultMaxDrift)}
+}
+
+// NewWithMaxDrift returns a Clock like New but with an explicit drift clamp.
+// maxDrift is the maximum nanosecond distance by which a remote physical
+// timestamp may exceed the local wall-clock before it is clamped. Use 0 to
+// restore the DefaultMaxDrift default. A negative value disables clamping.
+func NewWithMaxDrift(now func() time.Time, maxDrift time.Duration) *Clock {
+	if now == nil {
+		panic("hlc: NewWithMaxDrift requires a non-nil now function")
+	}
+	d := int64(maxDrift)
+	if d == 0 {
+		d = int64(DefaultMaxDrift)
+	}
+	return &Clock{now: now, maxDrift: d}
 }
 
 // physicalNow returns the injected physical clock reading in nanoseconds.
@@ -133,24 +159,40 @@ func (c *Clock) Now() Timestamp {
 // local physical clock, the last-seen physical component, and remote's
 // physical component. The logical counter is then chosen so that the result
 // strictly dominates whichever input(s) share that maximal physical component.
+//
+// Drift clamp: if c.maxDrift > 0 and remote.Physical > physicalNow+maxDrift,
+// the remote physical component is clamped to (physicalNow+maxDrift) before
+// the merge. This bounds the skew a faulty or malicious sender can inject; it
+// does not reject the message — it limits how far it can drag the local clock.
 func (c *Clock) Update(remote Timestamp) Timestamp {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	phys := c.physicalNow()
+
+	// Apply drift clamp: prevent a far-future remote from permanently advancing
+	// the local clock beyond what the wall-clock supports.
+	remotePhys := remote.Physical
+	if c.maxDrift > 0 {
+		ceiling := phys + c.maxDrift
+		if remotePhys > ceiling {
+			remotePhys = ceiling
+		}
+	}
+
 	maxPhys := phys
 	if c.last.Physical > maxPhys {
 		maxPhys = c.last.Physical
 	}
-	if remote.Physical > maxPhys {
-		maxPhys = remote.Physical
+	if remotePhys > maxPhys {
+		maxPhys = remotePhys
 	}
 
 	var logical uint32
 	switch {
-	case maxPhys == c.last.Physical && maxPhys == remote.Physical:
-		// Both local and remote sit at the winning physical time: take the
-		// larger logical and bump past it.
+	case maxPhys == c.last.Physical && maxPhys == remotePhys:
+		// Both local and remote (possibly clamped) sit at the winning physical
+		// time: take the larger logical and bump past it.
 		logical = c.last.Logical
 		if remote.Logical > logical {
 			logical = remote.Logical
@@ -159,9 +201,10 @@ func (c *Clock) Update(remote Timestamp) Timestamp {
 	case maxPhys == c.last.Physical:
 		// Only the prior local timestamp is at the winning physical time.
 		logical = c.last.Logical + 1
-	case maxPhys == remote.Physical:
-		// Only the remote timestamp is at the winning physical time; bump past
-		// it so the local event is causally after the received message.
+	case maxPhys == remotePhys:
+		// Only the remote (possibly clamped) timestamp is at the winning
+		// physical time; bump past it so the local event is causally after the
+		// received message.
 		logical = remote.Logical + 1
 	default:
 		// The physical clock strictly advanced past both: fresh logical run.
