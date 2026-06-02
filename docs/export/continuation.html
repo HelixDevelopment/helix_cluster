@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 91 <strong>Last modified:</strong>
-2026-06-02T00:16:20Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 92 <strong>Last modified:</strong>
+2026-06-02T00:31:12Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,13 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>634aa09</code></td>
+<td>Foundation wave 28: mark 3 items Completed (HXC-1311/1301/1303) —
+T1-T15 tier definitions / cloudspot PreemptionWatcher (verified) /
+inference Backend+Router (verified, dual-layer mutation). Registry
+196-&gt;199 Completed / 440 Queued.</td>
+</tr>
 <tr>
 <td><code>d4829d1</code></td>
 <td>Foundation wave 28: HXC-1311 implemented + HXC-1301/1303
@@ -410,28 +417,6 @@ order-dependent equal-version pane tiebreak (paneWins ‘return false’)
 diverged’ (the N-node convergence bite is genuinely real). ZERO new
 deps.</td>
 </tr>
-<tr>
-<td><code>06ca1a2</code></td>
-<td>Foundation wave 23: fix tmux-session test leak (CLAUDE-1/§7.1 test
-hygiene; PTY-exhaustion guard, W15/W22 lesson). Real-tmux-backed tests
-now leave ZERO leaked sessions. ROOT CAUSE was
-cmd/helix-session/main_test.go: TestRunServesRealRPC +
-TestRunGracefulShutdownStopsServing call the production run() (real tmux
-backend since W15) and CreateSession 2 real tmux sessions
-(server-assigned session-<nanos> id == tmux session name) with no
-cleanup -&gt; leaked on every full-suite run. FIX: added
-killSession(t,id) helper t.Cleanup-ing ‘tmux kill-session -t <id>’ after
-each CreateSession. Also pkg/session/backends/package_test.go (W23
-workflow): added t.Cleanup kills to
-TestTmuxBackend_CreateAndKill/Lifecycle (defended against
-mid-test-failure leaks). VERIFIED: full -short -race ./… then ‘tmux ls’
-=&gt; no server running (zero leaks); real-tmux proofs intact (hxc1136
-exit gate untouched). Test-only changes, ZERO production code modified.
-NOTE flakes: internal/advisory TestLockBlocksUntilAvailable + test/e2e
-TestClusterLifecycleSuite FAIL only under heavy concurrent full-suite
--race load, PASS isolated (load-induced timing flakes, not
-regressions).</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -449,11 +434,11 @@ regressions).</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>d4829d1</code></td>
+<td><code>634aa09</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-02T00:16:20Z</td>
+<td>2026-06-02T00:31:12Z</td>
 </tr>
 </tbody>
 </table>
