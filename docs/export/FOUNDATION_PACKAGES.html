@@ -906,6 +906,13 @@ IDs/hotkeys, <code>GPUCount&gt;0</code>, non-negative cost, TEE
 consistency).</td>
 </tr>
 <tr>
+<td><code>provider/chutes</code></td>
+<td>OpenAI-compatible <code>/v1/chat/completions</code> provider
+(configurable base URL + <code>cpk_</code> Bearer key,
+<code>ChatCompletionRequest</code>/<code>Response</code>/<code>Message</code>/<code>Usage</code>)
+with HTTP-429 retry + backoff and typed non-retryable errors.</td>
+</tr>
+<tr>
 <td><code>chutesaccount</code></td>
 <td>Chutes API client over HTTP (<code>Authorization: Bearer</code>):
 model-list (TEE / price fields) and <code>/users/me</code>

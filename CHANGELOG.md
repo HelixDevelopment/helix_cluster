@@ -68,6 +68,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `internal/llm` — replaced the stub `Inference` with a real strategy-based router (latency/throughput/quality/cost) over the live model registry, excluding unhealthy/unloaded models with a typed no-eligible-model error and a real injectable `Backend` seam (HXC-1470).
     - `metrics` (additive `earningsmetrics.go`) — `EarningsMetrics` exposing `tao_earnings_total` / `graval_attestation_status` / `token_throughput` / `gpu_utilization` Prometheus-text series with deterministic (sorted) ordering + concurrent-safe setters (HXC-1483).
     - `internal/gpu` (additive `attesthook.go`) — GraVal attestation hook: `AllocateForChutes` refuses a GPU that has not passed attestation (`ErrAttestationRequired`), even on the idempotent re-allocation path; injectable `ChutesAttestor` seam (HXC-1448).
+  - Wave 70 (5 units, subagent-driven, 5 parallel streams in disjoint packages, run concurrently with wave 71):
+    - `provider/chutes` — OpenAI-compatible `/v1/chat/completions` provider (`cpk_` Bearer) with HTTP-429 retry+backoff; httptest proves retry-then-success, Bearer header, and typed errors (HXC-1510).
+    - `pool` (additive `model.go`) — `GPUDevice`/`WorkloadSpec`/`GPUAllocation`/`PoolStatus` data model with snake_case JSON tags + round-trip/concurrency tests (HXC-1495).
+    - `quantization` (additive `awq.go`) — AWQ 4-bit default serving format + `EstimateVRAM` (~25% of fp16) + budget-aware `SelectFormat` preferring AWQ when fp16 won't fit (HXC-1473).
+    - `internal/gateway` (additive `inference.go`) — inference route forwarding to an injectable Chutes client; `TEERequired` => `X-E2EE-Enabled` routing marker; client failure => 502 (HXC-1469).
+    - `internal/gpu` (additive `mig.go`) — MIG profile management: standardized vGPU tiers (1g.10gb/2g.20gb/3g.40gb/7g.80gb), in-memory partitioning with oversubscription rejection + fixed-at-creation immutability (HXC-1449).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

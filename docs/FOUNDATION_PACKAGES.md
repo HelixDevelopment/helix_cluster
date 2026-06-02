@@ -168,6 +168,7 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `chutes` | Chutes inference client + attestation + E2EE envelope/stream, plus `ChutesMinerConfig` / `ValidatorConfig` deployment descriptors with `Validate()` invariants (non-empty IDs/hotkeys, `GPUCount>0`, non-negative cost, TEE consistency). |
+| `provider/chutes` | OpenAI-compatible `/v1/chat/completions` provider (configurable base URL + `cpk_` Bearer key, `ChatCompletionRequest`/`Response`/`Message`/`Usage`) with HTTP-429 retry + backoff and typed non-retryable errors. |
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 | `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
 | `marketplaceadapter` | `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry` and an HTTP-backed `ChutesAdapter` (non-2xx rejected); routes work to the named marketplace. |

@@ -436,6 +436,31 @@ that has not passed attestation (<code>ErrAttestationRequired</code>),
 even on the idempotent re-allocation path; injectable
 <code>ChutesAttestor</code> seam (HXC-1448).</li>
 </ul></li>
+<li>Wave 70 (5 units, subagent-driven, 5 parallel streams in disjoint
+packages, run concurrently with wave 71):
+<ul>
+<li><code>provider/chutes</code> — OpenAI-compatible
+<code>/v1/chat/completions</code> provider (<code>cpk_</code> Bearer)
+with HTTP-429 retry+backoff; httptest proves retry-then-success, Bearer
+header, and typed errors (HXC-1510).</li>
+<li><code>pool</code> (additive <code>model.go</code>) —
+<code>GPUDevice</code>/<code>WorkloadSpec</code>/<code>GPUAllocation</code>/<code>PoolStatus</code>
+data model with snake_case JSON tags + round-trip/concurrency tests
+(HXC-1495).</li>
+<li><code>quantization</code> (additive <code>awq.go</code>) — AWQ 4-bit
+default serving format + <code>EstimateVRAM</code> (~25% of fp16) +
+budget-aware <code>SelectFormat</code> preferring AWQ when fp16 won’t
+fit (HXC-1473).</li>
+<li><code>internal/gateway</code> (additive <code>inference.go</code>) —
+inference route forwarding to an injectable Chutes client;
+<code>TEERequired</code> =&gt; <code>X-E2EE-Enabled</code> routing
+marker; client failure =&gt; 502 (HXC-1469).</li>
+<li><code>internal/gpu</code> (additive <code>mig.go</code>) — MIG
+profile management: standardized vGPU tiers
+(1g.10gb/2g.20gb/3g.40gb/7g.80gb), in-memory partitioning with
+oversubscription rejection + fixed-at-creation immutability
+(HXC-1449).</li>
+</ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
 in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are
