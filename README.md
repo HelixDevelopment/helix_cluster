@@ -1,99 +1,104 @@
 # Helix Cluster OS
 
-Helix Cluster OS is a next-generation distributed operating system for orchestrating compute workloads across heterogeneous nodes. It unifies HPC scheduling, container orchestration, AI/ML inference, and secure multi-tenant session management under a single control plane.
+Helix Cluster OS is a next-generation distributed operating system for orchestrating compute workloads across heterogeneous nodes — from datacenter GPUs down to edge SBCs and handhelds. It unifies HPC scheduling, container orchestration, AI/ML inference, federated multi-cluster operation, and secure multi-tenant session management under a single control plane.
+
+> **Engineering guarantee (CLAUDE-1 / CLAUDE-2):** every feature ships with tests that prove real end-user behaviour — never green tests over stubs — and every OS-specific capability uses a real native facility per platform (no Linux-only mocks). See [`CLAUDE.md`](CLAUDE.md) and [`Constitution.md`](Constitution.md).
 
 ## Features
 
-- **Distributed Node Management** — Register, monitor, and manage heterogeneous compute nodes with structured health scoring.
-- **Session Orchestration** — Create and manage interactive and batch sessions with resource allocation.
-- **Scheduler** — Pluggable job scheduler with constraint-based placement and real-time event streaming.
-- **Security** — SPIFFE identity, JWT authentication, and capability-based authorization.
-- **Observability** — Built-in metrics, distributed tracing, and structured logging.
-- **Web UI** — React + TypeScript + Vite dashboard for cluster visualization and management.
+- **Heterogeneous Node Management** — Register, monitor, and schedule across tiers T1–T8 (datacenter → microcontroller) with structured health scoring and capability negotiation.
+- **Omega-model Scheduler** — Pluggable placement with optimistic concurrency, ClassAd matching, gang scheduling, value-multiplier preemption, multifactor (age/fairshare/size/QoS) priority queues, and constraint-based (location/colocation/order/stickiness) placement.
+- **Distributed-Systems Foundation** — A large pure-Go library (`pkg/`) of consensus, membership (SWIM gossip), replication (CRDT, MVCC, anti-entropy), and federation primitives. See [Foundation Packages](#foundation-packages).
+- **Federation & Multi-cluster** — Cross-cell trust, topology patterns, CRDT config sync, data-residency admission, split-brain detection, and quorum-based failure confirmation.
+- **GPU & Cost Orchestration** — GPU pool management, TCO-aware local cost modelling, cost/latency-aware schedulers, burst-to-cloud autoscaling, N+K failover capacity reserve, and global budget caps.
+- **Security & Attestation** — SPIFFE identity, JWT auth, ML-KEM-768 post-quantum E2EE, device attestation (challenge/response, proof-of-GPU-work, device sealing), and attestation-gated admission.
+- **Deterministic Simulation Testing (DST)** — FoundationDB-style seeded simulation, BUGGIFY fault injection, Turmoil network simulation, and clock-fault injectors for reproducible distributed-systems testing.
+- **Observability** — Built-in metrics, W3C distributed tracing, structured logging, and Grafana dashboard generation.
 - **Multi-Protocol APIs** — gRPC services with Protocol Buffer definitions for all subsystems.
 
-## Project Structure
+## Architecture
+
+Helix is organised as a seven-layer stack (L0–L7) with 14 control-plane microservices, coordinated via SWIM gossip for membership and Raft consensus for strongly-consistent state. The scheduler is an Omega-model two-level design with optimistic concurrency.
+
+The repository is a Go workspace combining a core module with git submodules for the larger services.
 
 ```
 .
-├── api/               # Protocol Buffer definitions
-├── auth/              # Authentication service (submodule)
-├── cache/             # Caching service (submodule)
-├── challenges/        # Challenge platform (submodule)
-├── concurrency/       # Concurrency utilities (submodule)
-├── config/            # Configuration service (submodule)
-├── containers/        # Container runtime (submodule)
-├── database/          # Database layer (submodule)
-├── discovery/         # Service discovery (submodule)
-├── docs/              # Documentation
-├── EventBus/          # Event bus service (submodule)
-├── Filesystem/        # Distributed filesystem (submodule)
-├── helixqa/           # QA framework (submodule)
-├── Herald/            # Notification service (submodule)
-├── http3/             # HTTP/3 gateway (submodule)
-├── LLMOrchestrator/   # LLM orchestration (submodule)
-├── LLMProvider/       # LLM provider abstraction (submodule)
-├── LLMsVerifier/      # LLM verification (submodule)
-├── mdns/              # mDNS discovery (submodule)
-├── Messaging/         # Messaging service (submodule)
-├── middleware/        # Middleware components (submodule)
-├── migrations/        # Database migrations
-├── observability/     # Observability stack (submodule)
-├── Panoptic/          # Panoptic monitoring (submodule)
-├── pkg/               # Shared core packages
-├── ratelimiter/       # Rate limiter (submodule)
-├── recovery/          # Recovery service (submodule)
+├── api/v1/            # Protocol Buffer definitions (NodeService, SessionService, SchedulerService, ...)
+├── cmd/               # Service binaries and CLIs
+├── internal/          # Private application packages (console, gateway, scheduler, node, health, policy, trust, ...)
+├── pkg/               # Shared pure-Go foundation library (see "Foundation Packages")
+├── web/               # React + TypeScript + Vite dashboard
+├── docs/              # Documentation (see "Documentation")
+├── data/              # HXC registry (SQLite) and runtime data
 ├── scripts/           # Build, test, and utility scripts
-├── security/          # Security service (submodule)
-├── Storage/           # Storage service (submodule)
-├── tmux/              # Terminal multiplexer integration (submodule)
-├── upstreams/         # Upstream dependency scripts
-├── VisionEngine/      # Vision engine (submodule)
-└── web/               # React web UI
+│
+├── HelixConstitution/ # Governance & constitution (submodule)
+├── security/          # Security service: identity, E2EE, attestation (submodule)
+├── helixqa/           # HelixQA challenge/validation framework (submodule)
+├── EventBus/          # Event bus (submodule)
+├── Messaging/         # Messaging service (submodule)
+├── discovery/         # Service discovery (submodule; pkg/discovery is the editable root)
+├── containers/        # Container runtime (submodule)
+├── recovery/          # Recovery service (submodule)
+├── config/            # Configuration service (submodule)
+├── challenges/        # Challenge platform (submodule)
+├── DocProcessor/      # Document processing (submodule)
+├── LLMOrchestrator/   # LLM orchestration (submodule)
+├── Herald/            # Notification service (submodule)
+└── docs_chain/        # Documentation-chain engine (submodule)
 ```
+
+## Foundation Packages
+
+The `pkg/` library provides the pure-Go, deterministic, well-tested primitives the control plane is built from. Highlights by domain:
+
+| Domain | Packages |
+|---|---|
+| **Consensus & coordination** | `voting` (largest-subcluster quorum), `failconfirm` (SWIM two-phase PFAIL→FAIL), `leader`, `lock`, `splitbrain` / `splitbrainalert`, `heartbeatcoalescer` (Multi-Raft) |
+| **Membership & discovery** | `swim` (+ phi-accrual, hierarchical), `discovery` (+ federated), `nattraversal` (STUN), `ice`, `cellmesh` |
+| **Replication & state** | `crdt` (+ `merkle`, LWW/ORSet/G/PN-counters/vector-clock), `mvcc` (B-tree time-travel store), `antientropy` (hinted-handoff + read-repair + Merkle diff), `watchmanager` (synced/unsynced/victim), `hlc`, `offlinesync`, `checkpoint_merge` |
+| **Scheduling & placement** | `scheduler` (Omega/ClassAd/gang/preempt), `constraints` (Pacemaker 4-type), `preempt` (value-multiplier), `priorityqueue` (multifactor aging), `backfill` (SLURM), `admissioncontrol` (N+K reserve), `budgetcap`, `qos`, `suitability`, `ewmarank`, `workclaim` (SKIP LOCKED) |
+| **GPU & resource mgmt** | `pool`, `local` (TCO), `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto), `capability`, `deviceprofile`, `device`, `tierdef`, `tiersec`, `quantization` |
+| **Federation & multi-cluster** | `federation` (+ `suspicion`), `fedtopology`, `fedtrust`, `configsync`, `residency`, `raftprofile`, `spiffefed`, `doublecrypt` |
+| **Messaging & flow** | `flowcontrol` (K8s APF), `workqueue` (rate-limited), `ratelimit`, `backoff`, `retry`, `idempotent` (exactly-once), `rebalance` (cooperative-sticky), `fiber`, `fallbackchain`, `pubsub`, `events` |
+| **Routing & sessions** | `hashslot` (CRC16 + MOVED/ASK), `session`, `slotmigration` (atomic live migration), `edge`, `edgeregistry`, `edgeverify`, `edgefusion` |
+| **Security & verification** | `crypto`, `jwt`, `modelintegrity` (SHA-256 gate), `redundantexec` (BOINC trust), `attestadmit`, `doublecrypt`, `spiffefed` |
+| **Burst & economics** | `burst` (hysteresis autoscaler), `cloudspot`, `marketplace` |
+| **Testing & simulation** | `testing/dst` (+ BUGGIFY, chaos, turmoil), `timefault`, `chaosexp`, `fmea`, `phasegate`, `qualitygate`, `phase7matrix`, `stats`, `covgate`, `sandbox` |
+| **Observability** | `metrics`, `tracing` (W3C), `health`, `grafanadash`, `log` |
+
+Each package is standard-library-only where possible, deterministic (injected clocks, seeded PRNGs), and proven by tests that fail under mutation of the logic they cover.
 
 ## Quick Start
 
 ### Prerequisites
 
-- Go 1.24+
-- Node.js 20+ (for web UI)
-- Docker & Docker Compose
-- Protocol Buffer compiler (optional, for API generation)
+- **Go 1.26+** (workspace uses `go.work`)
+- Node.js 20+ (for the web UI)
+- SQLite 3 (the HXC registry lives at `data/hxc_registry.db`)
+- Docker & Docker Compose (for integration services)
+- Protocol Buffer compiler + `protoc-gen-go` (optional, for API regeneration)
 
-### Setup
+### Setup / Build / Test
 
 ```bash
-./scripts/setup.sh
+./scripts/setup.sh     # initialise submodules and toolchains
+./scripts/build.sh     # go build ./...
+./scripts/test.sh      # go test ./...
+./scripts/lint.sh      # go vet + linters
+./scripts/format.sh    # gofmt
 ```
 
-### Build
+To run the full race suite for a package:
 
 ```bash
-./scripts/build.sh
-```
-
-### Test
-
-```bash
-./scripts/test.sh
-```
-
-### Lint
-
-```bash
-./scripts/lint.sh
-```
-
-### Format
-
-```bash
-./scripts/format.sh
+go test -race -count=1 ./pkg/<package>/...
 ```
 
 ## API
 
-Protocol Buffer definitions are located in `api/v1/`. Services include:
+Protocol Buffer definitions live in `api/v1/`. Core services:
 
 - `NodeService` — Node lifecycle management
 - `SessionService` — Session CRUD operations
@@ -108,18 +113,29 @@ Protocol Buffer definitions are located in `api/v1/`. Services include:
 The web dashboard is built with React, TypeScript, and Vite.
 
 ```bash
-cd web
-npm install
-npm run dev
+cd web && npm install && npm run dev
 ```
+
+## Documentation
+
+- [`CLAUDE.md`](CLAUDE.md) — AI-agent engineering rules (end-user usability & cross-platform parity guarantees)
+- [`Constitution.md`](Constitution.md) / [`HelixConstitution/`](HelixConstitution/) — project governance
+- [`docs/FOUNDATION_PACKAGES.md`](docs/FOUNDATION_PACKAGES.md) — full catalogue of `pkg/` packages
+- [`docs/HXC_REGISTRY.md`](docs/HXC_REGISTRY.md) — the work-item registry model
+- [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards
+- [`DEVELOPMENT.md`](DEVELOPMENT.md) — development workflow
+- [`CHANGELOG.md`](CHANGELOG.md) — release history
+
+## Development Model
+
+Work is tracked in an SQLite registry (`data/hxc_registry.db`) of `HXC-####` items across 11 phases (0–10). Items move `Queued → In progress → Completed` and are implemented in parallel "waves": disjoint new packages built via an implement → adversarial-review → fix pipeline, then gated with whole-tree `build`/`vet`, `-race` tests, and an independent mutation bite per item that must fail the item's named guard test. No item is marked Completed without that proof.
 
 ## Contributing
 
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Open a Pull Request
+1. Create a feature branch
+2. Implement with tests that prove real behaviour (and fail under mutation)
+3. Run `go build ./... && go vet ./... && go test -race ./...`
+4. Commit and open a Pull Request
 
 ## License
 

@@ -1,0 +1,146 @@
+# Foundation Packages (`pkg/`)
+
+This catalogue describes the pure-Go foundation library that the Helix control plane is built from. There are **126+ packages** under `pkg/` (plus 19 private subsystems under `internal/`).
+
+Every foundation package follows the same engineering contract:
+
+- **Pure Go, standard-library-first.** External dependencies are avoided; where an in-repo primitive is reused it is imported read-only.
+- **Deterministic.** Clocks, randomness, and I/O sources are injected (interfaces / seeds / explicit ticks) so tests are reproducible. No `time.Now()` inside logic under test.
+- **Mutation-proven (CLAUDE-1).** Each package's tests are designed to *fail* if the specific logic they cover is mutated — green tests over stubs or always-true conditions are forbidden. Items are not marked complete without an independent mutation bite confirming the guard is live.
+- **Cross-platform parity (CLAUDE-2).** OS-specific capabilities use real native facilities per platform; there are no Linux-only mocks behind build tags for real-operation features.
+
+---
+
+## Consensus & Coordination
+
+| Package | Purpose |
+|---|---|
+| `voting` | Largest-subcluster-wins quorum (3/2 survive+fence, 2/2 both-fence, TTL re-resolve). |
+| `failconfirm` | Redis-cluster two-phase failure confirmation (PFAIL→FAIL via distinct-reporter majority quorum, OnDead-once). |
+| `heartbeatcoalescer` | Multi-Raft per-peer heartbeat coalescing, O(shards·peers)→O(peers), liveness preserved. |
+| `leader`, `lock` | Leadership and advisory locking primitives. |
+| `splitbrain`, `splitbrainalert` | Split-brain detection and alerting. |
+| `phasegate` | Sub-phase dependency-gate validation. |
+
+## Membership & Discovery
+
+| Package | Purpose |
+|---|---|
+| `swim` | SWIM gossip membership with phi-accrual failure detection and hierarchical tiers. |
+| `discovery` (+ `discovery/federated`) | Service discovery, including federated cross-cell discovery. |
+| `nattraversal` | STUN-based NAT traversal. |
+| `ice` | ICE connectivity establishment. |
+| `cellmesh` | Cross-cell mesh networking. |
+
+## Replication & State
+
+| Package | Purpose |
+|---|---|
+| `crdt` (+ `crdt/merkle`) | LWW / OR-Set / G-Counter / PN-Counter / vector-clock CRDTs and Merkle anti-entropy trees. |
+| `mvcc` | MVCC revision store with a real B-tree index, time-travel reads, watch-from-revision, and compaction. |
+| `antientropy` | Cassandra-style 3-layer repair: hinted handoff, read repair, Merkle-tree diff (over in-memory replicas). |
+| `watchmanager` | etcd-style persistent watch manager with synced / unsynced / victim watcher groups. |
+| `hlc` | Hybrid logical clocks. |
+| `offlinesync`, `checkpoint_merge` | Offline delta sync and checkpoint merging. |
+
+## Scheduling & Placement
+
+| Package | Purpose |
+|---|---|
+| `scheduler` | Omega-model two-level scheduler: ClassAd matching, gang scheduling (all-or-nothing), preemption, optimistic concurrency. |
+| `constraints` | Pacemaker-style four-type constraint engine (location / colocation / order / stickiness). |
+| `preempt` | Value-multiplier (Gepetto) preemption with sole-global protection. |
+| `priorityqueue` | Multifactor composite priority (age + fairshare + size + QoS) with clock-driven aging. |
+| `backfill` | SLURM-style conservative backfill over an availability timeline. |
+| `workclaim` | SKIP-LOCKED-style optimistic work-claiming (exactly-once under contention). |
+| `admissioncontrol` | N+K capacity-reserve failover admission control. |
+| `budgetcap` | Global MaxCostPerHour budget cap on allocations. |
+| `qos` | QoS-tier routing (real-time / interactive / batch / best-effort). |
+| `suitability` | HPC-vs-inference workload classifier and placement routing. |
+| `ewmarank` | Utilization-aware EWMA candidate ranking with sticky-client routing. |
+| `fallbackchain` | Per-task ordered fallback chains with dedup, attempt cap, and empty-result handling. |
+
+## GPU, Resource & Cost Management
+
+| Package | Purpose |
+|---|---|
+| `pool` | Node/instance pool manager with a `GPUProvider` provisioning seam. |
+| `local` | Local GPU TCO model (amortized capital + power, utilization-scaled). |
+| `costsched`, `latencysched` | Cost-aware and latency-aware schedulers. |
+| `healthmonitor` | Edge-triggered health transitions with auto-failover / recovery callbacks. |
+| `healthprobe` | Startup / readiness / liveness probe tiers with a startup grace period. |
+| `gpuattest` | Device attestation crypto: challenge/response + fingerprint, seeded-matmul proof-of-GPU-work, O(1) Merkle spot-check, device-sealed AES-GCM/HKDF. |
+| `attestadmit` | Attestation-gated scheduler admission predicate (uses `gpuattest`). |
+| `quantization` | Per-tier model-variant selection (memory-fit + backend-support gates). |
+| `capability`, `deviceprofile`, `device`, `devicemap` | Capability negotiation and device profiling. |
+| `tierdef`, `tiersec` | Tier definitions and tier security. |
+| `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
+
+## Federation & Multi-cluster
+
+| Package | Purpose |
+|---|---|
+| `federation` (+ `federation/suspicion`) | Federation membership and suspicion. |
+| `fedtopology` | Federation topology patterns. |
+| `fedtrust` | Cross-cluster federated-trust admission. |
+| `configsync` | CRDT (LWW) config synchronisation. |
+| `residency` | Data-residency admission evaluation. |
+| `raftprofile` | etcd Raft WAN tuning profiles. |
+| `spiffefed`, `doublecrypt` | SPIFFE federation (mTLS + x509) and double-encryption. |
+
+## Messaging, Flow & Routing
+
+| Package | Purpose |
+|---|---|
+| `flowcontrol` | Kubernetes API Priority & Fairness (FlowSchema → PriorityLevel → fair queues). |
+| `workqueue` | Rate-limited work queue with exponential backoff and dedup. |
+| `ratelimit`, `backoff`, `retry` | Rate limiting, exponential backoff, retry. |
+| `idempotent` | Exactly-once producer via producer-id + sequence. |
+| `rebalance` | Kafka cooperative-sticky incremental partition rebalancing. |
+| `informer` | Informer-style list-watch local cache with indexers and resync. |
+| `redundantexec` | BOINC-style redundant-execution trust scorer. |
+| `hashslot` | CRC16 16,384 hash-slot router with MOVED/ASK in-flight migration redirection. |
+| `slotmigration` | Atomic live-session slot migration FSM (PREPARE → TRANSFER → COMMIT/ABORT). |
+| `fiber`, `pubsub`, `events`, `serde` | Framed transport, pub/sub, events, serialization. |
+
+## Edge
+
+| Package | Purpose |
+|---|---|
+| `edge` | Edge restriction, schedule rules, trust, and work units. |
+| `edgeregistry` | Multi-tier (T3–T8) edge device registration with tier/trust/capability labels. |
+| `edgeverify` | Redundant edge-output verification against a trusted anchor via SHA-256 checksum. |
+| `edgefusion` | Edge data fusion. |
+
+## Security & Verification
+
+| Package | Purpose |
+|---|---|
+| `crypto`, `jwt` | Cryptographic primitives and JWT auth. |
+| `modelintegrity` | HF-cache verification gate (SHA-256 + size). |
+| `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
+
+## Testing, Simulation & Quality
+
+| Package | Purpose |
+|---|---|
+| `testing/dst` (+ BUGGIFY, `chaos`, `turmoil`) | FoundationDB-style deterministic simulation testing, BUGGIFY fault macros, network simulation. |
+| `timefault` | Clock-fault injectors (skew / freeze / monotonic-violation) + skew detector for split-brain avoidance. |
+| `chaosexp` | Chaos experiment suite with delivery-level steady-state. |
+| `fmea` | FMEA catalogue + RPN validator. |
+| `phasegate`, `phase7matrix` | Phase dependency gates and the Phase-7 gap-matrix verifier. |
+| `qualitygate`, `covgate`, `stats`, `sandbox` | Quality gates, coverage gates, statistics (Welch t-test), sandboxing. |
+
+## Observability
+
+| Package | Purpose |
+|---|---|
+| `metrics` | Metrics collection. |
+| `tracing` | W3C distributed tracing. |
+| `health` | Health aggregation. |
+| `grafanadash` | Grafana dashboard generation + validation. |
+| `log` | Structured logging. |
+
+---
+
+*This catalogue is maintained as the foundation library grows. For the authoritative list run `ls pkg/`. For the work-item registry that tracks package delivery, see [`HXC_REGISTRY.md`](HXC_REGISTRY.md).*
