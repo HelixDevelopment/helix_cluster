@@ -1,0 +1,136 @@
+schema_version: 1
+tiers:
+  # T1 — micro: deeply-constrained embedded / MCU-class device.
+  - tier: T1
+    min_cpu_cores: 1
+    min_memory_mb: 256
+    min_gpu: 0
+    min_gpu_vram_mb: 0
+    min_network_mbps: 10
+    max_power_w: 5.0
+
+  # T2 — handheld: low-power battery SBC / phone-class.
+  - tier: T2
+    min_cpu_cores: 2
+    min_memory_mb: 512
+    min_gpu: 0
+    min_gpu_vram_mb: 0
+    min_network_mbps: 100
+    max_power_w: 15.0
+
+  # T3 — SBC/edge: Raspberry-Pi-class, no discrete accelerator.
+  - tier: T3
+    min_cpu_cores: 4
+    min_memory_mb: 2048
+    min_gpu: 0
+    min_gpu_vram_mb: 0
+    min_network_mbps: 1000
+    max_power_w: 25.0
+
+  # T4 — workstation-lite: modest desktop, iGPU acceptable.
+  - tier: T4
+    min_cpu_cores: 8
+    min_memory_mb: 8192
+    min_gpu: 0
+    min_gpu_vram_mb: 0
+    min_network_mbps: 1000
+    max_power_w: 65.0
+
+  # T5 — accelerated edge: first real discrete GPU.
+  - tier: T5
+    min_cpu_cores: 12
+    min_memory_mb: 16384
+    min_gpu: 1
+    min_gpu_vram_mb: 4096
+    min_network_mbps: 1000
+    max_power_w: 150.0
+
+  # T6 — workstation: strong CPU + discrete GPU.
+  - tier: T6
+    min_cpu_cores: 16
+    min_memory_mb: 32768
+    min_gpu: 1
+    min_gpu_vram_mb: 8192
+    min_network_mbps: 2500
+    max_power_w: 300.0
+
+  # T7 — pro workstation: many cores + substantial GPU.
+  - tier: T7
+    min_cpu_cores: 24
+    min_memory_mb: 65536
+    min_gpu: 1
+    min_gpu_vram_mb: 16384
+    min_network_mbps: 10000
+    max_power_w: 500.0
+
+  # T8 — server: high core count + capable GPU pair.
+  - tier: T8
+    min_cpu_cores: 32
+    min_memory_mb: 131072
+    min_gpu: 2
+    min_gpu_vram_mb: 16384
+    min_network_mbps: 10000
+    max_power_w: 700.0
+
+  # T9 — server+: dual-socket capable, multi-GPU.
+  - tier: T9
+    min_cpu_cores: 48
+    min_memory_mb: 196608
+    min_gpu: 2
+    min_gpu_vram_mb: 24576
+    min_network_mbps: 25000
+    max_power_w: 1000.0
+
+  # T10 — HPC entry: 64-core class + 4 GPUs.
+  - tier: T10
+    min_cpu_cores: 64
+    min_memory_mb: 262144
+    min_gpu: 4
+    min_gpu_vram_mb: 24576
+    min_network_mbps: 25000
+    max_power_w: 1500.0
+
+  # T11 — HPC mid: high-bandwidth interconnect, 4 large GPUs.
+  - tier: T11
+    min_cpu_cores: 96
+    min_memory_mb: 393216
+    min_gpu: 4
+    min_gpu_vram_mb: 40960
+    min_network_mbps: 50000
+    max_power_w: 2000.0
+
+  # T12 — HPC upper: 128 cores + 4 large GPUs.
+  - tier: T12
+    min_cpu_cores: 128
+    min_memory_mb: 524288
+    min_gpu: 4
+    min_gpu_vram_mb: 40960
+    min_network_mbps: 50000
+    max_power_w: 2500.0
+
+  # T13 — AI server: 8-GPU node.
+  - tier: T13
+    min_cpu_cores: 128
+    min_memory_mb: 786432
+    min_gpu: 8
+    min_gpu_vram_mb: 40960
+    min_network_mbps: 100000
+    max_power_w: 4000.0
+
+  # T14 — large AI server: 8 large-VRAM GPUs.
+  - tier: T14
+    min_cpu_cores: 192
+    min_memory_mb: 1048576
+    min_gpu: 8
+    min_gpu_vram_mb: 80000
+    min_network_mbps: 100000
+    max_power_w: 6000.0
+
+  # T15 — extreme multi-GPU server: flagship tier.
+  - tier: T15
+    min_cpu_cores: 256
+    min_memory_mb: 2097152
+    min_gpu: 8
+    min_gpu_vram_mb: 80000
+    min_network_mbps: 400000
+    max_power_w: 10000.0

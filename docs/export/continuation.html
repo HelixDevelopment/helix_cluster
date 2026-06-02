@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 89 <strong>Last modified:</strong>
-2026-06-01T23:59:37Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 90 <strong>Last modified:</strong>
+2026-06-02T00:15:38Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,13 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>5745f9f</code></td>
+<td>Foundation wave 27: mark 2 items Completed (HXC-1237/1278) — swim
+prod+sim transport parity (real protocol over deterministic SimNetwork)
+/ property-based fuzzing (4 Go fuzz targets). Mutation spot-checks
+confirm bites. Registry 194-&gt;196 Completed / 443 Queued.</td>
+</tr>
 <tr>
 <td><code>656bec1</code></td>
 <td>Foundation wave 27: 2 disjoint streams (both approved no-fix;
@@ -408,30 +415,6 @@ container-checkpoint migration CRDT merge / tmux full functional Attach
 (send-keys+capture-pane, real marker round-trip). Mutation spot-checks
 confirm bites. Registry 185-&gt;187 Completed / 452 Queued.</td>
 </tr>
-<tr>
-<td><code>1d79b5c</code></td>
-<td>Foundation wave 22: 2 disjoint streams (both approved no-fix;
-mutation spot-checks bite). HXC-1152 container-checkpoint migration CRDT
-merge (NEW pkg/checkpoint_merge: Apply(local,checkpoint) restores+merges
-incoming CRDT checkpoint into a clone of local via existing
-CRDTSessionState.Merge LWW, Migrate(source,local) models
-export-A-&gt;merge-B; NEW pkg/session/crdt_checkpoint.go v2 checkpoint
-helper avoids import cycle; convergence tests assert EXACT LWW winner
-values + commutativity-by-Fingerprint + idempotence + corrupt-checkpoint
-sentinel; mutation skip-merge -&gt; LWW winner reverts to wrong value
-FAILS). HXC-1160 tmux full functional Attach
-(pkg/session/backends/tmux_attach.go + tmux.go Attach: replaced the dead
-orphaned-io.Pipe stream with a REAL stream — Write delivers keystrokes
-via tmux send-keys -l/Enter, Read returns REAL pane content via tmux
-capture-pane -p; marker round-trip test against real tmux with bounded
-20x100ms poll, unique names + defer Kill, ZERO leaks; mutation neuter
-send-keys -&gt; marker absent FAILS). ZERO new deps. Gate:
-build/vet/vet-integration clean, full -short -race green, dataplane ok;
-both mutation spot-checks bite; W22 tmux test verified zero-leak in
-isolation. NOTE pre-existing leak: pkg/session.Manager-based tests
-(manager.go:106 session-<nanos> naming, e.g. hxc1136) can leave tmux
-sessions — hygiene item, not introduced here.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -449,11 +432,11 @@ sessions — hygiene item, not introduced here.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>656bec1</code></td>
+<td><code>5745f9f</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-01T23:59:37Z</td>
+<td>2026-06-02T00:15:38Z</td>
 </tr>
 </tbody>
 </table>
