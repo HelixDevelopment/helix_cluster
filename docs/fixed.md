@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 40
-**Last modified:** 2026-06-02T01:00:01Z
+**Revision:** 41
+**Last modified:** 2026-06-02T01:13:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **208**.
+Total completed: **216**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -214,7 +214,15 @@ Total completed: **208**.
 | HXC-1301 | Feature | P1 | Implement pkg/cloudspot PreemptionWatcher with injectable SignalSource and ordered hooks | d4829d1 |
 | HXC-1302 | Feature | P1 | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook | e4f0b03 |
 | HXC-1303 | Feature | P1 | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router | d4829d1 |
+| HXC-1304 | Feature | P1 | Implement pkg/inference LocalBackend wrapping internal/llm manager | 0346e1c |
 | HXC-1310 | Feature | P0 | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) | 441c7fe |
 | HXC-1311 | Docs | P1 | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints | d4829d1 |
+| HXC-1334 | Feature | P0 | Implement pkg/hlc Hybrid Logical Clock with drift clamp and total order | 0346e1c |
+| HXC-1335 | Feature | P0 | Implement pkg/crdt G-Counter with per-replica max-merge convergence | 0346e1c |
+| HXC-1336 | Feature | P0 | Implement pkg/crdt LWW-Register with HLC last-writer-wins tiebreak | 0346e1c |
+| HXC-1337 | Feature | P0 | Implement pkg/crdt OR-Set with unique-tag add/remove semantics | 0346e1c |
+| HXC-1338 | Feature | P1 | Implement pkg/crdt/merkle anti-entropy tree with divergent-key Diff | 0346e1c |
+| HXC-1340 | Feature | P0 | Implement pkg/federation Cell model and lifecycle state machine | 0346e1c |
+| HXC-1341 | Feature | P0 | Implement thread-safe Cell Registry with add/remove/list/snapshot | 0346e1c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |

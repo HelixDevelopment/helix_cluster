@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 98
-**Last modified:** 2026-06-02T01:12:23Z
+**Revision:** 99
+**Last modified:** 2026-06-02T01:13:11Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `0346e1c` | Foundation wave 32: HXC-1334 HLC drift clamp implemented + 7 phase-6/5 items verified-already-done. HXC-1334 (pkg/hlc): added DefaultMaxDrift const + NewWithMaxDrift + a drift-clamp block in Clock.Update — a remote physical timestamp exceeding local wall-clock by >maxDrift is clamped to local+maxDrift (prevents far-future-remote clock poisoning, HLC's classic failure mode); Now() untouched, existing Update in-drift behaviour + 14 existing tests intact, 6 new tests; mutation neuter-clamp -> far-future remote (1.5e9) > ceiling (1.05e9) FAILS. VERIFIED already-complete (build+test+mutation-confirmed suites, NOT rebuilt): HXC-1335 pkg/crdt GCounter, HXC-1336 LWWRegister (timestamp+replica LWW tiebreak), HXC-1337 ORSet (mutation ignore-tombstones fails AddRemove tests), HXC-1338 pkg/crdt/merkle anti-entropy Diff (mutation Diff-nil fails), HXC-1340 pkg/federation Cell model+FSM (mutation always-legal-transition fails RejectsIllegalJumps), HXC-1341 CellRegistry Register/Deregister/Lookup/List/Advance thread-safe, HXC-1304 pkg/inference LocalBackend wrapping internal/llm. ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; drift-clamp + 3 batch mutations bite. |
 | `caabf37` | Foundation wave 31: mark 3 items Completed (HXC-1290/1292/1297) — device Tier T1-T15 + AssignTier registry classifier / tier-aware+power-aware scheduler Plugin (verified). Mutation spot-checks confirm bites. Registry 205->208 Completed / 431 Queued. |
 | `9baae11` | Foundation wave 31: HXC-1290+1292 combined + HXC-1297 verified-done. HXC-1290 (device universal Descriptor w/ 15 tiers) + HXC-1292 (device.AssignTier decision tree) — ONE deliverable: extended pkg/device.Tier enum additively to T1-T15 (+String cases; existing TierUnknown/T1-T8/ClassifyTier/EffectiveCompute byte-for-byte UNCHANGED, verified) + NEW pkg/device/assign_tier.go AssignTier(d,reg *tierdef.Registry) Tier mapping Descriptor->tierdef.DeviceCaps and iterating HIGH->LOW returning the highest tier whose tierdef.Meets passes (networkUnknown=MaxInt sentinel so missing net field never disqualifies); 46 tests incl exact-per-tier T1/T8/T12/T15, exhaustive boundary sweep, monotonic property; mutation low->high iteration -> T15-spec wrongly returns T1 FAILS. Import device->tierdef (no cycle). HXC-1297 pkg/scheduler tier-aware+power-aware Plugin VERIFIED already complete (tier_power.go min-tier filter + watts/perf-per-watt/overshoot score + edgeaware.go + handheld.go, 67+ mutation-guarded tests; mutation tier-min < -> > fails TestTierPowerFilterRejectsBelowMinTier). ZERO new deps. Gate: build/vet/vet-integration ./... clean (tier.go edit no regression), full -short -race green, dataplane ok, tmux clean; iteration-order + tier-min mutations bite. |
 | `9327930` | Foundation wave 30: mark 3 items Completed (HXC-1302/1299/1291) — wireguard spot-drain teardown / discovery 15-tier registry / device.Probe real host detection. Mutation spot-checks confirm bites. Registry 202->205 Completed / 434 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `634aa09` | Foundation wave 28: mark 3 items Completed (HXC-1311/1301/1303) — T1-T15 tier definitions / cloudspot PreemptionWatcher (verified) / inference Backend+Router (verified, dual-layer mutation). Registry 196->199 Completed / 440 Queued. |
 | `d4829d1` | Foundation wave 28: HXC-1311 implemented + HXC-1301/1303 verified-already-done. HXC-1311 T1-T15 tier definitions (NEW pkg/tierdef: //go:embed tierdef.yaml with all 15 ascending tiers + min_requirements; LoadTiers parse+validate (rejects bad schema_version, missing/dup/out-of-order/wrong-count), Default(); TierDef.Meets(DeviceCaps) inclusive >= per-dimension (cpu/mem/gpu/vram/net); 73 test cases assert exact parsed T1/T15 values + per-dimension below-boundary false + exact-boundary true; mutation < -> <= fails TestMeets_ExactBoundary_True). HXC-1301 pkg/cloudspot PreemptionWatcher VERIFIED already complete (injectable PreemptionSource + 3-step graceful drain StopAdmission/Checkpoint/Deregister + deadline ForceStop + FakeSource + 9 mutation-killing tests). HXC-1303 pkg/inference provider-agnostic Backend interface + Router registry VERIFIED already complete (capability-aware Candidates/Route fallback + ReferenceBackend labeled output + ErrUnsupported; DUAL-LAYER capability correctness confirmed by me via mutation: neutering BOTH the Candidates filter AND the backend model gate fails TestRouterPicksCapabilityMatch/UnsupportedErrors -- defense-in-depth, not a bluff). ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; 1311 boundary mutation + 1303 dual-layer mutation bite. |
 | `5745f9f` | Foundation wave 27: mark 2 items Completed (HXC-1237/1278) — swim prod+sim transport parity (real protocol over deterministic SimNetwork) / property-based fuzzing (4 Go fuzz targets). Mutation spot-checks confirm bites. Registry 194->196 Completed / 443 Queued. |
-| `656bec1` | Foundation wave 27: 2 disjoint streams (both approved no-fix; mutation spot-checks bite). HXC-1237 swim prod+sim transport parity (pkg/swim: minimal additive Config.Transport injection seam in NewProtocol -- nil => real UDP NewTransport as before, non-nil => injected MessageTransport; prod behavior unchanged. NEW simparity_test.go runs the REAL swim membership protocol over the deterministic SimNetwork: 3-node full-mesh converges (all see StateAlive, 12 msgs), 4-node determinism (same seed identical), seam-load-bearing test asserts sim addr 127.0.0.1:18200. mutation: ignore cfg.Transport -> node sees only itself, convergence FAILS). HXC-1278 property-based + coverage-guided fuzzing (4 native Go FuzzXxx targets, NEW files only): FuzzParseCoverProfile (no-panic + Covered<=Total + Aggregate in [0,100]), FuzzParseTraceParent (no-panic + String() round-trip stable + valid hex ids), FuzzApply (checkpoint_merge no-panic on arbitrary checkpoint bytes via real checksum/gob path), FuzzCRDTCheckpointRoundTrip (NewCRDTCheckpoint->RestoreCRDT Fingerprint-stable + corrupt-bytes no-panic). All assert falsifiable invariants on non-empty seed corpora, run under plain go test (no -fuzz needed); mutation: break TraceParent.String() round-trip FAILS. ZERO new deps. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; 2 mutation spot-checks bite. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `caabf37` |
-| **Timestamp** | 2026-06-02T01:12:23Z |
+| **Commit** | `0346e1c` |
+| **Timestamp** | 2026-06-02T01:13:11Z |
 
 ## §3: Active Work
 

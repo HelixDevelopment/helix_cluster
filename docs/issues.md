@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 40
-**Last modified:** 2026-06-02T01:00:01Z
+**Revision:** 41
+**Last modified:** 2026-06-02T01:13:03Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **432**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -152,7 +152,7 @@ Total active items: **432**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (32 active)
+## Phase 5 (31 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -161,7 +161,6 @@ Total active items: **432**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1295 | Feature | P0 | Queued | Extend api/v1/scheduler.proto with tier constraints and power_budget |
 | HXC-1300 | Feature | P0 | Queued | Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU |
 | HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
-| HXC-1304 | Feature | P1 | Queued | Implement pkg/inference LocalBackend wrapping internal/llm manager |
 | HXC-1305 | Feature | P1 | Queued | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) |
 | HXC-1306 | Feature | P1 | Queued | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) |
 | HXC-1309 | Feature | P1 | Queued | Implement capability manifest generation + control-plane negotiation |
@@ -189,23 +188,16 @@ Total active items: **432**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1326 | Research | P3 | Queued | Implement pkg/quantum Qiskit Runtime plugin for async circuit submission (DEFERRED) |
 | HXC-1330 | Docs | P3 | Queued | Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k) |
 
-## Phase 6 (53 active)
+## Phase 6 (46 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
-| HXC-1334 | Feature | P0 | Queued | Implement pkg/hlc Hybrid Logical Clock with drift clamp and total order |
-| HXC-1335 | Feature | P0 | Queued | Implement pkg/crdt G-Counter with per-replica max-merge convergence |
-| HXC-1336 | Feature | P0 | Queued | Implement pkg/crdt LWW-Register with HLC last-writer-wins tiebreak |
-| HXC-1337 | Feature | P0 | Queued | Implement pkg/crdt OR-Set with unique-tag add/remove semantics |
-| HXC-1340 | Feature | P0 | Queued | Implement pkg/federation Cell model and lifecycle state machine |
-| HXC-1341 | Feature | P0 | Queued | Implement thread-safe Cell Registry with add/remove/list/snapshot |
 | HXC-1344 | Feature | P0 | Queued | Implement pkg/swim/hierarchical two-tier LAN+WAN delegate gossip |
 | HXC-1348 | Feature | P0 | Queued | Implement pkg/nattraversal STUN client and NAT-type classification |
 | HXC-1349 | Feature | P0 | Queued | Implement ICE candidate gathering, prioritization and connectivity checks |
 | HXC-1352 | Feature | P0 | Queued | Implement internal/cell WireGuard inter-cell mesh manager |
 | HXC-1369 | Feature | P0 | Queued | Implement cmd/helix-federation binary and helixctl federation CLI |
 | HXC-1384 | Task | P0 | Queued | Establish multi-cell integration testbed for CLAUDE-1 usability gate |
-| HXC-1338 | Feature | P1 | Queued | Implement pkg/crdt/merkle anti-entropy tree with divergent-key Diff |
 | HXC-1339 | Feature | P1 | Queued | Implement Vector Clock causality type for Tier-2 operational state |
 | HXC-1342 | Feature | P1 | Queued | Implement pkg/federation federated API aggregation with partial failure |
 | HXC-1343 | Feature | P1 | Queued | Implement Phi-accrual failure detector in pkg/swim |
