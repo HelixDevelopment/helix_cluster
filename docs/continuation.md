@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 102
-**Last modified:** 2026-06-02T01:37:02Z
+**Revision:** 103
+**Last modified:** 2026-06-02T01:37:45Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `0c8b4ca` | Foundation wave 34: HXC-1365 built + HXC-1342/1353 verified. HXC-1365 latency-aware spot/preemptible scheduler scoring (NEW pkg/scheduler/latency_spot.go LatencySpotPolicy Plugin: Score = base - latency_ms*k - preemptible-penalty(latency-sensitive jobs) + spot-bonus(batch); optional MaxLatencyMs Filter; absent-label assume-safe; 20 tests; mutation flip penalty-sign -> higher-latency scores higher FAILS LowerLatencyScoresHigher, mutation remove preemptible-penalty -> sensitive-job ordering FAILS). HXC-1342 federation API aggregation w/ partial failure VERIFIED (pkg/federation/aggregate.go CellError/Aggregate.Errors/AllCells; mutation drop-error-recording fails TestAllCells_PartialFailure). HXC-1353 WireGuard zero-downtime key rotation w/ overlap window VERIFIED (pkg/wireguard/keyrotation.go KeyOverlap grace + ActiveKeys; mutation drop-retain fails TestActiveKeysGraceWindow). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; 1365 latency-sign + 1342 + 1353 mutations bite. |
 | `6b9135e` | Foundation wave 33: mark 3 items Completed (HXC-1339/1373/1343) — Vector Clock causality / split-brain partition classifier / phi-accrual failure detector (verified). Mutation spot-checks confirm bites. Registry 216->219 Completed / 420 Queued. |
 | `37c2a9a` | Foundation wave 33: 2 builds + 1 verified. HXC-1339 Vector Clock causality (pkg/crdt/vectorclock.go: VectorClock map[ReplicaID]uint64 + Increment/Merge(per-replica max)/Compare(Before/After/Equal/CONCURRENT)/HappensBefore; 23 tests; Concurrent case (disjoint advances both flags) is the bite — a single-flag Compare returns Before and fails). HXC-1373 split-brain prevention + partition classification (NEW pkg/splitbrain: Classify(reachable,total,witness)->(Partition,Action) via 2*reachable vs total — HasQuorum/Tie/Minority/TotalIsolation + Decide leader-step-down; 22 subtests; 2-of-5=Minority NOT Tie (integer-division trap caught), 2-of-4=Tie, witness flips tie action; mutation > -> >= fails 2-of-4 tie). HXC-1343 phi-accrual failure detector VERIFIED already complete (pkg/swim/phi_accrual.go sliding-window mean/variance + -log10 tail prob + Suspect; mutation Phi-return-0 fails monotonic-rise test). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; B quorum-tie + A Concurrent + 1343 phi mutations bite. |
 | `752a2da` | Foundation wave 32: mark 8 items Completed (HXC-1334 HLC drift-clamp + verified HXC-1335/1336/1337/1338/1340/1341/1304 — CRDT/HLC/Merkle/Cell-federation/inference distributed primitives). Mutation spot-checks confirm bites. Registry 208->216 Completed / 423 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `9327930` | Foundation wave 30: mark 3 items Completed (HXC-1302/1299/1291) — wireguard spot-drain teardown / discovery 15-tier registry / device.Probe real host detection. Mutation spot-checks confirm bites. Registry 202->205 Completed / 434 Queued. |
 | `e4f0b03` | Foundation wave 30: 3 disjoint streams (all approved no-fix; mutation spot-checks bite). HXC-1302 wireguard preemption-safe teardown (pkg/wireguard/teardown.go: MeshCoordinator.TeardownPeers Stop+RemovePeer-all idempotent + SpotDrainHook(mc) cloudspot.Hooks.StopAdmission; tests w/ real curve25519 keys: add N -> teardown -> ListPeers==0, idempotent, FakeSource+Handler.Run drain removes peers; mutation skip-RemovePeer fails). HXC-1299 discovery 15-tier registry (pkg/discovery/tier_registry.go: TierRegistry.Register+SelectByTier(minTier) rank>=min via tierdef.Default() T1-T15 ordering, ordered exact-set; mutation >=->< fails TestSelectByTier_T8 got T1/T5 want T8/T12/T15). HXC-1291 device.Probe (pkg/device/probe.go + probe_{darwin,linux,other}.go: real Arch(GOARCH)/CPUCores(NumCPU)/MemoryBytes(sysctl hw.memsize / syscall.Sysinfo / MemStats fallback) + REAL os.Hostname-based ID, honest 0 for GPU/NPU/power; tests assert vs runtime oracle + real sysctl). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; B mutation bite + A/C reviewer-verified. |
 | `1e88aec` | Foundation wave 29: mark 3 items Completed (HXC-1298/1296/1310) — handheld scheduling policy / device<->pb mapping (honest lossy) / per-tier security model. Mutation spot-checks confirm bites. Registry 199->202 Completed (crossed 200) / 437 Queued. |
-| `441c7fe` | Foundation wave 29: 3 disjoint streams (all approved; A minor dead-helper + comment-lie fixed by me). HXC-1298 power/battery/thermal-aware handheld scheduling policy (pkg/scheduler/handheld.go HandheldPolicy Plugin reusing edgeaware battery/thermal/charging helpers: filter low-battery/over-thermal/unavailable/discharging-below-floor, score by battery/thermal/charging; absent-label assume-safe; 22 tests; mutation pct< -> pct> fails LowBatteryRejected). HXC-1296 device.Descriptor<->pb.Node round-trip mapping (NEW pkg/devicemap: DescriptorToNode/NodeToDescriptor over MAPPABLE fields; HONEST lossy -- round-trip identity over mapped subset + explicit test that device-only fields NPU/power/battery/trust are LOST (no false-recovery bluff); no import cycle; 7 tests). HXC-1310 per-tier security model enforcement (NEW pkg/tiersec reusing sandbox.Capability+edge+tierdef: ProfileForTier + Enforce(tier,op)->Decision over capability/data-class(inclusive)/network-egress CIDR allowlist via stdlib net; low-tier denied / high-tier allowed both directions; 24 tests; mutation data-class > -> >= fails inclusive-boundary). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; A+C mutations bite, B honest-loss reviewer-verified. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `6b9135e` |
-| **Timestamp** | 2026-06-02T01:37:02Z |
+| **Commit** | `0c8b4ca` |
+| **Timestamp** | 2026-06-02T01:37:45Z |
 
 ## §3: Active Work
 
