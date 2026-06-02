@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GPU/resource & cost: `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto: challenge/response, proof-of-GPU-work, O(1) spot-check, device-sealing), `attestadmit`, `quantization`, `local` (TCO), `pool`, `burst`.
   - Messaging/flow & edge: `flowcontrol` (K8s APF), `idempotent` (exactly-once), `rebalance` (cooperative-sticky), `informer` (list-watch cache), `redundantexec` (BOINC trust), `edgeregistry`, `edgeverify`, `slotmigration`, `hashslot`, `healthprobe`.
   - Testing/simulation: `timefault` (clock skew/freeze/monotonic injectors), BUGGIFY in `testing/dst`, `phase7matrix` (gap-matrix verifier).
-  - This session (23 pure-Go units):
+  - This session (27 pure-Go units):
     - `bursthysteresis` — `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band (HXC-1504).
     - `providerchain` — ordered multi-tier provider fallback cascade with retriable/terminal error classification and injected-clock failover SLA (HXC-1508).
     - `gpucatalog` — `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested above un-attested) (HXC-1592).
@@ -39,6 +39,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `revenueopt` — `RevenueOptimizer.OptimizeAllocation` greedy GPU→marketplace assignment maximising expected revenue, with a TEE→Chutes revenue bias; self-contained types (HXC-1456).
     - `exportcontrol` — export-control / country-code KYC gate: a controlled GPU (`H100`/`A100`) from a Tier-3 (embargoed) or unknown jurisdiction is rejected with `ErrExportDenied`; Tier-1 is allowed (HXC-1482).
     - `devicecatalog` — machine-readable 64-device taxonomy with case-insensitive substring `Lookup` resolving a discovered CPU model (e.g. `Rockchip RK3588`) to its tier / trust-level / compute-class (HXC-1331).
+    - `compliancedoc` — EU AI Act compliance-documentation pipeline: generates a model card + technical-documentation artifact from attestation-log records, with a SHA-256 provenance hash bound to the actual record content (HXC-1481).
+    - `hybridkex` — hybrid post-quantum key exchange combining X25519 (`crypto/ecdh`) and ML-KEM-768 (`crypto/mlkem`) shared secrets via HKDF-SHA256 (group `X25519MLKEM768`); a tampered ML-KEM ciphertext yields a non-matching key (HXC-1476).
+    - `carbonsched` — carbon-aware job placement: chooses the lowest-carbon-intensity latency-eligible region (deterministic name tiebreak) with per-job kWh / gCO2 metering (HXC-1480).
+    - `gpuattest` (additive `multigpu.go`) — multi-GPU node enumeration: an N-GPU node descriptor yields N distinct, independently-verifiable per-device attestation proofs keyed by GPU UUID; rejects duplicate/empty descriptors (HXC-1573).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (23 pure-Go units):
+<li>This session (27 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -296,6 +296,22 @@ a controlled GPU (<code>H100</code>/<code>A100</code>) from a Tier-3
 with case-insensitive substring <code>Lookup</code> resolving a
 discovered CPU model (e.g. <code>Rockchip RK3588</code>) to its tier /
 trust-level / compute-class (HXC-1331).</li>
+<li><code>compliancedoc</code> — EU AI Act compliance-documentation
+pipeline: generates a model card + technical-documentation artifact from
+attestation-log records, with a SHA-256 provenance hash bound to the
+actual record content (HXC-1481).</li>
+<li><code>hybridkex</code> — hybrid post-quantum key exchange combining
+X25519 (<code>crypto/ecdh</code>) and ML-KEM-768
+(<code>crypto/mlkem</code>) shared secrets via HKDF-SHA256 (group
+<code>X25519MLKEM768</code>); a tampered ML-KEM ciphertext yields a
+non-matching key (HXC-1476).</li>
+<li><code>carbonsched</code> — carbon-aware job placement: chooses the
+lowest-carbon-intensity latency-eligible region (deterministic name
+tiebreak) with per-job kWh / gCO2 metering (HXC-1480).</li>
+<li><code>gpuattest</code> (additive <code>multigpu.go</code>) —
+multi-GPU node enumeration: an N-GPU node descriptor yields N distinct,
+independently-verifiable per-device attestation proofs keyed by GPU
+UUID; rejects duplicate/empty descriptors (HXC-1573).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

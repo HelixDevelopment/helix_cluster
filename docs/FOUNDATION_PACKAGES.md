@@ -86,6 +86,7 @@ Every foundation package follows the same engineering contract:
 | `tierdef`, `tiersec` | Tier definitions and tier security. |
 | `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
 | `revenueopt` | `RevenueOptimizer.OptimizeAllocation` greedy GPU→marketplace assignment maximising expected revenue, with a TEE→Chutes revenue bias. |
+| `carbonsched` | Carbon-aware job placement: selects the lowest-carbon-intensity latency-eligible region (deterministic name tiebreak) with per-job kWh / gCO2 metering. |
 | `economics` | `RewardDistributor` multi-token distribution with treasury/reinvest splits and a conservation invariant, plus `GetParticipantROI` (ROI% + break-even days, typed unknown-participant error). |
 | `bursthysteresis` | `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band. |
 | `gpucatalog` | `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested scores rank above un-attested). |
@@ -138,6 +139,9 @@ Every foundation package follows the same engineering contract:
 | `gravalverify` | GraVal GPU attestation with a VRAM-ratio `>= 0.95` gate and a concurrent, race-clean `BatchVerify` pass-rate KPI. |
 | `fsresidency` | Filesystem residency challenge: per-byte-range `ReadAt` + SHA-256 verification proving a model file is really present on disk; truncated / missing / mismatch all fail. |
 | `exportcontrol` | Export-control / country-code KYC gate on node onboarding: a controlled GPU (`H100`/`A100`) from a Tier-3 (embargoed) or unknown jurisdiction is rejected with `ErrExportDenied`; Tier-1 is allowed. |
+| `hybridkex` | Hybrid post-quantum key exchange combining X25519 (`crypto/ecdh`) + ML-KEM-768 (`crypto/mlkem`) shared secrets via HKDF-SHA256 (negotiated group `X25519MLKEM768`); both parties derive an identical 32-byte key, and a tampered ML-KEM ciphertext yields a non-matching key. |
+| `compliancedoc` | EU AI Act compliance-documentation pipeline: generates a model card + technical-documentation artifact from attestation-log records with a SHA-256 provenance hash bound to the record content; empty logs → `ErrNoAttestations`. |
+| `gpuattest` (`multigpu.go`) | Multi-GPU node enumeration: an N-GPU node descriptor yields N distinct, independently-verifiable per-device attestation proofs keyed by GPU UUID; rejects duplicate/empty descriptors. |
 | `redundantexec`, `attestadmit`, `gpuattest` | See above — redundancy trust, attestation admission, attestation crypto. |
 
 ## Testing, Simulation & Quality
