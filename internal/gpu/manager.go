@@ -21,6 +21,16 @@ type Manager struct {
 	// error.
 	started atomic.Bool
 	monitor *Monitor
+
+	// helixPoWFraction is the fraction [0,1] of GPU capacity reserved for
+	// Helix Proof-of-Work workloads. Set by ReserveForHelixPoW; accessed under
+	// mu for consistency with helixLoad.
+	helixPoWFraction float64
+	// helixLoad is the last-reported current Helix load fraction [0,1].
+	// Set by SetHelixLoad; when this value exceeds 0.80, ChutesCapacity hard-
+	// caps Chutes (batch/external) Available and FreeMemoryMB to zero
+	// (Gepetto starvation guard).
+	helixLoad float64
 }
 
 // NewManager creates a new GPU Manager.
