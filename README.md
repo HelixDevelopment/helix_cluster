@@ -120,6 +120,7 @@ cd web && npm install && npm run dev
 
 - [`CLAUDE.md`](CLAUDE.md) — AI-agent engineering rules (end-user usability & cross-platform parity guarantees)
 - [`Constitution.md`](Constitution.md) / [`HelixConstitution/`](HelixConstitution/) — project governance
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — hardened L0–L7 architecture diagram + component map (lint-enforced by [`pkg/archlint`](pkg/archlint))
 - [`docs/FOUNDATION_PACKAGES.md`](docs/FOUNDATION_PACKAGES.md) — full catalogue of `pkg/` packages
 - [`docs/HXC_REGISTRY.md`](docs/HXC_REGISTRY.md) — the work-item registry model
 - [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards

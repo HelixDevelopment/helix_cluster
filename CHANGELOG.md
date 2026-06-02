@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - GPU/resource & cost: `costsched`, `latencysched`, `healthmonitor`, `gpuattest` (attestation crypto: challenge/response, proof-of-GPU-work, O(1) spot-check, device-sealing), `attestadmit`, `quantization`, `local` (TCO), `pool`, `burst`.
   - Messaging/flow & edge: `flowcontrol` (K8s APF), `idempotent` (exactly-once), `rebalance` (cooperative-sticky), `informer` (list-watch cache), `redundantexec` (BOINC trust), `edgeregistry`, `edgeverify`, `slotmigration`, `hashslot`, `healthprobe`.
   - Testing/simulation: `timefault` (clock skew/freeze/monotonic injectors), BUGGIFY in `testing/dst`, `phase7matrix` (gap-matrix verifier).
-  - This session (33 pure-Go units):
+  - This session (34 pure-Go units):
     - `bursthysteresis` — `BurstController` with a MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band (HXC-1504).
     - `providerchain` — ordered multi-tier provider fallback cascade with retriable/terminal error classification and injected-clock failover SLA (HXC-1508).
     - `gpucatalog` — `SUPPORTED_GPUS` compute-multiplier catalog, `LookupMultiplier`, and attestation-aware `Score` (attested above un-attested) (HXC-1592).
@@ -49,6 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `marketplaceadapter` — `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry` and a `ChutesAdapter` over HTTP (httptest fixture, non-2xx rejected) (HXC-1454).
     - `cmd/e2ee-proxy` — transparent ML-KEM-768 (`crypto/mlkem`) + AES-256-GCM encrypting proxy: `EncryptingTransport` seals request bodies and `DecryptingHandler` opens them, so the on-wire payload between proxy and upstream is ciphertext-only while the client receives the correct plaintext; tampered ciphertext is rejected (HXC-1532).
     - `e2eebench` — `MeasureHandshakeLatency` benchmarks the `hybridkex` full handshake (median + P95), proving median < 1ms on host and enforcing per-iteration key agreement (`ErrKeyDisagreement`) (HXC-1556).
+    - `archlint` + `docs/ARCHITECTURE.md` — the hardened L0–L7 architecture diagram and component map, mechanically enforced: `archlint` parses the component-map table and fails the build if any documented component maps to a package path that does not exist on disk (HXC-1424).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.

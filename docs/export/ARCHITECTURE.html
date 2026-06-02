@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ARCHITECTURE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ARCHITECTURE</h1>
+</header>
+<h1 id="helix-cluster-os-hardened-architecture-component-map">Helix
+Cluster OS — Hardened Architecture &amp; Component Map</h1>
+<blockquote>
+<p><strong>HXC-1424.</strong> This document is the canonical hardened
+architecture diagram and component map. Every component named below
+links to its implementing package (a real directory in this repository)
+and its originating gap / work-item ID. The mapping is mechanically
+enforced: the doc-lint <a
+href="../pkg/archlint"><code>pkg/archlint</code></a> parses the
+<strong>Component Map</strong> table and fails the build if any mapped
+component points at a package path that does not exist on disk. A
+component therefore cannot be documented here without a real
+implementing package.</p>
+</blockquote>
+<h2 id="seven-layer-stack-l0l7">Seven-layer stack (L0–L7)</h2>
+<p>Helix is organised as a seven-layer stack over a hardware substrate
+(L0), coordinated via <strong>SWIM gossip</strong> for membership and
+<strong>Raft</strong> consensus for strongly-consistent state, with an
+<strong>Omega-model</strong> two-level scheduler using optimistic
+concurrency.</p>
+<pre><code>┌──────────────────────────────────────────────────────────────────────────┐
+│ L7  Federation, Multi-cluster &amp; Observability                              │
+│     federation · fedtopology · metrics(+tier/cost/provider) · tracing      │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L6  Control-plane Services (14 microservices)                              │
+│     gateway · session · health · policy · llm · build · advisory · trust   │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L5  Secure Transport &amp; Networking                                          │
+│     hybridkex(X25519+ML-KEM-768) · e2ee-proxy · wireguard · ice · hashslot │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L4  Scheduling, Placement &amp; Economics                                      │
+│     scheduler(Omega) · constraints · preempt · workloadrouter · carbonsched│
+│     · marketplaceadapter · economics · revenueopt                          │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L3  Consensus &amp; Replicated State                                           │
+│     voting · mvcc · crdt · deltacrdt · antientropy · hlc                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L2  Membership &amp; Discovery                                                 │
+│     swim · discovery · scan · nattraversal · cellmesh                      │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L1  Node lifecycle &amp; Boot                                                  │
+│     node · console · helix-node · local(TCO)                               │
+├──────────────────────────────────────────────────────────────────────────┤
+│ L0  Hardware / Resource Substrate                                          │
+│     resources · gpuattest · gpu · devicecatalog · capability · exportcontrol│
+└──────────────────────────────────────────────────────────────────────────┘</code></pre>
+<p>Each layer consumes only the layers beneath it. Cross-cutting
+concerns (attestation, metrics, compliance) are surfaced as dedicated
+components rather than threaded implicitly through every layer.</p>
+<h2 id="component-map">Component Map</h2>
+<p>The table is the machine-readable contract enforced by
+<code>pkg/archlint</code>. The <strong>Package</strong> column is a
+repository-relative path to the implementing Go package (or submodule
+root). The <strong>Origin</strong> column records the HXC work-item /
+gap that introduced or hardened the component.</p>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Layer</th>
+<th>Package</th>
+<th>Origin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Resource probe &amp; sampling</td>
+<td>L0</td>
+<td><code>pkg/resources</code></td>
+<td>HXC-1153</td>
+</tr>
+<tr>
+<td>GPU attestation crypto</td>
+<td>L0</td>
+<td><code>pkg/gpuattest</code></td>
+<td>HXC-1434/1573</td>
+</tr>
+<tr>
+<td>GPU manager</td>
+<td>L0</td>
+<td><code>internal/gpu</code></td>
+<td>HXC-1447</td>
+</tr>
+<tr>
+<td>Device taxonomy catalogue</td>
+<td>L0</td>
+<td><code>pkg/devicecatalog</code></td>
+<td>HXC-1331</td>
+</tr>
+<tr>
+<td>Capability negotiation</td>
+<td>L0</td>
+<td><code>pkg/capability</code></td>
+<td>HXC-1305</td>
+</tr>
+<tr>
+<td>Export-control KYC gate</td>
+<td>L0</td>
+<td><code>pkg/exportcontrol</code></td>
+<td>HXC-1482</td>
+</tr>
+<tr>
+<td>Node agent</td>
+<td>L1</td>
+<td><code>internal/node</code></td>
+<td>HXC-1159</td>
+</tr>
+<tr>
+<td>Operator console / boot</td>
+<td>L1</td>
+<td><code>internal/console</code></td>
+<td>HXC-1147</td>
+</tr>
+<tr>
+<td>Node binary</td>
+<td>L1</td>
+<td><code>cmd/helix-node</code></td>
+<td>HXC-1159</td>
+</tr>
+<tr>
+<td>Local TCO accounting</td>
+<td>L1</td>
+<td><code>pkg/local</code></td>
+<td>HXC-1583</td>
+</tr>
+<tr>
+<td>SWIM gossip membership</td>
+<td>L2</td>
+<td><code>pkg/swim</code></td>
+<td>HXC-1344</td>
+</tr>
+<tr>
+<td>Service discovery</td>
+<td>L2</td>
+<td><code>pkg/discovery</code></td>
+<td>HXC-1363</td>
+</tr>
+<tr>
+<td>SCAN stable endpoint</td>
+<td>L2</td>
+<td><code>pkg/scan</code></td>
+<td>HXC-1403</td>
+</tr>
+<tr>
+<td>NAT traversal (STUN)</td>
+<td>L2</td>
+<td><code>pkg/nattraversal</code></td>
+<td>HXC-1383</td>
+</tr>
+<tr>
+<td>Cell mesh</td>
+<td>L2</td>
+<td><code>pkg/cellmesh</code></td>
+<td>HXC-1352</td>
+</tr>
+<tr>
+<td>Largest-subcluster voting</td>
+<td>L3</td>
+<td><code>pkg/voting</code></td>
+<td>HXC-1135</td>
+</tr>
+<tr>
+<td>MVCC time-travel store</td>
+<td>L3</td>
+<td><code>pkg/mvcc</code></td>
+<td>HXC-1238</td>
+</tr>
+<tr>
+<td>CRDT state</td>
+<td>L3</td>
+<td><code>pkg/crdt</code></td>
+<td>HXC-1240</td>
+</tr>
+<tr>
+<td>Delta-state CRDTs</td>
+<td>L3</td>
+<td><code>pkg/deltacrdt</code></td>
+<td>HXC-1409</td>
+</tr>
+<tr>
+<td>Anti-entropy repair</td>
+<td>L3</td>
+<td><code>pkg/antientropy</code></td>
+<td>HXC-1241</td>
+</tr>
+<tr>
+<td>Hybrid logical clock</td>
+<td>L3</td>
+<td><code>pkg/hlc</code></td>
+<td>HXC-1239</td>
+</tr>
+<tr>
+<td>Omega scheduler</td>
+<td>L4</td>
+<td><code>pkg/scheduler</code></td>
+<td>HXC-1137</td>
+</tr>
+<tr>
+<td>Scheduler service</td>
+<td>L4</td>
+<td><code>internal/scheduler</code></td>
+<td>HXC-1137</td>
+</tr>
+<tr>
+<td>Placement constraints</td>
+<td>L4</td>
+<td><code>pkg/constraints</code></td>
+<td>HXC-1136</td>
+</tr>
+<tr>
+<td>Preemption</td>
+<td>L4</td>
+<td><code>pkg/preempt</code></td>
+<td>HXC-1136</td>
+</tr>
+<tr>
+<td>Workload router</td>
+<td>L4</td>
+<td><code>pkg/workloadrouter</code></td>
+<td>HXC-1455</td>
+</tr>
+<tr>
+<td>Carbon-aware placement</td>
+<td>L4</td>
+<td><code>pkg/carbonsched</code></td>
+<td>HXC-1480</td>
+</tr>
+<tr>
+<td>Marketplace adapter</td>
+<td>L4</td>
+<td><code>pkg/marketplaceadapter</code></td>
+<td>HXC-1454</td>
+</tr>
+<tr>
+<td>Reward economics</td>
+<td>L4</td>
+<td><code>pkg/economics</code></td>
+<td>HXC-1460/1461</td>
+</tr>
+<tr>
+<td>Revenue optimiser</td>
+<td>L4</td>
+<td><code>pkg/revenueopt</code></td>
+<td>HXC-1456</td>
+</tr>
+<tr>
+<td>Hybrid PQ key exchange</td>
+<td>L5</td>
+<td><code>pkg/hybridkex</code></td>
+<td>HXC-1476</td>
+</tr>
+<tr>
+<td>E2EE proxy</td>
+<td>L5</td>
+<td><code>cmd/e2ee-proxy</code></td>
+<td>HXC-1532</td>
+</tr>
+<tr>
+<td>WireGuard mesh</td>
+<td>L5</td>
+<td><code>internal/wireguard</code></td>
+<td>HXC-1163</td>
+</tr>
+<tr>
+<td>ICE connectivity</td>
+<td>L5</td>
+<td><code>pkg/ice</code></td>
+<td>HXC-1349</td>
+</tr>
+<tr>
+<td>Hash-slot routing</td>
+<td>L5</td>
+<td><code>pkg/hashslot</code></td>
+<td>HXC-1135</td>
+</tr>
+<tr>
+<td>Gateway service</td>
+<td>L6</td>
+<td><code>internal/gateway</code></td>
+<td>HXC-1469</td>
+</tr>
+<tr>
+<td>Session service</td>
+<td>L6</td>
+<td><code>internal/session</code></td>
+<td>HXC-1136</td>
+</tr>
+<tr>
+<td>Health service</td>
+<td>L6</td>
+<td><code>internal/health</code></td>
+<td>HXC-1484</td>
+</tr>
+<tr>
+<td>Policy service (OPA)</td>
+<td>L6</td>
+<td><code>internal/policy</code></td>
+<td>HXC-1135</td>
+</tr>
+<tr>
+<td>LLM router service</td>
+<td>L6</td>
+<td><code>internal/llm</code></td>
+<td>HXC-1470</td>
+</tr>
+<tr>
+<td>Build service</td>
+<td>L6</td>
+<td><code>internal/build</code></td>
+<td>HXC-904</td>
+</tr>
+<tr>
+<td>Advisory engine</td>
+<td>L6</td>
+<td><code>internal/advisory</code></td>
+<td>HXC-1126</td>
+</tr>
+<tr>
+<td>Trust service</td>
+<td>L6</td>
+<td><code>internal/trust</code></td>
+<td>HXC-1135</td>
+</tr>
+<tr>
+<td>Federation</td>
+<td>L7</td>
+<td><code>pkg/federation</code></td>
+<td>HXC-1359</td>
+</tr>
+<tr>
+<td>Federation topology</td>
+<td>L7</td>
+<td><code>pkg/fedtopology</code></td>
+<td>HXC-1372</td>
+</tr>
+<tr>
+<td>Metrics (+tier/cost/provider)</td>
+<td>L7</td>
+<td><code>pkg/metrics</code></td>
+<td>HXC-1535</td>
+</tr>
+<tr>
+<td>Distributed tracing</td>
+<td>L7</td>
+<td><code>pkg/tracing</code></td>
+<td>HXC-1379</td>
+</tr>
+<tr>
+<td>Grafana dashboards</td>
+<td>L7</td>
+<td><code>pkg/grafanadash</code></td>
+<td>HXC-1551</td>
+</tr>
+<tr>
+<td>Compliance doc-gen</td>
+<td>L7</td>
+<td><code>pkg/compliancedoc</code></td>
+<td>HXC-1481</td>
+</tr>
+</tbody>
+</table>
+<h2 id="maintenance">Maintenance</h2>
+<p>This map is kept in sync as components are added or hardened
+(CLAUDE-3 / §11.4.106). When you add a control-plane component, add a
+row here with its real package path; <code>pkg/archlint</code> will fail
+CI if the path does not exist, and <code>docs_chain</code> keeps the
+rendered HTML/PDF/DOCX exports in sync. For the broader
+foundation-library catalogue see <a
+href="FOUNDATION_PACKAGES.md"><code>FOUNDATION_PACKAGES.md</code></a>;
+for the work-item registry see <a
+href="HXC_REGISTRY.md"><code>HXC_REGISTRY.md</code></a>.</p>
+</body>
+</html>

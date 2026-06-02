@@ -217,7 +217,7 @@ proof-of-GPU-work, O(1) spot-check, device-sealing),
 <li>Testing/simulation: <code>timefault</code> (clock
 skew/freeze/monotonic injectors), BUGGIFY in <code>testing/dst</code>,
 <code>phase7matrix</code> (gap-matrix verifier).</li>
-<li>This session (33 pure-Go units):
+<li>This session (34 pure-Go units):
 <ul>
 <li><code>bursthysteresis</code> — <code>BurstController</code> with a
 MONITOR→SPILL→RECOVER two-threshold hysteresis dead-band
@@ -343,6 +343,11 @@ the correct plaintext; tampered ciphertext is rejected (HXC-1532).</li>
 benchmarks the <code>hybridkex</code> full handshake (median + P95),
 proving median &lt; 1ms on host and enforcing per-iteration key
 agreement (<code>ErrKeyDisagreement</code>) (HXC-1556).</li>
+<li><code>archlint</code> + <code>docs/ARCHITECTURE.md</code> — the
+hardened L0–L7 architecture diagram and component map, mechanically
+enforced: <code>archlint</code> parses the component-map table and fails
+the build if any documented component maps to a package path that does
+not exist on disk (HXC-1424).</li>
 </ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass

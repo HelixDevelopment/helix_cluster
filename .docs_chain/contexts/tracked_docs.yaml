@@ -66,6 +66,11 @@ nodes:
   codegraph_html: { kind: html,     path: docs/export/CODEGRAPH.html }
   codegraph_pdf:  { kind: pdf,      path: docs/export/CODEGRAPH.pdf }
   codegraph_docx: { kind: docx,     path: docs/export/CODEGRAPH.docx }
+  # --- architecture diagram + component map (HXC-1424; lint-enforced by pkg/archlint) ---
+  arch_md:   { kind: markdown, path: docs/ARCHITECTURE.md }
+  arch_html: { kind: html,     path: docs/export/ARCHITECTURE.html }
+  arch_pdf:  { kind: pdf,      path: docs/export/ARCHITECTURE.pdf }
+  arch_docx: { kind: docx,     path: docs/export/ARCHITECTURE.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -106,6 +111,9 @@ edges:
   - { type: derive-from, from: codegraph_md,   to: codegraph_html, transform: md2html }
   - { type: derive-from, from: codegraph_html, to: codegraph_pdf,  transform: html2pdf }
   - { type: derive-from, from: codegraph_md,   to: codegraph_docx, transform: md2docx }
+  - { type: derive-from, from: arch_md,   to: arch_html, transform: md2html }
+  - { type: derive-from, from: arch_html, to: arch_pdf,  transform: html2pdf }
+  - { type: derive-from, from: arch_md,   to: arch_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }
