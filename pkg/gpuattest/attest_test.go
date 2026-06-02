@@ -3,6 +3,8 @@ package gpuattest
 import (
 	"crypto/ed25519"
 	"errors"
+	"sync"
+	"sync/atomic"
 	"testing"
 )
 
@@ -209,4 +211,57 @@ func TestFingerprint_StableAndCollisionFree(t *testing.T) {
 		t.Fatalf("VRAM change did not alter fingerprint")
 	}
 	t.Logf("run=%s after: fp distinct for boundary-shift and VRAM-change", runUUIDAttest)
+}
+
+// TOCTOU regression (security HIGH): many goroutines verify the SAME genuine
+// (challenge,response) concurrently. The single-use nonce contract requires
+// EXACTLY ONE acceptance; every other caller must get ErrReplay. Before the fix
+// the replay check and the nonce-consume were two separate locked sections, so
+// concurrent callers could all pass the check before any consumed the nonce and
+// MULTIPLE would be accepted — an authentication-bypass / replay window.
+//
+// Mutation: revert Verify to "check seen under lock; unlock; <crypto>; lock;
+// seen=true; unlock" (the original TOCTOU shape) and this test fails under
+// -race with accepted > 1.
+func TestVerify_ConcurrentReplayExactlyOneAccepted(t *testing.T) {
+	v := NewVerifier()
+	d, err := NewDevice("NVIDIA", "H100", "uuid-TOCTOU", 80<<30)
+	if err != nil {
+		t.Fatalf("NewDevice: %v", err)
+	}
+	c, err := v.Issue(100, 200)
+	if err != nil {
+		t.Fatalf("Issue: %v", err)
+	}
+	r := d.Respond(c, 150)
+
+	const goroutines = 64
+	var accepted, replayed int64
+	var wg sync.WaitGroup
+	start := make(chan struct{})
+	wg.Add(goroutines)
+	for i := 0; i < goroutines; i++ {
+		go func() {
+			defer wg.Done()
+			<-start // release all at once to maximize contention on the one nonce
+			switch err := v.Verify(c, r, d.Descriptor, 150); {
+			case err == nil:
+				atomic.AddInt64(&accepted, 1)
+			case errors.Is(err, ErrReplay):
+				atomic.AddInt64(&replayed, 1)
+			default:
+				t.Errorf("unexpected verify error: %v", err)
+			}
+		}()
+	}
+	t.Logf("run=%s before: %d concurrent verifies of a single nonce", runUUIDAttest, goroutines)
+	close(start)
+	wg.Wait()
+	t.Logf("run=%s after: accepted=%d replayed=%d", runUUIDAttest, accepted, replayed)
+	if accepted != 1 {
+		t.Fatalf("single-use nonce violated under concurrency: accepted=%d (want exactly 1)", accepted)
+	}
+	if replayed != goroutines-1 {
+		t.Fatalf("replayed=%d, want %d", replayed, goroutines-1)
+	}
 }

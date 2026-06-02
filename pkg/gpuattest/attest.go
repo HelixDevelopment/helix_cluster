@@ -164,21 +164,36 @@ func (v *Verifier) Verify(c Challenge, r Response, d Descriptor, nowTick int64) 
 		return ErrExpired
 	}
 
-	// (2) replay — a consumed nonce cannot be reused. Checked under lock so two
-	// concurrent verifications of the same nonce cannot both succeed.
+	// (2) replay — a consumed nonce cannot be reused. The check AND the consume
+	// happen atomically under one lock acquisition so there is no TOCTOU window:
+	// two concurrent verifications of the same nonce cannot both pass the gate —
+	// the first marks it seen, the second observes seen and is rejected. Any
+	// subsequent validation failure RELEASES the nonce (via fail() below) so a
+	// failed attempt does not permanently burn an otherwise-legitimate challenge
+	// nonce; only a fully genuine response leaves it consumed.
 	v.mu.Lock()
 	if v.seen[c.Nonce] {
 		v.mu.Unlock()
 		return ErrReplay
 	}
+	v.seen[c.Nonce] = true
 	v.mu.Unlock()
+
+	// fail releases the nonce consumed above and returns err. Used for every
+	// post-consume validation failure so only a genuine response keeps the nonce.
+	fail := func(err error) error {
+		v.mu.Lock()
+		delete(v.seen, c.Nonce)
+		v.mu.Unlock()
+		return err
+	}
 
 	// (3) forged descriptor — the descriptor presented now must hash to the
 	// fingerprint the device signed. A swapped descriptor is caught here even
 	// before the signature, because the signed fingerprint won't match.
 	wantFP := Fingerprint(d)
 	if wantFP != r.Fingerprint {
-		return ErrForgedDescriptor
+		return fail(ErrForgedDescriptor)
 	}
 
 	// (4) wrong key — the response names the public key that signed it
@@ -188,7 +203,7 @@ func (v *Verifier) Verify(c Challenge, r Response, d Descriptor, nowTick int64) 
 	// internally valid) is rejected here, BEFORE the signature math, giving a
 	// precise wrong-key verdict that does not depend on guessing.
 	if len(d.PubKey) != ed25519.PublicKeySize || !d.PubKey.Equal(r.SignerPub) {
-		return ErrWrongKey
+		return fail(ErrWrongKey)
 	}
 
 	// (5) tampered — verify the signature under the descriptor's key over the
@@ -197,19 +212,16 @@ func (v *Verifier) Verify(c Challenge, r Response, d Descriptor, nowTick int64) 
 	// here can ONLY mean a signed field was tampered.
 	msg := signedMessage(r.Nonce, r.Fingerprint, r.Tick)
 	if !ed25519.Verify(d.PubKey, msg, r.Sig) {
-		return ErrTampered
+		return fail(ErrTampered)
 	}
 
 	// The signature verified, but we must still bind it to THIS challenge: the
 	// signed nonce must equal the challenge nonce, else it is a valid signature
 	// over a different (tampered) nonce.
 	if r.Nonce != c.Nonce {
-		return ErrTampered
+		return fail(ErrTampered)
 	}
 
-	// Genuine — consume the nonce so any replay is rejected.
-	v.mu.Lock()
-	v.seen[c.Nonce] = true
-	v.mu.Unlock()
+	// Genuine — the nonce was already consumed atomically at step (2); keep it.
 	return nil
 }
