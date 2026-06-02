@@ -451,8 +451,10 @@ with treasury/reinvest conservation + participant ROI/break-even),
 <code>chutes</code> (inference client + attestation + E2EE envelope +
 <code>ChutesMinerConfig</code>/<code>ValidatorConfig</code> validation),
 <code>provider/chutes</code> (OpenAI-compatible /v1 provider + 429
-retry/backoff), <code>llmadapter</code> (Claude/OpenAI request/response
-shape adapters)</td>
+retry/backoff + Retry-After), <code>provider/runpod</code> (serverless
+warm-pool GPUProvider), <code>provider/aws</code> (EC2 Spot GPUProvider,
+injectable client), <code>llmadapter</code> (Claude/OpenAI
+request/response shape adapters)</td>
 </tr>
 <tr>
 <td><strong>Testing &amp; simulation</strong></td>

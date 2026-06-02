@@ -910,7 +910,23 @@ consistency).</td>
 <td>OpenAI-compatible <code>/v1/chat/completions</code> provider
 (configurable base URL + <code>cpk_</code> Bearer key,
 <code>ChatCompletionRequest</code>/<code>Response</code>/<code>Message</code>/<code>Usage</code>)
-with HTTP-429 retry + backoff and typed non-retryable errors.</td>
+with HTTP-429 retry + ctx-interruptible backoff that honors
+<code>Retry-After</code>, and typed non-retryable errors.</td>
+</tr>
+<tr>
+<td><code>provider/runpod</code></td>
+<td>RunPodProvider serverless GPU adapter (implements
+<code>pool.GPUProvider</code>) with a warm-pool fast path (pre-warmed
+instances served before cold provisioning) over an injectable
+client.</td>
+</tr>
+<tr>
+<td><code>provider/aws</code></td>
+<td>AWSProvider EC2 Spot adapter (implements
+<code>pool.GPUProvider</code>) over an injectable EC2-client interface
+(no aws-sdk dependency): GPU model→instance-type selection (p5/p4de/g5),
+Spot + tagging, and a TOCTOU-safe capacity gate
+(<code>launched+reserved</code>).</td>
 </tr>
 <tr>
 <td><code>chutesaccount</code></td>

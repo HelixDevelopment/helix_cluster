@@ -168,7 +168,9 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `chutes` | Chutes inference client + attestation + E2EE envelope/stream, plus `ChutesMinerConfig` / `ValidatorConfig` deployment descriptors with `Validate()` invariants (non-empty IDs/hotkeys, `GPUCount>0`, non-negative cost, TEE consistency). |
-| `provider/chutes` | OpenAI-compatible `/v1/chat/completions` provider (configurable base URL + `cpk_` Bearer key, `ChatCompletionRequest`/`Response`/`Message`/`Usage`) with HTTP-429 retry + backoff and typed non-retryable errors. |
+| `provider/chutes` | OpenAI-compatible `/v1/chat/completions` provider (configurable base URL + `cpk_` Bearer key, `ChatCompletionRequest`/`Response`/`Message`/`Usage`) with HTTP-429 retry + ctx-interruptible backoff that honors `Retry-After`, and typed non-retryable errors. |
+| `provider/runpod` | RunPodProvider serverless GPU adapter (implements `pool.GPUProvider`) with a warm-pool fast path (pre-warmed instances served before cold provisioning) over an injectable client. |
+| `provider/aws` | AWSProvider EC2 Spot adapter (implements `pool.GPUProvider`) over an injectable EC2-client interface (no aws-sdk dependency): GPU model→instance-type selection (p5/p4de/g5), Spot + tagging, and a TOCTOU-safe capacity gate (`launched+reserved`). |
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 | `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
 | `marketplaceadapter` | `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry`, an HTTP-backed `ChutesAdapter` (non-2xx rejected), and an `AkashAdapter` (Cosmos/AKT reverse-auction pricing, SDL submission, provider-reputation gate) over an injectable client; routes work to the named marketplace. |

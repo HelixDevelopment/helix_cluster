@@ -80,6 +80,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - `porcupine` — WGL state-dedup memoization via `Model.Equal`: verdict-preserving pruning (memo fires on backtracking histories; identical PASS/FAIL + witness vs `Equal==nil`) (HXC-913).
     - `chutes` — `StreamChannel` honors ctx cancellation on a blocked read (prompt channel close, no goroutine leak) and closes the owned reader (HXC-911).
     - `marketplaceadapter` (additive `akash.go`) — Akash (Cosmos/AKT) adapter over an injectable client: reverse-auction pricing, SDL submission, provider-reputation gate, registered in the `Name()`-dispatch Registry (HXC-1458).
+  - Wave 72 (5 units, subagent-driven, 5 parallel streams in disjoint packages):
+    - `provider/runpod` — RunPodProvider (implements `pool.GPUProvider`) with a warm-pool fast path over an injectable client (HXC-1515).
+    - `provider/aws` — AWSProvider EC2 Spot adapter over an injectable EC2-client interface (no aws-sdk dep): GPU model→instance-type selection (p5/p4de/g5), Spot+tags, TOCTOU-safe capacity gate (HXC-1516).
+    - `scheduler` (additive `tier_filter.go`) — GPUTier-aware filter predicate: hard-exclude disallowed tiers + preference scoring, composes with the existing count filter, fails closed on a nil predicate (HXC-1534).
+    - `provider/chutes` — ctx-interruptible 429 backoff (select vs `ctx.Done()`) + honors `Retry-After` (delta-seconds/HTTP-date, `max(hint,backoff)`) (HXC-916, closing a wave-70 follow-up).
+    - `grafanadash` (additive `tiercost_dash.go`) — Phase-8B tier-utilization + cost dashboard generator (panels target `gpu_tier_utilization`/`gpu_cost_per_hour`), valid + deterministic (HXC-1551).
 - **Security fix (HIGH):** closed a TOCTOU replay-bypass in `pkg/gpuattest.Verify` — the nonce check and consume are now atomic, with a concurrent-replay `-race` regression test.
 - Every foundation package ships with tests that fail under mutation of the logic they cover (CLAUDE-1 enforcement) and are gated by whole-tree `build`/`vet` + `-race`.
 - Initial project scaffold with Go workspace.
