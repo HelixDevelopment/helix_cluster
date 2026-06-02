@@ -23,6 +23,12 @@ var (
 	// ErrUnknownTopic is returned by leader-assignment proposal when the topic
 	// has not yet been created (and committed) in the metadata.
 	ErrUnknownTopic = errors.New("kraft: unknown topic")
+	// ErrTopicExists is returned by CreateTopic when the topic already exists
+	// in the committed metadata with a DIFFERENT partition count. An identical
+	// re-create (same name, same partition count) is idempotent and returns nil
+	// instead. This prevents a silent semantic surprise where CreateTopic returns
+	// nil even though the requested partition count was ignored.
+	ErrTopicExists = errors.New("kraft: topic already exists with different partition count")
 )
 
 // member is a single controller node within the quorum. Each member drives its
@@ -177,6 +183,11 @@ func (q *MetadataQuorum) Run() {
 // command is appended to the REPLICATED raft log by the controller and applied
 // deterministically on every member — there is NO local-only state mutation.
 //
+// Idempotency rule: if the topic already exists with the SAME partition count,
+// CreateTopic returns nil (idempotent success). If it already exists with a
+// DIFFERENT partition count, CreateTopic returns ErrTopicExists — a genuine
+// conflict rather than a silent success that would surprise callers.
+//
 // Mutation guard: if this proposed only to local state (instead of through
 // leader.raw.Propose), the committed log would not replicate and ListTopics on
 // the OTHER members would not reflect the topic — which the cross-member tests
@@ -191,6 +202,28 @@ func (q *MetadataQuorum) CreateTopic(ctx context.Context, name string, partition
 	if partitions <= 0 {
 		return fmt.Errorf("kraft: CreateTopic %q: partitions must be > 0", name)
 	}
+
+	// Pre-flight: check the controller's committed view before proposing. This
+	// surfaces the conflict to the caller BEFORE a command enters the raft log,
+	// keeping the log clean. The check is under q.mu to prevent a TOCTOU race
+	// with concurrent CreateTopic calls.
+	q.mu.Lock()
+	ctrl := q.controllerLocked()
+	if ctrl != nil {
+		if existing, ok := ctrl.state.topics[name]; ok {
+			if existing != partitions {
+				// Topic exists but with a different partition count — conflict.
+				q.mu.Unlock()
+				return fmt.Errorf("%w: topic %q has %d partitions, requested %d",
+					ErrTopicExists, name, existing, partitions)
+			}
+			// Same partition count — idempotent success; do NOT re-propose.
+			q.mu.Unlock()
+			return nil
+		}
+	}
+	q.mu.Unlock()
+
 	cmd := command{Kind: cmdCreateTopic, Topic: name, Partitions: partitions}
 	return q.propose(cmd)
 }

@@ -95,25 +95,25 @@ type ChutesMinerConfig struct {
 //   - CacheMaxSizeGB > 0
 func (c ChutesMinerConfig) Validate() error {
 	if c.NodeID == "" {
-		return fmt.Errorf("%w", ErrConfigNodeID)
+		return ErrConfigNodeID
 	}
 	if c.ValidatorHotkey == "" {
-		return fmt.Errorf("%w", ErrConfigValidatorHotkey)
+		return ErrConfigValidatorHotkey
 	}
 	if c.HourlyCostUSD < 0 {
 		return fmt.Errorf("%w: got %.6f", ErrConfigHourlyCost, c.HourlyCostUSD)
 	}
 	if c.GPUShortRef == "" {
-		return fmt.Errorf("%w", ErrConfigGPUShortRef)
+		return ErrConfigGPUShortRef
 	}
 	if c.GPUCount <= 0 {
 		return fmt.Errorf("%w: got %d", ErrConfigGPUCount, c.GPUCount)
 	}
 	if c.BittensorColdkey == "" {
-		return fmt.Errorf("%w", ErrConfigBittensorColdkey)
+		return ErrConfigBittensorColdkey
 	}
 	if c.BittensorHotkey == "" {
-		return fmt.Errorf("%w", ErrConfigBittensorHotkey)
+		return ErrConfigBittensorHotkey
 	}
 	if c.CacheMaxSizeGB <= 0 {
 		return fmt.Errorf("%w: got %d", ErrConfigCacheMaxSizeGB, c.CacheMaxSizeGB)
@@ -144,10 +144,10 @@ type ValidatorConfig struct {
 //   - Endpoint non-empty
 func (v ValidatorConfig) Validate() error {
 	if v.Hotkey == "" {
-		return fmt.Errorf("%w", ErrConfigValidatorHotkeyField)
+		return ErrConfigValidatorHotkeyField
 	}
 	if v.Endpoint == "" {
-		return fmt.Errorf("%w", ErrConfigValidatorEndpoint)
+		return ErrConfigValidatorEndpoint
 	}
 	return nil
 }

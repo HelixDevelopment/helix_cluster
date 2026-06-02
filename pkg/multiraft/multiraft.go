@@ -49,6 +49,12 @@ type shard struct {
 	nodes     map[uint64]*node
 	peers     []uint64
 	transport RaftTransport
+	// pending accumulates cross-node outbound raft messages produced while sh.mu
+	// is held in processReadyLocked. They are flushed by deliverPending AFTER sh.mu
+	// is released, so transport.Send (and any handler it invokes synchronously) is
+	// never called under sh.mu. This is what lets the receiving inbox handler take
+	// sh.mu safely — including for an asynchronous transport (HXC-909).
+	pending []pb.Message
 }
 
 // MultiRaftManager owns a set of independent shards and drives their raft groups.
@@ -125,16 +131,21 @@ func (m *MultiRaftManager) CreateShard(id ShardID, peers []uint64) error {
 	// Register inboxes AFTER all nodes exist so a delivered message always finds
 	// its destination node within this shard.
 	//
-	// WHY no lock in the handler: this relies on the RaftTransport SYNCHRONOUS-
-	// DELIVERY CONTRACT (see transport.go) — Send delivers in-band on the caller's
-	// goroutine while the source shard's sh.mu is held inside processReadyLocked.
-	// That serializes every step/dst.stopped access for this shard under one lock,
-	// so the handler steps directly; re-locking sh.mu here would deadlock against
-	// the held lock. An async transport that violated that contract would have to
-	// serialize delivery per shard on its receiving side instead.
+	// ASYNC-DELIVERY SAFETY (HXC-909): the inbox handler takes sh.mu before it
+	// reads sh.nodes / dst.stopped and calls dst.raw.Step. This makes the handler
+	// safe BY CONSTRUCTION for ANY transport — including one that delivers from its
+	// own goroutine or after a network hop — because every Step and every
+	// processReadyLocked body for this shard is now serialized under the one lock.
+	// To make this work without self-deadlock, processReadyLocked NEVER holds sh.mu
+	// while it calls transport.Send: it drains Ready under the lock, then releases
+	// the lock and delivers the collected outbound messages (see deliverPending).
+	// So when synchronous InProcTransport.Send invokes this handler inline, sh.mu is
+	// NOT held by the sender and this Lock() succeeds rather than deadlocking.
 	for _, n := range sh.nodes {
 		n := n
 		m.transport.RegisterPeer(id, n.id, func(msg pb.Message) {
+			sh.mu.Lock()
+			defer sh.mu.Unlock()
 			dst, ok := sh.nodes[msg.To]
 			if !ok || dst.stopped {
 				return
@@ -181,6 +192,10 @@ func (m *MultiRaftManager) Tick() {
 		}
 		sh.processReadyLocked()
 		sh.mu.Unlock()
+		// Flush outbound messages OUTSIDE sh.mu so a synchronous transport's inline
+		// inbox handler (which takes sh.mu) cannot deadlock and an async transport
+		// cannot race the next driving cycle.
+		sh.deliverPending()
 	}
 }
 
@@ -203,17 +218,23 @@ func (m *MultiRaftManager) Propose(ctx context.Context, shardID ShardID, data []
 	}
 
 	sh.mu.Lock()
-	defer sh.mu.Unlock()
 	leader := sh.leaderLocked()
 	if leader == nil {
+		sh.mu.Unlock()
 		return fmt.Errorf("%w: %q", ErrNoLeader, shardID)
 	}
 	if err := leader.raw.Propose(data); err != nil {
+		sh.mu.Unlock()
 		return fmt.Errorf("multiraft: propose to shard %q: %w", shardID, err)
 	}
 	// Drive the proposal through one Ready cycle so the append is replicated
 	// promptly; commitment completes over subsequent Run/Tick cycles.
 	sh.processReadyLocked()
+	sh.mu.Unlock()
+	// Flush outbound replication messages outside sh.mu (see deliverPending) so an
+	// async transport cannot race this proposal's driving and a sync transport's
+	// inline inbox handler (which takes sh.mu) cannot deadlock.
+	sh.deliverPending()
 	return nil
 }
 
@@ -235,7 +256,16 @@ func (m *MultiRaftManager) Run() {
 			if sh.processReadyLocked() {
 				progressed = true
 			}
+			hadPending := len(sh.pending) > 0
 			sh.mu.Unlock()
+			// Flush queued outbound messages outside sh.mu (see deliverPending).
+			// A flush that actually had messages counts as progress because a
+			// synchronous transport will have Stepped them into peers inline,
+			// producing new Ready work on the next iteration.
+			sh.deliverPending()
+			if hadPending {
+				progressed = true
+			}
 		}
 		if !progressed {
 			return
@@ -253,15 +283,19 @@ func (m *MultiRaftManager) Campaign(shardID ShardID, nodeID uint64) error {
 		return fmt.Errorf("%w: %q", ErrShardNotFound, shardID)
 	}
 	sh.mu.Lock()
-	defer sh.mu.Unlock()
 	n, ok := sh.nodes[nodeID]
 	if !ok || n.stopped {
+		sh.mu.Unlock()
 		return fmt.Errorf("multiraft: shard %q has no live node %d", shardID, nodeID)
 	}
 	if err := n.raw.Campaign(); err != nil {
+		sh.mu.Unlock()
 		return err
 	}
 	sh.processReadyLocked()
+	sh.mu.Unlock()
+	// Flush campaign vote requests outside sh.mu (see deliverPending).
+	sh.deliverPending()
 	return nil
 }
 
@@ -461,9 +495,10 @@ func (s *shard) processReadyLocked() bool {
 				_ = n.storage.Append(rd.Entries)
 			}
 
-			// (2) Deliver outbound messages to peer inboxes via the transport.
+			// (2) Queue outbound messages; cross-node ones are sent by deliverPending
+			// AFTER sh.mu is released (self-directed ones are stepped inline here).
 			for _, msg := range rd.Messages {
-				_ = s.deliver(msg)
+				s.deliver(msg)
 			}
 
 			// (3) Apply committed entries: conf-changes update membership;
@@ -503,18 +538,35 @@ func (s *shard) processReadyLocked() bool {
 	}
 }
 
-// deliver routes an outbound message. Messages addressed to the sending node
-// itself are stepped inline (raft sometimes emits self-directed messages that
-// must not traverse the network). All cross-node traffic is genuinely routed
-// through the RaftTransport, which is the REAL multi-node exercise: the engine's
-// MsgVote/MsgApp/MsgHeartbeat etc. are handed to the destination's registered
-// inbox by the transport. Caller holds sh.mu.
-func (s *shard) deliver(msg pb.Message) error {
+// deliver handles an outbound message produced under sh.mu. Self-directed messages
+// (raft sometimes emits messages addressed to the sender that must not traverse the
+// network) are stepped inline while the lock is held. Cross-node traffic is NOT sent
+// here — sending under sh.mu would let a synchronous transport invoke the receiver's
+// inbox handler (which now takes sh.mu) on this same goroutine and deadlock, and an
+// async transport could also deliver concurrently with this critical section. Instead
+// such messages are queued in s.pending and flushed by deliverPending after sh.mu is
+// released. Caller holds sh.mu.
+func (s *shard) deliver(msg pb.Message) {
 	if msg.To == msg.From {
 		if dst, ok := s.nodes[msg.To]; ok && !dst.stopped {
-			return dst.raw.Step(msg)
+			_ = dst.raw.Step(msg)
 		}
-		return nil
+		return
 	}
-	return s.transport.Send(s.id, msg)
+	s.pending = append(s.pending, msg)
+}
+
+// deliverPending sends every queued cross-node message over the transport. It MUST
+// be called WITHOUT holding sh.mu: transport.Send may (for a synchronous transport)
+// invoke the destination's inbox handler inline, and that handler takes sh.mu. By
+// flushing outside the lock, both synchronous and asynchronous delivery are race-free
+// and deadlock-free — the receiving handler always serializes its Step under sh.mu.
+func (s *shard) deliverPending() {
+	s.mu.Lock()
+	msgs := s.pending
+	s.pending = nil
+	s.mu.Unlock()
+	for _, msg := range msgs {
+		_ = s.transport.Send(s.id, msg)
+	}
 }

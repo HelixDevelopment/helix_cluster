@@ -90,11 +90,18 @@ func (s *metadataState) apply(c command) error {
 		if c.Partitions <= 0 {
 			return fmt.Errorf("kraft: apply create-topic %q: partitions must be > 0", c.Topic)
 		}
-		// Idempotent on replay: creating an already-present topic with the same
-		// partition count is a no-op. A conflicting re-create keeps the first
-		// definition (deterministic: first writer wins) so all members agree.
-		if _, ok := s.topics[c.Topic]; ok {
-			return nil
+		// First-writer-wins: the state machine always keeps the first committed
+		// definition. An identical re-create (same partition count) is a true
+		// idempotent no-op and returns nil. A conflicting re-create (different
+		// partition count) returns ErrTopicExists so the caller/test can detect
+		// the semantic conflict — the committed log entry is still absorbed
+		// deterministically on every member (state unchanged), ensuring convergence.
+		if existing, ok := s.topics[c.Topic]; ok {
+			if existing == c.Partitions {
+				return nil // idempotent — same definition, no change needed
+			}
+			return fmt.Errorf("%w: topic %q has %d partitions, command requested %d",
+				ErrTopicExists, c.Topic, existing, c.Partitions)
 		}
 		s.topics[c.Topic] = c.Partitions
 		if _, ok := s.leaders[c.Topic]; !ok {

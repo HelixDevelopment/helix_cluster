@@ -2,6 +2,7 @@ package kraft
 
 import (
 	"context"
+	"errors"
 	"testing"
 )
 
@@ -267,5 +268,137 @@ func TestConstructorValidation(t *testing.T) {
 	}
 	if _, err := NewMetadataQuorum([]uint64{1}); err != nil {
 		t.Fatalf("single-member quorum rejected: %v", err)
+	}
+}
+
+// TestCreateTopicConflictReturnsErrTopicExists is closure criterion #1:
+// CreateTopic("t", 4) followed by CreateTopic("t", 8) must return ErrTopicExists
+// (not nil), and the original 4-partition definition must be intact on EVERY member.
+//
+// MUTATION GUARD: if CreateTopic always returned nil (the previous silent-success
+// bug), this test would fail at the "want ErrTopicExists" assertion. The guard is
+// explicit: remove the pre-flight conflict check in CreateTopic and this test fails.
+func TestCreateTopicConflictReturnsErrTopicExists(t *testing.T) {
+	q, err := NewMetadataQuorum([]uint64{1, 2, 3})
+	if err != nil {
+		t.Fatalf("NewMetadataQuorum: %v", err)
+	}
+	electController(t, q, 1)
+
+	// First creation: 4 partitions — must succeed.
+	if err := q.CreateTopic(context.Background(), "t", 4); err != nil {
+		t.Fatalf("first CreateTopic(t,4): %v", err)
+	}
+	settle(q)
+
+	// Second creation: 8 partitions — must return ErrTopicExists, NOT nil.
+	err = q.CreateTopic(context.Background(), "t", 8)
+	if err == nil {
+		t.Fatal("CreateTopic(t,8) after CreateTopic(t,4) returned nil — silent-success bug is present")
+	}
+	if !errors.Is(err, ErrTopicExists) {
+		t.Fatalf("CreateTopic(t,8) returned %v, want errors.Is(err, ErrTopicExists)", err)
+	}
+
+	// Sink-side evidence: every member must still reflect the original 4-partition
+	// definition — NOT 8, proving the conflict command was rejected and no
+	// state mutation occurred.
+	for _, id := range []uint64{1, 2, 3} {
+		topics, lerr := q.ListTopics(id)
+		if lerr != nil {
+			t.Fatalf("ListTopics(%d): %v", id, lerr)
+		}
+		found := false
+		for _, tm := range topics {
+			if tm.Name == "t" {
+				found = true
+				if tm.Partitions != 4 {
+					t.Fatalf("member %d: topic 't' has %d partitions after conflict, want 4 (original unchanged)", id, tm.Partitions)
+				}
+			}
+		}
+		if !found {
+			t.Fatalf("member %d: topic 't' not found in committed state", id)
+		}
+	}
+}
+
+// TestCreateTopicIdempotentSamePartitions is closure criterion #2:
+// CreateTopic("t", 4) twice with the SAME partition count must be idempotent success
+// (nil error on both calls) and the topic must still have exactly 4 partitions.
+//
+// This test also proves that the idempotent path does NOT inject a duplicate command
+// into the raft log (CommittedCount stays at 1, not 2).
+func TestCreateTopicIdempotentSamePartitions(t *testing.T) {
+	q, err := NewMetadataQuorum([]uint64{1, 2, 3})
+	if err != nil {
+		t.Fatalf("NewMetadataQuorum: %v", err)
+	}
+	electController(t, q, 1)
+
+	// First call.
+	if err := q.CreateTopic(context.Background(), "t", 4); err != nil {
+		t.Fatalf("first CreateTopic(t,4): %v", err)
+	}
+	settle(q)
+
+	// Second call — identical, must be nil (idempotent).
+	if err := q.CreateTopic(context.Background(), "t", 4); err != nil {
+		t.Fatalf("second CreateTopic(t,4) returned %v, want nil (idempotent)", err)
+	}
+	settle(q)
+
+	// Sink-side: every member must see exactly one committed metadata entry and
+	// exactly 4 partitions. CommittedCount == 1 proves the idempotent path did
+	// NOT re-propose through raft (no duplicate entry in the log).
+	for _, id := range []uint64{1, 2, 3} {
+		topics, lerr := q.ListTopics(id)
+		if lerr != nil {
+			t.Fatalf("ListTopics(%d): %v", id, lerr)
+		}
+		if len(topics) != 1 || topics[0].Name != "t" || topics[0].Partitions != 4 {
+			t.Fatalf("member %d: expected [{t 4}], got %v", id, topics)
+		}
+		n, cerr := q.CommittedCount(id)
+		if cerr != nil {
+			t.Fatalf("CommittedCount(%d): %v", id, cerr)
+		}
+		if n != 1 {
+			t.Fatalf("member %d: committed %d entries, want 1 (idempotent path must not re-propose)", id, n)
+		}
+	}
+}
+
+// TestMetadataApplyConflictReturnsErrTopicExists proves the defense-in-depth
+// behavior of metadataState.apply directly: applying a cmdCreateTopic with a
+// different partition count for an already-existing topic returns an error that
+// wraps ErrTopicExists, while the same partition count stays a nil no-op.
+//
+// This guards the apply layer independently from the quorum pre-flight check,
+// so both layers are mutation-tested.
+func TestMetadataApplyConflictReturnsErrTopicExists(t *testing.T) {
+	s := newMetadataState()
+	if err := s.apply(command{Kind: cmdCreateTopic, Topic: "x", Partitions: 4}); err != nil {
+		t.Fatalf("initial create: %v", err)
+	}
+
+	// Same partition count — idempotent, must return nil.
+	if err := s.apply(command{Kind: cmdCreateTopic, Topic: "x", Partitions: 4}); err != nil {
+		t.Fatalf("idempotent re-apply returned %v, want nil", err)
+	}
+
+	// Different partition count — must return an error wrapping ErrTopicExists.
+	err := s.apply(command{Kind: cmdCreateTopic, Topic: "x", Partitions: 8})
+	if err == nil {
+		t.Fatal("apply conflict returned nil — silent-success bug present in state machine layer")
+	}
+	if !errors.Is(err, ErrTopicExists) {
+		t.Fatalf("apply conflict returned %v, want errors.Is(err, ErrTopicExists)", err)
+	}
+
+	// State must be unchanged: still 4 partitions, not 8.
+	topics := s.listTopics()
+	if len(topics) != 1 || topics[0].Partitions != 4 {
+		t.Fatalf("state after conflict: %v, want 4 partitions", topics)
 	}
 }

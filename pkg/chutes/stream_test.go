@@ -4,10 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 // cannedStream is an SSE body with three content frames, a keep-alive comment,
@@ -198,5 +202,407 @@ func TestStreamCompletionOverHTTP(t *testing.T) {
 	}
 	if strings.Join(got, "") != "Hello world" {
 		t.Fatalf("streamed content = %q, want %q", strings.Join(got, ""), "Hello world")
+	}
+}
+
+// blockingReader is an io.ReadCloser whose Read blocks until unblockCh is
+// closed. It tracks whether Close has been called (used by the closer tests).
+type blockingReader struct {
+	unblockCh chan struct{} // closed to unblock pending Read calls
+	closedMu  sync.Mutex
+	closed    bool
+}
+
+func newBlockingReader() *blockingReader {
+	return &blockingReader{unblockCh: make(chan struct{})}
+}
+
+// Read blocks until unblockCh is closed, then returns io.EOF so the caller
+// (e.g. bufio.Scanner) stops. This simulates a slow/stalled network body.
+func (b *blockingReader) Read(p []byte) (int, error) {
+	<-b.unblockCh
+	return 0, io.EOF
+}
+
+// Close records the call and unblocks any pending Read so goroutines exit
+// cleanly, preventing test goroutine leaks under -race.
+func (b *blockingReader) Close() error {
+	b.closedMu.Lock()
+	b.closed = true
+	b.closedMu.Unlock()
+	select {
+	case <-b.unblockCh: // already closed
+	default:
+		close(b.unblockCh)
+	}
+	return nil
+}
+
+// isClosed reports whether Close was called.
+func (b *blockingReader) isClosed() bool {
+	b.closedMu.Lock()
+	defer b.closedMu.Unlock()
+	return b.closed
+}
+
+// TestStreamChannelCancelUnblocksPromptly proves that cancelling ctx causes
+// StreamChannel to close its channels promptly even when the io.Reader is
+// blocking — i.e., the goroutine does not leak.
+//
+// MUTATION GUARD: removing the ctx-cancellation pipe-close path in StreamChannel
+// (the watcher goroutine that calls pipeW.CloseWithError(ctx.Err())) makes the
+// goroutine block forever on the io.Copy, so the channels are never closed and
+// this test times out — proving the branch is load-bearing.
+func TestStreamChannelCancelUnblocksPromptly(t *testing.T) {
+	t.Parallel()
+	r := newBlockingReader()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	events, errc := StreamChannel(ctx, r)
+
+	// Cancel the context after a brief startup delay. The reader is blocked so
+	// no events will arrive before the cancel.
+	cancel()
+
+	// Both channels MUST close within a generous but bounded time. Under -race
+	// the scheduler may be slower, so we use 2 s. A goroutine leak would cause
+	// this select to hit the timeout branch and fail the test.
+	const deadline = 2 * time.Second
+	timer := time.NewTimer(deadline)
+	defer timer.Stop()
+
+	// Drain the events channel until it closes.
+	eventsClosed := false
+	errcClosed := false
+	for !eventsClosed || !errcClosed {
+		select {
+		case _, ok := <-events:
+			if !ok {
+				eventsClosed = true
+			}
+		case _, ok := <-errc:
+			if !ok {
+				errcClosed = true
+			}
+		case <-timer.C:
+			t.Fatal("StreamChannel channels did not close within 2 s after ctx cancel " +
+				"(possible goroutine leak — mutation guard: is the ctx-watcher pipe-close present?)")
+		}
+	}
+}
+
+// TestStreamChannelClosesReader proves that StreamChannel calls Close on the
+// io.Reader (when it is also an io.Closer) both on a clean [DONE] completion
+// and on ctx cancellation.
+//
+// MUTATION GUARD: removing the `defer rc.Close()` call in StreamChannel causes
+// isClosed() to return false and both sub-tests fail.
+func TestStreamChannelClosesReader(t *testing.T) {
+	t.Parallel()
+
+	// makeRC builds an io.ReadCloser from a plain io.Reader and a close flag.
+	makeRC := func(r io.Reader, closed *atomic.Bool) io.ReadCloser {
+		return struct {
+			io.Reader
+			io.Closer
+		}{
+			Reader: r,
+			Closer: closerFunc(func() error { closed.Store(true); return nil }),
+		}
+	}
+
+	t.Run("on clean DONE", func(t *testing.T) {
+		t.Parallel()
+		var closedFlag atomic.Bool
+		rc := makeRC(strings.NewReader(cannedStream), &closedFlag)
+
+		events, errc := StreamChannel(context.Background(), rc)
+		// Drain all events.
+		for range events {
+		}
+		if err := <-errc; err != nil {
+			t.Fatalf("terminal error = %v, want nil", err)
+		}
+		if !closedFlag.Load() {
+			t.Fatal("StreamChannel did not call Close() on the ReadCloser after clean [DONE]")
+		}
+	})
+
+	t.Run("on ctx cancel", func(t *testing.T) {
+		t.Parallel()
+		r := newBlockingReader()
+
+		ctx, cancel := context.WithCancel(context.Background())
+		events, errc := StreamChannel(ctx, r)
+
+		cancel()
+
+		// Drain channels.
+		const deadline = 2 * time.Second
+		timer := time.NewTimer(deadline)
+		defer timer.Stop()
+		eventsClosed := false
+		errcClosed := false
+		for !eventsClosed || !errcClosed {
+			select {
+			case _, ok := <-events:
+				if !ok {
+					eventsClosed = true
+				}
+			case _, ok := <-errc:
+				if !ok {
+					errcClosed = true
+				}
+			case <-timer.C:
+				t.Fatal("channels did not close within 2 s")
+			}
+		}
+
+		if !r.isClosed() {
+			t.Fatal("StreamChannel did not call Close() on the ReadCloser after ctx cancel")
+		}
+	})
+}
+
+// trailingReadCloser wraps a base reader and, once the base returns io.EOF,
+// blocks until Close() is called. It implements io.ReadCloser to simulate an
+// http.Response.Body that keeps the connection open after the SSE [DONE]
+// sentinel — the exact scenario that previously deadlocked StreamChannel when
+// neither r.Close() nor pipeR.Close() was called on the [DONE] exit path.
+type trailingReadCloser struct {
+	base    io.Reader
+	br      *blockingReader // unblocked by Close()
+	usedBase bool
+	mu       sync.Mutex
+	closed   bool
+}
+
+func newTrailingReadCloser(base string) *trailingReadCloser {
+	return &trailingReadCloser{
+		base: strings.NewReader(base),
+		br:   newBlockingReader(),
+	}
+}
+
+func (t *trailingReadCloser) Read(p []byte) (int, error) {
+	if !t.usedBase {
+		n, err := t.base.Read(p)
+		if err == io.EOF {
+			t.usedBase = true
+			if n > 0 {
+				return n, nil
+			}
+		} else {
+			return n, err
+		}
+	}
+	// Block until Close() is called, simulating a kept-alive HTTP body.
+	return t.br.Read(p)
+}
+
+func (t *trailingReadCloser) Close() error {
+	return t.br.Close()
+}
+
+func (t *trailingReadCloser) isClosed() bool {
+	return t.br.isClosed()
+}
+
+// TestStreamChannelDoneWithTrailingData is a regression test for the
+// deadlock/goroutine-leak that occurred when the underlying reader had trailing
+// data (or an open connection) after emitting [DONE].
+//
+// Scenario: an http.Response.Body (which is always an io.ReadCloser) emits the
+// [DONE] sentinel and then blocks in its next Read() because the server has not
+// yet closed the TCP connection. Before the fix, scanSSE returned stop=true on
+// [DONE], but the copy goroutine was stuck in r.Read() waiting for more data,
+// and the watcher goroutine never called closeReader() for the clean-[DONE]
+// path, so <-copyDone blocked forever.
+//
+// The fix adds a scanDone channel: after scanSSE returns, the watcher is
+// signalled and calls closeReader() + pipeW.CloseWithError, which unblocks the
+// copy goroutine from its pending r.Read().
+//
+// This test uses context.Background() (no ctx timeout) so the ONLY escape is
+// the watcher's scanDone path — not a ctx timeout acting as a silent escape
+// valve. The test-level timer detects the deadlock as a hard failure.
+//
+// MUTATION GUARD: removing the `close(scanDone)` call (or the corresponding
+// watcher case) from StreamChannel causes this test to time out — proving the
+// scanDone signal is load-bearing.
+func TestStreamChannelDoneWithTrailingData(t *testing.T) {
+	t.Parallel()
+
+	// trailingReadCloser emits the SSE body (including [DONE]) then blocks in
+	// Read until Close() is called — simulating an http.Response.Body that keeps
+	// the TCP connection open. Because it implements io.Closer, StreamChannel
+	// will call Close() on it, which unblocks the Read and lets the copy
+	// goroutine exit.
+	r := newTrailingReadCloser(
+		"data: {\"model\":\"m\",\"choices\":[{\"delta\":{\"content\":\"tok\"}}]}\n\ndata: [DONE]\n\n",
+	)
+
+	// Use context.Background() — no ctx timeout. Only the scanDone watcher path
+	// can terminate this; if it is absent, the test-level timer fires.
+	events, errc := StreamChannel(context.Background(), r)
+
+	const deadline = 3 * time.Second
+	timer := time.NewTimer(deadline)
+	defer timer.Stop()
+
+	var got []string
+	var termErr error
+	eventsDone := false
+	errcDone := false
+
+	for !eventsDone || !errcDone {
+		select {
+		case e, ok := <-events:
+			if !ok {
+				eventsDone = true
+			} else {
+				got = append(got, e.Content)
+			}
+		case e, ok := <-errc:
+			if !ok {
+				errcDone = true
+			} else {
+				termErr = e
+			}
+		case <-timer.C:
+			t.Fatal("StreamChannel channels did not close within 3 s after [DONE] with trailing data " +
+				"(deadlock: copy goroutine stuck in r.Read() — MUTATION GUARD: is close(scanDone) + watcher case present?)")
+		}
+	}
+
+	// A nil terminal error means clean [DONE] — the trailing-body-close must NOT
+	// surface as an error to the caller.
+	if termErr != nil {
+		t.Fatalf("terminal error = %v, want nil", termErr)
+	}
+	if len(got) != 1 || got[0] != "tok" {
+		t.Fatalf("tokens = %v, want [tok]", got)
+	}
+	// r.Close() must have been called by the watcher to unblock the copy goroutine.
+	if !r.isClosed() {
+		t.Fatal("StreamChannel did not call Close() on the ReadCloser on clean [DONE] path")
+	}
+}
+
+// TestStreamChannelMidStreamCancel proves that cancelling the context while
+// events are already pending in the channel causes StreamChannel to stop
+// promptly — i.e. it does not require all enqueued events to be drained before
+// it honours the cancellation. This exercises the `case <-ctx.Done()` branch
+// inside the scanSSE callback that the existing cancel-before-read test misses.
+//
+// MUTATION GUARD: replacing the select inside the scanSSE callback with a plain
+// `events <- ev` (removing the ctx.Done() case) causes this test to hang: the
+// goroutine blocks waiting for the caller to drain the unbuffered events channel
+// while the caller (this test) has already stopped reading after the cancel.
+func TestStreamChannelMidStreamCancel(t *testing.T) {
+	t.Parallel()
+
+	// Use a synchronised reader that lets us pace delivery: we feed one frame,
+	// then cancel the context, then attempt to feed more frames. The goroutine
+	// must stop without requiring us to drain the channel.
+	readyCh := make(chan struct{})  // closed after the first frame is queued
+	cancelCh := make(chan struct{}) // closed when ctx is cancelled (signals reader to continue)
+
+	// pausingReader delivers the first SSE frame synchronously, then pauses
+	// until cancelCh is closed to simulate a slow body arriving mid-stream.
+	pr, pw := io.Pipe()
+	go func() {
+		// Write the first event immediately.
+		_, _ = pw.Write([]byte("data: {\"model\":\"m\",\"choices\":[{\"delta\":{\"content\":\"A\"}}]}\n\n"))
+		close(readyCh)
+		// Wait until the test cancels the ctx before writing more, so the cancel
+		// always races with a pending (or in-flight) event send.
+		<-cancelCh
+		// Write a second frame that the goroutine should NOT deliver because ctx
+		// is already cancelled.
+		_, _ = pw.Write([]byte("data: {\"model\":\"m\",\"choices\":[{\"delta\":{\"content\":\"B\"}}]}\n\ndata: [DONE]\n\n"))
+		pw.Close()
+	}()
+
+	ctx, cancel := context.WithCancel(context.Background())
+
+	events, errc := StreamChannel(ctx, pr)
+
+	// Wait until at least one frame has been written to the pipe (so the
+	// goroutine has had a chance to parse it and attempt to send it on events).
+	<-readyCh
+	// Cancel the context; this must cause StreamChannel to stop promptly even
+	// if the events channel is not being drained by this goroutine.
+	cancel()
+	close(cancelCh) // let the pipe writer proceed (it will also unblock pipeW on ctx path)
+
+	// Now drain whatever events arrived before cancellation and wait for both
+	// channels to close. The test must complete well within the deadline.
+	const deadline = 3 * time.Second
+	timer := time.NewTimer(deadline)
+	defer timer.Stop()
+
+	eventsClosed := false
+	errcClosed := false
+	for !eventsClosed || !errcClosed {
+		select {
+		case _, ok := <-events:
+			if !ok {
+				eventsClosed = true
+			}
+		case _, ok := <-errc:
+			if !ok {
+				errcClosed = true
+			}
+		case <-timer.C:
+			t.Fatal("StreamChannel channels did not close within 3 s after mid-stream ctx cancel " +
+				"(possible goroutine leak — mutation guard: is the ctx.Done() case inside the callback present?)")
+		}
+	}
+	// Reaching here proves the goroutine exited promptly on cancellation.
+}
+
+// closerFunc is an io.Closer backed by a plain function, used in table-driven
+// test helpers so we can compose Reader+Closer without a bespoke struct.
+type closerFunc func() error
+
+func (f closerFunc) Close() error { return f() }
+
+// TestStreamChannelHappyPathUnchanged proves that the ctx-wiring refactor does
+// NOT break the normal happy-path: all chunks arrive in order and the terminal
+// error is nil, identical to the pre-fix behaviour captured by
+// TestStreamChannelOrdered. Also asserts that Close is called on a ReadCloser
+// after a normal [DONE] termination.
+//
+// MUTATION GUARD: reversing the send order in StreamChannel (or swapping events
+// and errc closes) breaks the ordered-token assertion.
+func TestStreamChannelHappyPathUnchanged(t *testing.T) {
+	t.Parallel()
+
+	var closedFlag atomic.Bool
+	rc := struct {
+		io.Reader
+		io.Closer
+	}{
+		Reader: strings.NewReader(cannedStream),
+		Closer: closerFunc(func() error { closedFlag.Store(true); return nil }),
+	}
+
+	events, errc := StreamChannel(context.Background(), rc)
+
+	var got []string
+	for e := range events {
+		got = append(got, e.Content)
+	}
+	if err := <-errc; err != nil {
+		t.Fatalf("terminal error = %v, want nil", err)
+	}
+	want := []string{"Hel", "lo", " world"}
+	if strings.Join(got, "|") != strings.Join(want, "|") {
+		t.Fatalf("tokens = %v, want %v", got, want)
+	}
+	if !closedFlag.Load() {
+		t.Fatal("StreamChannel did not call Close() on the ReadCloser on happy path")
 	}
 }

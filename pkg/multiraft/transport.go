@@ -30,19 +30,20 @@ type RaftTransport interface {
 	// Send delivers msg to msg.To within the given shard. Implementations must be
 	// safe for concurrent use because multiple shards drive sends in parallel.
 	//
-	// SYNCHRONOUS-DELIVERY CONTRACT (load-bearing): Send MUST deliver msg to the
-	// destination's registered MessageHandler synchronously, on the calling
-	// goroutine, BEFORE Send returns. The manager invokes Send only from inside
-	// processReadyLocked while holding the source shard's sh.mu, and the registered
-	// handler steps the destination RawNode and reads dst.stopped WITHOUT taking a
-	// lock — that is sound ONLY because synchronous in-band delivery means every
-	// handler invocation for a shard is serialized under that same sh.mu. An
-	// implementation that delivers asynchronously (a goroutine, a network round
-	// trip, queued dispatch) would invoke the handler concurrently with the shard's
-	// own driving and race on dst.stopped / RawNode.Step; such a transport MUST
-	// instead serialize delivery per shard (e.g. step under the shard's lock on the
-	// receiving side) before it can satisfy this interface. InProcTransport meets
-	// the contract by calling the handler inline within Send.
+	// DELIVERY-TIMING FREEDOM (HXC-909): Send MAY deliver msg to the destination's
+	// registered MessageHandler synchronously (InProcTransport delivers inline) OR
+	// asynchronously (a goroutine, a network round trip, queued dispatch). This is
+	// race-free BY CONSTRUCTION: the manager's registered handler serializes its
+	// RawNode.Step and its dst.stopped read under the destination shard's sh.mu, and
+	// the manager NEVER holds sh.mu while it calls Send — outbound messages are
+	// queued under the lock and flushed by deliverPending after the lock is released.
+	// So a handler invoked from the transport's own goroutine and the shard's own
+	// processReadyLocked are mutually excluded by that one sh.mu, and a synchronous
+	// transport's inline handler does not deadlock (the sender is not holding sh.mu).
+	// The earlier hard "synchronous, in-band, before-return" precondition is no longer
+	// required; both delivery styles are supported and tested under -race (see
+	// asyncTransport in async_transport_test.go). Implementations must still be safe
+	// for concurrent Send calls because multiple shards drive sends in parallel.
 	Send(shard ShardID, msg pb.Message) error
 	// RegisterPeer wires a destination node's inbound message handler into the
 	// transport so future Sends to that (shard, nodeID) are routed to it.

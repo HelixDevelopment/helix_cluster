@@ -205,6 +205,147 @@ func TestRecorder_EndUnknownToken(t *testing.T) {
 	}
 }
 
+// --- HXC-913: state-dedup memoization ---
+//
+// These histories are built so that the WGL search must backtrack through
+// configurations (same already-linearized op-set + Equal model state) that are
+// reached by more than one permutation. That is exactly when the visited-set
+// pruning fires.
+
+// memoBacktrackHistory builds a LINEARIZABLE history that nonetheless forces
+// deep backtracking with revisited equivalent configurations. Several W(1) and
+// W(2) writes all fully overlap (same Call/Return), plus a read of 1 and reads
+// of 2. The read of 1 pins value 1 to be observed before any W(2) becomes the
+// latest applied write; the reads of 2 must come after. Because the writes are
+// interchangeable within each value, many distinct linearization prefixes land
+// on the same (op-set, state) node — the memo's reason to exist.
+func memoBacktrackHistory() []Operation {
+	var hist []Operation
+	for i := 0; i < 4; i++ {
+		hist = append(hist, w(i, 1, 1, 100))
+	}
+	for i := 0; i < 4; i++ {
+		hist = append(hist, w(20+i, 2, 1, 100))
+	}
+	hist = append(hist, rd(40, 1, 1, 100))
+	hist = append(hist, rd(41, 2, 1, 100))
+	hist = append(hist, rd(42, 2, 1, 100))
+	return hist
+}
+
+// Closure #2 (memoization is actually exercised) + the MUTATION GUARD.
+//
+// The history is linearizable, so the verdict MUST stay OK. With Model.Equal
+// set, the search revisits equivalent dead-end configurations and the memo
+// prunes them: memoHits MUST be > 0, proving the visited-set is consulted and
+// effective (not dead code).
+//
+// MUTATION GUARD: if the memo probe were inverted — pruning *valid* branches
+// (e.g. `if !model.Equal(s, state)` instead of `if model.Equal(...)`, or
+// pruning unconditionally on a key collision) — the search would cut off the
+// branch that leads to the valid linearization and this LINEARIZABLE history
+// would wrongly return OK=false. The assertion `res.OK == true` therefore fails
+// under that mutation. Likewise, if the recorded state were added on success
+// instead of on a proven dead end, a reachable success node would be poisoned
+// and the verdict would flip to FAIL. So the polarity of both the probe and the
+// record is load-bearing and pinned here.
+func TestCheckOperations_MemoExercisedAndCorrect(t *testing.T) {
+	model := registerModel()
+	hist := memoBacktrackHistory()
+
+	res := CheckOperationsVerbose(model, hist)
+	if !res.OK {
+		t.Fatalf("memo history must remain LINEARIZABLE, got FAIL (offending=%+v)", res.Offending)
+	}
+	if res.memoHits <= 0 {
+		t.Fatalf("expected the visited-set to prune at least once (memoHits>0), got %d — memoization not exercised", res.memoHits)
+	}
+	t.Logf("memoization pruned %d revisited configurations", res.memoHits)
+}
+
+// Closure #1 + #3: verdict parity. For BOTH a linearizable and a
+// non-linearizable history, the PASS/FAIL verdict and the witness must be
+// IDENTICAL whether memoization is on (Equal != nil) or off (Equal == nil).
+// This proves the optimization changed only search effort, never correctness.
+func TestCheckOperations_MemoVerdictParity(t *testing.T) {
+	withMemo := registerModel()
+	noMemo := registerModel()
+	noMemo.Equal = nil // disable memoization entirely.
+
+	type tc struct {
+		name   string
+		hist   []Operation
+		wantOK bool
+	}
+	staleRead := []Operation{
+		w(0, 1, 1, 2),
+		rd(1, 0, 3, 4), // stale read after the write returned -> NOT linearizable
+	}
+	cases := []tc{
+		{"linearizable-overlap", []Operation{w(0, 1, 1, 4), rd(1, 1, 2, 3), rd(1, 1, 5, 6)}, true},
+		{"sequential", []Operation{w(0, 7, 1, 2), rd(0, 7, 3, 4), w(0, 9, 5, 6), rd(0, 9, 7, 8)}, true},
+		{"memo-backtrack", memoBacktrackHistory(), true},
+		{"stale-read", staleRead, false},
+		{"impossible-value", []Operation{w(0, 1, 1, 2), rd(1, 42, 1, 6)}, false},
+		{"empty", nil, true},
+	}
+
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			rWith := CheckOperationsVerbose(withMemo, c.hist)
+			rNo := CheckOperationsVerbose(noMemo, c.hist)
+
+			if rWith.OK != c.wantOK {
+				t.Fatalf("with-memo verdict=%v, want %v", rWith.OK, c.wantOK)
+			}
+			if rNo.OK != c.wantOK {
+				t.Fatalf("no-memo verdict=%v, want %v", rNo.OK, c.wantOK)
+			}
+			if rWith.OK != rNo.OK {
+				t.Fatalf("memo changed the verdict: with=%v no=%v", rWith.OK, rNo.OK)
+			}
+			// On failure the witness operation must also be identical.
+			if !rWith.OK && rWith.Offending != rNo.Offending {
+				t.Fatalf("memo changed the witness: with=%+v no=%+v", rWith.Offending, rNo.Offending)
+			}
+			// With memo disabled, the visited-set is never consulted.
+			if rNo.memoHits != 0 {
+				t.Fatalf("Equal==nil must disable memoization, but memoHits=%d", rNo.memoHits)
+			}
+		})
+	}
+}
+
+// A non-linearizable, heavily-overlapping history also exercises the memo (every
+// leaf is a dead end, so revisited configurations are pruned) while STILL
+// returning the correct FAIL verdict with a read witness. This pins that
+// memoization does not mask a real violation.
+func TestCheckOperations_MemoFailStillFails(t *testing.T) {
+	model := registerModel()
+	var hist []Operation
+	for i := 0; i < 5; i++ {
+		hist = append(hist, w(i, 1, 1, 100)) // identical overlapping writes of 1
+	}
+	for i := 0; i < 3; i++ {
+		hist = append(hist, rd(10+i, 1, 1, 100)) // legal reads of 1
+	}
+	// One impossible read (value 7 is never written) makes the whole history
+	// non-linearizable; the search must exhaust every permutation.
+	hist = append(hist, rd(99, 7, 1, 100))
+
+	res := CheckOperationsVerbose(model, hist)
+	if res.OK {
+		t.Fatalf("history with an impossible read must be NON-linearizable")
+	}
+	if res.memoHits <= 0 {
+		t.Fatalf("expected memo to prune revisited dead ends (memoHits>0), got %d", res.memoHits)
+	}
+	in, ok := res.Offending.Input.(regOp)
+	if !ok || in.kind != regRead {
+		t.Fatalf("expected the offending op to be a read, got %+v", res.Offending)
+	}
+}
+
 // Tokens never collide and the logical clock is strictly monotonic per op so
 // concurrently-begun ops still get Call < Return.
 func TestRecorder_MonotonicClock(t *testing.T) {

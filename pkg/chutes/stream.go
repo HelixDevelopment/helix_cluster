@@ -2,6 +2,7 @@ package chutes
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -9,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // doneSentinel is the OpenAI SSE terminator that ends a stream.
@@ -19,7 +21,7 @@ const doneSentinel = "[DONE]"
 // from a truncated one. A normal [DONE] stream yields a nil error.
 var ErrStreamClosed = errors.New("chutes: stream closed without [DONE]")
 
-// StreamDelta is one decoded streamed token delta, in arrival order.
+// StreamChoiceDelta is one decoded streamed token delta, in arrival order.
 type StreamChoiceDelta struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
@@ -141,13 +143,97 @@ func scanSSE(r io.Reader, onData func(payload string) (stop bool, err error)) er
 // the context is cancelled. The error channel carries at most one terminal
 // error (nil on clean [DONE] close, ErrStreamClosed on truncation). The caller
 // must drain events; both channels are closed by the goroutine.
+//
+// Cancellation contract: when ctx is cancelled, StreamChannel stops reading r
+// and closes both channels promptly — even if r's Read is currently blocked
+// (e.g. a slow or stalled network body). This is achieved via two mechanisms:
+//
+//  1. An io.Pipe forwards r → scanner; closing pipeW causes bufio.Scanner to
+//     see EOF regardless of the pipe's read side.
+//  2. If r is an io.Closer (e.g. http.Response.Body), the watcher goroutine
+//     calls r.Close() on ctx cancellation, which unblocks any in-progress
+//     r.Read() call so the forwarding goroutine exits promptly.
+//
+// Ownership: if r implements io.Closer, StreamChannel calls r.Close() exactly
+// once — either on a clean [DONE] completion or on ctx cancellation. This
+// mirrors the defer Body.Close() pattern used by attempt() and StreamCompletion.
 func StreamChannel(ctx context.Context, r io.Reader) (<-chan StreamEvent, <-chan error) {
 	events := make(chan StreamEvent)
 	errc := make(chan error, 1)
 	go func() {
 		defer close(events)
 		defer close(errc)
-		err := scanSSE(r, func(payload string) (bool, error) {
+
+		// closeOnce ensures r.Close() is called exactly once even though it may
+		// be triggered by either the watcher (ctx cancel) or the deferred cleanup.
+		var closeOnce sync.Once
+		closeReader := func() {
+			if rc, ok := r.(io.Closer); ok {
+				closeOnce.Do(func() { rc.Close() })
+			}
+		}
+		// Always close r when the goroutine exits (idempotent via closeOnce).
+		defer closeReader()
+
+		// Pipe r through an io.Pipe so that closing the write end (pipeW)
+		// immediately signals EOF to bufio.Scanner reading from pipeR — even if r
+		// itself is still blocking. Without this indirection, ctx cancellation
+		// would not interrupt a blocked bufio.Scanner.Scan() call because the
+		// scanner's next Scan() is stuck inside r.Read().
+		pipeR, pipeW := io.Pipe()
+
+		// scanDone is closed by the main goroutine immediately after scanSSE
+		// returns, signalling the watcher goroutine that scanning has finished.
+		// The watcher then closes both r (via closeReader) and pipeW, which
+		// unblocks the copy goroutine from wherever it is currently blocked:
+		//
+		//   • If the copy goroutine is blocked in r.Read() (common when r has
+		//     trailing data after [DONE]), closeReader() unblocks it.
+		//   • If the copy goroutine is blocked in pipeW.Write() (waiting for the
+		//     scanner to drain pipeR), pipeW.CloseWithError unblocks it.
+		//
+		// This is the deterministic teardown path regardless of whether the stop
+		// was a clean [DONE], a decode error, or a ctx cancellation.
+		scanDone := make(chan struct{})
+
+		// copyDone signals that the forwarding goroutine has exited.
+		copyDone := make(chan struct{})
+
+		// Forward r → pipeW. When copy returns (r exhausted, r errors, or r was
+		// closed by the watcher) we close pipeW so the scanner sees EOF.
+		go func() {
+			defer close(copyDone)
+			_, copyErr := io.Copy(pipeW, r)
+			// nil copyErr → pipeW.Close() signals clean EOF to the scanner.
+			// non-nil copyErr → pipeW.CloseWithError propagates the error.
+			pipeW.CloseWithError(copyErr)
+		}()
+
+		// Watcher: unblocks the copy goroutine whenever scanning stops — whether
+		// due to ctx cancellation or a normal/early return from scanSSE ([DONE],
+		// decode error). Two shutdown sources are multiplexed here:
+		//
+		//  1. ctx.Done() — caller cancelled; use ctx.Err() as the pipe error so
+		//     the copy goroutine propagates a meaningful error upward.
+		//  2. scanDone — scanSSE returned (clean [DONE] or decode error); use nil
+		//     so the copy goroutine's CloseWithError preserves the real error.
+		//
+		// In both cases we call closeReader() first to unblock any in-progress
+		// r.Read(), then CloseWithError on pipeW to unblock any pending Write.
+		go func() {
+			select {
+			case <-ctx.Done():
+				closeReader()
+				pipeW.CloseWithError(ctx.Err())
+			case <-scanDone:
+				closeReader()
+				pipeW.CloseWithError(nil)
+			case <-copyDone:
+				// Copy goroutine already closed pipeW; nothing to do.
+			}
+		}()
+
+		err := scanSSE(pipeR, func(payload string) (bool, error) {
 			if payload == doneSentinel {
 				return true, nil
 			}
@@ -160,6 +246,9 @@ func StreamChannel(ctx context.Context, r io.Reader) (<-chan StreamEvent, <-chan
 				ev.Content = f.Choices[0].Delta.Content
 				ev.FinishReason = f.Choices[0].FinishReason
 			}
+			// Both the event send and a concurrent ctx cancellation are handled
+			// here. If ctx fires while the caller is slow to drain events, we
+			// stop immediately rather than blocking until the caller consumes.
 			select {
 			case events <- ev:
 				return false, nil
@@ -167,6 +256,17 @@ func StreamChannel(ctx context.Context, r io.Reader) (<-chan StreamEvent, <-chan
 				return true, ctx.Err()
 			}
 		})
+
+		// Signal the watcher that scanSSE has returned. The watcher will close r
+		// (unblocking any pending r.Read) and pipeW (unblocking any pending
+		// pipeW.Write), after which the copy goroutine exits and copyDone closes.
+		close(scanDone)
+
+		// Wait for the copy goroutine to finish so we don't leak it. By this
+		// point the watcher has (or shortly will) close pipeW and r, so the copy
+		// goroutine will exit promptly regardless of what state it is in.
+		<-copyDone
+
 		errc <- err
 	}()
 	return events, errc
@@ -196,7 +296,7 @@ func (c *Client) StreamCompletion(ctx context.Context, ep Endpoint, req ChatRequ
 		defer cancel()
 	}
 	url := ep.BaseURL + "/v1/chat/completions"
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, strings.NewReader(string(body)))
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
 		return nil, err
 	}
