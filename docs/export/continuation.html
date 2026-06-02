@@ -241,8 +241,8 @@
 <h1 class="title">continuation</h1>
 </header>
 <h1 id="continuation-document">Continuation Document</h1>
-<p><strong>Revision:</strong> 94 <strong>Last modified:</strong>
-2026-06-02T00:44:33Z <strong>Description:</strong> Sacred invariant
+<p><strong>Revision:</strong> 95 <strong>Last modified:</strong>
+2026-06-02T00:45:17Z <strong>Description:</strong> Sacred invariant
 resumption document for Helix Cluster OS <strong>Authority:</strong>
 Constitution §12.10 <strong>Maintainer:</strong> Operator + AI loop</p>
 <hr />
@@ -263,6 +263,28 @@ Work (last 10 commits)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td><code>e4f0b03</code></td>
+<td>Foundation wave 30: 3 disjoint streams (all approved no-fix;
+mutation spot-checks bite). HXC-1302 wireguard preemption-safe teardown
+(pkg/wireguard/teardown.go: MeshCoordinator.TeardownPeers
+Stop+RemovePeer-all idempotent + SpotDrainHook(mc)
+cloudspot.Hooks.StopAdmission; tests w/ real curve25519 keys: add N
+-&gt; teardown -&gt; ListPeers==0, idempotent, FakeSource+Handler.Run
+drain removes peers; mutation skip-RemovePeer fails). HXC-1299 discovery
+15-tier registry (pkg/discovery/tier_registry.go:
+TierRegistry.Register+SelectByTier(minTier) rank&gt;=min via
+tierdef.Default() T1-T15 ordering, ordered exact-set; mutation
+&gt;=-&gt;&lt; fails TestSelectByTier_T8 got T1/T5 want T8/T12/T15).
+HXC-1291 device.Probe (pkg/device/probe.go +
+probe_{darwin,linux,other}.go: real
+Arch(GOARCH)/CPUCores(NumCPU)/MemoryBytes(sysctl hw.memsize /
+syscall.Sysinfo / MemStats fallback) + REAL os.Hostname-based ID, honest
+0 for GPU/NPU/power; tests assert vs runtime oracle + real sysctl). ZERO
+new deps, ZERO edits to existing files. Gate: build/vet/vet-integration
+clean, full -short -race green, dataplane ok, tmux clean; B mutation
+bite + A/C reviewer-verified.</td>
+</tr>
 <tr>
 <td><code>1e88aec</code></td>
 <td>Foundation wave 29: mark 3 items Completed (HXC-1298/1296/1310) —
@@ -395,31 +417,6 @@ parallel TestRunner / session test FSM / helix-test CLI (verified
 already complete). Mutation spot-checks confirm bites. Registry
 188-&gt;191 Completed / 448 Queued.</td>
 </tr>
-<tr>
-<td><code>aba565b</code></td>
-<td>Foundation wave 25: 2 new test-orchestration pkgs + 1
-verified-already-done. HXC-1254 parallel TestRunner (NEW
-pkg/testing/runner: Suite registration + bounded-worker-pool parallel
-execution + result collection/aggregate Report sorted deterministically;
-barrier-proof concurrency test (serial runner deadlocks under a
-ctx-deadline guard), atomic peak counter proves MaxConcurrency cap,
-result counts incl Err-&gt;Failed (defense-in-depth: both guards must be
-removed to break the want-3-got-4 bite — mutation-verified), Register
-dup/empty-name errors). HXC-1255 session test FSM (NEW
-pkg/testing/sessionfsm:
-Idle-&gt;Setup-&gt;Running-&gt;ChaosInject-&gt;Verify-&gt;Done +
-any-nonterminal-&gt;Failed; legal-transition table,
-IllegalTransitionError leaves state unchanged, per-state callbacks fire
-in order, History(); mutation guard-always-allow -&gt; illegal
-transition test FAILS). HXC-1267 helix-test CLI VERIFIED already
-complete (cmd/helix-test dst/chaos/device/snapshot subcommands wired to
-real pkg/testing packages w/ 13 mutation-sensitive tests; device subcmd
-lists real T1-T8) — verified+marked, not rebuilt. ZERO new deps, ZERO
-edits to existing files. Gate: build/vet/vet-integration clean, full
--short -race green, dataplane ok, tmux clean (W23 fix holds); mutation
-spot-checks: FSM guard bites, TestRunner Err-&gt;Failed bites (both
-guards), cap-peak&lt;=2 + barrier verified by review.</td>
-</tr>
 </tbody>
 </table>
 <h2 id="environment-snapshot">§2: Environment Snapshot</h2>
@@ -437,11 +434,11 @@ guards), cap-peak&lt;=2 + barrier verified by review.</td>
 </tr>
 <tr>
 <td><strong>Commit</strong></td>
-<td><code>1e88aec</code></td>
+<td><code>e4f0b03</code></td>
 </tr>
 <tr>
 <td><strong>Timestamp</strong></td>
-<td>2026-06-02T00:44:33Z</td>
+<td>2026-06-02T00:45:17Z</td>
 </tr>
 </tbody>
 </table>

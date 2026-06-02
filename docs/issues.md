@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 38
-**Last modified:** 2026-06-02T00:31:47Z
+**Revision:** 39
+**Last modified:** 2026-06-02T00:45:10Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **438**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **435**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (5 active)
 
@@ -152,21 +152,18 @@ Total active items: **438**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (38 active)
+## Phase 5 (35 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1290 | Feature | P0 | Queued | Implement pkg/device universal capability Descriptor with 15-tier + trust enums |
-| HXC-1291 | Feature | P0 | Queued | Implement device.Probe(ctx) arch/CPU/mem auto-detection with override labels |
 | HXC-1292 | Feature | P0 | Queued | Implement device.AssignTier decision tree per §50 taxonomy (riscv64->T10, x86+open-fw->T1, GPU+battery->T9) |
 | HXC-1293 | Feature | P0 | Queued | Extend api/v1/node.proto with tier, trust_level, compute_class, arch fields |
 | HXC-1294 | Feature | P0 | Queued | Create api/v1/resources.proto with npu_tops, fpga_logic_elements, tflops_gpu |
 | HXC-1295 | Feature | P0 | Queued | Extend api/v1/scheduler.proto with tier constraints and power_budget |
 | HXC-1297 | Feature | P0 | Queued | Implement pkg/scheduler tier-aware + power-aware Plugin (tier_power.go) |
-| HXC-1299 | Feature | P0 | Queued | Implement pkg/discovery 15-tier registry + SelectByTier(tier, minTrust) |
 | HXC-1300 | Feature | P0 | Queued | Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU TFLOPS, QPU |
 | HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
-| HXC-1302 | Feature | P1 | Queued | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook |
 | HXC-1304 | Feature | P1 | Queued | Implement pkg/inference LocalBackend wrapping internal/llm manager |
 | HXC-1305 | Feature | P1 | Queued | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) |
 | HXC-1306 | Feature | P1 | Queued | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) |

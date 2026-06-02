@@ -1,7 +1,7 @@
 # Continuation Document
 
-**Revision:** 94
-**Last modified:** 2026-06-02T00:44:33Z
+**Revision:** 95
+**Last modified:** 2026-06-02T00:45:17Z
 **Description:** Sacred invariant resumption document for Helix Cluster OS
 **Authority:** Constitution §12.10
 **Maintainer:** Operator + AI loop
@@ -16,6 +16,7 @@ Any CLI agent resuming work on this project MUST read this file first.
 
 | Commit | Message |
 |--------|---------|
+| `e4f0b03` | Foundation wave 30: 3 disjoint streams (all approved no-fix; mutation spot-checks bite). HXC-1302 wireguard preemption-safe teardown (pkg/wireguard/teardown.go: MeshCoordinator.TeardownPeers Stop+RemovePeer-all idempotent + SpotDrainHook(mc) cloudspot.Hooks.StopAdmission; tests w/ real curve25519 keys: add N -> teardown -> ListPeers==0, idempotent, FakeSource+Handler.Run drain removes peers; mutation skip-RemovePeer fails). HXC-1299 discovery 15-tier registry (pkg/discovery/tier_registry.go: TierRegistry.Register+SelectByTier(minTier) rank>=min via tierdef.Default() T1-T15 ordering, ordered exact-set; mutation >=->< fails TestSelectByTier_T8 got T1/T5 want T8/T12/T15). HXC-1291 device.Probe (pkg/device/probe.go + probe_{darwin,linux,other}.go: real Arch(GOARCH)/CPUCores(NumCPU)/MemoryBytes(sysctl hw.memsize / syscall.Sysinfo / MemStats fallback) + REAL os.Hostname-based ID, honest 0 for GPU/NPU/power; tests assert vs runtime oracle + real sysctl). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; B mutation bite + A/C reviewer-verified. |
 | `1e88aec` | Foundation wave 29: mark 3 items Completed (HXC-1298/1296/1310) — handheld scheduling policy / device<->pb mapping (honest lossy) / per-tier security model. Mutation spot-checks confirm bites. Registry 199->202 Completed (crossed 200) / 437 Queued. |
 | `441c7fe` | Foundation wave 29: 3 disjoint streams (all approved; A minor dead-helper + comment-lie fixed by me). HXC-1298 power/battery/thermal-aware handheld scheduling policy (pkg/scheduler/handheld.go HandheldPolicy Plugin reusing edgeaware battery/thermal/charging helpers: filter low-battery/over-thermal/unavailable/discharging-below-floor, score by battery/thermal/charging; absent-label assume-safe; 22 tests; mutation pct< -> pct> fails LowBatteryRejected). HXC-1296 device.Descriptor<->pb.Node round-trip mapping (NEW pkg/devicemap: DescriptorToNode/NodeToDescriptor over MAPPABLE fields; HONEST lossy -- round-trip identity over mapped subset + explicit test that device-only fields NPU/power/battery/trust are LOST (no false-recovery bluff); no import cycle; 7 tests). HXC-1310 per-tier security model enforcement (NEW pkg/tiersec reusing sandbox.Capability+edge+tierdef: ProfileForTier + Enforce(tier,op)->Decision over capability/data-class(inclusive)/network-egress CIDR allowlist via stdlib net; low-tier denied / high-tier allowed both directions; 24 tests; mutation data-class > -> >= fails inclusive-boundary). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean; A+C mutations bite, B honest-loss reviewer-verified. |
 | `634aa09` | Foundation wave 28: mark 3 items Completed (HXC-1311/1301/1303) — T1-T15 tier definitions / cloudspot PreemptionWatcher (verified) / inference Backend+Router (verified, dual-layer mutation). Registry 196->199 Completed / 440 Queued. |
@@ -25,15 +26,14 @@ Any CLI agent resuming work on this project MUST read this file first.
 | `5707d6b` | Foundation wave 26: mark 3 items Completed (HXC-1268/1265/1236) — helix-snapshot CLI / capability sandbox+resource-limits+audit / HelixNetwork trait (prod+sim). Mutation spot-checks + real-binary verified. Registry 191->194 Completed / 445 Queued. |
 | `7c41c2f` | Foundation wave 26: 3 disjoint streams (all approved; A minor comment-lie fixed by me). HXC-1268 standalone cmd/helix-snapshot CLI (run() dispatch + create/restore/compare/list/delete wiring real snapshot.Manager via -dir; 11 tests w/ real temp-dir fs assertions + exit codes; verified by me running the REAL binary: create writes .golden, list shows it, compare rc=0, delete removes it). HXC-1265 capability sandbox + REAL resource-limit enforcement + audit (NEW pkg/sandbox: Capability deny-by-default grant model + Guard.Check (deny ungranted) + atomic.Int64 cumulative MaxOps/MaxBytes/MaxDuration enforcement -- the genuine gap vs pkg/wasm caps -- + MemAudit allow/deny log; in-process model, OS syscall isolation honestly out-of-scope not faked; mutation neuter-Has -> ungranted allowed FAILS). HXC-1236 HelixNetwork trait prod+sim (NEW pkg/helixnet: HelixNetwork interface + ProdNetwork real in-process channel fabric (bytes genuinely move A->B, deliver errors on unknown/closed dst) + SimNetwork deterministic via dst.Engine; zero pkg/swim edits -- that's 1237; mutation drop-delivery -> send/unknown-addr tests FAIL). ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green (only the known internal/advisory load-flake, passes isolated), dataplane ok, tmux/screen clean; 3 mutation spot-checks bite + helix-snapshot real-binary verified. |
 | `02cd05a` | Foundation wave 25: mark 3 items Completed (HXC-1254/1255/1267) — parallel TestRunner / session test FSM / helix-test CLI (verified already complete). Mutation spot-checks confirm bites. Registry 188->191 Completed / 448 Queued. |
-| `aba565b` | Foundation wave 25: 2 new test-orchestration pkgs + 1 verified-already-done. HXC-1254 parallel TestRunner (NEW pkg/testing/runner: Suite registration + bounded-worker-pool parallel execution + result collection/aggregate Report sorted deterministically; barrier-proof concurrency test (serial runner deadlocks under a ctx-deadline guard), atomic peak counter proves MaxConcurrency cap, result counts incl Err->Failed (defense-in-depth: both guards must be removed to break the want-3-got-4 bite — mutation-verified), Register dup/empty-name errors). HXC-1255 session test FSM (NEW pkg/testing/sessionfsm: Idle->Setup->Running->ChaosInject->Verify->Done + any-nonterminal->Failed; legal-transition table, IllegalTransitionError leaves state unchanged, per-state callbacks fire in order, History(); mutation guard-always-allow -> illegal transition test FAILS). HXC-1267 helix-test CLI VERIFIED already complete (cmd/helix-test dst/chaos/device/snapshot subcommands wired to real pkg/testing packages w/ 13 mutation-sensitive tests; device subcmd lists real T1-T8) — verified+marked, not rebuilt. ZERO new deps, ZERO edits to existing files. Gate: build/vet/vet-integration clean, full -short -race green, dataplane ok, tmux clean (W23 fix holds); mutation spot-checks: FSM guard bites, TestRunner Err->Failed bites (both guards), cap-peak<=2 + barrier verified by review. |
 
 ## §2: Environment Snapshot
 
 | Property | Value |
 |----------|-------|
 | **Branch** | `main` |
-| **Commit** | `1e88aec` |
-| **Timestamp** | 2026-06-02T00:44:33Z |
+| **Commit** | `e4f0b03` |
+| **Timestamp** | 2026-06-02T00:45:17Z |
 
 ## §3: Active Work
 
