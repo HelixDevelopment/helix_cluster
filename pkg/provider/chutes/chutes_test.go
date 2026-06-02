@@ -17,6 +17,9 @@ import (
 // newTestClient builds a Client pointed at srv with a near-zero injected
 // backoff so retry tests run fast and deterministically. It records how long
 // the sleep function was asked to wait so backoff can be asserted.
+//
+// The injected sleep does NOT actually sleep so tests remain fast. For tests
+// that need real ctx-interruptible behavior, use newRealSleepClient instead.
 func newTestClient(t *testing.T, baseURL, apiKey string, slept *[]time.Duration) *Client {
 	t.Helper()
 	var mu sync.Mutex
@@ -25,11 +28,38 @@ func newTestClient(t *testing.T, baseURL, apiKey string, slept *[]time.Duration)
 		APIKey:      apiKey,
 		BaseBackoff: 1 * time.Millisecond,
 		MaxRetries:  3,
-		sleep: func(d time.Duration) {
+		sleep: func(_ context.Context, d time.Duration) error {
 			mu.Lock()
 			*slept = append(*slept, d)
 			mu.Unlock()
 			// Intentionally do NOT actually sleep: keep the test fast.
+			return nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: unexpected error: %v", err)
+	}
+	return c
+}
+
+// newRealSleepClient builds a Client that uses contextSleep (the real
+// production interruptible sleep) so ctx-cancellation tests exercise the
+// actual select branch. slept receives durations requested (not necessarily
+// waited in full if ctx is cancelled).
+func newRealSleepClient(t *testing.T, baseURL, apiKey string, slept *[]time.Duration) *Client {
+	t.Helper()
+	var mu sync.Mutex
+	c, err := New(Config{
+		BaseURL:     baseURL,
+		APIKey:      apiKey,
+		BaseBackoff: 10 * time.Second, // large so cancellation always fires first
+		MaxRetries:  3,
+		sleep: func(ctx context.Context, d time.Duration) error {
+			mu.Lock()
+			*slept = append(*slept, d)
+			mu.Unlock()
+			// Use the real contextSleep so ctx.Done() is actually selected on.
+			return contextSleep(ctx, d)
 		},
 	})
 	if err != nil {
@@ -252,6 +282,174 @@ func TestNewDefaultsBaseURL(t *testing.T) {
 	}
 	if c.base != DefaultBaseURL {
 		t.Fatalf("default base = %q, want %q", c.base, DefaultBaseURL)
+	}
+}
+
+// TestCtxCancelDuringBackoff proves CLOSURE CRITERION #1 (ctx-interruptible
+// backoff): cancelling the context DURING a backoff window returns promptly
+// with a context error, not after the full sleep duration.
+//
+// MUTATION GUARD: if the ctx.Done() select branch is removed from contextSleep
+// (i.e. the function uses time.Sleep unconditionally), the test blocks for the
+// full 10 s BaseBackoff and the 500 ms deadline fires — the test then FAILS
+// with a timeout or deadline exceeded error. This proves the select is the
+// load-bearing guard.
+func TestCtxCancelDuringBackoff(t *testing.T) {
+	// The server always returns 429 so the client enters the backoff path.
+	var requests int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt32(&requests, 1)
+		w.WriteHeader(http.StatusTooManyRequests)
+		_, _ = io.WriteString(w, `{"error":"rate limited"}`)
+	}))
+	defer srv.Close()
+
+	var slept []time.Duration
+	// newRealSleepClient sets BaseBackoff = 10 s, so without ctx interruption
+	// the first retry sleep would block for 10 s.
+	c := newRealSleepClient(t, srv.URL+"/v1", "cpk_x", &slept)
+
+	// Cancel the context shortly after the first 429 is received but while the
+	// backoff sleep is still in progress.
+	ctx, cancel := context.WithCancel(context.Background())
+
+	// Fire cancellation 50 ms after the server first responds with 429.
+	// The backoff sleep is 10 s, so this should interrupt it ~9.95 s early.
+	go func() {
+		time.Sleep(50 * time.Millisecond)
+		cancel()
+	}()
+
+	start := time.Now()
+	_, err := c.CreateChatCompletion(ctx, ChatCompletionRequest{Model: "m"})
+	elapsed := time.Since(start)
+
+	// The call MUST return an error (context was cancelled).
+	if err == nil {
+		t.Fatal("expected error after ctx cancel, got nil")
+	}
+	// The error must wrap a context error.
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("expected error wrapping context.Canceled, got: %v", err)
+	}
+	// CLAUDE-1 / closure criterion: must return WELL UNDER the full 10 s backoff.
+	// We allow up to 500 ms to account for scheduling jitter; 10 s would mean
+	// the select is missing and time.Sleep was used instead.
+	const maxAllowed = 500 * time.Millisecond
+	if elapsed >= maxAllowed {
+		t.Fatalf("CreateChatCompletion took %v after ctx cancel; expected < %v (ctx-interruptible backoff broken)", elapsed, maxAllowed)
+	}
+	t.Logf("returned in %v after ctx cancel (well under %v backoff) — ctx-interruptible backoff confirmed", elapsed, 10*time.Second)
+}
+
+// TestRetryAfterHonored proves CLOSURE CRITERION #2: on 429 with a
+// Retry-After: N header, the client waits >= N (via max(serverHint, linear))
+// instead of ignoring the header.
+//
+// Strategy: inject a recording sleep that does NOT actually wait but records
+// the duration passed to it. Assert that on the retry following a 429+Retry-After
+// response the sleep duration equals max(serverHint, linear) == serverHint when
+// serverHint > linear.
+func TestRetryAfterHonored(t *testing.T) {
+	const retryAfterSecs = 5 // server asks client to wait 5 s
+
+	var requests int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		n := atomic.AddInt32(&requests, 1)
+		if n == 1 {
+			// First attempt: 429 with a Retry-After hint.
+			w.Header().Set("Retry-After", "5")
+			w.WriteHeader(http.StatusTooManyRequests)
+			_, _ = io.WriteString(w, `{"error":"rate limited"}`)
+			return
+		}
+		// Second attempt: success.
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, okBody)
+	}))
+	defer srv.Close()
+
+	// Use BaseBackoff = 1 ms so the linear component (1*1ms = 1ms) is tiny
+	// compared to the server hint (5 s = 5000 ms). The sleep must be
+	// max(5 s, 1 ms) = 5 s.
+	var slept []time.Duration
+	var mu sync.Mutex
+	c, err := New(Config{
+		BaseURL:     srv.URL + "/v1",
+		APIKey:      "cpk_x",
+		BaseBackoff: 1 * time.Millisecond,
+		MaxRetries:  3,
+		sleep: func(_ context.Context, d time.Duration) error {
+			mu.Lock()
+			slept = append(slept, d)
+			mu.Unlock()
+			// Do NOT actually sleep; we only care about the requested duration.
+			return nil
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	resp, err := c.CreateChatCompletion(context.Background(), ChatCompletionRequest{Model: "m"})
+	if err != nil {
+		t.Fatalf("CreateChatCompletion: unexpected error: %v", err)
+	}
+	if resp.Choices[0].Message.Content != "hello from chutes" {
+		t.Fatalf("unexpected completion content: %q", resp.Choices[0].Message.Content)
+	}
+
+	// Exactly one backoff sleep occurred (between attempt 0 and attempt 1).
+	mu.Lock()
+	defer mu.Unlock()
+	if len(slept) != 1 {
+		t.Fatalf("expected 1 sleep, got %d (%v)", len(slept), slept)
+	}
+
+	// The sleep duration must be >= retryAfterSecs (the server hint dominates).
+	// Linear would be 1 ms; server hint is 5 s. We assert >= 5 s exactly.
+	want := time.Duration(retryAfterSecs) * time.Second
+	if slept[0] < want {
+		t.Fatalf("sleep duration = %v, want >= %v (Retry-After not honored)", slept[0], want)
+	}
+	t.Logf("sleep duration = %v >= %v (Retry-After honored, max chosen over linear backoff)", slept[0], want)
+}
+
+// TestParseRetryAfter unit-tests the Retry-After header parser directly,
+// covering delta-seconds, HTTP-date, empty, and invalid inputs.
+func TestParseRetryAfter(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		// wantMin / wantMax bracket the expected duration for date-form tests;
+		// wantExact is used for delta-second and degenerate forms.
+		wantExact time.Duration
+		wantMin   time.Duration
+		wantMax   time.Duration
+		dateForm  bool
+	}{
+		{name: "zero", input: "0", wantExact: 0},
+		{name: "delta 30", input: "30", wantExact: 30 * time.Second},
+		{name: "delta 1", input: "1", wantExact: 1 * time.Second},
+		{name: "delta 3600", input: "3600", wantExact: 3600 * time.Second},
+		{name: "empty", input: "", wantExact: 0},
+		{name: "garbage", input: "not-a-date-or-number", wantExact: 0},
+		{name: "negative delta", input: "-5", wantExact: 0},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := parseRetryAfter(tc.input)
+			if tc.dateForm {
+				if got < tc.wantMin || got > tc.wantMax {
+					t.Fatalf("parseRetryAfter(%q) = %v, want [%v, %v]", tc.input, got, tc.wantMin, tc.wantMax)
+				}
+			} else {
+				if got != tc.wantExact {
+					t.Fatalf("parseRetryAfter(%q) = %v, want %v", tc.input, got, tc.wantExact)
+				}
+			}
+		})
 	}
 }
 

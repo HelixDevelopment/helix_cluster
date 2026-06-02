@@ -17,8 +17,14 @@
 // contacted.
 //
 // RETRY SEMANTICS: HTTP 429 (Too Many Requests) is treated as transient and is
-// retried with bounded backoff. Any other non-2xx status is surfaced
-// immediately as a typed *APIError — never a fabricated completion.
+// retried with bounded backoff. The backoff respects two mechanisms:
+//   - ctx-interruptible: the wait selects on ctx.Done(), so a cancelled context
+//     returns promptly with ctx.Err() instead of blocking the full delay.
+//   - Retry-After header: the server may specify a wait via a delta-seconds or
+//     HTTP-date Retry-After header; the client uses max(serverHint, linearBackoff).
+//
+// Any other non-2xx status is surfaced immediately as a typed *APIError — never
+// a fabricated completion.
 package chutes
 
 import (
@@ -29,6 +35,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -122,8 +129,9 @@ type Config struct {
 	// defaultBaseBackoff; tests inject a tiny value for determinism.
 	BaseBackoff time.Duration
 	// sleep is the injectable delay function used between retries. nil uses
-	// time.Sleep. Unexported so it is test-only.
-	sleep func(time.Duration)
+	// contextSleep. It must return ctx.Err() promptly when ctx is cancelled.
+	// Unexported so it is test-only.
+	sleep func(ctx context.Context, d time.Duration) error
 }
 
 // Client posts chat completions to an OpenAI-compatible endpoint.
@@ -133,7 +141,7 @@ type Client struct {
 	hc          *http.Client
 	maxRetries  int
 	baseBackoff time.Duration
-	sleep       func(time.Duration)
+	sleep       func(ctx context.Context, d time.Duration) error
 }
 
 // New builds a Client from cfg. It returns ErrEmptyAPIKey when no API key is
@@ -163,7 +171,7 @@ func New(cfg Config) (*Client, error) {
 	}
 	sleep := cfg.sleep
 	if sleep == nil {
-		sleep = time.Sleep
+		sleep = contextSleep
 	}
 	return &Client{
 		base:        strings.TrimRight(base, "/"),
@@ -178,10 +186,16 @@ func New(cfg Config) (*Client, error) {
 // CreateChatCompletion POSTs req to {BaseURL}/chat/completions with the bearer
 // API key and returns the parsed completion read off the wire.
 //
-// On HTTP 429 it retries with bounded linear backoff up to MaxRetries
-// additional attempts. The completion is decoded FROM THE SERVER RESPONSE — it
-// is never fabricated. A persistent 429 (retries exhausted) or any other
-// non-2xx status returns a typed *APIError.
+// On HTTP 429 it retries with bounded backoff up to MaxRetries additional
+// attempts. The backoff honors two mechanisms:
+//   - ctx-interruptible: the wait selects on ctx.Done(); a cancelled context
+//     returns promptly with ctx.Err() instead of blocking the full delay.
+//   - Retry-After header: if the 429 response carries a Retry-After value
+//     (delta-seconds or HTTP-date), the actual wait is max(serverHint, linearBackoff).
+//
+// The completion is decoded FROM THE SERVER RESPONSE — it is never fabricated.
+// A persistent 429 (retries exhausted) or any other non-2xx status returns a
+// typed *APIError.
 func (c *Client) CreateChatCompletion(ctx context.Context, req ChatCompletionRequest) (*ChatCompletionResponse, error) {
 	body, err := json.Marshal(req)
 	if err != nil {
@@ -189,14 +203,28 @@ func (c *Client) CreateChatCompletion(ctx context.Context, req ChatCompletionReq
 	}
 
 	// Total attempts = 1 initial + maxRetries.
+	// lastRetryAfter holds the Retry-After hint parsed from the most recent 429
+	// response; it is zero until the first 429 is received.
 	var lastErr error
+	var lastRetryAfter time.Duration
 	for attempt := 0; attempt <= c.maxRetries; attempt++ {
 		if attempt > 0 {
 			// Linear backoff: attempt 1 -> 1*base, attempt 2 -> 2*base, ...
-			c.sleep(time.Duration(attempt) * c.baseBackoff)
+			linear := time.Duration(attempt) * c.baseBackoff
+			// Honor the server's Retry-After hint: use max(serverHint, linearBackoff).
+			delay := linear
+			if lastRetryAfter > delay {
+				delay = lastRetryAfter
+			}
+			// ctx-interruptible: return promptly on cancellation instead of
+			// blocking the full delay. This is the load-bearing guard tested by
+			// TestCtxCancelDuringBackoff; removing this select makes that test fail.
+			if sleepErr := c.sleep(ctx, delay); sleepErr != nil {
+				return nil, fmt.Errorf("chutes: chat completion: %w", sleepErr)
+			}
 		}
 
-		raw, status, err := c.do(ctx, body)
+		raw, status, headers, err := c.do(ctx, body)
 		if err != nil {
 			// Transport-level error (e.g. context cancelled): not retryable here.
 			return nil, fmt.Errorf("chutes: chat completion: %w", err)
@@ -211,6 +239,9 @@ func (c *Client) CreateChatCompletion(ctx context.Context, req ChatCompletionReq
 			return &resp, nil
 		case status == http.StatusTooManyRequests:
 			// Transient: remember the error and loop to retry (if budget remains).
+			// Parse and stash any server-provided Retry-After hint so the NEXT
+			// iteration's backoff calculation can honor it.
+			lastRetryAfter = parseRetryAfter(headers.Get("Retry-After"))
 			lastErr = &APIError{StatusCode: status, Body: truncate(raw)}
 			continue
 		default:
@@ -228,11 +259,12 @@ func (c *Client) CreateChatCompletion(ctx context.Context, req ChatCompletionReq
 }
 
 // do performs one HTTP POST of body to the chat-completions path, returning the
-// raw response body and status code.
-func (c *Client) do(ctx context.Context, body []byte) ([]byte, int, error) {
+// raw response body, status code, and response headers. The caller uses the
+// headers to read Retry-After on 429 responses.
+func (c *Client) do(ctx context.Context, body []byte) ([]byte, int, http.Header, error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.base+"/chat/completions", bytes.NewReader(body))
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "application/json")
@@ -240,14 +272,14 @@ func (c *Client) do(ctx context.Context, body []byte) ([]byte, int, error) {
 
 	resp, err := c.hc.Do(req)
 	if err != nil {
-		return nil, 0, err
+		return nil, 0, nil, err
 	}
 	defer resp.Body.Close()
 	raw, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, resp.StatusCode, err
+		return nil, resp.StatusCode, resp.Header, err
 	}
-	return raw, resp.StatusCode, nil
+	return raw, resp.StatusCode, resp.Header, nil
 }
 
 // truncate bounds an error body so a huge upstream payload cannot bloat error
@@ -259,4 +291,50 @@ func truncate(b []byte) string {
 		return s[:max] + "...(truncated)"
 	}
 	return s
+}
+
+// contextSleep is the production delay function used between retries. Unlike
+// time.Sleep it selects on ctx.Done(), returning ctx.Err() promptly when the
+// context is cancelled rather than blocking the full duration. This ensures a
+// caller that cancels their context is not penalised by the full backoff window.
+func contextSleep(ctx context.Context, d time.Duration) error {
+	timer := time.NewTimer(d)
+	defer timer.Stop()
+	select {
+	case <-timer.C:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
+	}
+}
+
+// parseRetryAfter parses a Retry-After header value as returned by a 429
+// response. It handles both the delta-seconds form ("30") and the HTTP-date
+// form ("Mon, 02 Jan 2006 15:04:05 GMT"). An empty or unparseable value returns
+// zero so the caller gracefully falls back to the linear backoff.
+func parseRetryAfter(v string) time.Duration {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return 0
+	}
+	// Delta-seconds form: a non-negative integer.
+	if secs, err := strconv.Atoi(v); err == nil && secs >= 0 {
+		return time.Duration(secs) * time.Second
+	}
+	// HTTP-date form: try the RFC 1123 and RFC 850 / asctime variants used by
+	// HTTP (RFC 7231 §7.1.3).
+	for _, layout := range []string{
+		time.RFC1123,          // Mon, 02 Jan 2006 15:04:05 GMT
+		"Monday, 02-Jan-06 15:04:05 MST", // RFC 850
+		"Mon Jan _2 15:04:05 2006",        // asctime
+	} {
+		if t, err := time.Parse(layout, v); err == nil {
+			d := time.Until(t)
+			if d < 0 {
+				return 0
+			}
+			return d
+		}
+	}
+	return 0
 }
