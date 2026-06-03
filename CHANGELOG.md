@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 86 — proto service stubs build + generate (HXC-1117; buf now installed; conductor-gated):**
+  - `api/v1` — the proto module was broken (buf.yaml mis-placed at `api/` so bare `import "types.proto"` could not resolve; `api/buf.gen.yaml` malformed for buf v1.70). Relocated the buf module root to `api/v1/` (matching `api/v1/go.mod`), removed the malformed gen config, and regenerated all 7 services' Go stubs (node/session/scheduler/health/build/advisory/security) with `protoc-gen-go`/`-go-grpc`. Idempotent; package stays `helixv1`. `api/v1` module + whole-tree build + consumer cmd tests green; `TestCreateSessionRequest_RoundTrip` proves marshal/unmarshal preserves all fields (mutation corrupting a field tag fails it). buf-lint STYLE conformance tracked HXC-1628 (HXC-1117).
 - **Wave 85 — streaming SSE E2EE decryption (HXC-1565; security submodule `16ae574`; conductor-gated -race + tamper/order/wrong-session mutation):**
   - `security/pkg/e2ee` — `StreamDecryptor` (e2e_init + per-chunk) reassembles an ordered sequence of independently-sealed SSE chunk records against the per-request handshake-derived `Session`; any tampered, out-of-order/replayed, or wrong-session chunk POISONS the stream (AEAD tag + counter-nonce ordering), so a broken chunk cannot silently corrupt the reassembled completion. Composed from `Session.Open`; no hand-rolled crypto. Live-relay capture deferred. Sibling HXC-1561 (ChaCha20-Poly1305) is BLOCKED pending authorization to add `golang.org/x/crypto` to the security module (HXC-1565).
 - **Wave 84 — per-request response keypair (HXC-1563; security submodule `f09227f`; conductor-gated -race + isolation mutation):**

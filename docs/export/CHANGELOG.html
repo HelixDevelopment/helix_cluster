@@ -185,6 +185,24 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 86 — proto service stubs build + generate (HXC-1117;
+buf now installed; conductor-gated):</strong>
+<ul>
+<li><code>api/v1</code> — the proto module was broken (buf.yaml
+mis-placed at <code>api/</code> so bare
+<code>import "types.proto"</code> could not resolve;
+<code>api/buf.gen.yaml</code> malformed for buf v1.70). Relocated the
+buf module root to <code>api/v1/</code> (matching
+<code>api/v1/go.mod</code>), removed the malformed gen config, and
+regenerated all 7 services’ Go stubs
+(node/session/scheduler/health/build/advisory/security) with
+<code>protoc-gen-go</code>/<code>-go-grpc</code>. Idempotent; package
+stays <code>helixv1</code>. <code>api/v1</code> module + whole-tree
+build + consumer cmd tests green;
+<code>TestCreateSessionRequest_RoundTrip</code> proves marshal/unmarshal
+preserves all fields (mutation corrupting a field tag fails it).
+buf-lint STYLE conformance tracked HXC-1628 (HXC-1117).</li>
+</ul></li>
 <li><strong>Wave 85 — streaming SSE E2EE decryption (HXC-1565; security
 submodule <code>16ae574</code>; conductor-gated -race +
 tamper/order/wrong-session mutation):</strong>
