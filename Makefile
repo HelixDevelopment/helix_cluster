@@ -70,13 +70,18 @@ clean: ## Clean build artifacts
 	rm -rf bin/ build/ dist/ coverage.out
 	zig build clean || true
 
-migrate-up: ## Run database migrations
-	@echo "Running migrations up..."
-	# Placeholder: migrate -path migrations -database "postgres://helix:helix@localhost:5432/helix?sslmode=disable" up
+# DATABASE_URL is honored when set (postgres://user:pass@host:port/db?sslmode=...).
+# When unset it defaults to the local dev DSN; scripts/run-migrations.sh reads the
+# parsed DB_* environment variables (never a hardcoded secret).
+DATABASE_URL ?= postgres://helix:helix@localhost:5432/helix_cluster?sslmode=disable
 
-migrate-down: ## Rollback migrations
+migrate-up: ## Run database migrations (honors DATABASE_URL)
+	@echo "Running migrations up..."
+	@DATABASE_URL='$(DATABASE_URL)' bash scripts/run-migrations.sh up
+
+migrate-down: ## Rollback one migration (honors DATABASE_URL)
 	@echo "Rolling back migrations..."
-	# Placeholder: migrate -path migrations -database "postgres://helix:helix@localhost:5432/helix?sslmode=disable" down 1
+	@DATABASE_URL='$(DATABASE_URL)' bash scripts/run-migrations.sh down 1
 
 seed: ## Seed development data
 	@echo "Seeding development data..."

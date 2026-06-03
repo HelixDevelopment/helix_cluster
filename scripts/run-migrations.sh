@@ -29,7 +29,10 @@ else
     exit 1
 fi
 
-DATABASE_URL="postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}"
+# Honor a pre-set DATABASE_URL (e.g. from the Makefile / CI / operator env).
+# When unset, build it from the DB_* components above. No secret is hardcoded;
+# the password comes from $DB_PASS (default 'helix' for local dev only).
+DATABASE_URL="${DATABASE_URL:-postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}?sslmode=${DB_SSLMODE}}"
 
 usage() {
     cat <<EOF
