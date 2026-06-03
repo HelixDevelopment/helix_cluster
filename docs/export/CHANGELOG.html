@@ -185,6 +185,28 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 80 — Avro event schemas + schema-validated routing
+(HXC-1119; careful single-threaded TDD build, conductor-gated
+build/vet/-race + 2 load-bearing mutation bites):</strong>
+<ul>
+<li><code>pkg/events</code> — a stdlib-only Avro-subset codec: flat
+primitive records, spec-faithful binary encoding (zig-zag varint
+int/long, length-prefixed string/bytes, LE-IEEE-754 double),
+<strong>single-object encoding</strong> framing (<code>0xC3 0x01</code>
++ 8-byte CRC-64-AVRO fingerprint) so each payload is self-describing, a
+<code>SchemaRegistry</code> giving <strong>schema-validated
+routing</strong> (a payload whose writer fingerprint is unregistered is
+rejected, never mis-decoded), and <strong>writer→reader schema
+resolution</strong> for backward+forward-compatible evolution
+(reader-only fields fill from defaults; writer-only fields skip; a
+reader-only field without a default is an unresolvable-pair error).
+<code>NodeEventSchemaV1→V2</code> adds a defaulted <code>action</code>
+field; proven both directions — a V1 consumer reads a V2 payload (skips
+<code>action</code>) and a V2 consumer reads a V1 payload (synthesizes
+<code>action</code> from default) — plus concurrent round-trip under
+<code>-race</code>. Live NATS-backend wiring + the other event-type
+schemas tracked HXC-1626 (HXC-1119).</li>
+</ul></li>
 <li><strong>Wave 79 — 2 bounded host-closeable fixes (conductor-gated
 build/vet/-race + load-bearing mutation bite):</strong>
 <ul>
