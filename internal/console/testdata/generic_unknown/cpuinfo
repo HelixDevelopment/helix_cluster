@@ -1,0 +1,7 @@
+processor	: 0
+vendor_id	: GenuineIntel
+cpu family	: 6
+model		: 158
+model name	: Intel(R) Core(TM) i7-9700K CPU @ 3.60GHz
+stepping	: 12
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep

@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -63,8 +63,11 @@ build: ## Build all binaries
 	zig build
 	cmake -B build -S . && cmake --build build
 
+cross-agent: ## Reproducible ARM64 cross-build of helix-agent into dist/ (HXC-1167)
+	bash scripts/cross-compile-agent.sh
+
 clean: ## Clean build artifacts
-	rm -rf bin/ build/ coverage.out
+	rm -rf bin/ build/ dist/ coverage.out
 	zig build clean || true
 
 migrate-up: ## Run database migrations

@@ -26,6 +26,32 @@ import (
 	"github.com/HelixDevelopment/helix_cluster/pkg/wireguard"
 )
 
+// Build-stamped identity. These are overridden at link time by the
+// reproducible cross-compile toolchain (scripts/cross-compile-agent.sh /
+// `make cross-agent`) via:
+//
+//	-ldflags "-X main.Version=<v> -X main.BuildUUID=<uuid>"
+//
+// They default to "dev"/"unknown" for plain `go build`/`go run` so a developer
+// build is still self-describing rather than empty. The --version flag prints
+// both, which is the CLAUDE-1 sink-side proof that the stamping path works end
+// to end (the native darwin/arm64 build must actually run and emit these).
+var (
+	// Version is the human-readable agent version (e.g. a git tag or semver).
+	Version = "dev"
+	// BuildUUID uniquely identifies one reproducible build invocation. The
+	// cross-compile toolchain stamps the SAME BuildUUID into every per-arch
+	// artifact produced by a single run, so the linux/arm64, linux/armv7 and
+	// android/arm64 binaries from one build are correlatable.
+	BuildUUID = "unknown"
+)
+
+// printVersion writes the build identity to w in a stable, greppable form.
+// It is the single source of truth for --version so tests can assert on it.
+func printVersion(w io.Writer) {
+	fmt.Fprintf(w, "helix-agent version %s (build %s)\n", Version, BuildUUID)
+}
+
 // agentLike is the subset of *node.Agent behavior run() depends on. Defining it
 // as an interface lets tests inject a fake to assert lifecycle ordering without
 // real subsystems, while production uses the concrete *node.Agent.
@@ -119,6 +145,20 @@ func buildConfig(args []string, stderr io.Writer) (*node.Config, error) {
 // the process exit code: 0 on a clean run, 2 on bad arguments, 1 on a runtime
 // failure (start error or shutdown error).
 func run(ctx context.Context, args []string, newAgent agentFactory, stdout, stderr io.Writer) int {
+	// --version / -version is handled before any other flag parsing or
+	// subsystem wiring: it must work with no other arguments (no --id) and
+	// exit cleanly. This is the end-user-visible version path.
+	for _, a := range args {
+		switch a {
+		case "--version", "-version":
+			printVersion(stdout)
+			return 0
+		case "--":
+			// Stop scanning at an explicit end-of-flags marker.
+			goto parse
+		}
+	}
+parse:
 	cfg, err := buildConfig(args, stderr)
 	if err != nil {
 		// flag.ErrHelp is a clean help request, not a usage error.

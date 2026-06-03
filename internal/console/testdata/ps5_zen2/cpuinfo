@@ -1,0 +1,7 @@
+processor	: 0
+vendor_id	: AuthenticAMD
+cpu family	: 23
+model		: 113
+model name	: AMD Custom APU 0405 (Zen 2)
+stepping	: 0
+flags		: fpu vme de pse tsc msr pae mce cx8 apic sep avx2
