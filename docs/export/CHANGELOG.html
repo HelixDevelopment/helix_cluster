@@ -185,6 +185,21 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 85 — streaming SSE E2EE decryption (HXC-1565; security
+submodule <code>16ae574</code>; conductor-gated -race +
+tamper/order/wrong-session mutation):</strong>
+<ul>
+<li><code>security/pkg/e2ee</code> — <code>StreamDecryptor</code>
+(e2e_init + per-chunk) reassembles an ordered sequence of
+independently-sealed SSE chunk records against the per-request
+handshake-derived <code>Session</code>; any tampered,
+out-of-order/replayed, or wrong-session chunk POISONS the stream (AEAD
+tag + counter-nonce ordering), so a broken chunk cannot silently corrupt
+the reassembled completion. Composed from <code>Session.Open</code>; no
+hand-rolled crypto. Live-relay capture deferred. Sibling HXC-1561
+(ChaCha20-Poly1305) is BLOCKED pending authorization to add
+<code>golang.org/x/crypto</code> to the security module (HXC-1565).</li>
+</ul></li>
 <li><strong>Wave 84 — per-request response keypair (HXC-1563; security
 submodule <code>f09227f</code>; conductor-gated -race + isolation
 mutation):</strong>

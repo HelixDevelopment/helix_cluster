@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 85 — streaming SSE E2EE decryption (HXC-1565; security submodule `16ae574`; conductor-gated -race + tamper/order/wrong-session mutation):**
+  - `security/pkg/e2ee` — `StreamDecryptor` (e2e_init + per-chunk) reassembles an ordered sequence of independently-sealed SSE chunk records against the per-request handshake-derived `Session`; any tampered, out-of-order/replayed, or wrong-session chunk POISONS the stream (AEAD tag + counter-nonce ordering), so a broken chunk cannot silently corrupt the reassembled completion. Composed from `Session.Open`; no hand-rolled crypto. Live-relay capture deferred. Sibling HXC-1561 (ChaCha20-Poly1305) is BLOCKED pending authorization to add `golang.org/x/crypto` to the security module (HXC-1565).
 - **Wave 84 — per-request response keypair (HXC-1563; security submodule `f09227f`; conductor-gated -race + isolation mutation):**
   - `security/pkg/e2ee` — `ResponseKeypair` (fresh ephemeral ML-KEM-768 Initiator per request) + worker `SealResponse` + client `OpenResponse` + `Fingerprint`, composed from existing handshake primitives (no hand-rolled crypto). A response sealed for request-1 is cryptographically unopenable with request-2's key; per-request rotation proven via distinct fingerprints. Mutation reusing one keypair fails the isolation test (HXC-1563).
 - **Wave 83 — typed Avro pub/sub for the remaining domain events (HXC-1627; conductor-gated build/vet/-race + REAL-broker integration + load-bearing mutation):**
