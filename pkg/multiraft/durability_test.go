@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -149,6 +150,144 @@ func TestProcessReadyDoesNotAdvanceOnPersistFailure(t *testing.T) {
 	}
 }
 
+// TestPersistErrorHookSurfacesErrorAndDefersAdvance is the HXC-927 anti-bluff
+// test for the PUBLIC observability seam. The internal driver already PARKs an
+// un-persisted Ready and refuses to Advance (HXC-917), but until now the only
+// trace of that durability event was a log.Printf — a consumer/operator had NO
+// programmatic way to OBSERVE it. This test injects a persistence fault, drives a
+// Ready through the public API, and asserts that:
+//
+//  1. the registered public OnPersistError hook actually FIRED with the real
+//     shard id + the surfaced injected error (not a generic placeholder), AND
+//  2. the public LastPersistError accessor reports the SAME error plus a
+//     monotonically growing count, AND
+//  3. Advance was still correctly DEFERRED (the doomed entry did NOT commit while
+//     persistence failed), AND
+//  4. after healing, the parked Ready finally commits.
+//
+// MUTATION GUARD: dropping the hook invocation (or passing a nil/empty error)
+// from the persist-error path makes (1)/(2) read no real error and fail; failing
+// to defer Advance makes (3) commit the doomed entry and fail.
+func TestPersistErrorHookSurfacesErrorAndDefersAdvance(t *testing.T) {
+	fs := newFaultStorage()
+	m := NewMultiRaftManagerWithStorage(NewInProcTransport(), func() shardPersister { return fs })
+
+	const sid = ShardID("observe")
+	if err := m.CreateShard(sid, []uint64{1}); err != nil {
+		t.Fatalf("CreateShard: %v", err)
+	}
+
+	// Register the PUBLIC hook BEFORE any fault occurs (nil-hook = legacy behavior).
+	var (
+		hookMu      sync.Mutex
+		hookCalls   int
+		lastShard   ShardID
+		lastNode    uint64
+		lastHookErr error
+	)
+	m.OnPersistError(func(shardID ShardID, nodeID uint64, err error) {
+		hookMu.Lock()
+		defer hookMu.Unlock()
+		hookCalls++
+		lastShard = shardID
+		lastNode = nodeID
+		lastHookErr = err
+	})
+
+	driveUntilLeaders(t, m, []ShardID{sid}, 200)
+
+	// Baseline commit on the healthy path; no fault yet, so no hook must fire.
+	if err := m.Propose(context.Background(), sid, []byte("ok-1")); err != nil {
+		t.Fatalf("propose ok-1: %v", err)
+	}
+	settle(m, 30)
+	base, err := m.CommittedCount(sid, 1)
+	if err != nil {
+		t.Fatalf("CommittedCount: %v", err)
+	}
+	if base != 1 {
+		t.Fatalf("baseline committed=%d, want 1", base)
+	}
+	hookMu.Lock()
+	if hookCalls != 0 {
+		hookMu.Unlock()
+		t.Fatalf("hook fired %d times on the healthy path; want 0", hookCalls)
+	}
+	hookMu.Unlock()
+	if cnt, _, _ := m.LastPersistError(sid); cnt != 0 {
+		t.Fatalf("LastPersistError count=%d on healthy path; want 0", cnt)
+	}
+
+	// Inject persistence faults, then propose. Persistence now fails on every cycle.
+	fs.fail.Store(true)
+	if err := m.Propose(context.Background(), sid, []byte("doomed")); err != nil {
+		t.Fatalf("propose doomed: %v", err)
+	}
+	settle(m, 20)
+
+	// (3) Advance was deferred: the doomed entry did NOT commit while failing.
+	during, _ := m.CommittedCount(sid, 1)
+	if during != base {
+		t.Fatalf("doomed entry committed despite persistence failure: committed=%d want %d", during, base)
+	}
+
+	// (1) The public hook FIRED with the real shard id + surfaced injected error.
+	hookMu.Lock()
+	gotCalls := hookCalls
+	gotShard := lastShard
+	gotNode := lastNode
+	gotErr := lastHookErr
+	hookMu.Unlock()
+	if gotCalls == 0 {
+		t.Fatal("public OnPersistError hook never fired despite a real persistence fault (operator has no way to observe the deferred Advance)")
+	}
+	if gotShard != sid {
+		t.Fatalf("hook reported shard %q, want %q", gotShard, sid)
+	}
+	if gotNode != 1 {
+		t.Fatalf("hook reported node %d, want 1", gotNode)
+	}
+	if gotErr == nil || !errors.Is(gotErr, errFaultInjected) {
+		t.Fatalf("hook reported err=%v, want the surfaced injected fault", gotErr)
+	}
+
+	// (2) The public accessor reports the SAME error and a positive, growing count.
+	cnt1, accShard, accErr := m.LastPersistError(sid)
+	if cnt1 == 0 {
+		t.Fatal("LastPersistError count is 0 after a real persistence fault")
+	}
+	if accShard != 1 {
+		t.Fatalf("LastPersistError node=%d, want 1", accShard)
+	}
+	if accErr == nil || !errors.Is(accErr, errFaultInjected) {
+		t.Fatalf("LastPersistError err=%v, want the surfaced injected fault", accErr)
+	}
+	// Drive more failing cycles: the count must keep climbing (Ready re-presented).
+	settle(m, 10)
+	cnt2, _, _ := m.LastPersistError(sid)
+	if cnt2 <= cnt1 {
+		t.Fatalf("LastPersistError count did not grow across failing cycles: %d then %d", cnt1, cnt2)
+	}
+
+	// (4) Heal and drive: the previously-parked Ready commits the doomed entry.
+	fs.fail.Store(false)
+	settle(m, 40)
+	after, _ := m.CommittedCount(sid, 1)
+	if after != base+1 {
+		t.Fatalf("after healing committed=%d, want %d", after, base+1)
+	}
+	entries, _ := m.CommittedEntries(sid, 1)
+	foundDoomed := false
+	for _, e := range entries {
+		if bytes.Equal(e, []byte("doomed")) {
+			foundDoomed = true
+		}
+	}
+	if !foundDoomed {
+		t.Fatalf("the healed entry %q never committed", "doomed")
+	}
+}
+
 // TestProcessReadyHappyPathStillAdvances proves the fix does not regress the
 // in-memory happy path: with a never-failing real storage, proposals commit
 // exactly as before and the storage records only successful persistence.
@@ -210,7 +349,7 @@ func TestProcessReadyLockedReturnsPersistError(t *testing.T) {
 		sh.mu.Unlock()
 		t.Fatalf("Campaign: %v", err)
 	}
-	_, err := sh.processReadyLockedErr()
+	_, errNode, err := sh.processReadyLockedErr()
 	parked := sh.nodes[1].hasPendingReady
 	sh.mu.Unlock()
 
@@ -219,6 +358,9 @@ func TestProcessReadyLockedReturnsPersistError(t *testing.T) {
 	}
 	if !errors.Is(err, errFaultInjected) {
 		t.Fatalf("expected injected fault to be surfaced, got %v", err)
+	}
+	if errNode != 1 {
+		t.Fatalf("processReadyLockedErr reported node %d, want 1", errNode)
 	}
 	if !parked {
 		t.Fatal("faulting node did not park its un-persisted Ready — driver advanced past it (durability violation)")

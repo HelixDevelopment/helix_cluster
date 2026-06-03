@@ -41,7 +41,9 @@ func WithTokenTTL(d time.Duration) PollerOption {
 	return func(p *pollerConfig) { p.tokenTTL = d; p.hasTokenTTL = true }
 }
 
-// WithClock overrides the clock used for token-expiry arithmetic (test seam).
+// WithClock overrides the clock used for deadline/expiry arithmetic across all
+// three pollers (test seam): AWS IMDSv2 token-expiry, and the GCP/Azure
+// preemption-notice Deadline computation (now + lead). It defaults to time.Now.
 func WithClock(now func() time.Time) PollerOption {
 	return func(p *pollerConfig) { p.now = now }
 }
@@ -68,6 +70,9 @@ func (c pollerConfig) applyAzure(p *AzurePoller) {
 	if c.hasInterval {
 		p.interval = c.interval
 	}
+	if c.now != nil {
+		p.now = c.now
+	}
 }
 
 func (c pollerConfig) applyGCP(p *GCPPoller) {
@@ -76,6 +81,9 @@ func (c pollerConfig) applyGCP(p *GCPPoller) {
 	}
 	if c.hasInterval {
 		p.interval = c.interval
+	}
+	if c.now != nil {
+		p.now = c.now
 	}
 }
 
@@ -91,6 +99,10 @@ type AzurePoller struct {
 	client     *http.Client
 	interval   time.Duration
 	sink       Sink
+	// now is the injectable clock used for the fallback deadline arithmetic when
+	// NotBefore is absent/unparseable. It defaults to time.Now; WithClock
+	// overrides it so the deadline is deterministic in tests.
+	now func() time.Time
 
 	ch chan PreemptionNotice
 
@@ -132,6 +144,7 @@ func NewAzurePoller(baseURL string, sink Sink, opts ...PollerOption) *AzurePolle
 		client:     &http.Client{Timeout: 5 * time.Second},
 		interval:   5 * time.Second,
 		sink:       sink,
+		now:        time.Now,
 		ch:         make(chan PreemptionNotice, 1),
 	}
 	cfg := pollerConfig{}
@@ -210,7 +223,7 @@ func (p *AzurePoller) deadlineFor(ev azureScheduledItem) time.Time {
 			return t
 		}
 	}
-	return time.Now().Add(azureDefaultLead)
+	return p.now().Add(azureDefaultLead)
 }
 
 func (p *AzurePoller) fireOnce(ctx context.Context, notice PreemptionNotice) error {

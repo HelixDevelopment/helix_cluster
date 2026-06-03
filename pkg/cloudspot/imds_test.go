@@ -512,3 +512,93 @@ func TestAWSPoller_DrivesHandlerViaPreemptionSource(t *testing.T) {
 		t.Fatalf("handler hook order = %v, want %v", got, want)
 	}
 }
+
+// ---- WithClock is honoured by GCP + Azure (HXC-1616) ----------------------
+
+// TestGCPPoller_WithClockHonored proves the injected clock drives the GCP
+// preemption deadline. With a fake clock pinned to a fixed instant, the parsed
+// notice Deadline MUST equal fakeNow + lead EXACTLY (the GCE ~30s warning),
+// and the sink must receive that same deadline. A real wall-clock would make
+// the deadline differ from fakeNow+lead, so this is not a PASS-bluff.
+//
+// Mutation that this kills: revert GCPPoller.Poll to time.Now().Add(p.lead)
+// (or drop `if c.now != nil { p.now = c.now }` from applyGCP). Then the
+// deadline is real wall time, never equal to the far-past fakeNow+lead, and
+// the exact-equality assertions FAIL.
+func TestGCPPoller_WithClockHonored(t *testing.T) {
+	var sawFlavor bool
+	var mu sync.Mutex
+	srv := newGCPMeta(t, "TRUE", &sawFlavor, &mu)
+	defer srv.Close()
+
+	// A fixed instant clearly distinct from real wall time.
+	fakeNow := time.Date(2000, time.January, 2, 3, 4, 5, 0, time.UTC)
+	wantDeadline := fakeNow.Add(gcpDefaultLead)
+
+	sink := &fakeSink{}
+	p := NewGCPPoller(srv.URL, sink,
+		WithHTTPClient(srv.Client()),
+		WithClock(func() time.Time { return fakeNow }),
+	)
+	notice, detected, err := p.Poll(context.Background())
+	if err != nil || !detected {
+		t.Fatalf("gcp poll: detected=%v err=%v", detected, err)
+	}
+	if !notice.Deadline.Equal(wantDeadline) {
+		t.Fatalf("gcp deadline = %v, want fakeNow+lead = %v (WithClock ignored?)", notice.Deadline, wantDeadline)
+	}
+	// Sink-side evidence: every drain step must carry the injected-clock deadline.
+	gotOrder, gotDeadlines := sink.snapshot()
+	if !reflect.DeepEqual(gotOrder, wantSinkSequence) {
+		t.Fatalf("gcp sink order = %v, want %v", gotOrder, wantSinkSequence)
+	}
+	for i, d := range gotDeadlines {
+		if !d.Equal(wantDeadline) {
+			t.Fatalf("gcp sink step %d deadline %v, want %v", i, d, wantDeadline)
+		}
+	}
+}
+
+// TestAzurePoller_WithClockHonored proves the injected clock drives the Azure
+// fallback deadline. The Preempt event omits a parseable NotBefore, so
+// deadlineFor takes the now()+lead branch; with a pinned fake clock the notice
+// Deadline MUST equal fakeNow + azureDefaultLead EXACTLY, and the sink must
+// receive that same deadline.
+//
+// Mutation that this kills: revert deadlineFor's fallback to
+// time.Now().Add(azureDefaultLead) (or drop `if c.now != nil { p.now = c.now }`
+// from applyAzure). Then the deadline is real wall time, never equal to the
+// far-past fakeNow+lead, and the exact-equality assertions FAIL.
+func TestAzurePoller_WithClockHonored(t *testing.T) {
+	var sawHeader bool
+	var mu sync.Mutex
+	// Preempt event with NO NotBefore → deadlineFor uses the now()+lead fallback.
+	doc := `{"DocumentIncarnation":7,"Events":[{"EventId":"E9","EventType":"Preempt","ResourceType":"VirtualMachine","Resources":["vm9"],"EventStatus":"Scheduled","NotBefore":""}]}`
+	srv := newAzureIMDS(t, doc, &sawHeader, &mu)
+	defer srv.Close()
+
+	fakeNow := time.Date(2001, time.February, 3, 4, 5, 6, 0, time.UTC)
+	wantDeadline := fakeNow.Add(azureDefaultLead)
+
+	sink := &fakeSink{}
+	p := NewAzurePoller(srv.URL, sink,
+		WithHTTPClient(srv.Client()),
+		WithClock(func() time.Time { return fakeNow }),
+	)
+	notice, detected, err := p.Poll(context.Background())
+	if err != nil || !detected {
+		t.Fatalf("azure poll: detected=%v err=%v", detected, err)
+	}
+	if !notice.Deadline.Equal(wantDeadline) {
+		t.Fatalf("azure deadline = %v, want fakeNow+lead = %v (WithClock ignored?)", notice.Deadline, wantDeadline)
+	}
+	gotOrder, gotDeadlines := sink.snapshot()
+	if !reflect.DeepEqual(gotOrder, wantSinkSequence) {
+		t.Fatalf("azure sink order = %v, want %v", gotOrder, wantSinkSequence)
+	}
+	for i, d := range gotDeadlines {
+		if !d.Equal(wantDeadline) {
+			t.Fatalf("azure sink step %d deadline %v, want %v", i, d, wantDeadline)
+		}
+	}
+}

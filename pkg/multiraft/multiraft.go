@@ -77,6 +77,12 @@ type shard struct {
 	nodes     map[uint64]*node
 	peers     []uint64
 	transport RaftTransport
+	// mgr is a back-reference to the owning manager so the shard's Ready loop can
+	// surface a persistence error through the manager's PUBLIC observability seam
+	// (the per-shard PersistError record + the registered OnPersistError hook) from
+	// the same spot that historically only log.Printf'd it (HXC-927). It is set at
+	// CreateShard time and never mutated thereafter, so reading it needs no lock.
+	mgr *MultiRaftManager
 	// pending accumulates cross-node outbound raft messages produced while sh.mu
 	// is held in processReadyLocked. They are flushed by deliverPending AFTER sh.mu
 	// is released, so transport.Send (and any handler it invokes synchronously) is
@@ -103,6 +109,29 @@ type MultiRaftManager struct {
 	// the durability-error path (HXC-917). It is the single seam that keeps the
 	// storage layer swappable for a real WAL/disk backend.
 	newStorage func() shardPersister
+
+	// persistMu guards the observability seam below. It is a dedicated mutex (NOT
+	// m.mu) so firing the hook / recording an error from inside a shard's Ready loop
+	// never contends on the manager's shard-map lock and cannot invert lock order.
+	persistMu sync.Mutex
+	// persistErrHook, if non-nil, is invoked exactly once per surfaced persistence
+	// error with the affected (shardID,nodeID) and the surfaced error. A nil hook
+	// preserves the legacy behavior (log only). It is the PUBLIC push-style seam an
+	// operator registers via OnPersistError to OBSERVE that a shard hit a persist
+	// error and is deferring Advance (HXC-927) — previously only visible in the log.
+	persistErrHook func(shardID ShardID, nodeID uint64, err error)
+	// lastPersistErr is the pull-style companion: the most recent persistence error
+	// per shard plus a monotonically increasing count, exposed via LastPersistError.
+	lastPersistErr map[ShardID]*persistErrorRecord
+}
+
+// persistErrorRecord is the per-shard last-persist-error state surfaced by the
+// public LastPersistError accessor. count grows on every surfaced persist error so
+// an operator can see a shard is repeatedly re-attempting an un-persisted Ready.
+type persistErrorRecord struct {
+	count  int
+	nodeID uint64
+	err    error
 }
 
 // NewMultiRaftManager constructs a manager using the supplied transport. The
@@ -122,11 +151,12 @@ func NewMultiRaftManagerWithStorage(transport RaftTransport, newStorage func() s
 		newStorage = func() shardPersister { return NewShardStorage() }
 	}
 	return &MultiRaftManager{
-		shards:        make(map[ShardID]*shard),
-		transport:     transport,
-		electionTick:  10,
-		heartbeatTick: 1,
-		newStorage:    newStorage,
+		shards:         make(map[ShardID]*shard),
+		transport:      transport,
+		electionTick:   10,
+		heartbeatTick:  1,
+		newStorage:     newStorage,
+		lastPersistErr: make(map[ShardID]*persistErrorRecord),
 	}
 }
 
@@ -143,7 +173,7 @@ func (m *MultiRaftManager) CreateShard(id ShardID, peers []uint64) error {
 		return fmt.Errorf("%w: %q", ErrShardExists, id)
 	}
 
-	sh := &shard{id: id, nodes: make(map[uint64]*node), peers: append([]uint64(nil), peers...), transport: m.transport}
+	sh := &shard{id: id, nodes: make(map[uint64]*node), peers: append([]uint64(nil), peers...), transport: m.transport, mgr: m}
 	sort.Slice(sh.peers, func(i, j int) bool { return sh.peers[i] < sh.peers[j] })
 
 	raftPeers := make([]raft.Peer, len(sh.peers))
@@ -502,6 +532,72 @@ func (m *MultiRaftManager) ShardIDs() []ShardID {
 	return ids
 }
 
+// OnPersistError registers a callback invoked whenever a shard's Ready loop hits a
+// persistence (Append/SetHardState) error and therefore DEFERS Advance to honor
+// raft's durability invariant (HXC-917). It is the PUBLIC observability seam an
+// operator/consumer uses to OBSERVE that event programmatically — previously the
+// deferral was only visible in the process log (HXC-927). The hook receives the
+// affected shard id, the node id whose persistence failed, and the surfaced error.
+//
+// Backward compatible: the default (no hook registered) preserves the prior
+// log-only behavior. Passing a nil hook clears any previously registered hook. The
+// hook is invoked WITHOUT any shard or manager lock held, so it may safely call
+// back into the manager (e.g. LastPersistError); it MUST NOT block indefinitely as
+// it runs on the driving goroutine (Tick/Run/Propose/Campaign).
+func (m *MultiRaftManager) OnPersistError(hook func(shardID ShardID, nodeID uint64, err error)) {
+	m.persistMu.Lock()
+	m.persistErrHook = hook
+	m.persistMu.Unlock()
+}
+
+// WithPersistErrorHook is an alias for OnPersistError kept for call sites that read
+// more naturally as a configuration step. It returns the manager for chaining.
+func (m *MultiRaftManager) WithPersistErrorHook(hook func(shardID ShardID, nodeID uint64, err error)) *MultiRaftManager {
+	m.OnPersistError(hook)
+	return m
+}
+
+// LastPersistError reports the most recent persistence error surfaced for a shard:
+// a monotonically increasing count of surfaced errors, the node id whose
+// persistence failed, and the error itself. A count of 0 (and nil error) means the
+// shard has never deferred Advance due to a persistence fault. This is the PUBLIC
+// pull-style companion to OnPersistError so a consumer can poll a shard's
+// durability health without registering a callback (HXC-927).
+func (m *MultiRaftManager) LastPersistError(shardID ShardID) (count int, nodeID uint64, err error) {
+	m.persistMu.Lock()
+	defer m.persistMu.Unlock()
+	if rec, ok := m.lastPersistErr[shardID]; ok {
+		return rec.count, rec.nodeID, rec.err
+	}
+	return 0, 0, nil
+}
+
+// surfacePersistError records a surfaced persistence error for a shard and fires the
+// registered hook (if any). It is called from processReadyLocked's error path — the
+// exact spot that historically only log.Printf'd — so the public push (hook) and
+// pull (LastPersistError) seams reflect the SAME deferred-Advance event. It takes
+// only persistMu (never a shard lock and never m.mu) and invokes the hook AFTER
+// releasing persistMu so the hook may safely call back into the manager.
+func (m *MultiRaftManager) surfacePersistError(shardID ShardID, nodeID uint64, err error) {
+	if err == nil {
+		return
+	}
+	m.persistMu.Lock()
+	rec, ok := m.lastPersistErr[shardID]
+	if !ok {
+		rec = &persistErrorRecord{}
+		m.lastPersistErr[shardID] = rec
+	}
+	rec.count++
+	rec.nodeID = nodeID
+	rec.err = err
+	hook := m.persistErrHook
+	m.persistMu.Unlock()
+	if hook != nil {
+		hook(shardID, nodeID, err)
+	}
+}
+
 // leaderLocked returns the live node believed to be leader, or nil. Caller holds sh.mu.
 func (s *shard) leaderLocked() *node {
 	for _, n := range s.nodes {
@@ -525,7 +621,7 @@ func (s *shard) leaderLocked() *node {
 // contract we (1) persist HardState+Entries, (2) send Messages, (3) apply
 // CommittedEntries, then (4) Advance.
 func (s *shard) processReadyLocked() bool {
-	progressed, err := s.processReadyLockedErr()
+	progressed, nodeID, err := s.processReadyLockedErr()
 	if err != nil {
 		// A persistence backend (real WAL/disk) failed. We deliberately did NOT
 		// Advance the affected node's Ready, so raft will re-present it on the next
@@ -533,6 +629,12 @@ func (s *shard) processReadyLocked() bool {
 		// to the operator log; the bool/void-returning driver entrypoints (Tick,
 		// Propose, Run, Campaign) keep progressing the other nodes/shards.
 		log.Printf("multiraft: shard %q: deferring Advance after persistence error (Ready will be retried): %v", s.id, err)
+		// PUBLIC observability seam (HXC-927): also surface the SAME event through the
+		// manager's per-shard last-persist-error record and the registered hook, so a
+		// consumer/operator can OBSERVE the deferred-Advance — not just read the log.
+		if s.mgr != nil {
+			s.mgr.surfacePersistError(s.id, nodeID, err)
+		}
 	}
 	return progressed
 }
@@ -553,9 +655,10 @@ func (s *shard) processReadyLocked() bool {
 // node does NOT count as progress, so the outer loop terminates instead of spinning
 // when every remaining node is parked, while non-faulting nodes in the same pass
 // still progress and other shards are wholly unaffected.
-func (s *shard) processReadyLockedErr() (bool, error) {
+func (s *shard) processReadyLockedErr() (bool, uint64, error) {
 	progressed := false
 	var firstErr error
+	var firstErrNode uint64
 	for {
 		did := false
 		for _, n := range s.nodes {
@@ -586,6 +689,7 @@ func (s *shard) processReadyLockedErr() (bool, error) {
 					n.park(rd)
 					if firstErr == nil {
 						firstErr = fmt.Errorf("node %d SetHardState: %w", n.id, err)
+						firstErrNode = n.id
 					}
 					continue
 				}
@@ -595,6 +699,7 @@ func (s *shard) processReadyLockedErr() (bool, error) {
 					n.park(rd)
 					if firstErr == nil {
 						firstErr = fmt.Errorf("node %d Append: %w", n.id, err)
+						firstErrNode = n.id
 					}
 					continue
 				}
@@ -641,7 +746,7 @@ func (s *shard) processReadyLockedErr() (bool, error) {
 			progressed = true
 		}
 		if !did {
-			return progressed, firstErr
+			return progressed, firstErrNode, firstErr
 		}
 	}
 }

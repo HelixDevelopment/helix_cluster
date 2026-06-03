@@ -23,6 +23,9 @@ type GCPPoller struct {
 	interval time.Duration
 	lead     time.Duration
 	sink     Sink
+	// now is the injectable clock used for deadline arithmetic. It defaults to
+	// time.Now; WithClock overrides it so the deadline is deterministic in tests.
+	now func() time.Time
 
 	ch chan PreemptionNotice
 
@@ -47,6 +50,7 @@ func NewGCPPoller(baseURL string, sink Sink, opts ...PollerOption) *GCPPoller {
 		interval: 5 * time.Second,
 		lead:     gcpDefaultLead,
 		sink:     sink,
+		now:      time.Now,
 		ch:       make(chan PreemptionNotice, 1),
 	}
 	cfg := pollerConfig{}
@@ -84,7 +88,7 @@ func (p *GCPPoller) Poll(ctx context.Context) (PreemptionNotice, bool, error) {
 	}
 	switch strings.ToUpper(strings.TrimSpace(string(body))) {
 	case "TRUE":
-		notice := PreemptionNotice{Deadline: time.Now().Add(p.lead), Reason: "gcp-preempted"}
+		notice := PreemptionNotice{Deadline: p.now().Add(p.lead), Reason: "gcp-preempted"}
 		if err := p.fireOnce(ctx, notice); err != nil {
 			return notice, true, err
 		}
