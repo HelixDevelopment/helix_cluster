@@ -5,4 +5,34 @@ breaking:
     - FILE
 lint:
   use:
-    - DEFAULT
+    # STANDARD replaces the deprecated DEFAULT category (same rule set, current name).
+    - STANDARD
+  except:
+    # Protos live at the api/v1 module root (matching the Go module import path
+    # github.com/.../api/v1), not under a helix/v1/ subdirectory. Restructuring the
+    # layout to satisfy this rule would rewrite every consumer's import path, which is
+    # out of scope. The package (helix.v1) and directory layout are intentional.
+    - PACKAGE_DIRECTORY_MATCH
+    # Streaming and unary RPCs intentionally return domain event/entity types
+    # (LockEvent, HealthEvent, BuildStatus, Node, Session, etc.) rather than synthetic
+    # MethodResponse wrappers. These domain-named messages are part of the public API
+    # contract and are shared across RPCs by design.
+    - RPC_RESPONSE_STANDARD_NAME
+    # Same design intent as RPC_RESPONSE_STANDARD_NAME, applied to request/shared types:
+    # domain entity/request messages are deliberately reused across multiple RPCs rather
+    # than minted per-method. NodeService returns Node from GetNode + UpdateNodeStatus;
+    # SessionService returns Session from CreateSession + GetSession + UpdateSession;
+    # GPUProvider accepts the same KernelRequest for DispatchKernel + DispatchKernelStream.
+    # Splitting these into per-RPC synthetic types would fork the public API contract and
+    # the generated Go stubs every consumer already imports, which is out of scope.
+    - RPC_REQUEST_RESPONSE_UNIQUE
+    # KernelRequest is the deliberate, contract-stable name of the GPUProvider request
+    # message shared by both DispatchKernel and DispatchKernelStream (see
+    # RPC_REQUEST_RESPONSE_UNIQUE above); renaming it to the per-RPC DispatchKernelRequest
+    # form would break that shared contract and the generated stubs. Intentional.
+    - RPC_REQUEST_STANDARD_NAME
+    # GPUProvider (HXC-1527) is an intentionally named kernel-dispatch service; the public
+    # API contract and its generated Go type (GPUProviderServer/Client) use this exact name.
+    # Appending the default "Service" suffix would rename the generated interface every
+    # consumer implements/imports, which is out of scope. Intentional, consistent name.
+    - SERVICE_SUFFIX
