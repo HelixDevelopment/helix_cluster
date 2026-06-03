@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 84 — per-request response keypair (HXC-1563; security submodule `f09227f`; conductor-gated -race + isolation mutation):**
+  - `security/pkg/e2ee` — `ResponseKeypair` (fresh ephemeral ML-KEM-768 Initiator per request) + worker `SealResponse` + client `OpenResponse` + `Fingerprint`, composed from existing handshake primitives (no hand-rolled crypto). A response sealed for request-1 is cryptographically unopenable with request-2's key; per-request rotation proven via distinct fingerprints. Mutation reusing one keypair fails the isolation test (HXC-1563).
 - **Wave 83 — typed Avro pub/sub for the remaining domain events (HXC-1627; conductor-gated build/vet/-race + REAL-broker integration + load-bearing mutation):**
   - `pkg/events` — `NATSBackend` gains typed `Publish*`/`Subscribe*` methods for `SessionEvent`/`SchedulerEvent`/`AuditEvent` at parity with `NodeEvent`: in `WireAvro` mode each carries an Avro single-object payload (`0xC3 0x01` + fingerprint) decoded via the `SchemaRegistry`; JSON stays default. `TestNATSBackend_TypedAvroWire_RealRoundTrip` (`//go:build integration`) boots a real NATS broker via `brokertest.StartNATS` and asserts the on-wire Avro marker + exact round-trip for all three types. Mutation forcing JSON on `PublishSessionEvent` fails the on-wire assertion. All four domain events now route over the live bus in Avro mode (HXC-1627).
 - **Wave 82 — Avro codec wired into the live NATS event bus (HXC-1626; conductor-gated build/vet/-race + REAL-broker integration + load-bearing mutation):**
