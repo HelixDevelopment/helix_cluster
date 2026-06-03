@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sort"
 	"sync"
 
@@ -31,13 +32,40 @@ var (
 type node struct {
 	id      uint64
 	raw     *raft.RawNode
-	storage *ShardStorage
+	storage shardPersister
 	// committed holds the application payloads of committed normal entries, in
 	// commit order — the sink-side evidence that a proposal was actually agreed
 	// by the raft quorum (CLAUDE-1: prove the feature works, not just runs).
 	committed [][]byte
 	applied   uint64
 	stopped   bool
+	// pendingReady holds a Ready that was pulled from raft (via raw.Ready()) but
+	// whose HardState/Entries could NOT be persisted yet because the storage
+	// backend returned an error. Per the etcd raft v3.6 contract, calling Ready()
+	// already "accepts" the unstable batch — raft will NOT re-present it on its own
+	// and forbids pulling another Ready() before Advance(). So to honor raft's
+	// durability invariant we PARK the un-persisted Ready here and, on each later
+	// cycle, RE-attempt persistence of this exact Ready; only once it is durable do
+	// we Advance(it). This is the no-data-loss retry that HXC-917 requires: Advance
+	// (which Steps the storage-append-response that drives commit) never runs until
+	// the data is actually on stable storage.
+	pendingReady    *raft.Ready
+	hasPendingReady bool
+}
+
+// park stashes a Ready whose persistence failed so the next driving cycle retries
+// that exact batch instead of pulling a new one (raft forbids a second Ready()
+// before Advance). It copies rd because raw.Ready() reuses backing buffers.
+func (n *node) park(rd raft.Ready) {
+	rdCopy := rd
+	n.pendingReady = &rdCopy
+	n.hasPendingReady = true
+}
+
+// clearParked drops any parked Ready once its data is durably persisted.
+func (n *node) clearParked() {
+	n.pendingReady = nil
+	n.hasPendingReady = false
 }
 
 // shard is one independent raft group. Its own mutex means proposing to / ticking
@@ -70,16 +98,35 @@ type MultiRaftManager struct {
 	// transport's read handlers have been wired so Read may take its fast path.
 	leases      *LeaseTracker
 	readEnabled bool
+	// newStorage builds the per-peer persistence backend. It defaults to the real
+	// in-memory ShardStorage; tests inject a fault-injecting persister to exercise
+	// the durability-error path (HXC-917). It is the single seam that keeps the
+	// storage layer swappable for a real WAL/disk backend.
+	newStorage func() shardPersister
 }
 
 // NewMultiRaftManager constructs a manager using the supplied transport. The
 // transport is REAL message delivery between shard peers (see InProcTransport).
 func NewMultiRaftManager(transport RaftTransport) *MultiRaftManager {
+	return NewMultiRaftManagerWithStorage(transport, func() shardPersister { return NewShardStorage() })
+}
+
+// NewMultiRaftManagerWithStorage is like NewMultiRaftManager but lets the caller
+// supply the per-peer storage backend factory. This is the seam used to plug in a
+// real WAL/disk persister in production deployments and a fault-injecting
+// persister in tests that verify raft's durability invariant (HXC-917): on a
+// persistence error the driver must NOT Advance the affected Ready. A nil factory
+// falls back to the real in-memory ShardStorage.
+func NewMultiRaftManagerWithStorage(transport RaftTransport, newStorage func() shardPersister) *MultiRaftManager {
+	if newStorage == nil {
+		newStorage = func() shardPersister { return NewShardStorage() }
+	}
 	return &MultiRaftManager{
 		shards:        make(map[ShardID]*shard),
 		transport:     transport,
 		electionTick:  10,
 		heartbeatTick: 1,
+		newStorage:    newStorage,
 	}
 }
 
@@ -105,7 +152,7 @@ func (m *MultiRaftManager) CreateShard(id ShardID, peers []uint64) error {
 	}
 
 	for _, pid := range sh.peers {
-		st := NewShardStorage()
+		st := m.newStorage()
 		cfg := &raft.Config{
 			ID:            pid,
 			ElectionTick:  m.electionTick,
@@ -478,22 +525,83 @@ func (s *shard) leaderLocked() *node {
 // contract we (1) persist HardState+Entries, (2) send Messages, (3) apply
 // CommittedEntries, then (4) Advance.
 func (s *shard) processReadyLocked() bool {
+	progressed, err := s.processReadyLockedErr()
+	if err != nil {
+		// A persistence backend (real WAL/disk) failed. We deliberately did NOT
+		// Advance the affected node's Ready, so raft will re-present it on the next
+		// cycle once storage recovers — no data loss, no log divergence. Surface it
+		// to the operator log; the bool/void-returning driver entrypoints (Tick,
+		// Propose, Run, Campaign) keep progressing the other nodes/shards.
+		log.Printf("multiraft: shard %q: deferring Advance after persistence error (Ready will be retried): %v", s.id, err)
+	}
+	return progressed
+}
+
+// processReadyLockedErr is the durability-correct core of the Ready loop. It
+// drains pending Ready batches for every live node, persisting entries/HardState
+// BEFORE delivering messages / applying / advancing. Returns whether any node made
+// progress and the FIRST persistence error encountered (if any). Caller holds sh.mu.
+//
+// HXC-917 durability invariant: raft guarantees safety only if a Ready is persisted
+// to stable storage BEFORE Advance reports it durably handled. ShardStorage is a
+// swappable seam for a real WAL/disk backend, so SetHardState/Append CAN fail. If
+// EITHER fails for a node, we MUST NOT call Advance for that node's Ready: doing so
+// would tell raft the data is durable when it is not, risking acknowledged writes
+// that vanish on restart and log divergence across peers. Instead we record the
+// error and SKIP advancing that node — parking the un-persisted Ready so raft
+// re-presents the identical Ready on the next cycle (idempotent retry). A faulting
+// node does NOT count as progress, so the outer loop terminates instead of spinning
+// when every remaining node is parked, while non-faulting nodes in the same pass
+// still progress and other shards are wholly unaffected.
+func (s *shard) processReadyLockedErr() (bool, error) {
 	progressed := false
+	var firstErr error
 	for {
 		did := false
 		for _, n := range s.nodes {
-			if n.stopped || !n.raw.HasReady() {
+			if n.stopped {
 				continue
 			}
-			rd := n.raw.Ready()
 
-			// (1) Persist HardState + new log entries to stable storage first.
+			// If this node has a PARKED Ready whose persistence previously failed, we
+			// MUST retry that exact Ready before pulling a new one (raft forbids a
+			// second Ready() before Advance, and the parked batch is already accepted).
+			var rd raft.Ready
+			if n.hasPendingReady {
+				rd = *n.pendingReady
+			} else {
+				if !n.raw.HasReady() {
+					continue
+				}
+				rd = n.raw.Ready()
+			}
+
+			// (1) Persist HardState + new log entries to stable storage FIRST, and
+			// CHECK the result. A persistence failure means this Ready is NOT durable,
+			// so we PARK it (do NOT Advance) and retry it on a later cycle. Advancing
+			// here would Step the storage-append-response and let raft mark data
+			// durable/committed that never actually reached stable storage.
 			if !raft.IsEmptyHardState(rd.HardState) {
-				_ = n.storage.SetHardState(rd.HardState)
+				if err := n.storage.SetHardState(rd.HardState); err != nil {
+					n.park(rd)
+					if firstErr == nil {
+						firstErr = fmt.Errorf("node %d SetHardState: %w", n.id, err)
+					}
+					continue
+				}
 			}
 			if len(rd.Entries) > 0 {
-				_ = n.storage.Append(rd.Entries)
+				if err := n.storage.Append(rd.Entries); err != nil {
+					n.park(rd)
+					if firstErr == nil {
+						firstErr = fmt.Errorf("node %d Append: %w", n.id, err)
+					}
+					continue
+				}
 			}
+
+			// Persistence succeeded — clear any parked state for this node.
+			n.clearParked()
 
 			// (2) Queue outbound messages; cross-node ones are sent by deliverPending
 			// AFTER sh.mu is released (self-directed ones are stepped inline here).
@@ -527,13 +635,13 @@ func (s *shard) processReadyLocked() bool {
 				}
 			}
 
-			// (4) Tell raft we have durably handled this Ready.
+			// (4) Persistence succeeded: NOW we may tell raft this Ready is durably handled.
 			n.raw.Advance(rd)
 			did = true
 			progressed = true
 		}
 		if !did {
-			return progressed
+			return progressed, firstErr
 		}
 	}
 }

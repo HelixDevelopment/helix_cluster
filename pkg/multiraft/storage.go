@@ -14,6 +14,27 @@ import (
 	pb "go.etcd.io/raft/v3/raftpb"
 )
 
+// shardPersister is the storage contract the per-shard raft driver depends on:
+// the full raft.Storage read side PLUS the two durability-critical write methods
+// the Ready loop must call (and check) before telling raft a Ready was durably
+// handled. Modeling storage as this interface (rather than the concrete
+// *ShardStorage) is what makes the persistence layer genuinely swappable for a
+// real WAL/disk backend — and what lets a fault-injecting implementation prove
+// the driver honors raft's durability invariant (HXC-917).
+type shardPersister interface {
+	raft.Storage
+	// Append persists newly produced log entries. A non-nil error means the
+	// entries are NOT durable; the driver MUST NOT Advance past such a Ready.
+	Append(entries []pb.Entry) error
+	// SetHardState persists term/vote/commit. A non-nil error means the state is
+	// NOT durable; the driver MUST NOT Advance past such a Ready.
+	SetHardState(st pb.HardState) error
+}
+
+// Compile-time assertion that the production storage satisfies the persister
+// contract the driver requires.
+var _ shardPersister = (*ShardStorage)(nil)
+
 // ShardStorage is a per-shard, in-memory implementation of the etcd raft.Storage
 // interface. It is backed by raft.MemoryStorage (a REAL implementation shipped by
 // the etcd raft library, not a mock) so the underlying raft state machine reads

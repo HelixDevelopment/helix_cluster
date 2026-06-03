@@ -24,12 +24,13 @@ type MemoryInfo struct {
 //
 // Count/Model/Memory are the original aggregate fields populated from the DRM
 // sysfs enumeration. The remaining fields are ADDITIVE scheduler-facing signals
-// (see gpuclass.go): UUID carries a stable hardware identifier when the kernel
-// exposes one (used to make Fingerprint distinct between otherwise-identical
-// cards); Attested records that the GPU passed remote attestation; and
-// ThermalThrottling records that the GPU is currently running with reduced
-// sustained clocks. All three default to their zero value, preserving backward
-// compatibility for every existing GPUInfo literal.
+// (see gpuclass.go and accel.go): UUID carries a stable hardware identifier when
+// the kernel exposes one (used to make Fingerprint distinct between
+// otherwise-identical cards); Attested records that the GPU passed remote
+// attestation; ThermalThrottling records that the GPU is currently running with
+// reduced sustained clocks; and TFLOPS carries the peak FP32 throughput from a
+// real per-OS probe or override label. All default to their zero value,
+// preserving backward compatibility for every existing GPUInfo literal.
 type GPUInfo struct {
 	Count  int    `json:"count"`
 	Model  string `json:"model"`
@@ -41,6 +42,33 @@ type GPUInfo struct {
 	Attested bool `json:"attested,omitempty"`
 	// ThermalThrottling is true when the GPU is currently thermally throttling.
 	ThermalThrottling bool `json:"thermal_throttling,omitempty"`
+	// TFLOPS is the GPU's peak single-precision (FP32) throughput in
+	// teraflops, derived from a real per-OS probe (Apple Silicon GPU core
+	// count on darwin, a known-model PCI table on linux) or from an
+	// override label when the host cannot probe it. It defaults to 0 for any
+	// existing GPUInfo literal, preserving backward compatibility.
+	TFLOPS float64 `json:"tflops,omitempty"`
+}
+
+// Accelerators holds non-GPU accelerator presence/capacity reported for a node.
+//
+// These fields are ADDITIVE: they all default to their zero value so every
+// existing NodeResources literal keeps the same JSON shape and meaning. Unlike
+// the GPU DRM enumeration, NPUs / FPGAs / QPUs are not exposed through a
+// portable sysfs node on the hosts we target, so their capacity is supplied
+// through an OVERRIDE LABEL (an operator-set node label / env var) which the
+// probe honors verbatim. A non-zero value therefore means "an operator has
+// declared this accelerator on the node", which is exactly what the scheduler
+// needs to place accelerator-bound work.
+type Accelerators struct {
+	// NPUTops is the declared neural-processing-unit throughput in TOPS
+	// (tera-operations per second). Zero means no NPU is declared.
+	NPUTops float64 `json:"npu_tops,omitempty"`
+	// FPGALogicElements is the declared FPGA fabric size in logic elements.
+	// Zero means no FPGA is declared.
+	FPGALogicElements int64 `json:"fpga_logic_elements,omitempty"`
+	// QPUPresent is true when a quantum-processing unit is declared present.
+	QPUPresent bool `json:"qpu_present,omitempty"`
 }
 
 // DiskInfo holds disk resource details.
@@ -63,6 +91,9 @@ type NodeResources struct {
 	GPU     GPUInfo     `json:"gpu"`
 	Disk    DiskInfo    `json:"disk"`
 	Network NetworkInfo `json:"network"`
+	// Accelerators carries non-GPU accelerator (NPU/FPGA/QPU) declarations
+	// for the node. It is additive and defaults to its zero value.
+	Accelerators Accelerators `json:"accelerators,omitempty"`
 }
 
 // ResourceSnapshot is a timestamped reading of node resources.

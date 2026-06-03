@@ -122,11 +122,28 @@ func mergeResources(dst, src NodeResources) NodeResources {
 	if src.GPU.Count > 0 {
 		dst.GPU = src.GPU
 	}
+	// TFLOPS is a separable GPU signal: an accelerator-probe reader may report
+	// only TFLOPS (Count==0) to enrich a GPU another reader already enumerated.
+	// Overlay it when the source carries a value, without clobbering Count/Model.
+	if src.GPU.TFLOPS > 0 {
+		dst.GPU.TFLOPS = src.GPU.TFLOPS
+	}
 	if src.Disk.TotalKB > 0 {
 		dst.Disk = src.Disk
 	}
 	if len(src.Network.Interfaces) > 0 {
 		dst.Network = src.Network
+	}
+	// Accelerators overlay per-field so an override-label reader can declare an
+	// NPU/FPGA/QPU independently of the GPU/CPU readers.
+	if src.Accelerators.NPUTops > 0 {
+		dst.Accelerators.NPUTops = src.Accelerators.NPUTops
+	}
+	if src.Accelerators.FPGALogicElements > 0 {
+		dst.Accelerators.FPGALogicElements = src.Accelerators.FPGALogicElements
+	}
+	if src.Accelerators.QPUPresent {
+		dst.Accelerators.QPUPresent = true
 	}
 	return dst
 }
