@@ -185,6 +185,46 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 78 — 4 disjoint host-closeable streams + a
+cross-platform SELinux fix (all conductor-gated build/vet/-race +
+load-bearing mutation bite, not agent self-reports):</strong>
+<ul>
+<li><code>internal/console</code> — fixture-driven device-classification
+hardening: <code>testdata/</code>
+<code>/proc</code>+<code>device-tree</code> trees for 6 device classes
+(PS4/PS5/x86-server/RK3588/Raspberry-Pi/generic) with exact-label table
+assertions; mutating the PS5 zen-2 SoC-match row flips
+<code>ps5_zen2</code> and fails the test. Non-console classes still
+classify <code>Unknown</code> today (positive labels tracked HXC-1624)
+(HXC-1158).</li>
+<li><code>scripts/cross-compile-agent.sh</code> + <code>Makefile</code>
+<code>cross-agent</code> target — reproducible ARM64 cross-compilation
+of <code>cmd/helix-agent</code>: emits linux/arm64 (ELF aarch64),
+linux/armv7 (ELF 32-bit ARM EABI5) and android/arm64 artifacts with a
+build-UUID via <code>-ldflags</code> and a <code>--version</code> print
+path; <code>crosscompile_test.go</code> asserts
+<code>elf.EM_AARCH64</code> via <code>debug/elf</code>. CGO-enabled
+cross (no <code>zig cc</code>/<code>aarch64-gnu-gcc</code> on host) and
+on-real-SBC execution are honest SKIPs (HXC-1622/HXC-1623)
+(HXC-1167).</li>
+<li><code>docs/architecture/PHASE_8C_INTEGRATION.md</code> —
+code-grounded Phase-8C integration map (attestation→scheduler,
+e2ee→orchestrator, marketplace) citing real <code>pkg/resources</code>
+symbols; scheduler attestation-wiring labeled PLANNED (verified: no
+<code>SetAttested</code> callers) (HXC-1614).</li>
+<li><code>docs/PHASE_8C_EXIT_GATE_EVIDENCE.md</code> — CLAUDE-1
+exit-gate evidence matrix (PROVEN 9 / PARTIAL 6 / NOT-YET 7); PROVEN
+rows cite real <code>pkg/metering</code>+<code>pkg/auditproof</code>
+tests, NOT-YET rows cite Queued tickets (HXC-1613).</li>
+<li><strong><code>containers</code> submodule
+(<code>pkg/crossbuild</code>)</strong> — SELinux bind-mount relabel made
+conditional + cross-platform: <code>:Z</code> private / <code>:z</code>
+shared <strong>only when SELinux is active</strong>, empty on macOS /
+non-SELinux Linux (was hardcoded <code>:Z</code>, breaking
+podman-machine/Docker-Desktop &amp; shared-volume reuse); injectable
+detection, panic-recovered fail-safe, stress+chaos coverage; CLAUDE-2
+§11.4.81 (HXC-1621, submodule <code>1598f28</code>).</li>
+</ul></li>
 <li><strong>Waves 76+77 — two concurrent subagent waves, 8 disjoint
 host-closeable streams (all independently gated build/vet/-race +
 load-bearing mutation bite per stream):</strong>

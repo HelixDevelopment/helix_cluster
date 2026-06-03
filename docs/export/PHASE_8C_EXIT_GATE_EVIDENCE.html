@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PHASE_8C_EXIT_GATE_EVIDENCE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">PHASE_8C_EXIT_GATE_EVIDENCE</h1>
+</header>
+<h1
+id="phase-8c-exit-gate-evidence-matrix-claude-1-usability-proofs">Phase
+8C — Exit-Gate Evidence Matrix (CLAUDE-1 Usability Proofs)</h1>
+<blockquote>
+<p><strong>HXC-1613</strong> | Sink-side gate document | Host OS: macOS
+darwin/arm64 | Audited 2026-06-03</p>
+<p>Grounded in real code/tests under <code>pkg/</code>,
+<code>internal/</code>, <code>cmd/</code>, and the
+<code>vasic-digital/security</code> submodule
+(<code>security/pkg/</code>), cross-checked against the Phase 8C roadmap
+(<code>docs/research/phase_08C/PHASE_8C_ROADMAP.md</code> §8) and the
+code-grounded gap audit
+(<code>docs/research/phase_08C/GAP_AUDIT.md</code>).</p>
+</blockquote>
+<h2 id="why-this-matrix-exists-the-sink-side-gate">Why this matrix
+exists (the sink-side gate)</h2>
+<p>Per <strong>CLAUDE-1</strong> (§7.1 + §11.4.39), tests are
+<em>necessary but not sufficient</em>. A green test on a non-functional
+feature is a <strong>PASS-bluff</strong> — the same defect class as a
+§7.1 violation. Phase 8C (the Chutes-AI remote-GPU integration) may
+<strong>not</strong> be declared <em>usable by an end user</em> on the
+strength of unit tests alone. This document is the <strong>sink-side
+gate</strong>: each Phase 8C exit gate (a CLAUDE-1 usability criterion
+drawn from roadmap §8) is mapped to the <em>end-user-visible
+behavior</em> it proves, the <em>evidence type</em> that proof requires,
+the <em>current status</em>, and a <em>pointer to a real test or the
+Queued ticket</em> that will close it.</p>
+<p><strong>Honesty rule (this IS the deliverable):</strong> a row is
+marked <strong>PROVEN</strong> only when a real, existing test/evidence
+file exercises the behavior on the host OS. Where only unit-level or
+record-layer proof exists (and the roadmap demands a live worker / real
+hardware / a higher-level flow), the row is <strong>PARTIAL</strong>.
+Where the implementation or its test is absent — <em>even if the
+registry marks the ticket “Completed”</em> — the row is
+<strong>NOT-YET</strong> and cites the Queued (or missing) ticket. The
+registry <code>Completed</code> flag is <strong>not</strong> accepted as
+evidence; only resolvable test files are.</p>
+<p>Status legend: <strong>PROVEN</strong> = real test/evidence exists
+and runs on host · <strong>PARTIAL</strong> = real proof exists for a
+subset; roadmap-level gate (live worker / hardware / higher flow) not
+yet met · <strong>NOT-YET</strong> = no resolvable test/impl; tracked by
+a Queued ticket.</p>
+<h2 id="evidence-matrix">Evidence Matrix</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Gate</th>
+<th>End-user-visible behavior it proves</th>
+<th>Evidence type required</th>
+<th>Status</th>
+<th>Pointer (real test / Queued ticket)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>G1 — E2EE record interop</strong></td>
+<td>A confidential prompt sealed by one conforming impl is
+byte-identically reproducible and decryptable by another; tampering is
+rejected</td>
+<td>Vector-driven interop test (deterministic AEAD)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>security/pkg/e2ee/interop_test.go</code> pins exact
+AES-256-GCM ciphertext‖tag vectors (record-layer interop PROVEN).
+<strong>But</strong> the roadmap §8 gate is “byte-for-byte vs <em>Chutes
+reference</em> vectors” + ChaCha20-Poly1305 cipher — both still open:
+HXC-1562 (Chutes byte-interop corpus, Queued), HXC-1561 (ChaCha20
+variant, Queued), HXC-1433 (AES↔︎ChaCha spec deviation, Queued)</td>
+</tr>
+<tr>
+<td><strong>G2 — E2EE envelope + framed transport</strong></td>
+<td>Tenant data travels as a length-prefixed encrypted record stream;
+replay/nonce-reuse/AAD/wrong-key are rejected</td>
+<td>Real handshake + AEAD round-trip + rejection unit tests</td>
+<td><strong>PROVEN</strong></td>
+<td><code>security/pkg/e2ee/package_test.go</code> (14 tests:
+tamper/nonce-reuse/AAD/wrong-key); transport in
+<code>security/pkg/e2ee/transport.go</code> with round-trip + concurrent
+tests</td>
+</tr>
+<tr>
+<td><strong>G3 — E2EE streaming + discovery/nonce contract</strong></td>
+<td>Per-chunk SSE confidential streaming + single-use nonce /
+instance-discovery negotiation as an end user streams tokens</td>
+<td>Live-worker streaming interop test</td>
+<td><strong>NOT-YET</strong></td>
+<td>HXC-1565 (streaming SSE E2EE), HXC-1566 (instance-discovery +
+single-use nonce), HXC-1563 (per-request response keypair) — all
+Queued</td>
+</tr>
+<tr>
+<td><strong>G4 — Software proof-of-GPU
+(challenge/response)</strong></td>
+<td>A provider that does not hold the device secret cannot pass;
+expired/replayed/tampered/forged-descriptor responses are rejected</td>
+<td>Real HMAC challenge/response rejection tests</td>
+<td><strong>PROVEN</strong></td>
+<td><code>security/pkg/gpuattest/package_test.go</code> (13 tests:
+expired/replay/tamper/wrong-key/forged-descriptor)</td>
+</tr>
+<tr>
+<td><strong>G5 — PoVW spot-check (O(1)) + device-sealed
+encrypt</strong></td>
+<td>A large software-PoVW response is verifiable in O(1) at a random
+index; a single tampered word fails at that index; an AEAD key is bound
+to the device secret</td>
+<td>Spot-check + seal/open unit tests</td>
+<td><strong>PROVEN</strong></td>
+<td><code>security/pkg/gpuattest/seal_test.go</code>
+(<code>TestSpotCheckValidIndexPasses</code>,
+<code>TestSpotCheckTamperedSampleFails</code>,
+<code>TestSpotCheckIsConstantWorkAndIndexBound</code>,
+<code>TestSealOpenRoundTrip</code>,
+<code>TestSealWrongDeviceKeyFails</code>)</td>
+</tr>
+<tr>
+<td><strong>G6 — Hardware-rooted proof-of-GPU (real GraVal
+kernel)</strong></td>
+<td>A spoofed / oversubscribed <em>physical</em> GPU is rejected; a
+genuine GPU passes; VRAM ≥95% usable gate</td>
+<td>End-to-end test on a real GPU node (GPU CI runner)</td>
+<td><strong>NOT-YET</strong></td>
+<td>Needs GPU + CUDA/OpenCL kernel (non-Go) — DEFERRED per roadmap
+§7/§8. Tracked: HXC-1593 (VRAM ≥95% gate, Queued), HXC-1488 (HelixQA
+GraVal pass/fail challenge, Queued)</td>
+</tr>
+<tr>
+<td><strong>G7 — Software TEE attestation (quote construct/verify +
+policy)</strong></td>
+<td>An attestation document with a stale/forged nonce, clock-skew, or
+disallowed measurement is rejected; a conforming one verifies</td>
+<td>ed25519-signed document construct/verify + policy unit tests</td>
+<td><strong>PROVEN</strong></td>
+<td><code>security/pkg/attestation/attestation_test.go</code> (18 tests:
+nonce freshness / clock-skew / measurement-policy). Software
+<code>QuoteSigner</code> seam is honestly self-labeled</td>
+</tr>
+<tr>
+<td><strong>G8 — Hardware TEE attestation (Intel TDX + NVIDIA quotes,
+measured boot, attested key release)</strong></td>
+<td>A tampered node fails admission; a genuine TDX+NVIDIA node releases
+the key/secret</td>
+<td>Hardware integration test (real TDX + confidential GPU)</td>
+<td><strong>NOT-YET</strong></td>
+<td>Needs real TDX + H100/H200-class hardware + vendor CA chains —
+DEFERRED per roadmap §7/§8. Tracked: HXC-1574 (TEE quote
+construct/verify), HXC-1575 (Intel TDX quote gen), HXC-1576 (NVIDIA
+NRAS/nvTrust), HXC-1578 (attested key release), HXC-1475 (sek8s TDX+CC
+stack) — all Queued</td>
+</tr>
+<tr>
+<td><strong>G9 — Cost-aware GPU scheduling</strong></td>
+<td>The scheduler prefers cheaper / freer GPUs; placement scoring is
+deterministic and tested</td>
+<td>Scoring-plugin unit test</td>
+<td><strong>PROVEN</strong></td>
+<td><code>pkg/scheduler/cost_gpu_test.go</code> (cost-aware GPU scorer,
+explicit price labels + proxy)</td>
+</tr>
+<tr>
+<td><strong>G10 — Attestation-gated scheduler admission</strong></td>
+<td>A spoofed / unattested node is filtered out <em>before</em> scoring;
+only an attested node is placeable; absent attestor fails closed</td>
+<td>Two-node admission unit test (attested vs forged)</td>
+<td><strong>PROVEN</strong></td>
+<td><code>pkg/scheduler/attestation_test.go</code>
+(<code>TestSchedulerPlacesAttestationJobOnAttestedNodeOnly</code>,
+<code>TestSchedulerRejectsAttestationJobWhenOnlyUnattestedNodes</code>,
+<code>TestFilterFailsClosedWithoutAttestor</code>,
+<code>TestSchedulerExpiredTokenNodeIsNotPlaced</code>)</td>
+</tr>
+<tr>
+<td><strong>G11 — Preemption + optimistic claiming</strong></td>
+<td>A higher-priority job preempts; concurrent claims resolve via
+version conflict (no double-placement)</td>
+<td>Preemption + version-conflict unit test</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/scheduler/gang_preempt_test.go</code> proves
+priority-based preemption + optimistic version bump. <strong>Gap vs
+roadmap:</strong> value-multiplier model and
+<code>SKIP LOCKED</code>-style DB claiming not implemented
+(priority-based only)</td>
+</tr>
+<tr>
+<td><strong>G12 — GPU resource model (fingerprint + compute-multiplier
+catalog + attested flag)</strong></td>
+<td>A GPU is ranked by a real compute-multiplier catalog (H100 &gt; A100
+&gt; default); an un-attested GPU scores below an attested one</td>
+<td>Catalog ordering + scoring unit test</td>
+<td><strong>PROVEN</strong></td>
+<td><code>pkg/resources/gpuclass_test.go</code> (GPU class / multiplier
+catalog ordering). Note: extended thermal/readiness fields tracked by
+HXC-1591 (Queued)</td>
+</tr>
+<tr>
+<td><strong>G13 — Model-integrity gate (<code>hf_cache_verify</code> →
+Go)</strong></td>
+<td>A tampered / truncated / missing model-cache file blocks serving; a
+clean cache is servable</td>
+<td>E2E-style temp-dir manifest verify test (flip/truncate/delete)</td>
+<td><strong>PROVEN</strong></td>
+<td><code>pkg/modelintegrity/modelintegrity_test.go</code>
+(<code>TestVerifyFile_FlippedByteIsSHAMismatch</code>,
+<code>TestVerifyFile_TruncatedIsSizeMismatch</code>,
+<code>TestVerifyManifest_MissingEntryNamedMissing</code>,
+<code>TestVerifyManifest_OneTamperedEntryOverallFail</code>) — SHA-256 +
+size, V2 semantics</td>
+</tr>
+<tr>
+<td><strong>G14 — LLMOrchestrator real inference (no stub)</strong></td>
+<td>Inference returns the REAL backend result and is rejected unless the
+model is registered AND loaded; empty prompt / missing backend are typed
+failures (never a fabricated string)</td>
+<td>Backend-contract unit tests</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>internal/llm/manager.go</code> <code>Inference</code> no
+longer returns the <code>[stub inference ...]</code> string — it drives
+an injected <code>Backend</code> with contract guards.
+<strong>But</strong> the §8 live-serving gate (real vLLM/SGLang HTTP
+WRAP) is not met: HXC-1594 (vLLM/SGLang WRAP), HXC-1471 (vLLM deploy),
+HXC-1472 (SGLang deploy) — Queued</td>
+</tr>
+<tr>
+<td><strong>G15 — Confidential serving (relay sees only
+ciphertext)</strong></td>
+<td>A packet/log capture on the relay/proxy shows only ciphertext +
+routing metadata — the operator cannot read tenant prompts</td>
+<td>Packet/log capture (sink-side evidence) against a live confidential
+instance</td>
+<td><strong>NOT-YET</strong></td>
+<td><code>cmd/e2ee-proxy</code> exists (HXC-1532 Completed) but the
+captured-evidence usability gate is open: HXC-1555 (capture
+<code>tee=true</code> encrypted-traffic gate), HXC-1486 (HelixQA E2EE
+roundtrip challenge) — Queued</td>
+</tr>
+<tr>
+<td><strong>G16 — Scheduling throughput (≥10 placements/sec with
+attestation gate)</strong></td>
+<td>Placement decisions sustain ≥10/sec with the attestation filter
+engaged</td>
+<td>Benchmark</td>
+<td><strong>NOT-YET</strong></td>
+<td>No throughput benchmark for the attestation-gated path exists.
+Tracked under scheduler perf work; closest live-flow ticket HXC-1491
+(end-to-end full request flow, Queued). HXC-1556 benchmarks only ML-KEM
+handshake latency, not placement throughput</td>
+</tr>
+<tr>
+<td><strong>G17 — Marketplace economic flow (registration → bounty →
+metering → payout)</strong></td>
+<td>A provider registers (capability proven), claims a bounty, serves
+metered invocations, and receives a computed payout</td>
+<td>UUID-tagged e2e run with before/after evidence</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/metering/metering.go</code> implements the full
+<code>Register → ClaimBounty → Meter → Payout</code> lifecycle
+(HXC-1607, commit <code>9ad74be</code>; registry
+<code>evidence_path=pkg/metering</code>).
+<code>pkg/metering/metering_test.go</code>
+<code>TestClosure1_RegisterClaimMeterPayout</code> proves the end-to-end
+happy path (capability-proven registration, single bounty claim, exact
+unit accrual, <code>bountyReward + units*rate</code> payout); lifecycle
+enforcement (<code>TestClosure2_LifecycleEnforcement</code>) and exact
+metering (<code>TestClosure3_ExactMetering</code>) are also proven.
+Closure-level flow PROVEN. <strong>But</strong> the roadmap §8 gate is a
+<em>UUID-tagged e2e run with captured before/after evidence</em> against
+a live provider — that sink-side artifact is not yet captured (closest
+live-flow ticket HXC-1491, Queued). Mutation-coverage note: the recorded
+closure mutation (drop the <code>units*rate</code> term) FAILED
+<code>TestClosure1_RegisterClaimMeterPayout</code> as required</td>
+</tr>
+<tr>
+<td><strong>G18 — Marketplace audit (commit-then-prove, reproducible
+reconciliation)</strong></td>
+<td>An audit report carries a SHA-256 commitment; per-node incentives
+are independently recomputed within tolerance</td>
+<td>UUID-tagged reconciliation run with committed report</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/auditproof/auditproof.go</code> implements
+commit-then-prove: <code>CommitReport</code> takes a SHA-256 commitment
+over a canonical (sorted, length-prefixed) serialization of per-node
+incentives derived from compute-unit data; <code>Verify</code>
+independently recomputes incentives + commitment and matches
+byte-for-byte (HXC-1608, commit <code>9ad74be</code>; registry
+<code>evidence_path=pkg/auditproof</code>).
+<code>pkg/auditproof/auditproof_test.go</code> proves it:
+<code>TestClause1_CommitThenProveMatches</code>,
+<code>TestClause2_TamperDetected</code> (altering one node’s data flips
+the commitment), <code>TestClause3_Determinism</code>,
+<code>TestGoldenCommitment</code>. Closure-level reproducible
+reconciliation PROVEN. <strong>But</strong> the roadmap §8 gate is a
+<em>UUID-tagged reconciliation run with the committed report captured as
+evidence</em> — that sink-side artifact is not yet captured.
+Mutation-coverage note: the recorded closure mutation (make
+<code>Verify</code> always-true) FAILED
+<code>TestClause2_TamperDetected</code> as required</td>
+</tr>
+<tr>
+<td><strong>G19 — Inference observability proxy (correlation-ID +
+anonymization)</strong></td>
+<td>Each request carries a propagated correlation-ID, the serving
+backend is recorded for audit, and configured fields are
+deterministically anonymized (stable per tenant)</td>
+<td>Middleware unit tests</td>
+<td><strong>PROVEN</strong></td>
+<td><code>pkg/inferenceproxy/proxy_test.go</code> +
+<code>pkg/inferenceproxy/authorizer_test.go</code> (correlation-ID
+propagation, backend audit trail, keyed-hash anonymization
+determinism)</td>
+</tr>
+<tr>
+<td><strong>G20 — fiber miner↔︎validator transport</strong></td>
+<td>Two peers exchange length-prefixed frames with Ping/Pong keepalive
+over a single-reader/single-writer contract</td>
+<td>Framed-transport round-trip unit test</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/fiber/fiber_test.go</code> proves framed transport +
+keepalive. <strong>Gap vs roadmap §9:</strong> signed-identity /
+stake-gated admission and E2EE underlay not wired (documented as
+future)</td>
+</tr>
+<tr>
+<td><strong>G21 — New-pkg test coverage (&gt;60% line)</strong></td>
+<td>Each new Phase 8C package carries genuine line coverage, not just
+smoke tests</td>
+<td>Codecov / <code>go test -cover</code></td>
+<td><strong>NOT-YET</strong></td>
+<td>Coverage gate not yet asserted as an artifact: HXC-1490 (&gt;60% on
+pkg/chutes, pkg/marketplace, pkg/e2ee — Queued)</td>
+</tr>
+<tr>
+<td><strong>G22 — CLAUDE-1 master usability gate</strong></td>
+<td><em>Every</em> feature proven end-to-end for an end user with
+captured sink-side evidence; real integration (no mock-only) for
+E2EE/attestation/scheduling; HelixQA Challenge PASS reflects genuine
+usability, not a PASS-bluff</td>
+<td>Captured screenshot/log/metrics per feature + real-service/hardware
+integration + HelixQA challenges</td>
+<td><strong>NOT-YET</strong></td>
+<td>The crypto/trust primitives (G2/G4/G5/G7/G9/G10/G12/G13/G19) are
+PROVEN at unit/record level, but the live-worker (G3/G15), real-hardware
+(G6/G8), throughput (G16), and the UUID-tagged captured-evidence
+economic-flow runs (G17/G18, whose closure-level flows are PROVEN but
+whose live before/after artifacts are not yet captured) are open.
+HelixQA challenges Queued: HXC-1486 (E2EE roundtrip), HXC-1487
+(multi-marketplace routing), HXC-1488 (GraVal pass/fail); real-provider
+CI HXC-1554; usability-evidence capture HXC-1555. The master gate stays
+NOT-YET until these land</td>
+</tr>
+</tbody>
+</table>
+<h2 id="summary">Summary</h2>
+<ul>
+<li><strong>PROVEN: 9</strong> — G2, G4, G5, G7, G9, G10, G12, G13, G19
+(each cites a resolvable test file that runs on the host)</li>
+<li><strong>PARTIAL: 6</strong> — G1 (record-layer interop only;
+Chutes-vector/ChaCha gate open), G11 (priority not value-multiplier; no
+<code>SKIP LOCKED</code>), G14 (real backend wired but no live
+vLLM/SGLang WRAP), G17 (closure-level economic flow PROVEN in
+<code>pkg/metering</code>; no UUID-tagged live captured-evidence run),
+G18 (closure-level commit-then-prove reconciliation PROVEN in
+<code>pkg/auditproof</code>; no UUID-tagged live captured-evidence run),
+G20 (transport only; no signed identity/E2EE underlay)</li>
+<li><strong>NOT-YET: 7</strong> — G3, G6, G8, G15, G16, G21, G22 (each
+cites a Queued HXC ticket; G6/G8 are hardware/GPU-CI DEFERRED)</li>
+</ul>
+<p><strong>Grounding correction (supersedes a prior PASS-bluff
+guard):</strong> an earlier revision asserted G17 (HXC-1607) and G18
+(HXC-1608) had <em>no implementing code/test in the tree</em>. That was
+a grounding error: it searched only <code>pkg/marketplace</code> for
+<code>Bounty</code>/<code>Payout</code>/<code>Meter</code>/<code>Register</code>
+and never consulted the registry
+<code>item_history.evidence_path</code>, which names the real
+implementation locations — <code>pkg/metering</code> for HXC-1607 and
+<code>pkg/auditproof</code> for HXC-1608, both landed in the same commit
+<code>9ad74be</code> cited for the <code>Completed</code> marks. The
+flows DO exist and their closure-level behavior is proven
+(<code>TestClosure1_RegisterClaimMeterPayout</code>,
+<code>TestClause2_TamperDetected</code>, both passing on host). They are
+therefore <strong>PARTIAL</strong> (closure-level PROVEN; UUID-tagged
+live captured-evidence run still open), not NOT-YET. The registry
+<code>Completed</code> flag is still not by itself accepted as sink-side
+evidence — the upgrade to PARTIAL is justified by the resolvable,
+passing test files, not by the flag. The genuine residual concern is
+mutation coverage: the registry records a single FAILED mutation bite
+per gate (drop-units-term → <code>TestClosure1</code>;
+Verify-always-true → <code>TestClause2</code>), which is real but does
+not equate to code-nonexistence.</p>
+<p><strong>Bottom line:</strong> Phase 8C’s trust/confidentiality
+<em>primitives</em> are genuinely proven at the unit/record layer on the
+host, and the marketplace economic + audit flows now have proven
+closure-level implementations (G17/G18 PARTIAL). Phase 8C is still
+<strong>NOT yet declarable end-user-usable</strong> (G22 NOT-YET): the
+live-worker, real-hardware, throughput, and the UUID-tagged
+captured-evidence economic/audit runs remain open and tracked by Queued
+tickets.</p>
+<h2 id="evidence-file-index-every-proven-row-path">Evidence file index
+(every PROVEN-row path)</h2>
+<ul>
+<li><code>security/pkg/e2ee/package_test.go</code>,
+<code>security/pkg/e2ee/transport.go</code> — G2</li>
+<li><code>security/pkg/gpuattest/package_test.go</code> — G4</li>
+<li><code>security/pkg/gpuattest/seal_test.go</code> — G5</li>
+<li><code>security/pkg/attestation/attestation_test.go</code> — G7</li>
+<li><code>pkg/scheduler/cost_gpu_test.go</code> — G9</li>
+<li><code>pkg/scheduler/attestation_test.go</code> — G10</li>
+<li><code>pkg/resources/gpuclass_test.go</code> — G12</li>
+<li><code>pkg/modelintegrity/modelintegrity_test.go</code> — G13</li>
+<li><code>pkg/inferenceproxy/proxy_test.go</code>,
+<code>pkg/inferenceproxy/authorizer_test.go</code> — G19</li>
+<li><code>security/pkg/e2ee/interop_test.go</code> — G1 (PARTIAL:
+record-layer only)</li>
+<li><code>pkg/scheduler/gang_preempt_test.go</code> — G11 (PARTIAL)</li>
+<li><code>internal/llm/manager.go</code> — G14 (PARTIAL)</li>
+<li><code>pkg/metering/metering.go</code>,
+<code>pkg/metering/metering_test.go</code> — G17 (PARTIAL: closure-level
+flow proven; no UUID-tagged live run)</li>
+<li><code>pkg/auditproof/auditproof.go</code>,
+<code>pkg/auditproof/auditproof_test.go</code> — G18 (PARTIAL:
+closure-level reconciliation proven; no UUID-tagged live run)</li>
+<li><code>pkg/fiber/fiber_test.go</code> — G20 (PARTIAL)</li>
+</ul>
+</body>
+</html>

@@ -126,6 +126,8 @@ cd web && npm install && npm run dev
 - [`docs/HXC_REGISTRY.md`](docs/HXC_REGISTRY.md) — the work-item registry model
 - [`docs/NODE_PROVISIONING_BOUNDARY.md`](docs/NODE_PROVISIONING_BOUNDARY.md) — node-provisioning boundary: Helix provisions operator-controlled nodes; it does **not** jailbreak/root/unlock or bypass any device security (HXC-1146)
 - [`docs/guides/phase_02_architecture.md`](docs/guides/phase_02_architecture.md) — Phase 02 architecture guide: operator console → WireGuard/SWIM mesh → discovery/scheduler → Linux node, with a traced job path and the no-jailbreak boundary (HXC-1164)
+- [`docs/architecture/PHASE_8C_INTEGRATION.md`](docs/architecture/PHASE_8C_INTEGRATION.md) — code-grounded Phase 8C integration map: attestation→scheduler, e2ee→orchestrator, marketplace seams (implemented vs PLANNED) (HXC-1614)
+- [`docs/PHASE_8C_EXIT_GATE_EVIDENCE.md`](docs/PHASE_8C_EXIT_GATE_EVIDENCE.md) — Phase 8C CLAUDE-1 exit-gate evidence matrix (PROVEN / PARTIAL / NOT-YET, each row tied to a real test or a Queued ticket) (HXC-1613)
 - [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards
 - [`DEVELOPMENT.md`](DEVELOPMENT.md) — development workflow
 - [`CHANGELOG.md`](CHANGELOG.md) — release history

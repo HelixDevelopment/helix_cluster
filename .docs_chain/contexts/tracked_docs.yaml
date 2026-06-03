@@ -86,6 +86,16 @@ nodes:
   mvp_html: { kind: html,     path: docs/export/MVP_ARCHITECTURE.html }
   mvp_pdf:  { kind: pdf,      path: docs/export/MVP_ARCHITECTURE.pdf }
   mvp_docx: { kind: docx,     path: docs/export/MVP_ARCHITECTURE.docx }
+  # --- Phase 8C integration map (HXC-1614; code-grounded attest->scheduler / e2ee->orchestrator / marketplace seams) ---
+  p8cint_md:   { kind: markdown, path: docs/architecture/PHASE_8C_INTEGRATION.md }
+  p8cint_html: { kind: html,     path: docs/export/PHASE_8C_INTEGRATION.html }
+  p8cint_pdf:  { kind: pdf,      path: docs/export/PHASE_8C_INTEGRATION.pdf }
+  p8cint_docx: { kind: docx,     path: docs/export/PHASE_8C_INTEGRATION.docx }
+  # --- Phase 8C exit-gate evidence matrix (HXC-1613; CLAUDE-1 usability proofs PROVEN/PARTIAL/NOT-YET) ---
+  p8cgate_md:   { kind: markdown, path: docs/PHASE_8C_EXIT_GATE_EVIDENCE.md }
+  p8cgate_html: { kind: html,     path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.html }
+  p8cgate_pdf:  { kind: pdf,      path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.pdf }
+  p8cgate_docx: { kind: docx,     path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -138,6 +148,12 @@ edges:
   - { type: derive-from, from: mvp_md,   to: mvp_html, transform: md2html }
   - { type: derive-from, from: mvp_html, to: mvp_pdf,  transform: html2pdf }
   - { type: derive-from, from: mvp_md,   to: mvp_docx, transform: md2docx }
+  - { type: derive-from, from: p8cint_md,   to: p8cint_html, transform: md2html }
+  - { type: derive-from, from: p8cint_html, to: p8cint_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p8cint_md,   to: p8cint_docx, transform: md2docx }
+  - { type: derive-from, from: p8cgate_md,   to: p8cgate_html, transform: md2html }
+  - { type: derive-from, from: p8cgate_html, to: p8cgate_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p8cgate_md,   to: p8cgate_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }

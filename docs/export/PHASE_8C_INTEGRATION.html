@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PHASE_8C_INTEGRATION</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">PHASE_8C_INTEGRATION</h1>
+</header>
+<h1
+id="phase-8c-integration-map-attestation-e2eetee-and-marketplace-seams">Phase
+8C Integration Map — Attestation, E2EE/TEE, and Marketplace Seams</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-06-03 <strong>Maintainer:</strong> Helix Cluster OS — Architecture
+<strong>Status:</strong> active</p>
+<blockquote>
+<p><strong>Scope.</strong> This document is the
+<strong>code-grounded</strong> integration map for the three Phase 8C
+seams described conceptually in
+<code>docs/research/phase_08C/PHASE_8C_ROADMAP.md</code> §5.1/§5.2/§5.3.
+It does <strong>not</strong> restate the roadmap. Every box and arrow
+below maps to a file:symbol that was opened and confirmed in the working
+tree. Where a seam is only <strong>partially</strong> wired in code (an
+interface exists but the production package is not yet consumed), it is
+labelled <strong>PLANNED</strong> rather than implemented, per
+CLAUDE-3.</p>
+<p><strong>Legend:</strong> <code>[IMPLEMENTED]</code> = the cited
+symbol exists and is exercised by code in this repo today.
+<code>[PLANNED]</code> = the seam (interface / label) exists, but the
+wiring to the named production package is <strong>not present</strong>
+in code yet — do not read these arrows as live integration.</p>
+</blockquote>
+<hr />
+<h2
+id="module-boundary-map-decoupled-submodule-vs-main-repo-consumers">0.
+Module-boundary map (decoupled submodule vs main-repo consumers)</h2>
+<p>Phase 8C splits security primitives into the
+<strong><code>digital.vasic.security</code></strong> Git submodule
+(module path <code>digital.vasic.security</code>, mounted at
+<code>security/</code> in this repo) and keeps consumers + a software
+GPU-attestation package in the main repo. The submodule is
+project-agnostic and reusable; the main repo holds the
+schedulers/marketplace/router that <em>would</em> consume it.</p>
+<pre><code>┌─────────────────────────── digital.vasic.security (submodule, security/) ───────────────────────────┐
+│                                                                                                      │
+│  security/pkg/e2ee/package.go                 security/pkg/attestation/attestation.go                │
+│    Initiator / Respond / Session                Attester / Verifier / AttestationDocument            │
+│    Session.Seal / Session.Open                  QuoteSigner (HW seam)                                 │
+│    (ML-KEM-768 + HKDF-SHA256 + AES-256-GCM)     (Ed25519 software reference; TDX/NVIDIA = HW seam)    │
+│                                                                                                      │
+│  security/pkg/gpuattest/{package.go,seal.go}  (PoVW + device-sealed encrypt — submodule copy)        │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘
+        ▲                                   ▲                                   ▲
+        │ [PLANNED] not imported            │ [PLANNED] not imported            │ [PLANNED] not imported
+        │                                   │                                   │
+┌───────┴───────────────────────────────────┴───────────────────────────────────┴────────────────────┐
+│  MAIN REPO consumers                                                                                 │
+│                                                                                                      │
+│  pkg/scheduler   — AttestationGate (own Attestor iface; NOT the submodule)   [§5.1]                  │
+│  pkg/gpuattest   — Descriptor / Verifier / EnumerateNode / VerifyNode (main-repo software PoVW)      │
+│  pkg/smartrouter — StrategyTEE routes by a Model.TEE bool ONLY               [§5.2]                  │
+│  pkg/inference   — Router/Backend (no e2ee/attestation reference)            [§5.2]                  │
+│  pkg/marketplace — ChutesAdapter / CompositeScorer / GPUReservationTable /                           │
+│                    Encryptor+Attestor seams (own AES-GCM/HMAC refs)          [§5.3]                  │
+└──────────────────────────────────────────────────────────────────────────────────────────────────┘</code></pre>
+<p><strong>Honest boundary fact (verified):</strong> no main-repo
+consumer package currently imports
+<code>digital.vasic.security/...</code>. Each consumer instead defines
+its <strong>own</strong> in-package seam interface
+(<code>scheduler.Attestor</code>, <code>marketplace.Encryptor</code>,
+<code>marketplace.Attestor</code>) backed by a stdlib software
+reference. The submodule’s PQ/TEE implementations are designed to drop
+in behind those exact interfaces; that substitution is
+<strong>PLANNED</strong>, not yet wired. This is called out in the
+package docs themselves — see <code>pkg/scheduler/attestation.go</code>
+lines 27–34 (“does NOT import the digital.vasic.security submodule”) and
+<code>pkg/marketplace/confidential.go</code> lines 13–18 / 28–34 (“The
+production digital.vasic.security submodule … implements this SAME
+interface”).</p>
+<hr />
+<h2 id="attestation-scheduler">5.1 Attestation → Scheduler</h2>
+<p><strong>Goal:</strong> an attestation result gates scheduler
+admission so only attested nodes can host jobs that demand a trusted
+execution environment.</p>
+<h3 id="what-is-implemented-today">What is IMPLEMENTED today</h3>
+<p><code>pkg/scheduler/attestation.go</code> defines
+<strong><code>AttestationGate</code></strong>, a real scheduler
+<code>Plugin</code> (it implements
+<code>Name</code>/<code>Filter</code>/<code>Score</code>/<code>Bind</code>
+from <code>pkg/scheduler/plugins.go</code>). It is consumed by the
+scheduler core: <code>Scheduler.AddPlugin</code> registers plugins and
+<code>Scheduler.Schedule</code> → <code>runFilters</code> calls each
+plugin’s <code>Filter</code> (<code>pkg/scheduler/scheduler.go</code>,
+<code>AddPlugin</code> line 54,
+<code>Schedule</code>/<code>runFilters</code> from line 101). So the
+<strong>admission predicate seam itself is live</strong>.</p>
+<p>The admission contract (<code>AttestationGate.Filter</code>,
+attestation.go lines 119–135):</p>
+<ul>
+<li>A job is marked attestation-required via
+<code>SetJobRequireAttestation</code> → label
+<code>helix.attestation/required</code>
+(<code>LabelJobRequireAttestation</code>, line 51).</li>
+<li>A node presents a token via <code>SetNodeAttestationToken</code> →
+label <code>helix.attestation/token</code>
+(<code>LabelNodeAttestationToken</code>, line 56).</li>
+<li><code>Filter</code> admits an attestation-required job
+<strong>only</strong> when the injected
+<code>Attestor.Verify(node.ID, token, now)</code> returns true; it
+<strong>fails closed</strong> (rejects every node) when no
+<code>Attestor</code> is configured.</li>
+<li>The in-repo reference <code>HMACAttestor</code>
+(<code>Issue</code>/<code>Verify</code>, lines 161–227) does genuine
+HMAC-SHA256 node-bound, time-bounded token verification
+(<code>hmac.Equal</code> constant-time compare); a
+tampered/expired/wrong-node token genuinely fails.</li>
+</ul>
+<pre><code>Job (helix.attestation/required=true)            Node (helix.attestation/token=&lt;tok&gt;)
+        │                                                 │
+        ▼                                                 ▼
+Scheduler.Schedule ─► runFilters ─► AttestationGate.Filter(job,node)   [IMPLEMENTED]
+                                          │
+                                          ▼
+                               Attestor.Verify(node.ID, tok, now)      [IMPLEMENTED: HMACAttestor]
+                                          │  true → node admissible
+                                          ▼  false/absent → rejected (fail-closed)
+                               (token MINTING/VERIFICATION backend)</code></pre>
+<h3
+id="what-is-planned-interface-exists-production-backend-not-wired">What
+is PLANNED (interface exists, production backend not wired)</h3>
+<p>The <code>Attestor</code> interface (attestation.go lines 63–69) is
+the seam where a real backend plugs in. The roadmap’s intended sources
+are:</p>
+<pre><code>[PLANNED]  security/pkg/attestation.Verifier.Verify(doc, nonce, policy, now)   (TDX/NVIDIA TEE quote)
+[PLANNED]  pkg/gpuattest.VerifyNode(v, proofs, nowTick)  +  Verifier.Verify(...) (software PoVW)
+                 │  would implement scheduler.Attestor (or feed a node-trust label)
+                 ▼
+           scheduler.AttestationGate.Attestor</code></pre>
+<ul>
+<li><code>security/pkg/attestation</code> already provides the
+verification half: <code>Verifier.Verify</code> (attestation.go line
+300) checks signature, trusted-signer, nonce, freshness and a
+<code>MeasurementPolicy</code> against an
+<code>AttestationDocument</code> produced by
+<code>Attester.Attest</code> (line 197). Hardware rooting is itself an
+explicit seam — <code>QuoteSigner</code> (line 146).</li>
+<li><code>pkg/gpuattest</code> provides software proof-of-GPU:
+<code>Descriptor</code>/<code>Fingerprint</code>,
+<code>Verifier.Verify</code> (attest.go line 161) with distinct
+sentinels
+(<code>ErrExpired</code>/<code>ErrReplay</code>/<code>ErrTampered</code>/<code>ErrWrongKey</code>/<code>ErrForgedDescriptor</code>),
+and node-level <code>EnumerateNode</code>/<code>VerifyNode</code>
+(multigpu.go lines 52/88).</li>
+</ul>
+<p><strong>Split state of the roadmap §5.1 “node-trust label /
+<code>pkg/resources</code> verified/attested flag” arrow — the flag
+exists, its producer does not:</strong></p>
+<ul>
+<li><strong><code>[IMPLEMENTED]</code> resources-side flag +
+API.</strong> <code>pkg/resources</code> <em>does</em> carry an attested
+flag today: <code>GPUInfo.Attested bool</code>
+(<code>pkg/resources/types.go</code> line 42) with accessors
+<code>SetAttested</code> / <code>IsAttested</code>
+(<code>pkg/resources/gpuclass.go</code> lines 170 / 176).
+<code>EffectiveMultiplier</code> (gpuclass.go line 159) and its doc
+comment reference the flag — the attested vs. unattested distinction is
+surfaced via <code>IsAttested</code> so a policy can refuse to schedule
+on unattested hardware. So the <em>destination</em> of the arrow (the
+trust flag and its read/write API) is real and exercised by code
+today.</li>
+<li><strong><code>[PLANNED]</code> producer wiring.</strong> What is
+<strong>not yet present in code</strong> is any adapter that makes
+<code>security/pkg/attestation.Verifier</code> or
+<code>pkg/gpuattest.VerifyNode</code> satisfy
+<code>scheduler.Attestor</code>, and any code path that
+<em>populates</em> <code>GPUInfo.Attested</code> (via
+<code>SetAttested</code>) or sets a node-trust label <strong>from an
+attestation result</strong>. Nothing calls <code>SetAttested</code> off
+the back of a verified quote; the flag is currently only settable by
+hand, never driven by the attestation pipeline.</li>
+</ul>
+<p>The roadmap §5.1 arrow is therefore <strong>half-wired</strong>: the
+<code>pkg/resources</code> attested flag/API is
+<strong>IMPLEMENTED</strong>, but its <em>population from
+attestation</em> is <strong>PLANNED</strong>.</p>
+<hr />
+<h2 id="e2ee-orchestratortee-confidential-llm-routing">5.2 E2EE →
+Orchestrator/TEE (confidential LLM routing)</h2>
+<p><strong>Goal:</strong> a tenant’s prompt is sealed in a PQ E2EE
+envelope that terminates only inside an attested enclave, so
+relays/routers see ciphertext + routing metadata only.</p>
+<h3 id="what-is-implemented-today-1">What is IMPLEMENTED today</h3>
+<p><code>security/pkg/e2ee/package.go</code> provides a
+<strong>complete, working PQ envelope</strong>:</p>
+<ul>
+<li>Handshake: <code>NewInitiator</code> (line 103) publishes an
+ephemeral ML-KEM-768 encapsulation key; <code>Respond</code> (line 121)
+encapsulates → <code>(ciphertext, Session)</code>;
+<code>Initiator.Complete</code> (line 140) decapsulates to the same
+shared secret.</li>
+<li>Key schedule: <code>deriveSessionKey</code> (line 163) =
+HKDF-SHA-256 over the shared secret, salted by KEM-ciphertext bytes,
+with a domain-separation info label.</li>
+<li>Record protection: <code>Session.Seal</code> /
+<code>Session.Open</code> (lines 281/295) = AES-256-GCM with
+monotonic/random nonce and explicit <code>ErrNonceReuse</code>
+rejection. <code>SealWithKey</code>/<code>OpenWithKey</code> (lines
+366/379) are the stateless form.</li>
+</ul>
+<p>This is the envelope a confidential inference path would carry.</p>
+<h3
+id="what-is-planned-the-termination-in-enclave-wiring-does-not-exist">What
+is PLANNED (the termination-in-enclave wiring does NOT exist)</h3>
+<p>The “terminates inside an attested enclave for confidential LLM
+routing” arrow is <strong>PLANNED</strong>. The closest implemented
+routing symbol is <code>pkg/smartrouter/smartrouter.go</code>
+<code>StrategyTEE</code> → <code>routeTEE</code> (lines 138/194), which
+restricts the candidate pool to models whose
+<strong><code>Model.TEE bool</code></strong> (line 71) is set, then
+picks the cheapest (<code>routeCost</code>).</p>
+<pre><code>tenant prompt
+     │  [PLANNED] e2ee.Session.Seal(plaintext)  — envelope not invoked by any router today
+     ▼
+pkg/smartrouter.Route(StrategyTEE) ─► routeTEE: keep models where Model.TEE==true ─► routeCost  [IMPLEMENTED]
+     │
+     │  [PLANNED] envelope terminates inside enclave verified by
+     │            security/pkg/attestation.Verifier.Verify(...)
+     ▼
+pkg/inference.Router / Backend  (no e2ee / attestation symbol referenced)      [IMPLEMENTED router, no E2EE]</code></pre>
+<p><strong>Honest gap (verified):</strong> <code>Model.TEE</code> is a
+plain boolean trust <em>assertion</em> — <code>routeTEE</code> does not
+verify any attestation quote and does not decrypt/terminate any e2ee
+envelope. <code>pkg/inference</code>
+(<code>router.go</code>/<code>backend.go</code>) references neither
+<code>e2ee</code> nor <code>attestation</code>. Treating the
+<code>TEE</code> bool as a trust signal without a verified quote is
+exactly the PASS-bluff the roadmap §7 risk table warns about; this
+document records it as PLANNED so the doc does not imply non-existent
+confidential-routing wiring (CLAUDE-1 / CLAUDE-3).</p>
+<hr />
+<h2 id="marketplace-registration-placement-metering-settlement">5.3
+Marketplace: registration → placement → metering → settlement</h2>
+<p><strong>Goal:</strong> providers register capacity, the cluster
+places work cost-optimally, usage is metered against per-class capacity,
+and rewards settle over Helix Raft reputation.</p>
+<h3 id="what-is-implemented-today-pkgmarketplace">What is IMPLEMENTED
+today (<code>pkg/marketplace</code>)</h3>
+<pre><code>                       registration                      placement
+External provider ─►  ChutesAdapter.ListOffers  ─►  CompositeScorer.Rank(offers, w, requireTEE)
+(OfferSource.Fetch)   (package.go:116, stamps      (scorer.go:67 — weighted normalised score;
+                       Offer.Provider)              TEEMultiplier=1.5 promotes Confidential offers)
+                                                          │
+                                                          ▼  best-first []ScoredOffer
+                       metering                      confidential dispatch (optional)
+GPUReservationTable.Reserve(class,count) ◄───────  Encryptor.Seal / Attestor.Verify
+(reservation.go:85 — per-class capacity;            (confidential.go: AESGCMEncryptor:66/75,
+ ErrUnknownClass / ErrInsufficientCapacity;          HMACAttestor.Attest/Verify:115/122)
+ Reservation.Release:105 idempotent return)</code></pre>
+<ul>
+<li><strong>Registration:</strong> <code>ChutesAdapter</code>
+(<code>package.go</code>) implements <code>Adapter</code>;
+<code>ListOffers</code> (line 116) fetches via the injectable
+<code>OfferSource</code> and stamps each <code>Offer.Provider</code> so
+downstream ranking/audit can attribute the offer. The <code>Offer</code>
+struct carries the scored dimensions + a <code>Confidential</code> (TEE)
+flag (lines 54–70).</li>
+<li><strong>Placement:</strong> <code>CompositeScorer.Rank</code>
+(<code>scorer.go</code> line 67) ranks offers by a weighted,
+per-dimension-normalised composite (<code>DefaultWeights</code>, line
+18) with a <code>TEEMultiplier</code> (line 23) applied to
+<code>Confidential</code> offers when <code>requireTEE</code> is set;
+ties break deterministically by <code>Offer.ID</code>.</li>
+<li><strong>Metering / capacity accounting:</strong>
+<code>GPUReservationTable</code> (<code>reservation.go</code>) enforces
+per-class capacity — <code>Reserve</code> (line 85) denies cross-class
+over-use (<code>ErrUnknownClass</code>,
+<code>ErrInsufficientCapacity</code>) and
+<code>Reservation.Release</code> (line 105) is idempotent. This is real
+accounting, concurrency-safe under a mutex.</li>
+<li><strong>Confidential path seams:</strong> <code>Encryptor</code>
+(AES-256-GCM <code>AESGCMEncryptor</code>) and <code>Attestor</code>
+(HMAC-SHA256 <code>HMACAttestor</code>) in <code>confidential.go</code>
+are working stdlib references that genuinely round-trip / verify.</li>
+</ul>
+<h3 id="what-is-planned">What is PLANNED</h3>
+<ul>
+<li><strong>Cost-aware placement onto cluster nodes</strong> (as opposed
+to ranking external offers) lives separately in
+<code>pkg/scheduler/cost_gpu.go</code>
+(<code>CostAwareGPUPlacement.Score</code>, line 66 — prefers the
+cheapest adequate node, reading
+<code>cost_per_gpu_hour</code>/<code>cost_per_hour</code> labels). The
+marketplace scorer and the scheduler cost plugin are
+<strong>not</strong> cross-wired today; the roadmap §5.3 “placement →
+<code>pkg/scheduler</code>” arrow is therefore <strong>PLANNED</strong>
+as a single flow.</li>
+<li><strong>Settlement over Raft reputation:</strong> there is
+<strong>no</strong> Raft-reputation or payout/settlement code in
+<code>pkg/marketplace</code> (no <code>audit</code> subpackage exists;
+<code>Offer</code> has no settlement field). The roadmap §5.3
+“settlement → Helix Raft reputation” and “metering →
+<code>pkg/marketplace/audit</code> commit-then-prove” arrows are
+<strong>PLANNED</strong>. Only capacity <em>accounting</em> (reservation
+table) is present.</li>
+</ul>
+<pre><code>[PLANNED]  ScoredOffer (placement decision)  ─►  pkg/scheduler.CostAwareGPUPlacement   (not cross-wired)
+[PLANNED]  metered usage  ─►  pkg/marketplace/audit (commit-then-prove)                 (subpackage absent)
+[PLANNED]  reward          ─►  Helix Raft reputation                                    (no code present)</code></pre>
+<hr />
+<h2 id="cited-filesymbol-index-every-claim-is-grounded">Cited
+file:symbol index (every claim is grounded)</h2>
+<table>
+<colgroup>
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 51%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th>Seam</th>
+<th>File</th>
+<th>Symbols (verified)</th>
+<th>State</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/scheduler/attestation.go</code></td>
+<td><code>AttestationGate</code>, <code>Filter</code> (L119),
+<code>Attestor</code> iface (L63),
+<code>HMACAttestor.Issue/Verify</code> (L183/L193), labels
+<code>helix.attestation/required</code> (L51) <code>/token</code>
+(L56)</td>
+<td>IMPLEMENTED (own seam)</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/scheduler/scheduler.go</code></td>
+<td><code>Scheduler.AddPlugin</code> (L54),
+<code>Schedule</code>/<code>runFilters</code> (L101+)</td>
+<td>IMPLEMENTED</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/scheduler/plugins.go</code></td>
+<td><code>Plugin</code> interface
+(<code>Name</code>/<code>Filter</code>/<code>Score</code>/<code>Bind</code>)</td>
+<td>IMPLEMENTED</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>security/pkg/attestation/attestation.go</code></td>
+<td><code>Verifier.Verify</code> (L300), <code>Attester.Attest</code>
+(L197), <code>QuoteSigner</code> (L146),
+<code>AttestationDocument.SigningPayload</code> (L101)</td>
+<td>IMPLEMENTED in submodule; consumption PLANNED</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/gpuattest/attest.go</code></td>
+<td><code>Descriptor</code>/<code>Fingerprint</code> (L37/L67),
+<code>Verifier.Verify</code> (L161), sentinels
+<code>ErrExpired</code>/<code>ErrReplay</code>/<code>ErrTampered</code>/<code>ErrWrongKey</code>/<code>ErrForgedDescriptor</code></td>
+<td>IMPLEMENTED; consumption PLANNED</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/gpuattest/multigpu.go</code></td>
+<td><code>EnumerateNode</code> (L52), <code>VerifyNode</code> (L88)</td>
+<td>IMPLEMENTED; consumption PLANNED</td>
+</tr>
+<tr>
+<td>§5.1</td>
+<td><code>pkg/resources/types.go</code>, <code>gpuclass.go</code></td>
+<td><code>GPUInfo.Attested</code> (types.go L42),
+<code>SetAttested</code>/<code>IsAttested</code> (gpuclass.go
+L170/L176), <code>EffectiveMultiplier</code> (gpuclass.go L159)</td>
+<td>IMPLEMENTED (flag + API); population-from-attestation PLANNED</td>
+</tr>
+<tr>
+<td>§5.2</td>
+<td><code>security/pkg/e2ee/package.go</code></td>
+<td><code>NewInitiator</code> (L103), <code>Respond</code> (L121),
+<code>Initiator.Complete</code> (L140), <code>Session.Seal/Open</code>
+(L281/L295), <code>deriveSessionKey</code> (L163)</td>
+<td>IMPLEMENTED in submodule</td>
+</tr>
+<tr>
+<td>§5.2</td>
+<td><code>pkg/smartrouter/smartrouter.go</code></td>
+<td><code>StrategyTEE</code> (L36), <code>routeTEE</code> (L194),
+<code>Model.TEE</code> (L71)</td>
+<td>IMPLEMENTED (bool-only); quote/envelope wiring PLANNED</td>
+</tr>
+<tr>
+<td>§5.2</td>
+<td><code>pkg/inference/router.go</code>, <code>backend.go</code></td>
+<td><code>Router</code>, <code>Backend</code> (no e2ee/attestation
+reference)</td>
+<td>IMPLEMENTED router; E2EE termination PLANNED</td>
+</tr>
+<tr>
+<td>§5.3</td>
+<td><code>pkg/marketplace/package.go</code></td>
+<td><code>Adapter</code>, <code>ChutesAdapter.ListOffers</code> (L116),
+<code>Offer</code> (+<code>Confidential</code>)</td>
+<td>IMPLEMENTED</td>
+</tr>
+<tr>
+<td>§5.3</td>
+<td><code>pkg/marketplace/scorer.go</code></td>
+<td><code>CompositeScorer.Rank</code> (L67),
+<code>Weights</code>/<code>DefaultWeights</code> (L18),
+<code>TEEMultiplier</code> (L23)</td>
+<td>IMPLEMENTED</td>
+</tr>
+<tr>
+<td>§5.3</td>
+<td><code>pkg/marketplace/reservation.go</code></td>
+<td><code>GPUReservationTable.Reserve</code> (L85),
+<code>Reservation.Release</code> (L105),
+<code>ErrUnknownClass</code>/<code>ErrInsufficientCapacity</code></td>
+<td>IMPLEMENTED</td>
+</tr>
+<tr>
+<td>§5.3</td>
+<td><code>pkg/marketplace/confidential.go</code></td>
+<td><code>Encryptor</code>/<code>AESGCMEncryptor.Seal/Open</code>
+(L66/L75), <code>Attestor</code>/<code>HMACAttestor.Attest/Verify</code>
+(L115/L122)</td>
+<td>IMPLEMENTED (software refs)</td>
+</tr>
+<tr>
+<td>§5.3</td>
+<td><code>pkg/scheduler/cost_gpu.go</code></td>
+<td><code>CostAwareGPUPlacement.Score</code> (L66), labels
+<code>cost_per_gpu_hour</code>/<code>cost_per_hour</code></td>
+<td>IMPLEMENTED; cross-wire to marketplace PLANNED</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Cross-reference:</strong> for the conceptual sub-phase plan
+and source-repo lineage, see
+<code>docs/research/phase_08C/PHASE_8C_ROADMAP.md</code>
+(§5.1/§5.2/§5.3, §6 priority, §9 phase bridge). This document is its
+code-grounded counterpart and supersedes none of it.</p>
+</body>
+</html>
