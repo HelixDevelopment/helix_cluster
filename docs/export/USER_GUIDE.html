@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>USER_GUIDE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">USER_GUIDE</h1>
+</header>
+<h1 id="helixcluster-end-user-guide">HelixCluster — End-User Guide</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-06-03 <strong>Maintainer:</strong> HelixCluster docs
+<strong>Status:</strong> active <strong>Audience:</strong> end users who
+want to submit and run work on a HelixCluster deployment</p>
+<hr />
+<h2 id="read-this-first-what-is-actually-runnable-today">0. Read this
+first — what is actually runnable today</h2>
+<p>HelixCluster is a distributed GPU-sharing / compute-cluster OS. This
+guide describes the <strong>request/session model and the request flow
+as the code implements it today</strong>, and it is deliberately honest
+about the boundary between what you can exercise on a single host and
+what requires a real, multi-node deployment with GPU providers.</p>
+<p>Two scopes are used throughout this document:</p>
+<ul>
+<li><strong>Single-host runnable today.</strong> You can build and run
+the gateway and the control-plane services on one machine and drive the
+real HTTP / gRPC surfaces against them. The handlers, request/response
+shapes, auth, and the E2EE primitives are all real code (cited per
+section).</li>
+<li><strong>Requires a deployed cluster / real GPU providers — not yet
+validated end-to-end.</strong> The full path <em>workload → client →
+E2EE → network → miner → response</em> across a real fleet is tracked as
+the explicit end-to-end validation gate <strong>HXC-1491</strong>
+(<code>docs/issues.md</code>, <code>Status: Queued</code>,
+<code>Task | P0</code>). Until HXC-1491 is closed with captured
+evidence, treat any claim of a fully-working multi-node
+confidential-inference round trip as <strong>infra-gated / not yet
+validated end-to-end</strong>. This is stated again at the relevant
+sections below so it is never implied otherwise.</li>
+</ul>
+<p>If a capability is not cited to a real handler/file below, it is not
+part of this guide.</p>
+<hr />
+<h2 id="what-helixcluster-offers-a-user">1. What HelixCluster offers a
+user</h2>
+<p>From an end user’s point of view the system exposes:</p>
+<ol type="1">
+<li><strong>A session model</strong> — you create a <em>session</em>
+that represents an allocation of compute (CPU millicores, memory bytes,
+and GPU IDs) owned by you, in a chosen execution mode and backend.
+Sessions are the unit you create, query, update, and delete.</li>
+<li><strong>An interactive terminal stream</strong> — an established
+session can be attached to over a WebSocket and bridged to a real
+PTY/shell, so you get an interactive terminal into your allocation.</li>
+<li><strong>An internal AI inference route</strong> — you can submit a
+model + prompt and get a completion back, optionally over a confidential
+(TEE / end-to-end encrypted) path.</li>
+<li><strong>A pool-utilization read</strong> — a simple read of current
+cluster CPU / memory / GPU utilization percentages.</li>
+</ol>
+<p>These are reached through two surfaces:</p>
+<ul>
+<li>The <strong>HTTP gateway</strong> (<code>cmd/helix-gateway</code>,
+package <code>internal/gateway</code>) — the front door. It serves a
+small REST surface directly and reverse-proxies the rest to backend
+services.</li>
+<li>The backend <strong>gRPC services</strong>, principally the
+<strong>Session service</strong> (<code>cmd/helix-session</code> +
+<code>internal/session</code>, contract in
+<code>api/v1/session.proto</code>) and the <strong>Scheduler
+service</strong> (<code>cmd/helix-scheduler</code>, contract in
+<code>api/v1/scheduler.proto</code>).</li>
+</ul>
+<hr />
+<h2 id="the-requestsession-model">2. The request/session model</h2>
+<h3 id="what-a-session-is">2.1 What a session is</h3>
+<p>The canonical session shape is defined in
+<code>api/v1/types.proto</code> (<code>message Session</code>) and
+<code>api/v1/session.proto</code> (<code>SessionService</code>). A
+session carries:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>Server-assigned session identifier</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>Your name for the session (required on create)</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>Owning principal (required on create)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>Lifecycle status (see below)</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>Execution mode label, round-tripped via session labels</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td>Terminal backend: <code>tmux</code>, <code>zellij</code>, or
+<code>screen</code></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>Node the session is placed on</td>
+</tr>
+<tr>
+<td><code>resources</code></td>
+<td><code>ResourceAllocation</code>: <code>cpu_millicores</code>,
+<code>memory_bytes</code>, <code>gpu_ids[]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Resource requests are validated server-side: negative
+<code>cpu_millicores</code> or <code>memory_bytes</code> are rejected,
+and an unknown <code>backend</code> is rejected
+(<code>internal/session/server.go</code>,
+<code>CreateSession</code>).</p>
+<h3 id="session-lifecycle-statuses">2.2 Session lifecycle /
+statuses</h3>
+<p>The Session server recognizes exactly these status names
+(<code>internal/session/server.go</code>, <code>validStatus</code>):</p>
+<p><code>pending</code>, <code>creating</code>, <code>running</code>,
+<code>migrating</code>, <code>paused</code>, <code>terminated</code>,
+<code>failed</code>.</p>
+<p>An unknown status supplied to <code>ListSessions</code> (filter) or
+<code>UpdateSession</code> is rejected with <code>InvalidArgument</code>
+rather than silently coerced — this is a deliberate anti-foot-gun: a
+typo such as <code>runnig</code> will <strong>not</strong> quietly reset
+a running session to pending.</p>
+<h3 id="session-operations-grpc-sessionservice">2.3 Session operations
+(gRPC <code>SessionService</code>)</h3>
+<p>From <code>api/v1/session.proto</code>, implemented in
+<code>internal/session/server.go</code>:</p>
+<ul>
+<li><code>CreateSession(CreateSessionRequest) → Session</code> —
+requires <code>name</code> and <code>owner</code>; optional
+<code>mode</code>, <code>backend</code>, <code>resources</code>.</li>
+<li><code>GetSession(GetSessionRequest) → Session</code> — by
+<code>session_id</code>.</li>
+<li><code>ListSessions(ListSessionsRequest) → ListSessionsResponse</code>
+— optional <code>owner</code> and <code>status</code> filters.</li>
+<li><code>UpdateSession(UpdateSessionRequest) → Session</code> — change
+<code>status</code> and/or <code>resources</code>.</li>
+<li><code>DeleteSession(DeleteSessionRequest) → DeleteSessionResponse</code>
+— terminates the session.</li>
+</ul>
+<p><strong>What backs a session (real process, not a stub):</strong>
+when <code>tmux</code> is present on the host the manager uses a real
+<code>TmuxBackend</code>; when it is absent it falls back to a native
+local-PTY shell backend — never a nil backend that pretends to be
+running (<code>internal/session/server.go</code>,
+<code>newRealBackend</code>). So on a single host the session genuinely
+launches a real process.</p>
+<hr />
+<h2 id="how-you-submit-work-and-get-a-response-the-real-apiflow">3. How
+you submit work and get a response — the real API/flow</h2>
+<h3 id="the-http-entry-points-real-handlers">3.1 The HTTP entry points
+(real handlers)</h3>
+<p>The gateway is a plain <code>http.Handler</code>
+(<code>internal/gateway/gateway.go</code>,
+<code>Gateway.ServeHTTP</code>). It dispatches in this order:</p>
+<ol type="1">
+<li><code>GET /health</code> → <code>{"status":"healthy"}</code> (always
+served by the gateway).</li>
+<li><strong>REST surface</strong>
+(<code>internal/gateway/api.go</code>), served directly when present:
+<ul>
+<li><code>POST /v1/sessions</code></li>
+<li><code>GET /v1/pool/utilization</code></li>
+<li><code>GET /openapi.json</code></li>
+</ul></li>
+<li><strong>Inference route</strong>
+(<code>internal/gateway/inference.go</code>):
+<ul>
+<li><code>POST /v1/ai/infer</code></li>
+</ul></li>
+<li><strong>Reverse-proxied prefixes</strong>
+(<code>internal/gateway/gateway.go</code>, <code>routes</code>):
+<ul>
+<li><code>/api/v1/scheduler/</code> → scheduler service
+(<code>:50052</code>)</li>
+<li><code>/api/v1/session/</code> → session service
+(<code>:50053</code>)</li>
+<li><code>/api/v1/build/</code> → build service
+(<code>:50051</code>)</li>
+<li><code>/api/v1/node/</code> → node service (<code>:50054</code>)</li>
+</ul></li>
+</ol>
+<p>Every proxied response is stamped with the
+<code>X-Helix-Gateway: true</code> header so you can confirm a response
+actually traversed the gateway. When a backend is unreachable the
+gateway returns a real machine-readable
+<code>502 {"error":"backend unavailable","status":502}</code> rather
+than an empty body.</p>
+<p>The REST surface is also published as OpenAPI 3.0 at
+<code>GET /openapi.json</code> (embedded spec in
+<code>internal/gateway/api.go</code>; YAML companion
+<code>internal/gateway/openapi.yaml</code>).</p>
+<h3 id="create-a-session-over-rest">3.2 Create a session over REST</h3>
+<p><code>POST /v1/sessions</code> (<code>internal/gateway/api.go</code>,
+<code>handleSessions</code>). Request body is a <code>SessionSpec</code>
+whose <code>resource</code> is an opaque JSON object forwarded to the
+backend:</p>
+<pre class="http"><code>POST /v1/sessions
+Content-Type: application/json
+
+{ &quot;resource&quot;: { &quot;cpu_millicores&quot;: 2000, &quot;memory_bytes&quot;: 4294967296, &quot;gpu_ids&quot;: [&quot;gpu-0&quot;] } }</code></pre>
+<p>On success the gateway responds <strong>201 Created</strong>
+with:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode json"><code class="sourceCode json"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">{</span> <span class="dt">&quot;id&quot;</span><span class="fu">:</span> <span class="st">&quot;session-0001&quot;</span><span class="fu">,</span> <span class="dt">&quot;status&quot;</span><span class="fu">:</span> <span class="st">&quot;CREATING&quot;</span><span class="fu">,</span> <span class="dt">&quot;spec&quot;</span><span class="fu">:</span> <span class="fu">{</span> <span class="dt">&quot;cpu_millicores&quot;</span><span class="fu">:</span> <span class="dv">2000</span><span class="fu">,</span> <span class="dt">&quot;memory_bytes&quot;</span><span class="fu">:</span> <span class="dv">4294967296</span><span class="fu">,</span> <span class="dt">&quot;gpu_ids&quot;</span><span class="fu">:</span> <span class="ot">[</span><span class="st">&quot;gpu-0&quot;</span><span class="ot">]</span> <span class="fu">}</span> <span class="fu">}</span></span></code></pre></div>
+<p>Notes grounded in the code:</p>
+<ul>
+<li>The returned <code>status</code> on this REST path is always
+<code>CREATING</code> (<code>handleSessions</code>). Richer lifecycle
+transitions are observed through the gRPC <code>SessionService</code>
+(<code>GetSession</code> / <code>UpdateSession</code>), not this REST
+201.</li>
+<li>Malformed JSON yields <code>400</code> with a JSON error body.</li>
+<li>The default in-process session backend assigns sequential IDs
+(<code>session-0001</code>, …) when no real backend is injected
+(<code>defaultSessionBackend</code>). A real deployment injects a real
+<code>SessionBackend</code> via <code>WithSessionBackend</code>.</li>
+</ul>
+<h3 id="submit-an-inference-request">3.3 Submit an inference
+request</h3>
+<p><code>POST /v1/ai/infer</code>
+(<code>internal/gateway/inference.go</code>, <code>handleInfer</code>).
+Request:</p>
+<pre class="http"><code>POST /v1/ai/infer
+Content-Type: application/json
+
+{ &quot;model&quot;: &quot;some-model&quot;, &quot;prompt&quot;: &quot;hello&quot;, &quot;tee_required&quot;: false }</code></pre>
+<ul>
+<li><code>model</code> and <code>prompt</code> are both required;
+missing either yields <code>400</code>.</li>
+<li>On success: <code>200</code> with
+<code>{ "model": "...", "completion": "...", "e2ee_enabled": &lt;bool&gt; }</code>.</li>
+<li>The handler forwards to an injected
+<code>ChutesInferenceClient.Complete(model, prompt, teeRequired)</code>.
+<strong>If no inference client is configured, the request honestly
+fails</strong> — the default client returns a typed
+<code>InferenceError("no inference client configured")</code> and the
+handler returns <code>502</code> with a JSON error body. It never
+fabricates a completion (<code>defaultInferenceClient</code>, the
+<code>502</code> branch in <code>handleInfer</code>). This is by design
+(anti-bluff): an unconfigured inference backend is surfaced, not
+faked.</li>
+</ul>
+<p><strong>Confidential / TEE path marker.</strong> When you set
+<code>"tee_required": true</code>, the request is routed through the
+client’s confidential-compute / E2EE-wrapping path and the response is
+stamped with <code>X-E2EE-Enabled: true</code> (and
+<code>e2ee_enabled: true</code> in the body) so you have sink-side proof
+the confidential path was taken (<code>inference.go</code>, the
+<code>if req.TEERequired</code> branch). When false, the marker is
+absent.</p>
+<blockquote>
+<p><strong>Scope:</strong> the gateway-side routing, the TEE flag, the
+marker, and the typed-error behavior are real and
+single-host-exercisable with an injected client. A real model completion
+requires a configured <code>ChutesInferenceClient</code> talking to a
+real provider — that, and the full multi-node round trip, are
+<strong>infra-gated / not yet validated end-to-end (HXC-1491)</strong>.
+See §5.</p>
+</blockquote>
+<h3 id="read-pool-utilization">3.4 Read pool utilization</h3>
+<p><code>GET /v1/pool/utilization</code>
+(<code>internal/gateway/api.go</code>,
+<code>handlePoolUtilization</code>) returns
+<code>{ "cpu_pct", "mem_pct", "gpu_pct" }</code>. With no real
+<code>PoolBackend</code> injected the default backend returns zeros (a
+value of <code>0.0</code> means “not measured / unavailable”, per the
+type doc in <code>api.go</code>), so on a bare single host expect zeros
+until a real backend is wired.</p>
+<h3 id="attach-an-interactive-terminal-to-a-session">3.5 Attach an
+interactive terminal to a session</h3>
+<p>The Session service also exposes a WebSocket terminal bridge at
+<code>/stream?session=&lt;id&gt;</code>
+(<code>cmd/helix-session/stream.go</code>,
+<code>StreamSessionHandler</code>). It upgrades the connection, starts a
+real PTY/shell (<code>realPTYProvider</code>, using your
+<code>$SHELL</code> or <code>/bin/sh</code>), and bridges it with
+length-typed envelopes (<code>pkg/websocket</code>):</p>
+<ul>
+<li>client → PTY: <code>Input</code> envelopes (stdin)</li>
+<li>PTY → client: <code>Output</code> envelopes (stdout/stderr)</li>
+<li>client → PTY: <code>Resize</code> envelopes (4-byte big-endian
+<code>rows</code>,<code>cols</code>; build with
+<code>ResizePayload</code>)</li>
+<li><code>Heartbeat</code> envelopes are echoed back</li>
+</ul>
+<p>This is a real terminal into a real process on the host running the
+session service.</p>
+<h3 id="the-scheduler-placement-contract">3.6 The scheduler (placement)
+contract</h3>
+<p>Placement is the Scheduler service
+(<code>api/v1/scheduler.proto</code>, served by
+<code>cmd/helix-scheduler</code>). It is reached through the gateway
+prefix <code>/api/v1/scheduler/</code>. The gRPC contract:</p>
+<ul>
+<li><code>ScheduleJob(ScheduleJobRequest) → ScheduleJobResponse</code> —
+request carries <code>job_id</code>, <code>session_id</code>,
+<code>requirements</code> (<code>ResourceAllocation</code>), free-form
+<code>constraints</code>, and tier/power controls
+(<code>allowed_tiers</code>, <code>min_tier</code>,
+<code>power_budget_watts</code>). Response: <code>job_id</code>,
+<code>node_id</code>, <code>scheduled</code>.</li>
+<li><code>CancelJob</code>, <code>GetJobStatus</code>,
+<code>ListJobs</code>.</li>
+<li><code>StreamJobEvents(StreamJobEventsRequest) → stream JobEvent</code>
+— a server stream of
+<code>{job_id, event_type, message, timestamp}</code> for live job
+progress.</li>
+</ul>
+<blockquote>
+<p><strong>Scope:</strong> the scheduler contract and service are real.
+Meaningful placement decisions require registered nodes / a real fleet;
+on a single host you can drive the RPCs but placement targets are
+limited to what is registered.</p>
+</blockquote>
+<hr />
+<h2 id="authentication-and-authorization">4. Authentication and
+authorization</h2>
+<p>Auth is <strong>off by default</strong> and turned on by deploying
+the gateway with an <code>AuthPolicy</code> via <code>WithAuth</code>
+(<code>internal/gateway/auth.go</code>,
+<code>internal/gateway/gateway.go</code>). When enabled:</p>
+<ul>
+<li>You must present a bearer token:
+<code>Authorization: Bearer &lt;jwt&gt;</code>. The token is validated
+for structure, <strong>HS256</strong> signature, and expiry
+(<code>auth.go</code>, <code>authorize</code>, via
+<code>pkg/jwt.ParseToken</code>).</li>
+<li>Authorization is <strong>scope-based RBAC</strong> with
+longest-prefix matching: each path prefix maps to a required scope; a
+<code>DefaultScope</code> applies when no prefix matches; an empty
+required scope means “any valid token”
+(<code>AuthPolicy.RequiredScope</code>). Scopes are read from the
+token’s <code>scope</code> / <code>scopes</code> / <code>roles</code>
+claims (<code>claimScopes</code>).</li>
+<li>Rejections are explicit: <code>401</code> for a
+missing/invalid/expired token, <code>403</code> for insufficient scope,
+each with a JSON body and an <code>X-Helix-Deny-Reason</code> header for
+diagnosis (<code>writeAuthError</code>). The upstream is never contacted
+on a rejected request.</li>
+</ul>
+<p>The REST surface (<code>/v1/sessions</code>,
+<code>/v1/pool/...</code>, <code>/openapi.json</code>) is dispatched
+<strong>before</strong> the proxy auth gate and applies its own
+validation; the JWT/RBAC gate guards the reverse-proxied
+<code>/api/v1/...</code> prefixes.</p>
+<hr />
+<h2 id="confidential-inference-e2ee-high-level">5. Confidential
+inference / E2EE (high level)</h2>
+<p>HelixCluster ships a real post-quantum end-to-end encryption package,
+<code>security/pkg/e2ee</code>, used to make inference confidential
+between a client and a worker. At a high level (see the package docs in
+<code>security/pkg/e2ee/package.go</code>):</p>
+<ul>
+<li><strong>Key establishment</strong> uses <strong>ML-KEM-768</strong>
+(NIST FIPS 203, via Go stdlib <code>crypto/mlkem</code>). An initiator
+publishes an ephemeral encapsulation key; the responder encapsulates
+against it; both derive the same shared secret.</li>
+<li><strong>Session key derivation</strong> uses
+<strong>HKDF-SHA-256</strong>, with the salt bound to the exact KEM
+ciphertext (<code>deriveSessionKey</code>).</li>
+<li><strong>Record protection</strong> is AEAD —
+<strong>AES-256-GCM</strong> by default, with
+<strong>ChaCha20-Poly1305</strong> selectable
+(<code>SessionConfig.Suite</code>). Each record uses a unique nonce and
+the session enforces single-use on <code>Open</code>, so replays are
+rejected (<code>ErrNonceReuse</code>) and tampering is rejected
+(<code>ErrOpen</code>).</li>
+<li><strong>Transport framing</strong> is a length-prefixed record
+stream over any <code>io.ReadWriter</code>
+(<code>security/pkg/e2ee/transport.go</code>,
+<code>Transport</code>).</li>
+<li><strong>Confidential streaming</strong>
+(<code>security/pkg/e2ee/sse.go</code>, <code>StreamDecryptor</code>)
+delivers a completion as an <code>e2e_init</code> handshake frame
+followed by an ordered sequence of independently-sealed SSE chunks;
+counter-nonce ordering makes the stream tamper- and replay-evident.</li>
+<li><strong>Per-request response binding</strong>
+(<code>security/pkg/e2ee/response_keypair.go</code>,
+<code>ResponseKeypair</code>): each request carries a fresh ephemeral
+response public key, so a worker’s response is cryptographically
+openable <strong>only</strong> by the client that issued <em>that</em>
+request — a response sealed for request 1 cannot be opened with request
+2’s key.</li>
+</ul>
+<p>How this connects to the user-facing flow: setting
+<code>tee_required: true</code> on <code>POST /v1/ai/infer</code>
+selects the confidential path and you get the
+<code>X-E2EE-Enabled: true</code> sink-side marker back (§3.3).</p>
+<blockquote>
+<p><strong>Scope / honesty.</strong> The e2ee cryptographic primitives,
+transport, streaming decryptor, and per-request keypair binding are
+real, tested code in <code>security/pkg/e2ee</code>. The gateway TEE
+flag and marker are real. What is <strong>not yet validated
+end-to-end</strong> is the <em>complete</em> live path across a deployed
+fleet — workload → client → E2EE → network → miner → response — which is
+exactly the scope of <strong>HXC-1491</strong>
+(<code>docs/issues.md</code>, <code>Status: Queued</code>). Until that
+gate closes with captured evidence, treat full multi-node confidential
+inference as <strong>infra-gated, not yet proven end-to-end.</strong>
+Related roadmap gates also note this: see
+<code>docs/PHASE_8C_EXIT_GATE_EVIDENCE.md</code> (G16/G17), which point
+at HXC-1491 as the live-flow ticket.</p>
+</blockquote>
+<hr />
+<h2 id="running-the-front-door-on-a-single-host-today">6. Running the
+front door on a single host (today)</h2>
+<p>The gateway binary is configured entirely from the environment
+(<code>cmd/helix-gateway/main.go</code>):</p>
+<ul>
+<li><code>HELIX_GATEWAY_PORT</code> — listen port (default
+<code>8080</code>; must be a valid integer in <code>1–65535</code> or
+startup fails fast).</li>
+<li><code>HELIX_GATEWAY_HOST</code> — bind host (default all
+interfaces).</li>
+</ul>
+<p>It also mounts Prometheus <code>/metrics</code> alongside the gateway
+handler. The session service is configured by
+<code>HELIX_SESSION_HOST</code> / <code>HELIX_SESSION_PORT</code>
+(default <code>50053</code>, <code>cmd/helix-session/main.go</code>);
+the scheduler service has the analogous config
+(<code>cmd/helix-scheduler/main.go</code>, default <code>:50052</code>).
+Each service registers a gRPC health check and shuts down gracefully on
+<code>SIGINT</code>/<code>SIGTERM</code>.</p>
+<p>On a single host you can:</p>
+<ul>
+<li>Start the gateway and hit <code>GET /health</code>,
+<code>POST /v1/sessions</code>, <code>GET /v1/pool/utilization</code>,
+<code>GET /openapi.json</code>, and <code>POST /v1/ai/infer</code> (the
+last returns a <code>502</code> typed error unless an inference client
+is wired).</li>
+<li>Start <code>helix-session</code> and create/get/list/update/delete
+sessions over gRPC, and attach a terminal over
+<code>/stream</code>.</li>
+<li>Start <code>helix-scheduler</code> and drive the scheduler
+RPCs.</li>
+</ul>
+<p>What you <strong>cannot</strong> prove on a single bare host: real
+GPU placement across many nodes, real model completions without a
+configured provider client, and the full confidential-inference round
+trip — all of which are the deployed-cluster / HXC-1491 scope described
+above.</p>
+<hr />
+<h2 id="quick-reference-endpoints-and-their-source">7. Quick reference —
+endpoints and their source</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Handler (source)</th>
+<th>Scope</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/health</code></td>
+<td>GET</td>
+<td><code>internal/gateway/gateway.go</code></td>
+<td>single-host</td>
+</tr>
+<tr>
+<td><code>/v1/sessions</code></td>
+<td>POST</td>
+<td><code>internal/gateway/api.go</code>
+<code>handleSessions</code></td>
+<td>single-host</td>
+</tr>
+<tr>
+<td><code>/v1/pool/utilization</code></td>
+<td>GET</td>
+<td><code>internal/gateway/api.go</code>
+<code>handlePoolUtilization</code></td>
+<td>single-host (zeros without real backend)</td>
+</tr>
+<tr>
+<td><code>/openapi.json</code></td>
+<td>GET</td>
+<td><code>internal/gateway/api.go</code>
+<code>handleOpenAPIJSON</code></td>
+<td>single-host</td>
+</tr>
+<tr>
+<td><code>/v1/ai/infer</code></td>
+<td>POST</td>
+<td><code>internal/gateway/inference.go</code>
+<code>handleInfer</code></td>
+<td>single-host routing; real completion + full round trip infra-gated
+(HXC-1491)</td>
+</tr>
+<tr>
+<td><code>/stream?session=&lt;id&gt;</code></td>
+<td>WS</td>
+<td><code>cmd/helix-session/stream.go</code>
+<code>StreamSessionHandler</code></td>
+<td>single-host (real PTY)</td>
+</tr>
+<tr>
+<td><code>/api/v1/scheduler/*</code></td>
+<td>proxied</td>
+<td><code>internal/gateway/gateway.go</code> →
+<code>api/v1/scheduler.proto</code></td>
+<td>needs scheduler service / fleet</td>
+</tr>
+<tr>
+<td><code>/api/v1/session/*</code></td>
+<td>proxied</td>
+<td><code>internal/gateway/gateway.go</code> →
+<code>api/v1/session.proto</code></td>
+<td>needs session service</td>
+</tr>
+<tr>
+<td><code>/api/v1/build/*</code>, <code>/api/v1/node/*</code></td>
+<td>proxied</td>
+<td><code>internal/gateway/gateway.go</code></td>
+<td>needs respective services</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="sources-verified">Sources verified</h2>
+<p>All claims above are grounded in the repository at the documented
+revision date:</p>
+<ul>
+<li><code>internal/gateway/gateway.go</code>,
+<code>internal/gateway/api.go</code>,
+<code>internal/gateway/auth.go</code>,
+<code>internal/gateway/inference.go</code>,
+<code>internal/gateway/openapi.yaml</code></li>
+<li><code>cmd/helix-gateway/main.go</code>,
+<code>cmd/helix-session/main.go</code>,
+<code>cmd/helix-session/stream.go</code>,
+<code>cmd/helix-scheduler/main.go</code></li>
+<li><code>internal/session/server.go</code></li>
+<li><code>api/v1/session.proto</code>,
+<code>api/v1/scheduler.proto</code>,
+<code>api/v1/types.proto</code></li>
+<li><code>security/pkg/e2ee/package.go</code>,
+<code>security/pkg/e2ee/transport.go</code>,
+<code>security/pkg/e2ee/sse.go</code>,
+<code>security/pkg/e2ee/response_keypair.go</code></li>
+<li><code>docs/issues.md</code> (HXC-1491),
+<code>docs/PHASE_8C_EXIT_GATE_EVIDENCE.md</code> (G16/G17)</li>
+</ul>
+</body>
+</html>

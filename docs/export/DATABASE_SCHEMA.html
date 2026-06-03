@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>DATABASE_SCHEMA</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">DATABASE_SCHEMA</h1>
+</header>
+<h1 id="helix-cluster-os-database-schema-reference">Helix Cluster OS —
+Database Schema Reference</h1>
+<p>PostgreSQL 16+ is the authoritative relational store for the Helix
+Cluster control plane: the node registry, GPU inventory, sessions and
+their window/pane tree, resource reservations, the scheduling queue,
+health snapshots, LLM advisories, the build subsystem, users, the
+migration-history ledger, network policy, cluster config, and an
+append-only audit log.</p>
+<p>This document is generated by reading the real SQL under
+<code>migrations/postgresql/</code>. Every table, column, constraint,
+index, trigger, and function below is grounded in those files. Where two
+sources disagree, that divergence is called out explicitly rather than
+papered over.</p>
+<hr />
+<h2 id="two-schema-sources-read-this-first">1. Two schema sources — read
+this first</h2>
+<p>There are <strong>two distinct, independently-applied</strong> schema
+definitions in <code>migrations/postgresql/</code>, and they are
+<strong>not byte-identical</strong>. Understanding which one your
+environment runs is essential before trusting any column/constraint
+detail.</p>
+<h3
+id="a.-the-golang-migrate-chain-001015-what-make-migrate-up-applies">1a.
+The <code>golang-migrate</code> chain
+(<code>001</code>–<code>015</code>, what <code>make migrate-up</code>
+applies)</h3>
+<p>The numbered pairs <code>001_*.up.sql</code> …
+<code>015_*.up.sql</code> (with matching <code>*.down.sql</code>) are
+the <a
+href="https://github.com/golang-migrate/migrate"><code>golang-migrate</code></a>
+migration chain. This is the set applied by
+<code>make migrate-up</code>:</p>
+<ul>
+<li><code>Makefile</code> target <code>migrate-up</code> runs
+<code>bash scripts/run-migrations.sh up</code>
+(<code>Makefile:78-80</code>).</li>
+<li><code>scripts/run-migrations.sh</code> invokes the
+<code>migrate</code> binary against <code>migrations/postgresql/</code>
+(<code>scripts/run-migrations.sh:59-67</code>).</li>
+<li><code>golang-migrate</code> only recognizes files matching
+<code>{version}_{title}.{up|down}.sql</code>. The numbered pairs match;
+<code>0001_primary_schema.sql</code> does <strong>not</strong> (it has
+no <code>.up.sql</code>/<code>.down.sql</code> suffix), so the
+<code>migrate</code> runner <strong>ignores</strong> it.</li>
+</ul>
+<p>This chain creates 14 tables (no CHECK constraints, fewer indexes,
+and some <strong>different table names</strong> — see §1c) plus the
+trigger/function set in migration <code>015</code>.</p>
+<h3
+id="b.-0001_primary_schema.sql-the-consolidated-authoritative-schema">1b.
+<code>0001_primary_schema.sql</code> (the consolidated “authoritative”
+schema)</h3>
+<p><code>0001_primary_schema.sql</code> is a single consolidated file
+(header: <em>“Authoritative Postgres 16+ Primary Schema — 15 tables,
+CHECK constraints, ~53 indexes, triggers, audit”</em>). It is
+<strong>not</strong> part of the <code>golang-migrate</code> chain (see
+§1a). Instead it is applied directly by Go code:</p>
+<ul>
+<li><code>internal/schema/schema.go</code> <code>SchemaPath()</code>
+resolves <code>migrations/postgresql/0001_primary_schema.sql</code>
+(<code>internal/schema/schema.go:108</code>).</li>
+<li><code>ApplyPrimarySchema()</code> streams the file to
+<code>psql -f -</code> over stdin, for both local-DSN and
+<code>podman exec</code> (container) transports
+(<code>internal/schema/schema.go:279-308</code>).</li>
+</ul>
+<p>This file defines <strong>15 tables</strong> with full
+<code>CHECK</code> constraints, GIN indexes, <code>helix_</code>-
+prefixed triggers/functions, an <code>audit_log</code>
+<code>DEFAULT</code> partition, partitions through 2027-06, and seed
+rows for <code>cluster_config</code>.</p>
+<blockquote>
+<p><strong>Honesty note (CLAUDE-1/CLAUDE-3):</strong> the project ships
+<em>both</em> a migrate chain and a consolidated schema, and they
+differ. The full distributed/production application path (which source
+is canonical in a deployed cluster, and reconciliation between the two)
+is <strong>not validated end-to-end here</strong> — this reference
+documents what each SQL file declares, not a single unified deployed
+database. Treat <code>0001_primary_schema.sql</code> as the richer,
+constraint-complete definition and the <code>001</code>–<code>015</code>
+chain as the <code>migrate</code>-driven baseline.</p>
+</blockquote>
+<h3 id="c.-where-the-two-sources-diverge">1c. Where the two sources
+diverge</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concept</th>
+<th><code>golang-migrate</code> chain
+(<code>001</code>–<code>015</code>)</th>
+<th><code>0001_primary_schema.sql</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Reservations table</td>
+<td><code>resource_allocations</code> (<code>006</code>)</td>
+<td><code>reservations</code></td>
+</tr>
+<tr>
+<td>Health snapshots table</td>
+<td><code>health_scores</code> (<code>008</code>)</td>
+<td><code>health_snapshots</code></td>
+</tr>
+<tr>
+<td>Advisories table</td>
+<td><code>advisories</code> (<code>009</code>)</td>
+<td><code>llm_advisories</code></td>
+</tr>
+<tr>
+<td>Scheduling queue</td>
+<td><code>scheduling_queue</code> (<code>007</code>) —
+<strong>present</strong></td>
+<td><strong>absent</strong></td>
+</tr>
+<tr>
+<td><code>network_policies</code></td>
+<td><strong>absent</strong></td>
+<td><strong>present</strong> (table 14)</td>
+</tr>
+<tr>
+<td><code>cluster_config</code></td>
+<td><strong>absent</strong></td>
+<td><strong>present</strong> (table 15, with seed rows)</td>
+</tr>
+<tr>
+<td>CHECK constraints</td>
+<td>none</td>
+<td>extensive (status enums, ranges, etc.)</td>
+</tr>
+<tr>
+<td><code>audit_log</code> partitions</td>
+<td>2026-06 … 2026-12 (7)</td>
+<td>+ 2027-01 … 2027-06, + <code>DEFAULT</code></td>
+</tr>
+<tr>
+<td><code>audit_log</code> severity CHECK</td>
+<td>none</td>
+<td><code>DEBUG/INFO/WARNING/ERROR/CRITICAL</code></td>
+</tr>
+<tr>
+<td>Trigger/function names</td>
+<td><code>update_updated_at_column</code>,
+<code>audit_trigger</code></td>
+<td><code>helix_update_updated_at_column</code>,
+<code>helix_audit_trigger</code></td>
+</tr>
+<tr>
+<td><code>build_artifacts.artifact_type</code></td>
+<td><strong>absent</strong></td>
+<td>present (<code>BINARY</code>/<code>CONTAINER_IMAGE</code>/…)</td>
+</tr>
+<tr>
+<td>Default-value <code>NOT NULL</code> on
+<code>labels</code>/<code>features</code>/<code>details</code>/<code>environment</code>/<code>metrics</code></td>
+<td>nullable (<code>DEFAULT</code> only)</td>
+<td><code>NOT NULL DEFAULT</code></td>
+</tr>
+</tbody>
+</table>
+<p>The per-table sections below document the
+<strong><code>0001_primary_schema.sql</code></strong> definitions as the
+primary reference (it is the superset with constraints), and note the
+migrate-chain differences inline.</p>
+<hr />
+<h2 id="ordered-migration-list-golang-migrate-chain">2. Ordered
+migration list (<code>golang-migrate</code> chain)</h2>
+<p>Applied in order by <code>make migrate-up</code>. Each
+<code>*.up.sql</code> has a paired <code>*.down.sql</code> that drops
+the indexes and table(s) it created.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>File</th>
+<th>Adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>001</td>
+<td><code>001_create_nodes.up.sql</code></td>
+<td><code>nodes</code> table + 4 indexes (status, role, region, GIN
+labels)</td>
+</tr>
+<tr>
+<td>002</td>
+<td><code>002_create_gpu_devices.up.sql</code></td>
+<td><code>gpu_devices</code> table (FK → <code>nodes</code> ON DELETE
+CASCADE) + 3 indexes</td>
+</tr>
+<tr>
+<td>003</td>
+<td><code>003_create_sessions.up.sql</code></td>
+<td><code>sessions</code> table (FK → <code>nodes</code>) + 4
+indexes</td>
+</tr>
+<tr>
+<td>004</td>
+<td><code>004_create_session_windows.up.sql</code></td>
+<td><code>session_windows</code> table (FK → <code>sessions</code>
+CASCADE) + 2 indexes</td>
+</tr>
+<tr>
+<td>005</td>
+<td><code>005_create_session_panes.up.sql</code></td>
+<td><code>session_panes</code> table (FKs → <code>session_windows</code>
+CASCADE, <code>nodes</code>, <code>gpu_devices</code>) + 4 indexes</td>
+</tr>
+<tr>
+<td>006</td>
+<td><code>006_create_resource_allocations.up.sql</code></td>
+<td><code>resource_allocations</code> table (FKs →
+<code>sessions</code>, <code>nodes</code>) + 4 indexes</td>
+</tr>
+<tr>
+<td>007</td>
+<td><code>007_create_scheduling_queue.up.sql</code></td>
+<td><code>scheduling_queue</code> table + 3 indexes</td>
+</tr>
+<tr>
+<td>008</td>
+<td><code>008_create_health_scores.up.sql</code></td>
+<td><code>health_scores</code> table (FK → <code>nodes</code>) + 3
+indexes</td>
+</tr>
+<tr>
+<td>009</td>
+<td><code>009_create_advisories.up.sql</code></td>
+<td><code>advisories</code> table + 3 indexes</td>
+</tr>
+<tr>
+<td>010</td>
+<td><code>010_create_audit_log.up.sql</code></td>
+<td><code>audit_log</code> partitioned table + 7 monthly partitions
+(2026-06…2026-12) + 4 indexes</td>
+</tr>
+<tr>
+<td>011</td>
+<td><code>011_create_build_jobs.up.sql</code></td>
+<td><code>build_jobs</code> table (FK → <code>nodes</code>) + 4
+indexes</td>
+</tr>
+<tr>
+<td>012</td>
+<td><code>012_create_build_artifacts.up.sql</code></td>
+<td><code>build_artifacts</code> table (FK → <code>build_jobs</code>
+CASCADE) + 3 indexes</td>
+</tr>
+<tr>
+<td>013</td>
+<td><code>013_create_users.up.sql</code></td>
+<td><code>users</code> table (UNIQUE <code>spiffe_id</code>) + 1
+index</td>
+</tr>
+<tr>
+<td>014</td>
+<td><code>014_create_migration_history.up.sql</code></td>
+<td><code>migration_history</code> table (FKs → <code>sessions</code>,
+<code>nodes</code>×2) + 3 indexes</td>
+</tr>
+<tr>
+<td>015</td>
+<td><code>015_triggers_and_functions.up.sql</code></td>
+<td><code>update_updated_at_column()</code> +
+<code>audit_trigger()</code> functions; <code>updated_at</code> triggers
+on 7 tables; audit triggers on
+<code>nodes</code>/<code>sessions</code>/<code>build_jobs</code>/<code>users</code></td>
+</tr>
+</tbody>
+</table>
+<p>The consolidated <code>0001_primary_schema.sql</code> declares the
+same families plus <code>reservations</code>,
+<code>health_snapshots</code>, <code>llm_advisories</code>,
+<code>network_policies</code>, <code>cluster_config</code> and all CHECK
+constraints in a single file (see §1).</p>
+<hr />
+<h2 id="how-migrations-are-applied">3. How migrations are applied</h2>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Apply all pending migrations (the 001..015 chain)</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> migrate-up                      <span class="co"># → scripts/run-migrations.sh up</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Roll back exactly one migration</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> migrate-down                    <span class="co"># → scripts/run-migrations.sh down 1</span></span></code></pre></div>
+<p>Details (<code>Makefile:76-84</code>,
+<code>scripts/run-migrations.sh</code>):</p>
+<ul>
+<li><code>DATABASE_URL</code> defaults to
+<code>postgres://helix:helix@localhost:5432/helix_cluster?sslmode=disable</code>
+(<code>Makefile:76</code>); override it for non-local targets. The
+script can also assemble the DSN from
+<code>DB_HOST</code>/<code>DB_PORT</code>/<code>DB_NAME</code>/<code>DB_USER</code>/<code>DB_PASS</code>/<code>DB_SSLMODE</code>
+(<code>scripts/run-migrations.sh:13-35</code>).</li>
+<li>The script requires the <code>golang-migrate</code>
+<code>migrate</code> binary on <code>PATH</code> or at
+<code>~/go/bin/migrate</code>; otherwise it errors with install
+instructions (<code>scripts/run-migrations.sh:20-30</code>).</li>
+<li>Additional sub-commands: <code>up [N]</code>, <code>down [N]</code>,
+<code>version</code>, <code>force V</code>, <code>create NAME</code>,
+<code>validate</code> (up → down 15 → up), <code>status</code>
+(<code>scripts/run-migrations.sh:37-123</code>).</li>
+</ul>
+<p>The consolidated <code>0001_primary_schema.sql</code> is applied
+separately by the Go helper
+<code>internal/schema.ApplyPrimarySchema</code>, which pipes the file to
+<code>psql -f -</code> (works for both local DSN and
+<code>podman exec</code> container transports)
+(<code>internal/schema/schema.go:279-308</code>).</p>
+<hr />
+<h2 id="trigger-functions">4. Trigger functions</h2>
+<p>Defined in <code>0001_primary_schema.sql:7-56</code> (and the
+equivalent un-prefixed versions in
+<code>015_triggers_and_functions.up.sql:7-61</code>).</p>
+<h3
+id="helix_update_updated_at_column-update_updated_at_column"><code>helix_update_updated_at_column()</code>
+/ <code>update_updated_at_column()</code></h3>
+<p><code>BEFORE UPDATE</code> row trigger. Sets
+<code>NEW.updated_at = NOW()</code> and returns <code>NEW</code>.
+Attached to every table carrying an <code>updated_at</code> column.</p>
+<h3
+id="helix_audit_trigger-audit_trigger"><code>helix_audit_trigger()</code>
+/ <code>audit_trigger()</code></h3>
+<p><code>AFTER INSERT OR UPDATE OR DELETE</code> row trigger,
+<code>SECURITY DEFINER</code> (per code comment, so it can always INSERT
+into <code>audit_log</code>). It inserts a row into
+<code>audit_log</code> with: - <code>event_type</code> =
+<code>&lt;TG_OP&gt;_&lt;TG_TABLE_NAME&gt;</code>
+(e.g. <code>INSERT_nodes</code>) - <code>severity</code> =
+<code>WARNING</code> for <code>DELETE</code>, else <code>INFO</code> -
+<code>actor</code> =
+<code>current_setting('app.current_user', TRUE)</code> or
+<code>'system'</code> - <code>resource_type</code> = table name,
+<code>resource_id</code> = row <code>id::TEXT</code> -
+<code>action</code> = the operation, <code>details</code> =
+<code>to_jsonb(OLD|NEW)</code></p>
+<p><strong>Trigger attachments:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Table</th>
+<th><code>updated_at</code> trigger</th>
+<th><code>audit</code> trigger</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>nodes</code></td>
+<td>yes (<code>helix_nodes_updated_at</code>)</td>
+<td>yes (<code>helix_nodes_audit</code>)</td>
+</tr>
+<tr>
+<td><code>gpu_devices</code></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>sessions</code></td>
+<td>yes</td>
+<td>yes (chain <code>015</code> only attaches audit to
+nodes/sessions/build_jobs/users)</td>
+</tr>
+<tr>
+<td><code>reservations</code></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>users</code></td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>llm_advisories</code></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>build_jobs</code></td>
+<td>yes</td>
+<td>yes</td>
+</tr>
+<tr>
+<td><code>network_policies</code></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+<tr>
+<td><code>cluster_config</code></td>
+<td>yes</td>
+<td>no</td>
+</tr>
+</tbody>
+</table>
+<p>In the migrate chain (<code>015</code>), <code>updated_at</code>
+triggers are attached to <code>nodes</code>, <code>gpu_devices</code>,
+<code>sessions</code>, <code>resource_allocations</code>,
+<code>scheduling_queue</code>, <code>build_jobs</code>,
+<code>users</code>; audit triggers to <code>nodes</code>,
+<code>sessions</code>, <code>build_jobs</code>, <code>users</code>.</p>
+<hr />
+<h2 id="tables">5. Tables</h2>
+<blockquote>
+<p>Column tables below are grounded in
+<code>0001_primary_schema.sql</code>. PK = primary key, FK = foreign
+key, U = UNIQUE, NN = NOT NULL.</p>
+</blockquote>
+<h3 id="nodes-cluster-node-registry">5.1 <code>nodes</code> — cluster
+node registry</h3>
+<p><code>0001_primary_schema.sql:62-115</code> ·
+<code>001_create_nodes.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>hostname</code></td>
+<td>VARCHAR(255)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>ip_addresses</code></td>
+<td>INET[]</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>wg_pubkey</code></td>
+<td>TEXT</td>
+<td>NN, <strong>U</strong> (<code>nodes_wg_pubkey_unique</code>)</td>
+</tr>
+<tr>
+<td><code>spiffe_id</code></td>
+<td>TEXT</td>
+<td>NN, <strong>U</strong> (<code>nodes_spiffe_id_unique</code>)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'JOINING'</code>, CHECK ∈ {JOINING, READY,
+DRAINING, OFFLINE, MAINTENANCE, EVICTED}</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'WORKER'</code>, CHECK ∈ {WORKER, CONTROL_PLANE,
+GPU_WORKER, EDGE, OBSERVER}</td>
+</tr>
+<tr>
+<td><code>cpu_arch</code></td>
+<td>VARCHAR(20)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>cpu_cores</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>cpu_threads</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>&gt;= cpu_cores</code></td>
+</tr>
+<tr>
+<td><code>memory_bytes</code></td>
+<td>BIGINT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>gpu_count</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 0</code>, CHECK <code>&gt;= 0</code></td>
+</tr>
+<tr>
+<td><code>storage_bytes</code></td>
+<td>BIGINT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>region</code></td>
+<td>VARCHAR(100)</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>VARCHAR(50)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>joined_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>last_seen</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>left_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_nodes_status</code>,
+<code>idx_nodes_role</code>, <code>idx_nodes_region</code>,
+<code>idx_nodes_labels</code> (GIN on <code>labels</code>),
+<code>idx_nodes_last_seen</code>, <code>idx_nodes_hostname</code>.
+<strong>Triggers:</strong> <code>helix_nodes_updated_at</code>,
+<code>helix_nodes_audit</code>.</p>
+<h3 id="gpu_devices-per-node-gpu-inventory">5.2 <code>gpu_devices</code>
+— per-node GPU inventory</h3>
+<p><code>0001_primary_schema.sql:121-152</code> ·
+<code>002_create_gpu_devices.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>nodes(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>vendor</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, CHECK ∈ {NVIDIA, AMD, INTEL, APPLE, QUALCOMM, OTHER}</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td>VARCHAR(100)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>driver_version</code></td>
+<td>VARCHAR(50)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>api</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, CHECK ∈ {CUDA, ROCm, Metal, Vulkan, OpenCL, OTHER}</td>
+</tr>
+<tr>
+<td><code>api_version</code></td>
+<td>VARCHAR(20)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>total_memory</code></td>
+<td>BIGINT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>compute_units</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>features</code></td>
+<td>TEXT[]</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>attributes</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'AVAILABLE'</code>, CHECK ∈ {AVAILABLE, IN_USE,
+RESERVED, OFFLINE, FAULT}</td>
+</tr>
+<tr>
+<td><code>allocated_to</code></td>
+<td>UUID</td>
+<td>nullable (no FK declared)</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_gpu_devices_node_id</code>,
+<code>idx_gpu_devices_status</code>,
+<code>idx_gpu_devices_vendor</code>, <code>idx_gpu_devices_model</code>.
+<strong>Trigger:</strong> <code>helix_gpu_devices_updated_at</code>.</p>
+<h3 id="sessions-interactivebatch-compute-sessions">5.3
+<code>sessions</code> — interactive/batch compute sessions</h3>
+<p><code>0001_primary_schema.sql:158-200</code> ·
+<code>003_create_sessions.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>owner</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'CREATING'</code>, CHECK ∈ {CREATING, RUNNING,
+PAUSED, TERMINATING, TERMINATED, FAILED}</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'INTERACTIVE'</code>, CHECK ∈ {INTERACTIVE, BATCH,
+DAEMON, NOTEBOOK}</td>
+</tr>
+<tr>
+<td><code>backend</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'TMUX'</code>, CHECK ∈ {TMUX, WASM, CONTAINER,
+NATIVE}</td>
+</tr>
+<tr>
+<td><code>backend_id</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td><strong>FK → <code>nodes(id)</code></strong>, nullable</td>
+</tr>
+<tr>
+<td><code>cpu_request</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 1000</code>, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>memory_request</code></td>
+<td>BIGINT</td>
+<td>NN, <code>DEFAULT 1073741824</code>, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>gpu_request</code></td>
+<td>JSONB</td>
+<td><code>DEFAULT NULL</code></td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 50</code>, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>started_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>terminated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_sessions_owner</code>,
+<code>idx_sessions_status</code>, <code>idx_sessions_node_id</code>,
+<code>idx_sessions_mode</code>, <code>idx_sessions_priority</code>,
+<code>idx_sessions_labels</code> (GIN). <strong>Trigger:</strong>
+<code>helix_sessions_updated_at</code> (+
+<code>helix_sessions_audit</code> in §1b source / chain).</p>
+<h3 id="session_windows-tmux-style-windows-within-a-session">5.4
+<code>session_windows</code> — tmux-style windows within a session</h3>
+<p><code>0001_primary_schema.sql:206-221</code> ·
+<code>004_create_session_windows.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>sessions(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>layout</code></td>
+<td>VARCHAR(50)</td>
+<td>NN, <code>DEFAULT 'tiled'</code>, CHECK ∈ {tiled, even-horizontal,
+even-vertical, main-horizontal, main-vertical}</td>
+</tr>
+<tr>
+<td><code>active</code></td>
+<td>BOOLEAN</td>
+<td>NN, <code>DEFAULT FALSE</code></td>
+</tr>
+<tr>
+<td><code>crdt_state</code></td>
+<td>JSONB</td>
+<td><code>DEFAULT NULL</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong>
+<code>idx_session_windows_session_id</code>,
+<code>idx_session_windows_active</code>. No <code>updated_at</code>
+column / trigger.</p>
+<h3 id="session_panes-panes-within-a-window-placed-on-a-nodegpu">5.5
+<code>session_panes</code> — panes within a window (placed on a
+node/GPU)</h3>
+<p><code>0001_primary_schema.sql:227-251</code> ·
+<code>005_create_session_panes.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>window_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>session_windows(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td><strong>FK → <code>nodes(id)</code></strong>, nullable</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>working_dir</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>environment</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>cpu_limit</code></td>
+<td>INT</td>
+<td>nullable, CHECK <code>IS NULL OR &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>memory_limit</code></td>
+<td>BIGINT</td>
+<td>nullable, CHECK <code>IS NULL OR &gt; 0</code></td>
+</tr>
+<tr>
+<td><code>gpu_id</code></td>
+<td>UUID</td>
+<td><strong>FK → <code>gpu_devices(id)</code></strong>, nullable</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'CREATING'</code>, CHECK ∈ {CREATING, RUNNING,
+STOPPED, FAILED, MIGRATING}</td>
+</tr>
+<tr>
+<td><code>crdt_state</code></td>
+<td>JSONB</td>
+<td><code>DEFAULT NULL</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_session_panes_window_id</code>,
+<code>idx_session_panes_node_id</code>,
+<code>idx_session_panes_gpu_id</code>,
+<code>idx_session_panes_status</code>.</p>
+<h3 id="reservations-resource-reservations">5.6
+<code>reservations</code> — resource reservations</h3>
+<p><code>0001_primary_schema.sql:257-284</code> (migrate chain: table
+named <strong><code>resource_allocations</code></strong>,
+<code>006_*</code>, no CHECK constraints)</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>sessions(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>nodes(id)</code></strong></td>
+</tr>
+<tr>
+<td><code>cpu_millicores</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>memory_bytes</code></td>
+<td>BIGINT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>gpu_ids</code></td>
+<td>UUID[]</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'PENDING'</code>, CHECK ∈ {PENDING, ACTIVE,
+RELEASED, EXPIRED, FAILED}</td>
+</tr>
+<tr>
+<td><code>expires_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, CHECK <code>&gt; created_at</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_reservations_session_id</code>,
+<code>idx_reservations_node_id</code>,
+<code>idx_reservations_status</code>,
+<code>idx_reservations_expires_at</code>. <strong>Trigger:</strong>
+<code>helix_reservations_updated_at</code>. &gt; In the migrate chain
+(<code>006</code>), <code>resource_allocations.session_id</code> FK has
+<strong>no</strong> CASCADE, &gt; <code>gpu_ids</code> is nullable (no
+<code>DEFAULT '{}'</code>), and there are no CHECK constraints.</p>
+<h3
+id="scheduling_queue-pending-scheduling-requests-migrate-chain-only">5.7
+<code>scheduling_queue</code> — pending scheduling requests <em>(migrate
+chain only)</em></h3>
+<p><code>007_create_scheduling_queue.up.sql</code> · <strong>not present
+in <code>0001_primary_schema.sql</code></strong></p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>request</code></td>
+<td>JSONB</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 50</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'PENDING'</code></td>
+</tr>
+<tr>
+<td><code>scheduled_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>started_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>completed_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_scheduling_status</code>,
+<code>idx_scheduling_priority</code>,
+<code>idx_scheduling_created</code>. <strong>Trigger (chain
+<code>015</code>):</strong>
+<code>scheduling_queue_updated_at</code>.</p>
+<h3 id="health_snapshots-periodic-per-node-health-scores">5.8
+<code>health_snapshots</code> — periodic per-node health scores</h3>
+<p><code>0001_primary_schema.sql:418-445</code> (migrate chain: table
+named <strong><code>health_scores</code></strong>, <code>008_*</code>,
+no CHECK ranges)</p>
+<table>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>BIGSERIAL</td>
+<td><strong>PK</strong></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>nodes(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>overall_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>cpu_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>memory_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>disk_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>network_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>gpu_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>temperature_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>services_score</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>predictions</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '[]'</code></td>
+</tr>
+<tr>
+<td><code>metrics</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>recorded_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_health_snapshots_node_id</code>,
+<code>idx_health_snapshots_recorded_at</code>,
+<code>idx_health_snapshots_overall</code>. &gt; Migrate chain
+(<code>008</code> <code>health_scores</code>): <code>node_id</code> FK
+has no CASCADE, no <code>0..100</code> CHECKs.</p>
+<h3 id="llm_advisories-llm-brain-advisories">5.9
+<code>llm_advisories</code> — LLM “brain” advisories</h3>
+<p><code>0001_primary_schema.sql:451-487</code> (migrate chain: table
+named <strong><code>advisories</code></strong>, <code>009_*</code>, no
+CHECK, no <code>updated_at</code>)</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td>VARCHAR(30)</td>
+<td>NN, CHECK ∈ {SCALE_UP, SCALE_DOWN, MIGRATE, REBALANCE, DRAIN, EVICT,
+ALERT, OPTIMIZE, SCHEDULE}</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>rationale</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>proposed_action</code></td>
+<td>JSONB</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>confidence</code></td>
+<td>FLOAT</td>
+<td>NN, CHECK <code>0.0..1.0</code></td>
+</tr>
+<tr>
+<td><code>risk_level</code></td>
+<td>VARCHAR(10)</td>
+<td>NN, CHECK ∈ {LOW, MEDIUM, HIGH, CRITICAL}</td>
+</tr>
+<tr>
+<td><code>auto_approve</code></td>
+<td>BOOLEAN</td>
+<td>NN, <code>DEFAULT FALSE</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'PENDING'</code>, CHECK ∈ {PENDING, APPROVED,
+REJECTED, APPLIED, FAILED, EXPIRED}</td>
+</tr>
+<tr>
+<td><code>applied_by</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>applied_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>result</code></td>
+<td>JSONB</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_llm_advisories_status</code>,
+<code>idx_llm_advisories_type</code>,
+<code>idx_llm_advisories_risk_level</code>,
+<code>idx_llm_advisories_created_at</code>. <strong>Trigger:</strong>
+<code>helix_llm_advisories_updated_at</code>. &gt; Migrate chain
+(<code>009</code> <code>advisories</code>): <code>type</code> is
+VARCHAR(20), there is <strong>no</strong> <code>updated_at</code> &gt;
+column, and no CHECK constraints.</p>
+<h3 id="audit_log-append-only-audit-trail-partitioned-by-month">5.10
+<code>audit_log</code> — append-only audit trail (partitioned by
+month)</h3>
+<p><code>0001_primary_schema.sql:318-376</code> ·
+<code>010_create_audit_log.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>BIGSERIAL</td>
+<td>part of PK</td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code>, <strong>partition key</strong></td>
+</tr>
+<tr>
+<td><code>event_type</code></td>
+<td>VARCHAR(50)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>severity</code></td>
+<td>VARCHAR(10)</td>
+<td>NN, <code>DEFAULT 'INFO'</code>, CHECK ∈ {DEBUG, INFO, WARNING,
+ERROR, CRITICAL}</td>
+</tr>
+<tr>
+<td><code>actor</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>resource_type</code></td>
+<td>VARCHAR(50)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>resource_id</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>VARCHAR(50)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>details</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>source_ip</code></td>
+<td>INET</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>nullable</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Primary key:</strong> composite <code>(id, timestamp)</code>
+(required because the table is
+<code>PARTITION BY RANGE (timestamp)</code>). <strong>Partitions
+(<code>0001</code>):</strong> <code>audit_log_default</code> (DEFAULT) +
+monthly <code>audit_log_2026_06</code> … <code>audit_log_2027_06</code>.
+<strong>Indexes:</strong> <code>idx_audit_log_timestamp</code>,
+<code>idx_audit_log_event_type</code>, <code>idx_audit_log_actor</code>,
+<code>idx_audit_log_resource</code>
+(<code>resource_type, resource_id</code>),
+<code>idx_audit_log_severity</code>,
+<code>idx_audit_log_session_id</code>. &gt; Migrate chain
+(<code>010</code>): partitions only 2026-06…2026-12, <strong>no</strong>
+DEFAULT partition, &gt; <strong>no</strong> severity CHECK, 4 indexes
+(no <code>severity</code>/<code>session_id</code> indexes).</p>
+<h3 id="users-shadow-of-the-oidcspiffe-identity-provider">5.11
+<code>users</code> — shadow of the OIDC/SPIFFE identity provider</h3>
+<p><code>0001_primary_schema.sql:382-412</code> ·
+<code>013_create_users.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>spiffe_id</code></td>
+<td>TEXT</td>
+<td>NN, <strong>U</strong> (<code>users_spiffe_id_unique</code>)</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255)</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>role</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'USER'</code>, CHECK ∈ {SUPERADMIN, ADMIN,
+OPERATOR, USER, READONLY, SERVICE}</td>
+</tr>
+<tr>
+<td><code>quota_cpu</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 8000</code>, CHECK <code>&gt;= 0</code></td>
+</tr>
+<tr>
+<td><code>quota_memory</code></td>
+<td>BIGINT</td>
+<td>NN, <code>DEFAULT 17179869184</code>, CHECK
+<code>&gt;= 0</code></td>
+</tr>
+<tr>
+<td><code>quota_gpu</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 0</code>, CHECK <code>&gt;= 0</code></td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>last_login</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_users_spiffe_id</code>,
+<code>idx_users_role</code>, <code>idx_users_email</code>,
+<code>idx_users_labels</code> (GIN). <strong>Triggers:</strong>
+<code>helix_users_updated_at</code> (+ audit in §1b source / chain).
+&gt; Migrate chain (<code>013</code>): only
+<code>idx_users_spiffe</code> index; no role/email/labels indexes, &gt;
+no CHECK constraints.</p>
+<h3 id="migration_history-session-live-migration-ledger">5.12
+<code>migration_history</code> — session live-migration ledger</h3>
+<p><code>0001_primary_schema.sql:290-312</code> ·
+<code>014_create_migration_history.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>session_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>sessions(id)</code></strong></td>
+</tr>
+<tr>
+<td><code>source_node</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>nodes(id)</code></strong></td>
+</tr>
+<tr>
+<td><code>target_node</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>nodes(id)</code></strong></td>
+</tr>
+<tr>
+<td><code>method</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, CHECK ∈ {CHECKPOINT, LIVE, COLD, SNAPSHOT}</td>
+</tr>
+<tr>
+<td><code>duration_ms</code></td>
+<td>INT</td>
+<td>NN, CHECK <code>&gt;= 0</code></td>
+</tr>
+<tr>
+<td><code>data_size_bytes</code></td>
+<td>BIGINT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>success</code></td>
+<td>BOOLEAN</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>error_message</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Additional CHECK:</strong>
+<code>source_node &lt;&gt; target_node</code>
+(<code>mh_nodes_differ</code>). <strong>Indexes
+(<code>0001</code>):</strong>
+<code>idx_migration_history_session_id</code>,
+<code>idx_migration_history_source_node</code>,
+<code>idx_migration_history_target_node</code>,
+<code>idx_migration_history_success</code>. &gt; Migrate chain
+(<code>014</code>): no CHECK constraints; 3 indexes (no
+<code>_success</code> index).</p>
+<h3 id="build_jobs-build-subsystem-jobs">5.13 <code>build_jobs</code> —
+build subsystem jobs</h3>
+<p><code>0001_primary_schema.sql:493-528</code> ·
+<code>011_create_build_jobs.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255)</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'PENDING'</code>, CHECK ∈ {PENDING, QUEUED,
+RUNNING, SUCCEEDED, FAILED, CANCELLED}</td>
+</tr>
+<tr>
+<td><code>mode</code></td>
+<td>VARCHAR(20)</td>
+<td>NN, <code>DEFAULT 'BATCH'</code>, CHECK ∈ {BATCH, STREAMING,
+INCREMENTAL, PARALLEL}</td>
+</tr>
+<tr>
+<td><code>cpu_request</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 1000</code>, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>memory_request</code></td>
+<td>BIGINT</td>
+<td>NN, <code>DEFAULT 1073741824</code>, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>gpu_request</code></td>
+<td>JSONB</td>
+<td><code>DEFAULT NULL</code></td>
+</tr>
+<tr>
+<td><code>node_id</code></td>
+<td>UUID</td>
+<td><strong>FK → <code>nodes(id)</code></strong>, nullable</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 50</code>, CHECK <code>0..100</code></td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>started_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>completed_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_build_jobs_status</code>,
+<code>idx_build_jobs_node_id</code>, <code>idx_build_jobs_mode</code>,
+<code>idx_build_jobs_created_at</code>,
+<code>idx_build_jobs_priority</code>. <strong>Triggers:</strong>
+<code>helix_build_jobs_updated_at</code> (+ audit).</p>
+<h3 id="build_artifacts-outputs-of-build-jobs">5.14
+<code>build_artifacts</code> — outputs of build jobs</h3>
+<p><code>0001_primary_schema.sql:534-553</code> ·
+<code>012_create_build_artifacts.up.sql</code></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>job_id</code></td>
+<td>UUID</td>
+<td>NN, <strong>FK → <code>build_jobs(id)</code> ON DELETE
+CASCADE</strong></td>
+</tr>
+<tr>
+<td><code>artifact_hash</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>size_bytes</code></td>
+<td>BIGINT</td>
+<td>NN, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>storage_path</code></td>
+<td>TEXT</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>artifact_type</code></td>
+<td>VARCHAR(30)</td>
+<td>NN, <code>DEFAULT 'BINARY'</code>, CHECK ∈ {BINARY, CONTAINER_IMAGE,
+WASM, LIBRARY, CONFIG, REPORT}</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_build_artifacts_job_id</code>,
+<code>idx_build_artifacts_hash</code>,
+<code>idx_build_artifacts_created_at</code>,
+<code>idx_build_artifacts_type</code>. &gt; Migrate chain
+(<code>012</code>): <strong>no</strong> <code>artifact_type</code>
+column, no CHECK; 3 indexes (no <code>_type</code>).</p>
+<h3 id="network_policies-firewallnetwork-policy-rules-0001-only">5.15
+<code>network_policies</code> — firewall/network policy rules <em>(0001
+only)</em></h3>
+<p><code>0001_primary_schema.sql:559-606</code> · <strong>not present in
+migrate chain</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>VARCHAR(255)</td>
+<td>NN, <strong>U</strong> (<code>np_name_unique</code>)</td>
+</tr>
+<tr>
+<td><code>direction</code></td>
+<td>VARCHAR(10)</td>
+<td>NN, CHECK ∈ {INGRESS, EGRESS, BOTH}</td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>VARCHAR(10)</td>
+<td>NN, CHECK ∈ {ALLOW, DENY, LOG, RATE_LIMIT}</td>
+</tr>
+<tr>
+<td><code>protocol</code></td>
+<td>VARCHAR(10)</td>
+<td>nullable, CHECK
+<code>IS NULL OR ∈ {TCP, UDP, ICMP, ESP, AH, ANY}</code></td>
+</tr>
+<tr>
+<td><code>src_cidr</code></td>
+<td>CIDR</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>dst_cidr</code></td>
+<td>CIDR</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>src_port_min</code></td>
+<td>INT</td>
+<td>nullable, CHECK <code>IS NULL OR 0..65535</code></td>
+</tr>
+<tr>
+<td><code>src_port_max</code></td>
+<td>INT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>dst_port_min</code></td>
+<td>INT</td>
+<td>nullable, CHECK <code>IS NULL OR 0..65535</code></td>
+</tr>
+<tr>
+<td><code>dst_port_max</code></td>
+<td>INT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 100</code>, CHECK <code>0..65535</code></td>
+</tr>
+<tr>
+<td><code>enabled</code></td>
+<td>BOOLEAN</td>
+<td>NN, <code>DEFAULT TRUE</code></td>
+</tr>
+<tr>
+<td><code>labels</code></td>
+<td>JSONB</td>
+<td>NN, <code>DEFAULT '{}'</code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Additional CHECKs:</strong>
+<code>src_port_min &lt;= src_port_max</code>
+(<code>np_src_port_order</code>),
+<code>dst_port_min &lt;= dst_port_max</code>
+(<code>np_dst_port_order</code>). <strong>Indexes:</strong>
+<code>idx_network_policies_direction</code>,
+<code>idx_network_policies_action</code>,
+<code>idx_network_policies_enabled</code>,
+<code>idx_network_policies_priority</code>. <strong>Trigger:</strong>
+<code>helix_network_policies_updated_at</code>.</p>
+<h3 id="cluster_config-keyvalue-cluster-configuration-0001-only">5.16
+<code>cluster_config</code> — key/value cluster configuration <em>(0001
+only)</em></h3>
+<p><code>0001_primary_schema.sql:612-649</code> · <strong>not present in
+migrate chain</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type</th>
+<th>Constraints / Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td>UUID</td>
+<td><strong>PK</strong>, <code>DEFAULT gen_random_uuid()</code></td>
+</tr>
+<tr>
+<td><code>key</code></td>
+<td>VARCHAR(255)</td>
+<td>NN, <strong>U</strong> (<code>cc_key_unique</code>)</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>JSONB</td>
+<td>NN</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>TEXT</td>
+<td>nullable</td>
+</tr>
+<tr>
+<td><code>category</code></td>
+<td>VARCHAR(50)</td>
+<td>NN, <code>DEFAULT 'general'</code>, CHECK ∈ {general, scheduler,
+network, security, storage, monitoring, llm, build}</td>
+</tr>
+<tr>
+<td><code>readonly</code></td>
+<td>BOOLEAN</td>
+<td>NN, <code>DEFAULT FALSE</code></td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>INT</td>
+<td>NN, <code>DEFAULT 1</code>, CHECK <code>&gt; 0</code></td>
+</tr>
+<tr>
+<td><code>updated_by</code></td>
+<td>TEXT</td>
+<td>NN, <code>DEFAULT 'system'</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+<tr>
+<td><code>updated_at</code></td>
+<td>TIMESTAMPTZ</td>
+<td>NN, <code>DEFAULT NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Indexes:</strong> <code>idx_cluster_config_key</code>,
+<code>idx_cluster_config_category</code>. <strong>Trigger:</strong>
+<code>helix_cluster_config_updated_at</code>. <strong>Seed rows</strong>
+(<code>INSERT … ON CONFLICT (key) DO NOTHING</code>,
+<code>0001:643-649</code>): <code>scheduler.max_queue_depth=1000</code>,
+<code>scheduler.default_priority=50</code>,
+<code>network.mtu=1420</code>,
+<code>security.session_ttl_hours=8</code>,
+<code>monitoring.health_interval_s=30</code>.</p>
+<hr />
+<h2 id="entity-relationship-diagram">6. Entity-Relationship diagram</h2>
+<p>Foreign-key relationships from <code>0001_primary_schema.sql</code>.
+<code>network_policies</code>, <code>cluster_config</code>, and
+<code>audit_log</code> carry no FK references
+(<code>audit_log.session_id</code> and
+<code>gpu_devices.allocated_to</code> are plain UUIDs with
+<strong>no</strong> declared FK).</p>
+<pre class="mermaid"><code>erDiagram
+    nodes ||--o{ gpu_devices : &quot;node_id (CASCADE)&quot;
+    nodes ||--o{ sessions : &quot;node_id&quot;
+    nodes ||--o{ session_panes : &quot;node_id&quot;
+    nodes ||--o{ reservations : &quot;node_id&quot;
+    nodes ||--o{ health_snapshots : &quot;node_id (CASCADE)&quot;
+    nodes ||--o{ build_jobs : &quot;node_id&quot;
+    nodes ||--o{ migration_history : &quot;source_node&quot;
+    nodes ||--o{ migration_history : &quot;target_node&quot;
+
+    sessions ||--o{ session_windows : &quot;session_id (CASCADE)&quot;
+    sessions ||--o{ reservations : &quot;session_id (CASCADE)&quot;
+    sessions ||--o{ migration_history : &quot;session_id&quot;
+
+    session_windows ||--o{ session_panes : &quot;window_id (CASCADE)&quot;
+    gpu_devices ||--o{ session_panes : &quot;gpu_id&quot;
+
+    build_jobs ||--o{ build_artifacts : &quot;job_id (CASCADE)&quot;
+
+    nodes {
+        uuid id PK
+        text wg_pubkey UK
+        text spiffe_id UK
+        varchar status
+        varchar role
+    }
+    gpu_devices {
+        uuid id PK
+        uuid node_id FK
+        varchar vendor
+        varchar status
+    }
+    sessions {
+        uuid id PK
+        uuid node_id FK
+        varchar status
+        varchar mode
+        varchar backend
+    }
+    session_windows {
+        uuid id PK
+        uuid session_id FK
+        varchar layout
+    }
+    session_panes {
+        uuid id PK
+        uuid window_id FK
+        uuid node_id FK
+        uuid gpu_id FK
+        varchar status
+    }
+    reservations {
+        uuid id PK
+        uuid session_id FK
+        uuid node_id FK
+        varchar status
+    }
+    health_snapshots {
+        bigserial id PK
+        uuid node_id FK
+        int overall_score
+    }
+    migration_history {
+        uuid id PK
+        uuid session_id FK
+        uuid source_node FK
+        uuid target_node FK
+        boolean success
+    }
+    build_jobs {
+        uuid id PK
+        uuid node_id FK
+        varchar status
+    }
+    build_artifacts {
+        uuid id PK
+        uuid job_id FK
+        text artifact_hash
+    }
+    users {
+        uuid id PK
+        text spiffe_id UK
+        varchar role
+    }
+    llm_advisories {
+        uuid id PK
+        varchar type
+        varchar status
+    }
+    scheduling_queue {
+        uuid id PK
+        jsonb request
+        varchar status
+    }
+    network_policies {
+        uuid id PK
+        varchar name UK
+        varchar direction
+        varchar action
+    }
+    cluster_config {
+        uuid id PK
+        varchar key UK
+        varchar category
+    }
+    audit_log {
+        bigserial id PK
+        timestamptz timestamp PK
+        varchar event_type
+        varchar severity
+    }</code></pre>
+<blockquote>
+<p>Standalone tables (no FK edges): <code>users</code>,
+<code>llm_advisories</code> / <code>advisories</code>,
+<code>scheduling_queue</code> (chain only),
+<code>network_policies</code> (0001 only), <code>cluster_config</code>
+(0001 only), <code>audit_log</code>.</p>
+</blockquote>
+<hr />
+<h2 id="source-files">7. Source files</h2>
+<ul>
+<li><code>migrations/postgresql/0001_primary_schema.sql</code> —
+consolidated authoritative schema (15 tables, CHECK constraints, ~53
+indexes, triggers, seed config). Applied via
+<code>internal/schema.ApplyPrimarySchema</code>
+(<code>psql -f -</code>).</li>
+<li><code>migrations/postgresql/001_*.up.sql</code> …
+<code>015_*.up.sql</code> (+ paired <code>*.down.sql</code>) — the
+<code>golang-migrate</code> chain applied by
+<code>make migrate-up</code>.</li>
+<li><code>scripts/run-migrations.sh</code> — the
+<code>golang-migrate</code> runner.</li>
+<li><code>Makefile</code> (<code>migrate-up</code> /
+<code>migrate-down</code>) — operator entry points.</li>
+<li><code>internal/schema/schema.go</code> — Go loader/applier for
+<code>0001_primary_schema.sql</code>.</li>
+</ul>
+</body>
+</html>

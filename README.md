@@ -128,6 +128,26 @@ cd web && npm install && npm run dev
 - [`docs/guides/phase_02_architecture.md`](docs/guides/phase_02_architecture.md) — Phase 02 architecture guide: operator console → WireGuard/SWIM mesh → discovery/scheduler → Linux node, with a traced job path and the no-jailbreak boundary (HXC-1164)
 - [`docs/architecture/PHASE_8C_INTEGRATION.md`](docs/architecture/PHASE_8C_INTEGRATION.md) — code-grounded Phase 8C integration map: attestation→scheduler, e2ee→orchestrator, marketplace seams (implemented vs PLANNED) (HXC-1614)
 - [`docs/PHASE_8C_EXIT_GATE_EVIDENCE.md`](docs/PHASE_8C_EXIT_GATE_EVIDENCE.md) — Phase 8C CLAUDE-1 exit-gate evidence matrix (PROVEN / PARTIAL / NOT-YET, each row tied to a real test or a Queued ticket) (HXC-1613)
+
+### User documentation
+
+- [`docs/USER_MANUAL.md`](docs/USER_MANUAL.md) — **operator manual**: prerequisites, build, configuration (`.env`), bringing services up, DB migrations, observability, SBOM/vuln scanning, host-safety; every command grounded in a real Make target / binary / script
+- [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) — **end-user guide**: the request/session model, submitting work, E2EE confidential inference, and an honest single-host-vs-deployed-cluster capability split
+- [`docs/guides/getting-started.md`](docs/guides/getting-started.md) · [`docs/guides/development.md`](docs/guides/development.md) · [`docs/guides/operations.md`](docs/guides/operations.md) · [`docs/guides/architecture.md`](docs/guides/architecture.md) — developer/operator guides
+
+### Reference & quality
+
+- [`docs/DATABASE_SCHEMA.md`](docs/DATABASE_SCHEMA.md) — **SQL schema reference**: every table/column/index/trigger from `migrations/postgresql/`, a Mermaid ER diagram, and the migrate-chain-vs-primary-schema reconciliation note
+- [`docs/ARCHITECTURE_DIAGRAMS.md`](docs/ARCHITECTURE_DIAGRAMS.md) — **consolidated Mermaid diagrams**: L0–L7 stack, control-plane services, request/data flow (with E2EE/attestation seams), tier matrix
+- [`docs/TEST_COVERAGE_REPORT.md`](docs/TEST_COVERAGE_REPORT.md) — **test coverage report**: real measured statement coverage (main 82.4% / security 87.8%) + per-test-type inventory (unit/integration/E2E/stress/chaos/benchmark/fuzz/race/security/challenges)
+- [`docs/PRODUCTION_READINESS_REVIEW.md`](docs/PRODUCTION_READINESS_REVIEW.md) — honest 80-item production-readiness review (HXC-1286)
+
+### Security
+
+- [`docs/security/threat-model.md`](docs/security/threat-model.md) · [`docs/security/rbac.md`](docs/security/rbac.md) · [`docs/security/tls-setup.md`](docs/security/tls-setup.md) · [`docs/security/sbom.md`](docs/security/sbom.md) — threat model, RBAC, TLS/mTLS, SBOM
+
+### Standards & process
+
 - [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards
 - [`DEVELOPMENT.md`](DEVELOPMENT.md) — development workflow
 - [`CHANGELOG.md`](CHANGELOG.md) — release history

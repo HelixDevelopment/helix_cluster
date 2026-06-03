@@ -185,6 +185,27 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Documentation completeness pass — full operator+user docs,
+SQL schema, diagrams, test-coverage report (all md+html+pdf+docx,
+docs_chain-tracked):</strong>
+<ul>
+<li><code>docs/USER_MANUAL.md</code> (operator),
+<code>docs/USER_GUIDE.md</code> (end-user),
+<code>docs/DATABASE_SCHEMA.md</code> (every postgres
+table/column/index/trigger + Mermaid ER +
+migrate-chain-vs-primary-schema reconciliation note),
+<code>docs/ARCHITECTURE_DIAGRAMS.md</code> (Mermaid: L0-L7,
+control-plane, request flow, tier matrix),
+<code>docs/TEST_COVERAGE_REPORT.md</code> (real measured coverage: main
+82.4%/255 pkgs, security 87.8%, api/v1 14.7%; per-test-type inventory).
+All grounded in real code (adversarial-reviewed, no PASS-bluffs) and
+linked from the README documentation map; exported to HTML/PDF/DOCX via
+docs_chain.</li>
+<li>Grounded authoring surfaced 3 real defects, now ticketed: HXC-1637
+(make build targets non-existent ./cmd/helix-cluster), HXC-1638
+(helixctl referenced but absent), HXC-1639 (0001_primary_schema.sql
+diverges from the migrate chain 001-015).</li>
+</ul></li>
 <li><strong>Wave 93 — local dependency-update maintenance
 (HXC-1636):</strong> <code>make deps-update</code>
 (scripts/deps-update.sh) runs per-module <code>go get -u</code> +

@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>USER_MANUAL</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">USER_MANUAL</h1>
+</header>
+<h1 id="helix-cluster-os-operator-user-manual">Helix Cluster OS —
+Operator User Manual</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audience</td>
+<td>Operators / SREs running Helix Cluster OS locally or on a host they
+control</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Build, configure, bring services up, run DB migrations, observe
+health, scan dependencies, host-safety</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>Living document — verified against the repository at the commit it
+was written for</td>
+</tr>
+</tbody>
+</table>
+<p>This manual documents <strong>only what the code in this repository
+actually does today.</strong> Where a capability requires infrastructure
+that is not part of this checkout (a real container runtime, a running
+PostgreSQL, a deployed multi-node fleet, an SBC/cloud node), that is
+stated explicitly. Per CLAUDE-1 (anti-bluff) a manual that overstates
+capability is a forbidden PASS-bluff; per CLAUDE-3 it must stay in sync
+with the code it describes.</p>
+<blockquote>
+<p><strong>Honesty notes you must read first</strong></p>
+<ul>
+<li>The repository is a Go workspace (<code>go.work</code>) with many
+control-plane command binaries under <code>cmd/</code>. Each
+<code>cmd/&lt;name&gt;/main.go</code> is a real
+<code>package main</code>. The list is enumerated below.</li>
+<li>The default infrastructure orchestrator (<code>helix_infra</code>)
+runs in <strong>simulation mode</strong> out of the box — see <a
+href="#53-simulation-vs-real-container-orchestration">§5.3</a>. A real
+container orchestrator (rootless podman, auto-detected) exists in
+<code>pkg/infra/container_orchestrator.go</code> but is not the default
+wiring. Treat <code>make dev</code> / <code>helix_infra up</code> output
+as simulated unless you have wired the real orchestrator and have a
+container runtime present.</li>
+<li>The full distributed multi-node flow is <strong>not validated
+end-to-end in this checkout</strong> (requires a deployed cluster).
+Single-process binaries and their HTTP/gRPC surfaces are what you can
+exercise locally.</li>
+</ul>
+</blockquote>
+<hr />
+<h2 id="prerequisites">1. Prerequisites</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Component</th>
+<th>Version / requirement</th>
+<th>Why</th>
+<th>Source of truth</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Go toolchain</td>
+<td><code>go 1.25.0</code> directive, <code>toolchain go1.26.4</code>
+pinned</td>
+<td>Build every Go binary + run tests</td>
+<td><code>go.mod</code>, <code>go.work</code></td>
+</tr>
+<tr>
+<td>Container runtime (rootless)</td>
+<td>podman (preferred) / docker / nerdctl,
+<strong>rootless</strong></td>
+<td>Real container orchestration + integration tests; auto-detected via
+<code>runtime.AutoDetect</code></td>
+<td><code>pkg/infra/infra_container_integration_test.go</code></td>
+</tr>
+<tr>
+<td>PostgreSQL</td>
+<td>16+ reachable on <code>localhost:5432</code> (dev default)</td>
+<td>Schema migrations target</td>
+<td><code>scripts/run-migrations.sh</code>,
+<code>migrations/postgresql/</code></td>
+</tr>
+<tr>
+<td><code>golang-migrate</code> <code>migrate</code> CLI</td>
+<td>latest, on <code>PATH</code> or <code>~/go/bin</code></td>
+<td>Migration runner backend</td>
+<td><code>scripts/run-migrations.sh</code></td>
+</tr>
+<tr>
+<td><code>cyclonedx-gomod</code></td>
+<td>latest, on <code>PATH</code></td>
+<td>SBOM generation (<code>make sbom</code>)</td>
+<td><code>scripts/gen-sbom.sh</code></td>
+</tr>
+<tr>
+<td><code>govulncheck</code></td>
+<td>latest, on <code>PATH</code></td>
+<td>Vulnerability scan (<code>make deps-update</code>)</td>
+<td><code>scripts/deps-update.sh</code></td>
+</tr>
+<tr>
+<td>Node.js 20+</td>
+<td>optional</td>
+<td>Web UI dev server only (<code>web/</code>)</td>
+<td><code>README.md</code></td>
+</tr>
+<tr>
+<td>SQLite 3</td>
+<td>optional</td>
+<td>Work-item registry at <code>data/hxc_registry.db</code></td>
+<td><code>README.md</code></td>
+</tr>
+</tbody>
+</table>
+<p>Install the Go-based tools without elevated privileges (the npm/go
+prefixes must be user-writable):</p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> install <span class="at">-tags</span> <span class="st">&#39;postgres&#39;</span> github.com/golang-migrate/migrate/v4/cmd/migrate@latest</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> install golang.org/x/vuln/cmd/govulncheck@latest</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Ensure $(go env GOPATH)/bin (usually ~/go/bin) is on PATH.</span></span></code></pre></div>
+<h3 id="no-sudo-rootless-rule-hard-constraint">1.1 No-sudo / rootless
+rule (hard constraint)</h3>
+<p>This project forbids <code>sudo</code> / <code>su</code> and any
+elevated-privilege workflow. All container work uses
+<strong>rootless</strong> podman/docker (auto-detected by
+<code>pkg/runtime</code>). If a step seems to “need root”, the correct
+fix is a rootless container or a user-writable tool prefix — never
+<code>sudo</code>. This is a release-blocking constraint, not a style
+preference.</p>
+<hr />
+<h2 id="building">2. Building</h2>
+<h3 id="recommended-build-path-verified">2.1 Recommended build path
+(verified)</h3>
+<p>The README’s canonical build is a whole-workspace Go build:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/setup.sh</span>     <span class="co"># initialise submodules and toolchains (run once)</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/build.sh</span>     <span class="co"># go build ./...   — builds every Go package/binary in the workspace</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/test.sh</span>      <span class="co"># go test ./...</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/lint.sh</span>      <span class="co"># go vet + linters</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/format.sh</span>    <span class="co"># gofmt</span></span></code></pre></div>
+<p>To build a single control-plane binary into <code>bin/</code>:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helixd          ./cmd/helixd</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helix-gateway   ./cmd/helix-gateway</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helix-health    ./cmd/helix-health</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co"># …and so on for any cmd/&lt;name&gt; below.</span></span></code></pre></div>
+<h3 id="make-build-known-caveat-do-not-rely-on-it-as-is">2.2
+<code>make build</code> — known caveat (do not rely on it as-is)</h3>
+<p>The <code>build</code> target in the root <code>Makefile</code>
+is:</p>
+<pre class="make"><code>build: ## Build all binaries
+    go build -o bin/helix-cluster ./cmd/helix-cluster
+    zig build
+    cmake -B build -S . &amp;&amp; cmake --build build</code></pre>
+<p><strong><code>./cmd/helix-cluster</code> does not exist in this
+checkout</strong> — <code>go build ./cmd/helix-cluster</code> fails with
+<code>directory not found</code>. The <code>zig build</code> and
+<code>cmake</code> steps depend on a Zig/CMake toolchain and project
+files that are out of scope for a pure-Go operator. <strong>For building
+Go binaries use <code>./scripts/build.sh</code>
+(<code>go build ./...</code>) or per-binary
+<code>go build ./cmd/&lt;name&gt;</code> as in §2.1.</strong> This
+caveat is recorded honestly rather than presenting
+<code>make build</code> as a working all-in-one.</p>
+<h3 id="the-control-plane-command-binaries-real-each-has-main.go">2.3
+The control-plane command binaries (real, each has
+<code>main.go</code>)</h3>
+<pre><code>cmd/helixd            cmd/helix-gateway      cmd/helix-health
+cmd/helix-scheduler   cmd/helix-session      cmd/helix-security
+cmd/helix-policy      cmd/helix-advisory     cmd/helix-build
+cmd/helix-node        cmd/helix-llm          cmd/helix-snapshot
+cmd/helix-setup       cmd/helix-agent        cmd/helix-test
+cmd/helix_infra       cmd/gpu-pool-manager   cmd/e2ee-proxy
+cmd/dst-sim           cmd/htmux              cmd/hxc-registry</code></pre>
+<blockquote>
+<p>There is <strong>no <code>helixctl</code> binary</strong> in this
+repository. Documentation elsewhere
+(<code>docs/guides/getting-started.md</code>) references
+<code>./bin/helixctl build submit …</code>; that CLI is not present in
+<code>cmd/</code>. Do not expect <code>helixctl</code> to build.
+Operator interactions happen through the per-service binaries and their
+HTTP/gRPC surfaces described below.</p>
+</blockquote>
+<hr />
+<h2 id="configuration">3. Configuration</h2>
+<p>Configuration is environment-variable driven. There is no single
+global config file; each binary reads its own variables with localhost
+defaults.</p>
+<h3 id="helixd-control-plane-daemon-cmdhelixdmain.go">3.1
+<code>helixd</code> (control-plane daemon) —
+<code>cmd/helixd/main.go</code></h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HELIXD_PORT</code></td>
+<td><code>8081</code></td>
+<td>TCP port for the <code>/status</code> HTTP surface (<code>0</code> =
+ephemeral)</td>
+</tr>
+<tr>
+<td><code>HELIXD_HOST</code></td>
+<td>all interfaces</td>
+<td>Bind host</td>
+</tr>
+<tr>
+<td><code>HELIXD_ETCD_ADDR</code></td>
+<td><code>localhost:2379</code></td>
+<td>etcd dependency address probed for <code>/status</code></td>
+</tr>
+<tr>
+<td><code>HELIXD_POSTGRES_ADDR</code></td>
+<td><code>localhost:5432</code></td>
+<td>PostgreSQL dependency address probed</td>
+</tr>
+<tr>
+<td><code>HELIXD_REDIS_ADDR</code></td>
+<td><code>localhost:6379</code></td>
+<td>Redis dependency address probed</td>
+</tr>
+</tbody>
+</table>
+<p><code>helixd</code> does not implement business logic itself; it
+probes its backing subservices (etcd, postgres, redis) over TCP and
+aggregates their reachability into <code>/status</code>. Invalid
+<code>HELIXD_PORT</code> fails fast at startup.</p>
+<h3
+id="helix-gateway-edge-http-reverse-proxy-cmdhelix-gatewaymain.go">3.2
+<code>helix-gateway</code> (edge HTTP reverse proxy) —
+<code>cmd/helix-gateway/main.go</code></h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>HELIX_GATEWAY_PORT</code></td>
+<td><code>8080</code></td>
+<td>TCP port to listen on (must be 1–65535)</td>
+</tr>
+<tr>
+<td><code>HELIX_GATEWAY_HOST</code></td>
+<td>all interfaces</td>
+<td>Bind host</td>
+</tr>
+</tbody>
+</table>
+<h3 id="database-make-migrate--scriptsrun-migrations.sh">3.3 Database
+(<code>make migrate-*</code> /
+<code>scripts/run-migrations.sh</code>)</h3>
+<p><code>DATABASE_URL</code> is honored when set; otherwise it is
+assembled from the <code>DB_*</code> parts. No secret is hardcoded — the
+dev password is <code>helix</code> for local development only.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DATABASE_URL</code></td>
+<td><code>postgres://helix:helix@localhost:5432/helix_cluster?sslmode=disable</code></td>
+<td>Full DSN; overrides the parts below</td>
+</tr>
+<tr>
+<td><code>DB_HOST</code></td>
+<td><code>localhost</code></td>
+<td>Host</td>
+</tr>
+<tr>
+<td><code>DB_PORT</code></td>
+<td><code>5432</code></td>
+<td>Port</td>
+</tr>
+<tr>
+<td><code>DB_NAME</code></td>
+<td><code>helix_cluster</code></td>
+<td>Database</td>
+</tr>
+<tr>
+<td><code>DB_USER</code></td>
+<td><code>helix</code></td>
+<td>User</td>
+</tr>
+<tr>
+<td><code>DB_PASS</code></td>
+<td><code>helix</code></td>
+<td>Password (dev only — supply a real secret via env in any shared
+environment)</td>
+</tr>
+<tr>
+<td><code>DB_SSLMODE</code></td>
+<td><code>disable</code></td>
+<td>libpq sslmode</td>
+</tr>
+</tbody>
+</table>
+<h3
+id="remote-container-distribution-containers.env-containers.env.example-template">3.4
+Remote container distribution — <code>containers/.env</code>
+(<code>Containers/.env.example</code> template)</h3>
+<p>The <code>containers</code> submodule loads
+<code>CONTAINERS_REMOTE_*</code> env vars (via
+<code>containers/pkg/envconfig</code>). When
+<code>CONTAINERS_REMOTE_ENABLED=false</code> (the default) distribution
+is local-only. Copy the example template and edit:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> Containers/.env.example Containers/.env   <span class="co"># then edit values</span></span></code></pre></div>
+<p>Selected variables (full annotated set in
+<code>Containers/.env.example</code>):</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Default</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>CONTAINERS_REMOTE_ENABLED</code></td>
+<td><code>false</code></td>
+<td>Master switch for remote distribution</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_DEFAULT_SSH_USER</code></td>
+<td><code>deploy</code></td>
+<td>Default SSH user for remote hosts</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_DEFAULT_SSH_KEY</code></td>
+<td><code>~/.ssh/id_rsa</code></td>
+<td>Default SSH key</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_DEFAULT_RUNTIME</code></td>
+<td><code>docker</code></td>
+<td>Remote runtime (<code>docker</code>/<code>podman</code>)</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_SCHEDULER</code></td>
+<td><code>resource_aware</code></td>
+<td>Placement strategy
+(<code>resource_aware</code>/<code>round_robin</code>/<code>affinity</code>/<code>spread</code>/<code>bin_pack</code>)</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_PORT_RANGE_START</code> /
+<code>_END</code></td>
+<td><code>20000</code> / <code>30000</code></td>
+<td>Local SSH-tunnel port range</td>
+</tr>
+<tr>
+<td><code>CONTAINERS_REMOTE_HOST_N_NAME</code> / <code>_ADDRESS</code> /
+<code>_PORT</code> / <code>_USER</code> / <code>_KEY</code> /
+<code>_RUNTIME</code> / <code>_LABELS</code></td>
+<td>—</td>
+<td>Per-host definitions, <code>N = 1..</code> (loader stops at the
+first absent <code>_NAME</code>)</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><code>.env</code> and <code>.env.*</code> are git-ignored and MUST
+NOT contain real secrets in tracked files. Only the
+<code>.env.example</code> placeholder template is tracked.</p>
+</blockquote>
+<hr />
+<h2 id="running-services">4. Running services</h2>
+<p>Each binary is a self-contained process. Build it (§2.1), set its env
+vars (§3), and run it. A binary serves until it receives
+<code>SIGINT</code>/<code>SIGTERM</code>, then shuts down gracefully
+with a bounded timeout.</p>
+<h3 id="helixd-control-plane">4.1 helixd (control plane)</h3>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helixd ./cmd/helixd</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="va">HELIXD_PORT</span><span class="op">=</span>8081 <span class="ex">./bin/helixd</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Verify the aggregated status surface:</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8081/status <span class="kw">|</span> <span class="ex">jq</span> .</span></code></pre></div>
+<p><code>/status</code> returns
+<code>{version, status:"healthy", services:{etcd,postgres,redis: reachable|unreachable}, timestamp}</code>.
+<code>status:"healthy"</code> means <em>the daemon itself is
+serving</em>; per-subservice reachability is in
+<code>services</code>.</p>
+<h3 id="helix-gateway-edge-proxy">4.2 helix-gateway (edge proxy)</h3>
+<div class="sourceCode" id="cb8"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helix-gateway ./cmd/helix-gateway</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="va">HELIX_GATEWAY_PORT</span><span class="op">=</span>8080 <span class="ex">./bin/helix-gateway</span></span></code></pre></div>
+<p>The gateway is a path-prefixed HTTP reverse proxy to backend
+services. It stamps an <code>X-Helix-Gateway</code> marker header on
+proxied responses and exposes Prometheus <code>/metrics</code>. Routed
+API paths include <code>/v1/sessions</code>,
+<code>/v1/pool/utilization</code>, and <code>/api/v1/scheduler/…</code>
+(the last is scope-enforced; denials carry an
+<code>X-Helix-Deny-Reason</code> header). Backends must be running for
+proxied routes to return non-error responses.</p>
+<h3 id="helix-health-health-aggregation">4.3 helix-health (health
+aggregation)</h3>
+<div class="sourceCode" id="cb9"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helix-health ./cmd/helix-health</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./bin/helix-health</span></span></code></pre></div>
+<p>Serves the <code>helix.v1.HealthService</code> gRPC API plus an HTTP
+surface exposing <code>/health</code>, <code>/livez</code>,
+<code>/readyz</code>, and <code>/check/&lt;service&gt;</code> (see <a
+href="#6-health-and-observability">§6</a>).</p>
+<h3 id="other-control-plane-binaries">4.4 Other control-plane
+binaries</h3>
+<p><code>helix-scheduler</code>, <code>helix-session</code>,
+<code>helix-security</code>, <code>helix-policy</code>,
+<code>helix-advisory</code>, <code>helix-build</code>,
+<code>helix-node</code>, <code>helix-llm</code>,
+<code>helix-snapshot</code>, <code>helix-agent</code>,
+<code>gpu-pool-manager</code>, <code>e2ee-proxy</code> each build the
+same way (<code>go build ./cmd/&lt;name&gt;</code>) and read their own
+env. Inspect the binary’s <code>--help</code> / source
+<code>LoadConfig</code> for its exact flags and variables before relying
+on them.</p>
+<hr />
+<h2 id="infrastructure-orchestration-helix_infra">5. Infrastructure
+orchestration (<code>helix_infra</code>)</h2>
+<p><code>helix_infra</code> is the dev-infrastructure manager
+(PostgreSQL, Redis, etcd, NATS/Kafka, Prometheus/ Grafana/Jaeger, Vault,
+and QEMU VM-node simulation). The Makefile wraps it:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Make target</th>
+<th>Underlying command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make dev</code></td>
+<td><code>go run ./cmd/helix_infra up --wait --timeout 300s</code></td>
+<td>Boot the infra stack</td>
+</tr>
+<tr>
+<td><code>make dev-down</code></td>
+<td><code>go run ./cmd/helix_infra down</code></td>
+<td>Stop the stack</td>
+</tr>
+<tr>
+<td><code>make dev-status</code></td>
+<td><code>go run ./cmd/helix_infra status</code></td>
+<td>Show per-service status table</td>
+</tr>
+<tr>
+<td><code>make dev-logs service=&lt;name&gt;</code></td>
+<td><code>go run ./cmd/helix_infra logs &lt;name&gt;</code></td>
+<td>Stream a service’s logs</td>
+</tr>
+</tbody>
+</table>
+<p>Direct invocation (subcommands: <code>up</code>, <code>down</code>,
+<code>status</code>, <code>health</code>, <code>logs</code>,
+<code>scale</code>, <code>vm</code>, <code>version</code>):</p>
+<div class="sourceCode" id="cb10"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> run ./cmd/helix_infra up <span class="at">--wait</span> <span class="at">--timeout</span> 300s</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> run ./cmd/helix_infra status</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> run ./cmd/helix_infra health <span class="at">--json</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> run ./cmd/helix_infra down</span></code></pre></div>
+<p><code>up</code> accepts an optional
+<code>--config &lt;file&gt;</code> (JSON overlaying the built-in
+<code>DefaultConfig</code>; a missing or malformed path is a hard error,
+never silently ignored).</p>
+<h3 id="simulation-vs-real-container-orchestration">5.3 Simulation vs
+real container orchestration</h3>
+<p><strong>The orchestrator returned by the default wiring is a
+simulation.</strong> Its own guard test asserts
+<code>Simulated()==true</code> “until a real Orchestrator is wired in”
+(<code>pkg/infra/infra_integration_test.go</code>). So
+<code>make dev</code> / <code>helix_infra up</code> reports services
+“healthy” against a simulated backend, <strong>not</strong> against real
+containers, unless you have wired the real orchestrator.</p>
+<p>A <strong>real</strong> container orchestrator exists at
+<code>pkg/infra/container_orchestrator.go</code>
+(<code>Simulated()==false</code>); it uses a rootless container runtime
+auto-detected by <code>runtime.AutoDetect</code> (podman preferred). Its
+integration tests skip with an explicit <code>SKIP-OK</code> reason when
+no CLI container runtime is present, and assert hard (no skip) when
+podman is available. <strong>Treat real container boot as requiring a
+present rootless runtime; it is not exercised by the default
+path.</strong></p>
+<blockquote>
+<p>The legacy <code>make dev-compose</code> /
+<code>dev-compose-down</code> targets call <code>docker compose</code>
+directly. Per the project’s no-manual-container-commands rule, prefer
+the orchestrator path over hand-running compose.</p>
+</blockquote>
+<hr />
+<h2 id="health-and-observability">6. Health and observability</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Surface</th>
+<th>Exposed by</th>
+<th>Endpoints</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Daemon status</td>
+<td><code>helixd</code></td>
+<td><code>GET /status</code></td>
+<td>Aggregated daemon + subservice reachability JSON</td>
+</tr>
+<tr>
+<td>Health service</td>
+<td><code>helix-health</code></td>
+<td><code>GET /health</code>, <code>/livez</code>, <code>/readyz</code>,
+<code>/check/&lt;service&gt;</code>; gRPC
+<code>helix.v1.HealthService</code></td>
+<td>Liveness/readiness + per-service check</td>
+</tr>
+<tr>
+<td>Metrics</td>
+<td><code>helix-gateway</code>, <code>helixd</code> (and other services
+via <code>pkg/metrics</code>)</td>
+<td><code>GET /metrics</code></td>
+<td>Prometheus exposition mounted via <code>metrics.Mount</code></td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb11"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8081/status        <span class="co"># helixd</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8080/metrics        <span class="co"># gateway Prometheus metrics</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:<span class="op">&lt;</span>health-http<span class="op">&gt;</span>/livez <span class="co"># helix-health liveness</span></span></code></pre></div>
+<blockquote>
+<p>The <code>docs/guides/operations.md</code> guide describes a
+Prometheus stack on <code>:9090/metrics</code>, Grafana dashboards,
+<code>/healthz</code>/<code>/readyz</code> probes and Kubernetes
+deployment. Those are <strong>target operational patterns / deployment
+options</strong>, not all wired into the binaries in this checkout. The
+authoritative per-binary endpoints are the ones in the table above
+(<code>/status</code>, <code>/metrics</code>,
+<code>/health</code>+<code>/livez</code>+<code>/readyz</code>+<code>/check/&lt;service&gt;</code>).
+Verify the actual port for <code>helix-health</code> from its
+<code>LoadConfig</code> before scripting probes against it.</p>
+</blockquote>
+<hr />
+<h2 id="database-migrations">7. Database migrations</h2>
+<p>Migrations are golang-migrate SQL files in
+<code>migrations/postgresql/</code> (15 sequential <code>*.up.sql</code>
+/ <code>*.down.sql</code> pairs, e.g. <code>001_create_nodes</code>,
+<code>002_create_gpu_devices</code>, <code>003_create_sessions</code>,
+…). The runner is <code>scripts/run-migrations.sh</code>, requiring the
+<code>migrate</code> CLI (§1).</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make migrate-up</code></td>
+<td><code>run-migrations.sh up</code> — apply all pending migrations
+(honors <code>DATABASE_URL</code>)</td>
+</tr>
+<tr>
+<td><code>make migrate-down</code></td>
+<td><code>run-migrations.sh down 1</code> — roll back one migration</td>
+</tr>
+</tbody>
+</table>
+<p>Direct use of the runner exposes more subcommands:</p>
+<div class="sourceCode" id="cb12"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> up <span class="pp">[</span><span class="ss">N</span><span class="pp">]</span>      <span class="co"># apply all, or N</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> down <span class="pp">[</span><span class="ss">N</span><span class="pp">]</span>    <span class="co"># roll back 1, or N</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> version     <span class="co"># current schema version</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> status      <span class="co"># dir, DSN, version, file list</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> validate    <span class="co"># up -&gt; down 15 -&gt; up (round-trip check)</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> create NAME <span class="co"># scaffold a new up/down pair</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> force V      <span class="co"># force version (use with caution)</span></span></code></pre></div>
+<p>Point at a real PostgreSQL via env (no hardcoded secret):</p>
+<div class="sourceCode" id="cb13"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="va">DB_HOST</span><span class="op">=</span>db.internal <span class="va">DB_NAME</span><span class="op">=</span>helix_cluster <span class="va">DB_USER</span><span class="op">=</span>helix <span class="va">DB_PASS</span><span class="op">=</span><span class="st">&quot;</span><span class="va">$PGPASSWORD</span><span class="st">&quot;</span> <span class="dt">\</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  <span class="ex">./scripts/run-migrations.sh</span> up</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co"># or:</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a><span class="va">DATABASE_URL</span><span class="op">=</span><span class="st">&#39;postgres://helix:***@db.internal:5432/helix_cluster?sslmode=require&#39;</span> <span class="fu">make</span> migrate-up</span></code></pre></div>
+<blockquote>
+<p><strong>Requires a reachable PostgreSQL.</strong> Migrations run
+against a live database; there is no embedded DB. <code>make seed</code>
+(<code>scripts/seed-data.sql</code>) targets
+<code>…/helix?sslmode=disable</code> and is for local development
+seeding only.</p>
+</blockquote>
+<hr />
+<h2 id="sbom-and-vulnerability-scanning">8. SBOM and vulnerability
+scanning</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Command</th>
+<th>Underlying script</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make sbom</code></td>
+<td><code>scripts/gen-sbom.sh</code></td>
+<td>Generate CycloneDX 1.6 SBOMs into <code>sbom/</code></td>
+</tr>
+<tr>
+<td><code>make deps-update</code></td>
+<td><code>scripts/deps-update.sh</code></td>
+<td>Bump deps + <code>go work sync</code> + <code>govulncheck</code> +
+refresh SBOMs</td>
+</tr>
+</tbody>
+</table>
+<h3 id="make-sbom">8.1 <code>make sbom</code></h3>
+<p>Emits one CycloneDX JSON per tracked Go module (workspace disabled
+per-module so the root component is unambiguous):</p>
+<pre><code>sbom/helixcluster.cdx.json   # main module
+sbom/api-v1.cdx.json         # api/v1
+sbom/security.cdx.json       # digital.vasic.security</code></pre>
+<p>Requires <code>cyclonedx-gomod</code> on <code>PATH</code> (the
+target prints install instructions and exits non-zero if missing). The
+<code>sbom/*.cdx.json</code> outputs are build derivatives —
+git-ignored; the script + Make target are the tracked deliverable, and
+<code>make sbom</code> regenerates them.</p>
+<h3 id="make-deps-update-local-no-ci-dependency-maintenance">8.2
+<code>make deps-update</code> (local, no-CI dependency maintenance)</h3>
+<p>The project forbids CI/CD pipelines, so there is no
+dependabot/renovate. <code>make deps-update</code> is the operator-run
+equivalent across modules <code>.</code>, <code>api/v1</code>,
+<code>security</code>:</p>
+<ol type="1">
+<li><code>go get -u ./...</code> per module.</li>
+<li><code>go work sync</code>.</li>
+<li><code>govulncheck ./...</code> per module — <strong>non-zero exit on
+reachable advisories</strong> (or if <code>govulncheck</code> is
+missing).</li>
+<li>Refresh SBOMs (<code>scripts/gen-sbom.sh</code>).</li>
+</ol>
+<div class="sourceCode" id="cb15"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> deps-update            <span class="co"># review the govulncheck output before committing bumps</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">govulncheck</span> ./...           <span class="co"># standalone scan of the current module</span></span></code></pre></div>
+<hr />
+<h2 id="host-safety-constraints-mandatory">9. Host-safety constraints
+(mandatory)</h2>
+<p>These are release-blocking invariants, binding on every command,
+script, and agent action:</p>
+<ol type="1">
+<li><strong>No host power-state transitions.</strong> Never run
+(directly or indirectly) <code>systemctl</code>/<code>loginctl</code>
+suspend/hibernate/poweroff/halt/reboot, <code>pm-suspend</code>,
+<code>shutdown</code>, or DBus power calls. The host runs
+mission-critical workloads; auto-suspend has caused historical session
+loss.</li>
+<li><strong>No <code>sudo</code> / <code>su</code>.</strong> Use
+rootless containers (the <code>containers</code> submodule /
+<code>pkg/runtime</code>) or user-writable tool prefixes. See <a
+href="#11-no-sudo--rootless-rule-hard-constraint">§1.1</a>.</li>
+<li><strong>Memory budget ≤ 60% of host RAM.</strong> Project procedures
+must not exceed 60% of total system memory; the remaining 40% is
+reserved for the operator’s other workloads. Reduce parallelism / close
+other workloads rather than raising the cap (there is no override
+flag).</li>
+<li><strong>Resource-bounded tests/challenges.</strong> Run test and
+challenge workloads at ~30–40% of host resources
+(<code>GOMAXPROCS=2</code>, <code>nice -n 19</code>,
+<code>ionice -c 3</code> where applicable). Example:
+<code>GOMAXPROCS=2 nice -n 19 go test -short ./...</code>.</li>
+<li><strong>No manual container commands as a workflow.</strong> Bring
+containers up through the orchestrator / <code>containers</code>
+submodule, not hand-run
+<code>docker</code>/<code>podman start|stop|rm</code> or
+<code>docker compose up</code>.</li>
+<li><strong>Container hygiene.</strong> Containers must declare explicit
+memory limits and be cleanly destroyed + rebuilt after any host crash so
+stale state does not reproduce failures.</li>
+</ol>
+<p>If a host is already under memory pressure
+(<code>journalctl -k --since "1 hour ago" | grep -c oom-kill</code> is
+non-zero), fix the offending workload before stacking new heavy
+work.</p>
+<hr />
+<h2 id="quick-reference">10. Quick reference</h2>
+<div class="sourceCode" id="cb16"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Build (Go workspace)</span></span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/build.sh</span>                       <span class="co"># go build ./...   (preferred — NOT `make build`)</span></span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a><span class="ex">go</span> build <span class="at">-o</span> bin/helixd ./cmd/helixd      <span class="co"># single binary</span></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Run core surfaces</span></span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a><span class="va">HELIXD_PORT</span><span class="op">=</span>8081 <span class="ex">./bin/helixd</span>            <span class="co"># /status on :8081</span></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="va">HELIX_GATEWAY_PORT</span><span class="op">=</span>8080 <span class="ex">./bin/helix-gateway</span>  <span class="co"># /metrics + /v1/* on :8080</span></span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Dev infrastructure (simulation by default)</span></span>
+<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> dev        /  make dev-status  /  make dev-down</span>
+<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="co"># Database migrations (needs a live PostgreSQL + `migrate` CLI)</span></span>
+<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> migrate-up  /  make migrate-down</span>
+<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="ex">./scripts/run-migrations.sh</span> status</span>
+<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Supply-chain</span></span>
+<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="fu">make</span> sbom        /  make deps-update  /  govulncheck ./...</span>
+<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Resource-bounded tests</span></span>
+<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="va">GOMAXPROCS</span><span class="op">=</span>2 <span class="fu">nice</span> <span class="at">-n</span> 19 go test <span class="at">-short</span> ./...</span></code></pre></div>
+<hr />
+<h2 id="sources-verified">Sources verified</h2>
+<p>This manual was written by reading the following in-repo sources
+(paths relative to repo root):</p>
+<ul>
+<li><code>Makefile</code> — all targets (<code>build</code>,
+<code>dev</code>/<code>dev-*</code>,
+<code>migrate-up</code>/<code>migrate-down</code>, <code>seed</code>,
+<code>sbom</code>, <code>deps-update</code>, <code>docs*</code>)</li>
+<li><code>go.mod</code>, <code>go.work</code> — Go toolchain pin and
+workspace membership</li>
+<li><code>cmd/helixd/main.go</code> — <code>HELIXD_*</code> env,
+<code>/status</code> surface, graceful shutdown</li>
+<li><code>cmd/helix-gateway/main.go</code> —
+<code>HELIX_GATEWAY_*</code> env, <code>/metrics</code>,
+<code>X-Helix-Gateway</code></li>
+<li><code>cmd/helix-health/main.go</code> — gRPC
+<code>HealthService</code> +
+<code>/health</code>,<code>/livez</code>,<code>/readyz</code>,<code>/check/&lt;service&gt;</code></li>
+<li><code>cmd/helix_infra/{main,up,run,shared,health}.go</code> —
+orchestrator subcommands; simulation-by-default</li>
+<li><code>pkg/infra/infra_integration_test.go</code>,
+<code>pkg/infra/container_orchestrator.go</code>,
+<code>pkg/infra/infra_container_integration_test.go</code> —
+<code>Simulated()</code> default + real rootless-podman path</li>
+<li><code>internal/gateway/*_integration_test.go</code> — routed API
+paths and scope/deny header</li>
+<li><code>scripts/run-migrations.sh</code>,
+<code>migrations/postgresql/</code> (15 up/down pairs) — migration
+runner + DB env</li>
+<li><code>scripts/gen-sbom.sh</code>,
+<code>scripts/deps-update.sh</code> — SBOM + vuln-scan flows</li>
+<li><code>Containers/.env.example</code>,
+<code>containers/pkg/envconfig</code> — remote-distribution env
+vars</li>
+<li><code>README.md</code>, <code>docs/guides/getting-started.md</code>,
+<code>docs/guides/operations.md</code> — cross-checked; their
+<code>helixctl</code>, <code>:9090/metrics</code>, K8s, and
+<code>make build</code> claims are corrected/qualified above against the
+actual binaries and targets present in this checkout.</li>
+</ul>
+</body>
+</html>

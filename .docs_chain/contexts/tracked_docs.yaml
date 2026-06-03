@@ -101,6 +101,31 @@ nodes:
   prr_html: { kind: html,     path: docs/export/PRODUCTION_READINESS_REVIEW.html }
   prr_pdf:  { kind: pdf,      path: docs/export/PRODUCTION_READINESS_REVIEW.pdf }
   prr_docx: { kind: docx,     path: docs/export/PRODUCTION_READINESS_REVIEW.docx }
+  # --- User manual (operator) ---
+  umanual_md:   { kind: markdown, path: docs/USER_MANUAL.md }
+  umanual_html: { kind: html,     path: docs/export/USER_MANUAL.html }
+  umanual_pdf:  { kind: pdf,      path: docs/export/USER_MANUAL.pdf }
+  umanual_docx: { kind: docx,     path: docs/export/USER_MANUAL.docx }
+  # --- User guide (end-user) ---
+  uguide_md:   { kind: markdown, path: docs/USER_GUIDE.md }
+  uguide_html: { kind: html,     path: docs/export/USER_GUIDE.html }
+  uguide_pdf:  { kind: pdf,      path: docs/export/USER_GUIDE.pdf }
+  uguide_docx: { kind: docx,     path: docs/export/USER_GUIDE.docx }
+  # --- SQL schema reference ---
+  dbschema_md:   { kind: markdown, path: docs/DATABASE_SCHEMA.md }
+  dbschema_html: { kind: html,     path: docs/export/DATABASE_SCHEMA.html }
+  dbschema_pdf:  { kind: pdf,      path: docs/export/DATABASE_SCHEMA.pdf }
+  dbschema_docx: { kind: docx,     path: docs/export/DATABASE_SCHEMA.docx }
+  # --- Architecture diagrams (Mermaid) ---
+  archdia_md:   { kind: markdown, path: docs/ARCHITECTURE_DIAGRAMS.md }
+  archdia_html: { kind: html,     path: docs/export/ARCHITECTURE_DIAGRAMS.html }
+  archdia_pdf:  { kind: pdf,      path: docs/export/ARCHITECTURE_DIAGRAMS.pdf }
+  archdia_docx: { kind: docx,     path: docs/export/ARCHITECTURE_DIAGRAMS.docx }
+  # --- Test coverage report ---
+  tcov_md:   { kind: markdown, path: docs/TEST_COVERAGE_REPORT.md }
+  tcov_html: { kind: html,     path: docs/export/TEST_COVERAGE_REPORT.html }
+  tcov_pdf:  { kind: pdf,      path: docs/export/TEST_COVERAGE_REPORT.pdf }
+  tcov_docx: { kind: docx,     path: docs/export/TEST_COVERAGE_REPORT.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -162,6 +187,21 @@ edges:
   - { type: derive-from, from: prr_md,   to: prr_html, transform: md2html }
   - { type: derive-from, from: prr_html, to: prr_pdf,  transform: html2pdf }
   - { type: derive-from, from: prr_md,   to: prr_docx, transform: md2docx }
+  - { type: derive-from, from: umanual_md,   to: umanual_html, transform: md2html }
+  - { type: derive-from, from: umanual_html, to: umanual_pdf,  transform: html2pdf }
+  - { type: derive-from, from: umanual_md,   to: umanual_docx, transform: md2docx }
+  - { type: derive-from, from: uguide_md,   to: uguide_html, transform: md2html }
+  - { type: derive-from, from: uguide_html, to: uguide_pdf,  transform: html2pdf }
+  - { type: derive-from, from: uguide_md,   to: uguide_docx, transform: md2docx }
+  - { type: derive-from, from: dbschema_md,   to: dbschema_html, transform: md2html }
+  - { type: derive-from, from: dbschema_html, to: dbschema_pdf,  transform: html2pdf }
+  - { type: derive-from, from: dbschema_md,   to: dbschema_docx, transform: md2docx }
+  - { type: derive-from, from: archdia_md,   to: archdia_html, transform: md2html }
+  - { type: derive-from, from: archdia_html, to: archdia_pdf,  transform: html2pdf }
+  - { type: derive-from, from: archdia_md,   to: archdia_docx, transform: md2docx }
+  - { type: derive-from, from: tcov_md,   to: tcov_html, transform: md2html }
+  - { type: derive-from, from: tcov_html, to: tcov_pdf,  transform: html2pdf }
+  - { type: derive-from, from: tcov_md,   to: tcov_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }

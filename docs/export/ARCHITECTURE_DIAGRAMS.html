@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ARCHITECTURE_DIAGRAMS</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ARCHITECTURE_DIAGRAMS</h1>
+</header>
+<h1 id="helix-cluster-os-consolidated-architecture-diagrams">Helix
+Cluster OS — Consolidated Architecture Diagrams</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-06-03</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Scope &amp; honesty contract (CLAUDE-1 / CLAUDE-3,
+Constitution §11.4.106).</strong> This document collects the Helix
+Cluster OS architecture into a small set of <strong>Mermaid</strong>
+diagrams. It is a <em>visual companion</em> to the prose docs — it does
+not restate them. Every node in every diagram is labelled with a
+<strong>real</strong> package (<code>pkg/…</code>,
+<code>internal/…</code>) or binary (<code>cmd/…</code>) path that exists
+in this repository; the module path is
+<code>github.com/HelixDevelopment/helix_cluster</code>. Where an edge
+represents an integration that is <strong>not yet wired in
+code</strong>, it is drawn dashed and tagged <code>PLANNED</code>,
+matching <a
+href="architecture/PHASE_8C_INTEGRATION.md"><code>architecture/PHASE_8C_INTEGRATION.md</code></a>.</p>
+<p><strong>For the authoritative, lint-enforced component→package→origin
+mapping</strong> see <a
+href="ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a> (enforced by <a
+href="../pkg/archlint"><code>pkg/archlint</code></a>). <strong>For
+runtime service prose, the registry schema, and foundation-package
+interfaces</strong> see <a
+href="MVP_ARCHITECTURE.md"><code>MVP_ARCHITECTURE.md</code></a>.
+<strong>For the full foundation-library catalogue</strong> see <a
+href="FOUNDATION_PACKAGES.md"><code>FOUNDATION_PACKAGES.md</code></a>.
+This file duplicates none of that prose; it diagrams it.</p>
+<p><strong>Legend for integration state:</strong> solid edge =
+runtime/coordination path grounded in code today; <strong>dashed edge
+tagged <code>PLANNED</code></strong> = the interface/seam exists but the
+production wiring to the named package is not present yet (per
+<code>PHASE_8C_INTEGRATION.md</code>, verified file:symbol). Do not read
+dashed edges as live integration.</p>
+</blockquote>
+<hr />
+<h2 id="the-l0l7-layered-stack">1. The L0–L7 layered stack</h2>
+<p>Helix is a seven-layer stack (L0–L7) over a hardware substrate,
+coordinated via <strong>SWIM gossip</strong> (<a
+href="../pkg/swim"><code>pkg/swim</code></a>) for membership and
+<strong>Raft</strong> consensus (<a
+href="../pkg/multiraft"><code>pkg/multiraft</code></a>, <a
+href="../pkg/kraft"><code>pkg/kraft</code></a>) for strongly-consistent
+state, with an <strong>Omega-model</strong> two-level scheduler (<a
+href="../pkg/scheduler"><code>pkg/scheduler</code></a>). Each layer
+consumes only the layers beneath it. Node labels below are
+representative real packages from the <a
+href="ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a> Component Map;
+that table is the exhaustive, lint-checked source.</p>
+<pre class="mermaid"><code>flowchart TB
+    subgraph L7[&quot;L7 — Federation, multi-cluster &amp; observability&quot;]
+        direction LR
+        l7a[&quot;pkg/federation&quot;]
+        l7b[&quot;pkg/fedtopology&quot;]
+        l7c[&quot;pkg/metrics&quot;]
+        l7d[&quot;pkg/tracing&quot;]
+        l7e[&quot;pkg/grafanadash&quot;]
+    end
+    subgraph L6[&quot;L6 — Control-plane services (cmd/helix-*)&quot;]
+        direction LR
+        l6a[&quot;internal/gateway&quot;]
+        l6b[&quot;internal/session&quot;]
+        l6c[&quot;internal/health&quot;]
+        l6d[&quot;internal/policy&quot;]
+        l6e[&quot;internal/llm&quot;]
+        l6f[&quot;internal/scheduler&quot;]
+        l6g[&quot;internal/build&quot;]
+        l6h[&quot;internal/advisory&quot;]
+        l6i[&quot;internal/trust&quot;]
+    end
+    subgraph L5[&quot;L5 — Secure transport &amp; networking&quot;]
+        direction LR
+        l5a[&quot;pkg/hybridkex&lt;br/&gt;(X25519+ML-KEM-768)&quot;]
+        l5b[&quot;cmd/e2ee-proxy&quot;]
+        l5c[&quot;internal/wireguard&quot;]
+        l5d[&quot;pkg/ice&quot;]
+        l5e[&quot;pkg/hashslot&quot;]
+    end
+    subgraph L4[&quot;L4 — Scheduling, placement &amp; economics&quot;]
+        direction LR
+        l4a[&quot;pkg/scheduler&lt;br/&gt;(Omega)&quot;]
+        l4b[&quot;pkg/constraints&quot;]
+        l4c[&quot;pkg/preempt&quot;]
+        l4d[&quot;pkg/workloadrouter&quot;]
+        l4e[&quot;pkg/carbonsched&quot;]
+        l4f[&quot;pkg/economics&quot;]
+    end
+    subgraph L3[&quot;L3 — Consensus &amp; replicated state&quot;]
+        direction LR
+        l3a[&quot;pkg/voting&quot;]
+        l3b[&quot;pkg/mvcc&quot;]
+        l3c[&quot;pkg/crdt&quot;]
+        l3d[&quot;pkg/deltacrdt&quot;]
+        l3e[&quot;pkg/antientropy&quot;]
+        l3f[&quot;pkg/hlc&quot;]
+    end
+    subgraph L2[&quot;L2 — Membership &amp; discovery&quot;]
+        direction LR
+        l2a[&quot;pkg/swim&quot;]
+        l2b[&quot;pkg/discovery&quot;]
+        l2c[&quot;pkg/scan&quot;]
+        l2d[&quot;pkg/nattraversal&quot;]
+        l2e[&quot;pkg/cellmesh&quot;]
+    end
+    subgraph L1[&quot;L1 — Node lifecycle &amp; boot&quot;]
+        direction LR
+        l1a[&quot;internal/node&quot;]
+        l1b[&quot;internal/console&quot;]
+        l1c[&quot;cmd/helix-node&quot;]
+        l1d[&quot;pkg/local&lt;br/&gt;(TCO)&quot;]
+    end
+    subgraph L0[&quot;L0 — Hardware / resource substrate&quot;]
+        direction LR
+        l0a[&quot;pkg/resources&lt;br/&gt;(linux/darwin)&quot;]
+        l0b[&quot;pkg/gpuattest&quot;]
+        l0c[&quot;internal/gpu&quot;]
+        l0d[&quot;pkg/devicecatalog&quot;]
+        l0e[&quot;pkg/capability&quot;]
+        l0f[&quot;pkg/exportcontrol&quot;]
+    end
+
+    L7 --&gt; L6 --&gt; L5 --&gt; L4 --&gt; L3 --&gt; L2 --&gt; L1 --&gt; L0</code></pre>
+<p><strong>Cross-cutting concerns</strong> (attestation, metrics,
+compliance) are surfaced as dedicated components rather than threaded
+implicitly through every layer — see the Component Map in <a
+href="ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a> for the full
+per-component origin/HXC mapping.</p>
+<hr />
+<h2 id="control-plane-services-how-they-communicate">2. Control-plane
+services &amp; how they communicate</h2>
+<p>Each <code>cmd/helix-*</code> binary’s <code>main.go</code> imports
+the correspondingly named <code>internal/*</code> package (verified:
+<code>cmd/helix-gateway/main.go</code> imports
+<code>internal/gateway</code>; <code>cmd/helix-node/main.go</code>
+imports <code>internal/node</code>). The operator drives the cluster
+through the gateway; the gateway fronts session, policy, LLM-router,
+health and scheduler; nodes register through discovery and gossip
+membership over SWIM.</p>
+<p>This diagram is the visual form of <a
+href="MVP_ARCHITECTURE.md"><code>MVP_ARCHITECTURE.md</code> §2</a>; see
+that section for edge-by-edge verifiability notes.</p>
+<pre class="mermaid"><code>graph TD
+    operator([Operator / Client])
+
+    subgraph cp[&quot;Control plane (cmd/helix-*)&quot;]
+        gw[&quot;helix-gateway&lt;br/&gt;internal/gateway&quot;]
+        sess[&quot;helix-session&lt;br/&gt;internal/session&quot;]
+        pol[&quot;helix-policy&lt;br/&gt;internal/policy (OPA)&quot;]
+        llm[&quot;helix-llm&lt;br/&gt;internal/llm&quot;]
+        health[&quot;helix-health&lt;br/&gt;internal/health&quot;]
+        sched[&quot;helix-scheduler&lt;br/&gt;internal/scheduler + pkg/scheduler&quot;]
+        sec[&quot;helix-security&lt;br/&gt;internal/security / internal/trust&quot;]
+        build[&quot;helix-build&lt;br/&gt;internal/build&quot;]
+        adv[&quot;helix-advisory&lt;br/&gt;internal/advisory&quot;]
+    end
+
+    subgraph coord[&quot;Coordination / state plane&quot;]
+        disc[&quot;pkg/discovery&lt;br/&gt;(etcd watch backend)&quot;]
+        swim[&quot;pkg/swim&lt;br/&gt;(SWIM gossip)&quot;]
+        raft[&quot;pkg/multiraft / pkg/kraft&lt;br/&gt;(Raft groups)&quot;]
+        bus[&quot;internal/messaging + pkg/events&lt;br/&gt;(NATS backend)&quot;]
+        reg[&quot;hxc-registry&lt;br/&gt;data/hxc_registry.db&quot;]
+    end
+
+    subgraph nodes[&quot;Worker nodes (cmd/helix-node)&quot;]
+        node[&quot;internal/node + internal/console&quot;]
+        res[&quot;pkg/resources&lt;br/&gt;(linux/darwin probe)&quot;]
+    end
+
+    operator --&gt;|&quot;HTTP / API&quot;| gw
+    gw --&gt;|&quot;auth + route&quot;| pol
+    gw --&gt;|&quot;PTY / streams&quot;| sess
+    gw --&gt;|&quot;inference&quot;| llm
+    gw --&gt;|&quot;liveness&quot;| health
+    gw --&gt;|&quot;placement&quot;| sched
+
+    sched --&gt;|&quot;resolve candidates&quot;| disc
+    sched --&gt;|&quot;score by capacity&quot;| res
+    sec --&gt;|&quot;attest / KYC gate&quot;| sched
+    adv --&gt;|&quot;recommendations&quot;| sched
+
+    disc -.-&gt;|&quot;watch keyspace&quot;| raft
+    cp -.-&gt;|&quot;event pub/sub&quot;| bus
+
+    node --&gt;|&quot;register instance&quot;| disc
+    node --&gt;|&quot;gossip membership&quot;| swim
+    node --&gt;|&quot;sample resources&quot;| res
+    health --&gt;|&quot;probe&quot;| node
+
+    reg -.-&gt;|&quot;HXC work-item tracking (out-of-band)&quot;| cp</code></pre>
+<p><strong>Edge grounding.</strong> Discovery’s etcd backend is <a
+href="../pkg/discovery/etcd_backend.go"><code>pkg/discovery/etcd_backend.go</code></a>;
+the gateway routing surface is <a
+href="../internal/gateway/api.go"><code>internal/gateway/api.go</code></a>
+and <a
+href="../internal/gateway/inference.go"><code>internal/gateway/inference.go</code></a>;
+the NATS event path is <a
+href="../pkg/events/nats_backend.go"><code>pkg/events/nats_backend.go</code></a>
+plus the in-process bus <a
+href="../internal/messaging/bus.go"><code>internal/messaging/bus.go</code></a>;
+Raft groups are <a
+href="../pkg/multiraft"><code>pkg/multiraft</code></a> / <a
+href="../pkg/kraft"><code>pkg/kraft</code></a>. The dotted
+<code>hxc-registry</code> edge is the development work-item registry (<a
+href="../cmd/hxc-registry"><code>cmd/hxc-registry</code></a> over <a
+href="../data/hxc_registry.db"><code>data/hxc_registry.db</code></a>),
+not a traffic-serving service.</p>
+<blockquote>
+<p><strong>Honest note.</strong> The <code>internal/messaging</code> ↔︎
+<code>pkg/events</code> bus and the <code>discovery → raft</code>
+keyspace edge are drawn dotted because they are coordination-plane
+substrates rather than a single fixed request path; the exact
+per-service NATS subjects/Raft groups a given binary uses are
+configuration-driven, not hard-wired in a way this diagram should
+overstate.</p>
+</blockquote>
+<hr />
+<h2 id="request-data-flow-workload-gateway-scheduler-session-node">3.
+Request / data flow (workload → gateway → scheduler → session →
+node)</h2>
+<p>End-to-end placement of a workload, including the
+<strong>attestation</strong> and <strong>E2EE</strong> seams. Per <a
+href="architecture/PHASE_8C_INTEGRATION.md"><code>architecture/PHASE_8C_INTEGRATION.md</code></a>,
+the <strong>attestation admission predicate itself is live</strong> (the
+scheduler runs the <code>AttestationGate</code> plugin with an in-repo
+<code>HMACAttestor</code>), but <strong>population of the node-trust
+flag from a real TEE/PoVW quote, and termination of an E2EE envelope
+inside an attested enclave, are PLANNED</strong> (interface present,
+production backend not wired). Those seams are dashed below.</p>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    actor Client as Operator / Client
+    participant GW as helix-gateway&lt;br/&gt;internal/gateway
+    participant POL as helix-policy&lt;br/&gt;internal/policy
+    participant SCH as helix-scheduler&lt;br/&gt;pkg/scheduler
+    participant GATE as AttestationGate&lt;br/&gt;pkg/scheduler/attestation.go
+    participant DISC as pkg/discovery (etcd)
+    participant SESS as helix-session&lt;br/&gt;internal/session
+    participant NODE as cmd/helix-node&lt;br/&gt;internal/node + pkg/resources
+
+    Client-&gt;&gt;GW: HTTP request (workload / inference)
+    GW-&gt;&gt;POL: authorize + route (OPA)
+    POL--&gt;&gt;GW: allow
+    GW-&gt;&gt;SCH: Schedule(workload)
+    SCH-&gt;&gt;DISC: resolve candidate nodes
+    DISC--&gt;&gt;SCH: live instances
+    SCH-&gt;&gt;NODE: score by capacity (pkg/resources snapshot)
+    SCH-&gt;&gt;GATE: runFilters → AttestationGate.Filter(job, node)
+    Note over GATE: helix.attestation/required job admitted only if&lt;br/&gt;Attestor.Verify(node, token, now)==true (fail-closed)
+    GATE--&gt;&gt;SCH: admissible nodes [IMPLEMENTED: HMACAttestor]
+    SCH--&gt;&gt;GW: placement decision
+    GW-&gt;&gt;SESS: open session / PTY + streams
+    SESS-&gt;&gt;NODE: bind workload to node
+    NODE--&gt;&gt;SESS: stream stdout / results
+    SESS--&gt;&gt;GW: relay stream
+    GW--&gt;&gt;Client: response / live stream
+
+    rect rgb(245,240,230)
+    Note over Client,NODE: PLANNED seams (Phase 8C — interface exists, production wiring absent)
+    Client--xGW: PLANNED: e2ee.Session.Seal(prompt) PQ envelope (no router invokes it today)
+    GATE--xNODE: PLANNED: GPUInfo.Attested set from a verified TEE/PoVW quote (never driven by pipeline)
+    SESS--xNODE: PLANNED: envelope terminates inside attested enclave (no e2ee/attestation ref in pkg/inference)
+    end</code></pre>
+<p><strong>Grounding &amp; honesty.</strong> The live admission path —
+<code>Scheduler.Schedule → runFilters → AttestationGate.Filter → Attestor.Verify</code>
+— is <a
+href="../pkg/scheduler/scheduler.go"><code>pkg/scheduler/scheduler.go</code></a>
++ <a
+href="../pkg/scheduler/attestation.go"><code>pkg/scheduler/attestation.go</code></a>;
+the in-repo <code>HMACAttestor</code> does genuine constant-time
+HMAC-SHA256 token verification and fails closed when no
+<code>Attestor</code> is configured. The E2EE envelope itself is a
+complete PQ implementation in the <code>digital.vasic.security</code>
+submodule (<code>security/pkg/e2ee/package.go</code>: ML-KEM-768 +
+HKDF-SHA256 + AES-256-GCM), <strong>but no main-repo router/inference
+package imports it yet</strong> — hence the dashed <code>PLANNED</code>
+arrows. See <code>PHASE_8C_INTEGRATION.md</code> §5.1/§5.2 for the
+verified file:symbol index. The full multi-node distributed flow over a
+real deployed fleet is <strong>not yet validated end-to-end</strong>
+(tracked separately; requires a deployed cluster).</p>
+<hr />
+<h2 id="tier-matrix-high-level">4. Tier matrix (high level)</h2>
+<p>Node capability tiers are defined as data in <a
+href="../pkg/tierdef/tierdef.yaml"><code>pkg/tierdef/tierdef.yaml</code></a>
+(loaded by <a
+href="../pkg/tierdef/loader.go"><code>pkg/tierdef/loader.go</code></a>),
+with each tier gated on minimum CPU cores, memory, GPU count/VRAM,
+network, and a power ceiling. The task focuses on
+<strong>T1–T8</strong>; the table below transcribes those rows verbatim
+from the YAML. (<strong>Honest scope note:</strong> the YAML actually
+defines a continuum <strong>T1 through T15</strong> — T9–T15 cover
+server+ through extreme multi-GPU flagship nodes; they are omitted here
+only for brevity, not because they are absent.) Edge-class tiers
+<strong>T3–T8</strong> are also the registration range of <a
+href="../pkg/edgeregistry"><code>pkg/edgeregistry</code></a>;
+device→tier resolution is via the device taxonomy in <a
+href="../pkg/devicecatalog"><code>pkg/devicecatalog</code></a> (a
+case-insensitive substring <code>Lookup</code> over the in-code
+<code>catalog</code>, which today ships <strong>14 well-known
+device-family entries</strong>, ordered most-specific-first; the broader
+“64-device” master taxonomy is a Phase-5 roadmap target tracked as
+queued issue HXC-1331, not yet authored in code).</p>
+<pre class="mermaid"><code>graph LR
+    subgraph tiers[&quot;pkg/tierdef/tierdef.yaml — T1..T8 (of T1..T15)&quot;]
+        direction TB
+        T1[&quot;T1 micro&lt;br/&gt;1 core · 256MB · 0 GPU · ≤5W&quot;]
+        T2[&quot;T2 handheld&lt;br/&gt;2 core · 512MB · 0 GPU · ≤15W&quot;]
+        T3[&quot;T3 SBC/edge&lt;br/&gt;4 core · 2GB · 0 GPU · ≤25W&quot;]
+        T4[&quot;T4 workstation-lite&lt;br/&gt;8 core · 8GB · iGPU ok · ≤65W&quot;]
+        T5[&quot;T5 accelerated edge&lt;br/&gt;12 core · 16GB · 1 GPU/4GB · ≤150W&quot;]
+        T6[&quot;T6 workstation&lt;br/&gt;16 core · 32GB · 1 GPU/8GB · ≤300W&quot;]
+        T7[&quot;T7 pro workstation&lt;br/&gt;24 core · 64GB · 1 GPU/16GB · ≤500W&quot;]
+        T8[&quot;T8 server&lt;br/&gt;32 core · 128GB · 2 GPU/16GB · ≤700W&quot;]
+        T1 --&gt; T2 --&gt; T3 --&gt; T4 --&gt; T5 --&gt; T6 --&gt; T7 --&gt; T8
+    end
+
+    cat[&quot;pkg/devicecatalog&lt;br/&gt;(14-entry device taxonomy Lookup)&quot;]
+    edge[&quot;pkg/edgeregistry&lt;br/&gt;(registers T3..T8 edge devices)&quot;]
+    res[&quot;pkg/resources&lt;br/&gt;(measured CPU/mem/GPU/power)&quot;]
+
+    res --&gt;|&quot;measured capability&quot;| tiers
+    cat --&gt;|&quot;resolve model → tier&quot;| tiers
+    tiers --&gt;|&quot;T3..T8 edge subset&quot;| edge</code></pre>
+<p><strong>Grounding &amp; honesty.</strong> The thresholds shown are
+the literal <code>min_cpu_cores</code> / <code>min_memory_mb</code> /
+<code>min_gpu</code> / <code>min_gpu_vram_mb</code> /
+<code>max_power_w</code> fields from <a
+href="../pkg/tierdef/tierdef.yaml"><code>pkg/tierdef/tierdef.yaml</code></a>
+(schema version 1); memory is shown converted from MB to GB for
+readability. Resource measurement feeding tier assignment is the per-OS
+probe in <a href="../pkg/resources"><code>pkg/resources</code></a>
+(linux sysfs / darwin <code>system_profiler</code>, CLAUDE-2
+cross-platform parity); device-model→tier resolution is <a
+href="../pkg/devicecatalog"><code>pkg/devicecatalog</code></a>. This
+diagram shows tier <em>definitions and their data sources</em>; it does
+not assert that every tier has been exercised on real hardware.</p>
+<hr />
+<h2 id="maintenance">Maintenance</h2>
+<p>This document is a visual companion and is kept in sync under
+CLAUDE-3 / §11.4.106 alongside its sources: when the layer stack,
+control-plane service set, request flow, Phase 8C integration state, or
+the tier definitions change, update the corresponding diagram here in
+the same work unit. The canonical, lint-checked component map remains <a
+href="ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a>; runtime prose
+and the registry schema remain <a
+href="MVP_ARCHITECTURE.md"><code>MVP_ARCHITECTURE.md</code></a>; the
+Phase 8C seam states (IMPLEMENTED vs PLANNED) remain <a
+href="architecture/PHASE_8C_INTEGRATION.md"><code>architecture/PHASE_8C_INTEGRATION.md</code></a>;
+the foundation-library catalogue remains <a
+href="FOUNDATION_PACKAGES.md"><code>FOUNDATION_PACKAGES.md</code></a>.
+The <code>docs_chain</code> engine keeps this file’s HTML/PDF/DOCX
+exports in sync (<code>docs_chain sync</code>) and gates them
+(<code>docs_chain verify</code>).</p>
+</body>
+</html>

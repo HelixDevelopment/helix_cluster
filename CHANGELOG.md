@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Documentation completeness pass — full operator+user docs, SQL schema, diagrams, test-coverage report (all md+html+pdf+docx, docs_chain-tracked):**
+  - `docs/USER_MANUAL.md` (operator), `docs/USER_GUIDE.md` (end-user), `docs/DATABASE_SCHEMA.md` (every postgres table/column/index/trigger + Mermaid ER + migrate-chain-vs-primary-schema reconciliation note), `docs/ARCHITECTURE_DIAGRAMS.md` (Mermaid: L0-L7, control-plane, request flow, tier matrix), `docs/TEST_COVERAGE_REPORT.md` (real measured coverage: main 82.4%/255 pkgs, security 87.8%, api/v1 14.7%; per-test-type inventory). All grounded in real code (adversarial-reviewed, no PASS-bluffs) and linked from the README documentation map; exported to HTML/PDF/DOCX via docs_chain.
+  - Grounded authoring surfaced 3 real defects, now ticketed: HXC-1637 (make build targets non-existent ./cmd/helix-cluster), HXC-1638 (helixctl referenced but absent), HXC-1639 (0001_primary_schema.sql diverges from the migrate chain 001-015).
 - **Wave 93 — local dependency-update maintenance (HXC-1636):** `make deps-update` (scripts/deps-update.sh) runs per-module `go get -u` + `go work sync` + `govulncheck` + `make sbom` — the no-CI local equivalent of dependabot (operator-chosen). Closes PRR item 80; PRR now 66/80 (82.5%).
 - **Wave 92 — last CLAUDE-2 hotspots + ChaCha + SBOM (HXC-1633/1634/1635/1561; operator-authorized local deps; conductor-gated):**
   - HXC-1633 (CLAUDE-2): real userspace WireGuard on macOS via gVisor netstack (pkg/wireguard/netstack_darwin.go) — real Noise handshake + encrypted TCP datapath between two peers, no root; linux wgctrl path intact; go.mod records gvisor (standalone build green). Mutation neutering AddPeer fails the tunnel test.

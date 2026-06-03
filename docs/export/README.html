@@ -576,6 +576,62 @@ href="docs/PHASE_8C_EXIT_GATE_EVIDENCE.md"><code>docs/PHASE_8C_EXIT_GATE_EVIDENC
 — Phase 8C CLAUDE-1 exit-gate evidence matrix (PROVEN / PARTIAL /
 NOT-YET, each row tied to a real test or a Queued ticket)
 (HXC-1613)</li>
+</ul>
+<h3 id="user-documentation">User documentation</h3>
+<ul>
+<li><a href="docs/USER_MANUAL.md"><code>docs/USER_MANUAL.md</code></a> —
+<strong>operator manual</strong>: prerequisites, build, configuration
+(<code>.env</code>), bringing services up, DB migrations, observability,
+SBOM/vuln scanning, host-safety; every command grounded in a real Make
+target / binary / script</li>
+<li><a href="docs/USER_GUIDE.md"><code>docs/USER_GUIDE.md</code></a> —
+<strong>end-user guide</strong>: the request/session model, submitting
+work, E2EE confidential inference, and an honest
+single-host-vs-deployed-cluster capability split</li>
+<li><a
+href="docs/guides/getting-started.md"><code>docs/guides/getting-started.md</code></a>
+· <a
+href="docs/guides/development.md"><code>docs/guides/development.md</code></a>
+· <a
+href="docs/guides/operations.md"><code>docs/guides/operations.md</code></a>
+· <a
+href="docs/guides/architecture.md"><code>docs/guides/architecture.md</code></a>
+— developer/operator guides</li>
+</ul>
+<h3 id="reference-quality">Reference &amp; quality</h3>
+<ul>
+<li><a
+href="docs/DATABASE_SCHEMA.md"><code>docs/DATABASE_SCHEMA.md</code></a>
+— <strong>SQL schema reference</strong>: every
+table/column/index/trigger from <code>migrations/postgresql/</code>, a
+Mermaid ER diagram, and the migrate-chain-vs-primary-schema
+reconciliation note</li>
+<li><a
+href="docs/ARCHITECTURE_DIAGRAMS.md"><code>docs/ARCHITECTURE_DIAGRAMS.md</code></a>
+— <strong>consolidated Mermaid diagrams</strong>: L0–L7 stack,
+control-plane services, request/data flow (with E2EE/attestation seams),
+tier matrix</li>
+<li><a
+href="docs/TEST_COVERAGE_REPORT.md"><code>docs/TEST_COVERAGE_REPORT.md</code></a>
+— <strong>test coverage report</strong>: real measured statement
+coverage (main 82.4% / security 87.8%) + per-test-type inventory
+(unit/integration/E2E/stress/chaos/benchmark/fuzz/race/security/challenges)</li>
+<li><a
+href="docs/PRODUCTION_READINESS_REVIEW.md"><code>docs/PRODUCTION_READINESS_REVIEW.md</code></a>
+— honest 80-item production-readiness review (HXC-1286)</li>
+</ul>
+<h3 id="security">Security</h3>
+<ul>
+<li><a
+href="docs/security/threat-model.md"><code>docs/security/threat-model.md</code></a>
+· <a href="docs/security/rbac.md"><code>docs/security/rbac.md</code></a>
+· <a
+href="docs/security/tls-setup.md"><code>docs/security/tls-setup.md</code></a>
+· <a href="docs/security/sbom.md"><code>docs/security/sbom.md</code></a>
+— threat model, RBAC, TLS/mTLS, SBOM</li>
+</ul>
+<h3 id="standards-process">Standards &amp; process</h3>
+<ul>
 <li><a
 href="CODING_STANDARDS_GO.md"><code>CODING_STANDARDS_GO.md</code></a> /
 <a href="CODING_STANDARDS_C.md"><code>CODING_STANDARDS_C.md</code></a> /
