@@ -546,10 +546,12 @@ end-to-end.</td>
 <tr>
 <td>34</td>
 <td>Dependency vulnerability scanning (govulncheck/SBOM/trivy)</td>
-<td>NOT-READY</td>
-<td>No <code>govulncheck</code>, <code>sbom</code>, or
-<code>trivy</code> references found in <code>scripts/</code> or disabled
-workflows. No supply-chain scan gate.</td>
+<td>PARTIAL</td>
+<td><code>govulncheck@v1.3.0</code> now RUN over main/api/v1/security
+(HXC-1630) and all reachable advisories FIXED (HXC-1631 toolchain
+go1.26.4 + HXC-1632 x/net v0.55.0; current scan = “No vulnerabilities
+found”). SBOM generation + dependabot/renovate config + a continuous
+gate still pending.</td>
 </tr>
 </tbody>
 </table>
@@ -1060,11 +1062,11 @@ Tally</h2>
 </tr>
 <tr>
 <td>PARTIAL</td>
-<td>12</td>
+<td>13</td>
 </tr>
 <tr>
 <td>NOT-READY</td>
-<td>7</td>
+<td>6</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
@@ -1101,10 +1103,11 @@ violation.</strong> <code>pkg/wireguard/manager.go</code> is
 kernel-<code>wgctrl</code>-only with a <code>NoOp</code> fallback;
 implement a real <code>wireguard-go</code> userspace path behind a
 darwin build tag.</li>
-<li><strong>Supply-chain / vuln scanning (items 34, 80).</strong>
-govulncheck now RUN (HXC-1630, evidence qa-results/security/) — found 10
-reachable advisories (fixes tracked HXC-1631 toolchain + HXC-1632
-x/net); SBOM + dependabot/renovate still pending.</li>
+<li><strong>Supply-chain / vuln scanning (items 34, 80) — vulns
+CLEARED.</strong> govulncheck run (HXC-1630) found 10 reachable
+advisories, now ALL FIXED (HXC-1631 toolchain go1.26.4 + HXC-1632 x/net
+v0.55.0; scan = “No vulnerabilities found”). Remaining: SBOM +
+dependabot/renovate + a continuous gate.</li>
 <li><strong>Migration runner (item 46) — RESOLVED (HXC-1629).</strong>
 Makefile migrate-up/down now invoke scripts/run-migrations.sh, verified
 against a real postgres.</li>

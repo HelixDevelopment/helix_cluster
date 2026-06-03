@@ -79,7 +79,7 @@ Commands run during this review (sink-side evidence):
 | 31 | Threat model documented | PASS | `docs/security/threat-model.md`. |
 | 32 | RBAC documented | PASS | `docs/security/rbac.md`. |
 | 33 | TLS/mTLS setup documented | PARTIAL | `docs/security/tls-setup.md` exists, but registry HXC-600 ("Security Hardening — mTLS everywhere") is still **Queued** — mTLS is not confirmed deployed end-to-end. |
-| 34 | Dependency vulnerability scanning (govulncheck/SBOM/trivy) | NOT-READY | No `govulncheck`, `sbom`, or `trivy` references found in `scripts/` or disabled workflows. No supply-chain scan gate. |
+| 34 | Dependency vulnerability scanning (govulncheck/SBOM/trivy) | PARTIAL | `govulncheck@v1.3.0` now RUN over main/api/v1/security (HXC-1630) and all reachable advisories FIXED (HXC-1631 toolchain go1.26.4 + HXC-1632 x/net v0.55.0; current scan = "No vulnerabilities found"). SBOM generation + dependabot/renovate config + a continuous gate still pending. |
 
 ## D. Observability & Metrics (items 35–43)
 
@@ -171,8 +171,8 @@ Counting only verified `PASS` rows:
 | Status | Count |
 |--------|-------|
 | PASS | 61 |
-| PARTIAL | 12 |
-| NOT-READY | 7 |
+| PARTIAL | 13 |
+| NOT-READY | 6 |
 | **Total** | **80** |
 
 **Honest completion = 61 / 80 = 76.25% PASS.**
@@ -201,7 +201,7 @@ Highest severity first:
 2. **WireGuard macOS parity (items 66, 67) — CLAUDE-2 violation.**
    `pkg/wireguard/manager.go` is kernel-`wgctrl`-only with a `NoOp` fallback; implement a real
    `wireguard-go` userspace path behind a darwin build tag.
-3. **Supply-chain / vuln scanning (items 34, 80).** govulncheck now RUN (HXC-1630, evidence qa-results/security/) — found 10 reachable advisories (fixes tracked HXC-1631 toolchain + HXC-1632 x/net); SBOM + dependabot/renovate still pending.
+3. **Supply-chain / vuln scanning (items 34, 80) — vulns CLEARED.** govulncheck run (HXC-1630) found 10 reachable advisories, now ALL FIXED (HXC-1631 toolchain go1.26.4 + HXC-1632 x/net v0.55.0; scan = "No vulnerabilities found"). Remaining: SBOM + dependabot/renovate + a continuous gate.
 4. **Migration runner (item 46) — RESOLVED (HXC-1629).** Makefile migrate-up/down now invoke scripts/run-migrations.sh, verified against a real postgres.
 5. **mTLS-everywhere not confirmed deployed (item 33).** HXC-600 still Queued; verify mTLS
    end-to-end with captured evidence.

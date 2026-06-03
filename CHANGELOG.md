@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 90 — clear ALL govulncheck-reachable advisories (HXC-1631 + HXC-1632; conductor-gated security remediation):**
+  - HXC-1632: `golang.org/x/net` v0.54.0 -> v0.55.0 (clears GO-2026-5026 idna, reachable in the gateway).
+  - HXC-1631: pinned `toolchain go1.26.4` in main/api/v1/security (+go.work) — clears 9 reachable Go stdlib advisories (html/template XSS, net/http HTTP/2 SETTINGS infinite-loop DoS, crypto/x509, net/mail quadratic, net Dial panic), all fixed in go1.26.3/1.26.4. Verified: `govulncheck ./...` = "No vulnerabilities found" across all 3 modules; whole-tree build + tests green under go1.26.4. Raises PRR item 34 to PARTIAL (scan run + vulns fixed; SBOM/dependabot pending). (security toolchain pin: submodule 6154969.)
 - **Wave 89 — PRR-gap closures (HXC-1629 migrate wiring + HXC-1630 govulncheck), conductor-gated:**
   - `Makefile` (HXC-1629) — migrate-up/migrate-down now invoke scripts/run-migrations.sh (honor DATABASE_URL, no hardcoded secret); verified against a REAL podman postgres (15 migrations applied -> schema_migrations v15/22 tables; down rolled back exactly 1). Raises PRR item 46 to PASS (honest score 60->61/80).
   - govulncheck (HXC-1630) — installed + scanned main/api/v1/security; 10 reachable advisories captured (evidence qa-results/security/): 9 stdlib (toolchain bump -> HXC-1631) + 1 third-party golang.org/x/net (-> HXC-1632). No auto go.mod churn; remediation tracked as tickets.
