@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/pool"
 	"github.com/HelixDevelopment/helix_cluster/pkg/provider/runpod"
@@ -65,6 +66,167 @@ func (f *fakeClient) Terminate(ctx context.Context, id string) error {
 func (f *fakeClient) ColdCalls() int { f.mu.Lock(); defer f.mu.Unlock(); return f.coldCalls }
 func (f *fakeClient) TermCalls() int { f.mu.Lock(); defer f.mu.Unlock(); return f.termCalls }
 func (f *fakeClient) LiveCount() int { f.mu.Lock(); defer f.mu.Unlock(); return len(f.live) }
+
+// EndpointFor returns the endpoint the fake minted for a worker id (the value
+// that should have travelled end to end), so EndpointOf can be checked against
+// the source of truth rather than a hard-coded string.
+func (f *fakeClient) EndpointFor(id string) string {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.live[id].Endpoint
+}
+
+// barrierClient is an injected RunPodClient whose ColdProvision blocks until
+// `target` calls are simultaneously in-flight, then releases all of them. It is
+// the seam that makes the concurrency requirement observable: it can only ever
+// unblock if Provision releases p.mu around the network RPC so multiple cold
+// provisions actually overlap. It also records the peak in-flight count.
+type barrierClient struct {
+	target int
+	gate   chan struct{} // closed once `target` calls have arrived
+
+	mu       sync.Mutex
+	seq      int
+	inFlight int
+	maxInFl  int
+}
+
+func newBarrierClient(target int) *barrierClient {
+	return &barrierClient{target: target, gate: make(chan struct{})}
+}
+
+func (b *barrierClient) ColdProvision(ctx context.Context, spec pool.Spec) (runpod.Worker, error) {
+	b.mu.Lock()
+	b.inFlight++
+	if b.inFlight > b.maxInFl {
+		b.maxInFl = b.inFlight
+	}
+	if b.inFlight >= b.target {
+		// All expected callers are in ColdProvision at once -> release everyone.
+		select {
+		case <-b.gate:
+		default:
+			close(b.gate)
+		}
+	}
+	b.mu.Unlock()
+
+	// Block until the barrier opens (or ctx dies). If Provision held p.mu across
+	// this call, a second caller could never get here and gate never closes.
+	select {
+	case <-b.gate:
+	case <-ctx.Done():
+		b.mu.Lock()
+		b.inFlight--
+		b.mu.Unlock()
+		return runpod.Worker{}, ctx.Err()
+	}
+
+	b.mu.Lock()
+	b.seq++
+	id := fmt.Sprintf("bc-%04d", b.seq)
+	b.inFlight--
+	b.mu.Unlock()
+	return runpod.Worker{
+		ID:        id,
+		GPUType:   spec.GPUType,
+		HourlyUSD: spec.HourlyUSD,
+		Endpoint:  "https://" + id + ".runpod.local",
+	}, nil
+}
+
+func (b *barrierClient) Terminate(ctx context.Context, id string) error { return nil }
+
+func (b *barrierClient) MaxConcurrent() int {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.maxInFl
+}
+
+// gateClient is an injected RunPodClient whose ColdProvision parks every call on
+// a single release gate that the test opens explicitly. Unlike barrierClient it
+// does NOT require a quorum to unblock: it parks each in-flight call until the
+// test says go. This lets a test launch N > Capacity concurrent cold Provisions
+// and observe that the surplus are rejected with ErrAtCapacity BEFORE they ever
+// reach (or while they are held at) the network RPC — i.e. that the reservation
+// counter caps concurrent in-flight cold provisions. It records peak in-flight.
+type gateClient struct {
+	release chan struct{} // closed by the test to let parked calls finish
+
+	mu       sync.Mutex
+	seq      int
+	started  int // total ColdProvision entries (RPCs that actually began)
+	inFlight int
+	maxInFl  int
+}
+
+func newGateClient() *gateClient {
+	return &gateClient{release: make(chan struct{})}
+}
+
+func (g *gateClient) ColdProvision(ctx context.Context, spec pool.Spec) (runpod.Worker, error) {
+	g.mu.Lock()
+	g.started++
+	g.inFlight++
+	if g.inFlight > g.maxInFl {
+		g.maxInFl = g.inFlight
+	}
+	g.mu.Unlock()
+
+	// Park until the test opens the gate (or ctx dies).
+	select {
+	case <-g.release:
+	case <-ctx.Done():
+		g.mu.Lock()
+		g.inFlight--
+		g.mu.Unlock()
+		return runpod.Worker{}, ctx.Err()
+	}
+
+	g.mu.Lock()
+	g.seq++
+	id := fmt.Sprintf("gc-%04d", g.seq)
+	g.inFlight--
+	g.mu.Unlock()
+	return runpod.Worker{
+		ID:        id,
+		GPUType:   spec.GPUType,
+		HourlyUSD: spec.HourlyUSD,
+		Endpoint:  "https://" + id + ".runpod.local",
+	}, nil
+}
+
+func (g *gateClient) Terminate(ctx context.Context, id string) error { return nil }
+
+// Started is the number of ColdProvision RPCs that actually began (entered the
+// client). The reservation cap means this must never exceed Capacity even when
+// more goroutines than Capacity race to cold-provision.
+func (g *gateClient) Started() int { g.mu.Lock(); defer g.mu.Unlock(); return g.started }
+
+func (g *gateClient) MaxConcurrent() int { g.mu.Lock(); defer g.mu.Unlock(); return g.maxInFl }
+
+// waitStarted blocks until at least n ColdProvision RPCs are in flight, or fails
+// the test after a bounded wait. Used to deterministically let the first
+// Capacity provisions occupy their reserved slots before asserting on surplus.
+func (g *gateClient) waitStarted(t *testing.T, n int) {
+	t.Helper()
+	deadline := time.After(5 * time.Second)
+	for {
+		g.mu.Lock()
+		started := g.started
+		g.mu.Unlock()
+		if started >= n {
+			return
+		}
+		select {
+		case <-deadline:
+			t.Fatalf("timed out waiting for %d ColdProvision RPCs to start (got %d)", n, started)
+		case <-time.After(time.Millisecond):
+		}
+	}
+}
+
+func (g *gateClient) open() { close(g.release) }
 
 // TestProvisionWarmFastPathDoesNotCallClient is the load-bearing closure test.
 // With a pre-warmed pool, Provision MUST be served from the warm pool WITHOUT
@@ -124,6 +286,257 @@ func TestProvisionWarmFastPathDoesNotCallClient(t *testing.T) {
 	}
 	if m := p.Metrics(); m.WarmHits != 1 || m.ColdCalls != 0 {
 		t.Fatalf("metrics after one warm Provision = %+v, want WarmHits=1 ColdCalls=0", m)
+	}
+}
+
+// TestEndpointOfRoundTripsReachableAddress is the load-bearing endpoint test.
+// The reachable inference address parsed off the wire (Worker.Endpoint) MUST be
+// retrievable by instance id for a leased instance via EndpointOf, for BOTH the
+// warm fast path and the cold path. It MUST disappear when the instance is
+// released, and MUST be absent for an unknown id.
+//
+// MUTATION GUARD: if recordLeasedLocked stops recording w.Endpoint (e.g.
+// `p.endpoint[w.ID] = w.Endpoint` is dropped), EndpointOf returns "" / !ok and
+// these asserts fail. If the field is removed from Worker, this test fails to
+// compile. Either way the misleading-dropped-endpoint defect is caught.
+func TestEndpointOfRoundTripsReachableAddress(t *testing.T) {
+	t.Parallel()
+	fc := newFakeClient()
+	spec := pool.Spec{GPUType: "A100", HourlyUSD: 2.5}
+	p, err := runpod.New(context.Background(), runpod.Config{
+		Capacity:   4,
+		WarmTarget: 1,
+		Spec:       spec,
+		Client:     fc,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// Warm fast-path lease: the pre-warmed worker's endpoint must round-trip.
+	warmInst, err := p.Provision(context.Background(), spec)
+	if err != nil {
+		t.Fatalf("Provision (warm): %v", err)
+	}
+	gotWarm, ok := p.EndpointOf(warmInst.ID)
+	if !ok {
+		t.Fatalf("EndpointOf(%q) = _,false, want a leased endpoint", warmInst.ID)
+	}
+	wantWarm := fc.EndpointFor(warmInst.ID)
+	if wantWarm == "" {
+		t.Fatalf("fake client minted no endpoint for %q", warmInst.ID)
+	}
+	if gotWarm != wantWarm {
+		t.Fatalf("EndpointOf(%q) = %q, want client-minted %q", warmInst.ID, gotWarm, wantWarm)
+	}
+
+	// Cold-path lease: warm pool now empty, this provisions over the seam.
+	coldInst, err := p.Provision(context.Background(), spec)
+	if err != nil {
+		t.Fatalf("Provision (cold): %v", err)
+	}
+	gotCold, ok := p.EndpointOf(coldInst.ID)
+	if !ok {
+		t.Fatalf("EndpointOf(%q) = _,false for cold instance", coldInst.ID)
+	}
+	wantCold := fc.EndpointFor(coldInst.ID)
+	if gotCold == "" || gotCold != wantCold {
+		t.Fatalf("EndpointOf(%q) = %q, want client-minted %q", coldInst.ID, gotCold, wantCold)
+	}
+	// Distinct workers must surface distinct endpoints (no fabricated constant).
+	if gotCold == gotWarm {
+		t.Fatalf("cold and warm endpoints both %q; endpoint not keyed per worker", gotCold)
+	}
+
+	// Release removes the endpoint mapping (sink-side cleanup).
+	if err := p.Release(context.Background(), coldInst); err != nil {
+		t.Fatalf("Release: %v", err)
+	}
+	if _, ok := p.EndpointOf(coldInst.ID); ok {
+		t.Fatalf("EndpointOf(%q) still present after Release", coldInst.ID)
+	}
+	// Unknown id is absent.
+	if _, ok := p.EndpointOf("does-not-exist"); ok {
+		t.Fatalf("EndpointOf(unknown) = _,true, want false")
+	}
+}
+
+// TestConcurrentColdProvisionsOverlap is the load-bearing concurrency test. Two
+// cold Provision calls MUST be able to run their ColdProvision network RPC at
+// the SAME time: the fix releases p.mu for the wire call. The injected client
+// blocks each ColdProvision on a barrier until BOTH calls are in-flight; only if
+// the two calls overlap can the barrier be satisfied.
+//
+// MUTATION GUARD: if p.mu is (re-)held across client.ColdProvision (the wave-72
+// bug), the second Provision cannot enter ColdProvision until the first returns,
+// the barrier never reaches 2, both block forever, and this test TIMES OUT /
+// fails. With the lock released around the RPC, both reach the barrier, it
+// releases, and both complete. Capacity accounting (via the reservation) still
+// prevents over-subscription, asserted by the final Leased==2 sink.
+func TestConcurrentColdProvisionsOverlap(t *testing.T) {
+	t.Parallel()
+	const want = 2
+	bc := newBarrierClient(want)
+	spec := pool.Spec{GPUType: "A100", HourlyUSD: 3}
+	p, err := runpod.New(context.Background(), runpod.Config{
+		Capacity:   want,
+		WarmTarget: 0, // force every Provision down the cold path
+		Spec:       spec,
+		Client:     bc,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	type res struct {
+		inst pool.Instance
+		err  error
+	}
+	results := make(chan res, want)
+	for i := 0; i < want; i++ {
+		go func() {
+			inst, err := p.Provision(context.Background(), spec)
+			results <- res{inst, err}
+		}()
+	}
+
+	// If the lock is held across ColdProvision, the barrier never reaches `want`
+	// and both goroutines hang; this bounded wait turns that hang into a failure.
+	deadline := time.After(5 * time.Second)
+	ids := make(map[string]bool)
+	for i := 0; i < want; i++ {
+		select {
+		case r := <-results:
+			if r.err != nil {
+				t.Fatalf("concurrent cold Provision %d: %v", i, r.err)
+			}
+			if r.inst.ID == "" {
+				t.Fatalf("concurrent cold Provision %d returned empty id", i)
+			}
+			ids[r.inst.ID] = true
+		case <-deadline:
+			t.Fatalf("concurrent cold Provisions did not overlap: timed out waiting "+
+				"for %d completions (got %d) — lock likely held across ColdProvision", want, i)
+		}
+	}
+
+	// Sink-side: both leased, distinct ids, and the barrier confirmed both RPCs
+	// were genuinely in-flight together.
+	if len(ids) != want {
+		t.Fatalf("got %d distinct leased ids, want %d", len(ids), want)
+	}
+	if got := bc.MaxConcurrent(); got < want {
+		t.Fatalf("max concurrent in-flight ColdProvisions = %d, want >= %d (RPCs did not overlap)", got, want)
+	}
+	if m := p.Metrics(); m.Leased != want {
+		t.Fatalf("metrics after concurrent provisions = %+v, want Leased=%d", m, want)
+	}
+}
+
+// TestConcurrentColdProvisionsOverCapacityRejectSurplus is the load-bearing
+// over-subscription test. With Capacity=2, WarmTarget=0 and the cold-provision
+// RPC released from p.mu, THREE concurrent Provisions race down the cold path.
+// Only the reservation counter (folded into liveLocked via p.reserved) prevents
+// the surplus call from also slipping past the capacity check while the first
+// two RPCs are in flight. The test asserts:
+//   - exactly Capacity (2) Provisions succeed,
+//   - the surplus (1) fails with ErrAtCapacity,
+//   - the client only ever STARTED Capacity cold RPCs (the surplus never reached
+//     the wire), and
+//   - the final leased count is exactly Capacity.
+//
+// MUTATION GUARD: if p.reserved is dropped from liveLocked() (the over-
+// subscription guard removed), all three goroutines pass the capacity check
+// before any lease is recorded, all three reach the gated client, three RPCs
+// start, and the final leased count is 3 (> Capacity) with zero ErrAtCapacity —
+// every one of the assertions below fails. This makes the reservation counter
+// load-bearing.
+func TestConcurrentColdProvisionsOverCapacityRejectSurplus(t *testing.T) {
+	t.Parallel()
+	const capacity = 2
+	const racers = 3 // one more than capacity
+	gc := newGateClient()
+	spec := pool.Spec{GPUType: "A100", HourlyUSD: 3}
+	p, err := runpod.New(context.Background(), runpod.Config{
+		Capacity:   capacity,
+		WarmTarget: 0, // force every Provision down the cold path
+		Spec:       spec,
+		Client:     gc,
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	type res struct {
+		inst pool.Instance
+		err  error
+	}
+	results := make(chan res, racers)
+	for i := 0; i < racers; i++ {
+		go func() {
+			inst, err := p.Provision(context.Background(), spec)
+			results <- res{inst, err}
+		}()
+	}
+
+	// Let the accepted provisions occupy their reserved slots and park at the
+	// gated RPC. Exactly Capacity of them must reach the client; the surplus must
+	// be rejected by the capacity check before ever starting an RPC. We wait for
+	// Capacity starts, then assert no MORE than Capacity ever start.
+	gc.waitStarted(t, capacity)
+
+	// The surplus goroutine should already have returned ErrAtCapacity without
+	// starting an RPC. Open the gate so the two accepted RPCs finish.
+	gc.open()
+
+	var (
+		ok       int
+		atCap    int
+		leasedID = make(map[string]bool)
+	)
+	deadline := time.After(5 * time.Second)
+	for i := 0; i < racers; i++ {
+		select {
+		case r := <-results:
+			switch {
+			case r.err == nil:
+				ok++
+				if r.inst.ID == "" {
+					t.Fatalf("successful Provision returned empty id")
+				}
+				leasedID[r.inst.ID] = true
+			case errors.Is(r.err, runpod.ErrAtCapacity):
+				atCap++
+			default:
+				t.Fatalf("unexpected Provision error: %v", r.err)
+			}
+		case <-deadline:
+			t.Fatalf("timed out collecting %d Provision results (got %d)", racers, i)
+		}
+	}
+
+	// Exactly Capacity succeed; the surplus is rejected with ErrAtCapacity.
+	if ok != capacity {
+		t.Fatalf("successful concurrent cold Provisions = %d, want %d", ok, capacity)
+	}
+	if atCap != racers-capacity {
+		t.Fatalf("ErrAtCapacity rejections = %d, want %d", atCap, racers-capacity)
+	}
+	if len(leasedID) != capacity {
+		t.Fatalf("distinct leased ids = %d, want %d", len(leasedID), capacity)
+	}
+	// The surplus RPC never reached the wire: the client started at most Capacity
+	// cold provisions. This is the direct sink-side proof that p.reserved caps
+	// concurrent in-flight cold provisions.
+	if got := gc.Started(); got != capacity {
+		t.Fatalf("client started %d cold RPCs, want exactly %d (surplus must not reach the wire)", got, capacity)
+	}
+	if got := gc.MaxConcurrent(); got > capacity {
+		t.Fatalf("max concurrent in-flight cold RPCs = %d, want <= %d", got, capacity)
+	}
+	// Final sink-side leased count must equal Capacity, never exceed it.
+	if m := p.Metrics(); m.Leased != capacity {
+		t.Fatalf("metrics after over-capacity race = %+v, want Leased=%d", m, capacity)
 	}
 }
 

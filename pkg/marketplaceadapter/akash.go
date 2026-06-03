@@ -24,6 +24,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 // AKTPriceUSD is the conversion factor used to express an AKT-denominated
@@ -118,6 +119,27 @@ func (a *AkashAdapter) aktToUSD() float64 {
 	return defaultAKTPriceUSD
 }
 
+// defaultMinReputation is the safe reputation floor applied whenever an adapter
+// is constructed WITHOUT the NewAkashAdapter constructor (i.e. a zero-value
+// AkashAdapter{} whose MinReputation is 0). A zero gate would admit a
+// zero-reputation provider, silently bypassing the intended 0.5 floor — see
+// HXC-918. The admission check uses effectiveMinReputation so the gate is safe
+// regardless of how the struct was constructed.
+const defaultMinReputation = 0.5
+
+// effectiveMinReputation returns the reputation floor to enforce. A non-positive
+// MinReputation (the struct zero value, or an explicitly disabling value) is
+// treated as the safe default so a directly-constructed AkashAdapter{} can never
+// admit a zero-reputation provider. Callers wanting a stricter gate set a higher
+// MinReputation; the value can only ever be clamped UP to the safe floor, never
+// silently down to "admit everyone".
+func (a *AkashAdapter) effectiveMinReputation() float64 {
+	if a.MinReputation <= 0 {
+		return defaultMinReputation
+	}
+	return a.MinReputation
+}
+
 // GetCurrentPricing queries the Akash reverse auction for gpuModel and returns
 // the current winning (lowest acceptable) bid as an Offer. PriceUSD is the AKT
 // bid converted to USD; Marketplace is stamped "akash".
@@ -163,9 +185,10 @@ func (a *AkashAdapter) SubmitWork(ctx context.Context, spec WorkSpec) (WorkResul
 	if err != nil {
 		return WorkResult{}, err
 	}
-	if rep < a.MinReputation {
+	minRep := a.effectiveMinReputation()
+	if rep < minRep {
 		return WorkResult{}, fmt.Errorf("%w: provider %q rep=%.3f < min=%.3f",
-			ErrProviderBelowThreshold, bid.Provider, rep, a.MinReputation)
+			ErrProviderBelowThreshold, bid.Provider, rep, minRep)
 	}
 
 	// Build the SDL manifest from the work spec and submit it to create a lease.
@@ -190,15 +213,71 @@ func (a *AkashAdapter) SubmitWork(ctx context.Context, spec WorkSpec) (WorkResul
 // deterministic, parse-stable document keyed by the work ID and GPU model so the
 // injected client can record and assert it verbatim. WHY inline rather than a
 // template engine: keeps the package stdlib-only and the output byte-stable.
+//
+// INJECTION SAFETY (HXC-918): spec.ID and spec.GPUModel are caller-controlled.
+// They MUST NOT be spliced as raw text into the YAML — a crafted value
+// (newlines, ':', indentation, a "---" document separator) would otherwise break
+// out of its intended scalar and inject manifest structure (extra services,
+// top-level keys, or whole documents). The package is stdlib-only (no YAML
+// encoder available without a new dep, which the wave rules forbid), so every
+// injected value is encoded as a YAML double-quoted flow scalar via yamlQuote:
+// the content is escaped so it can only ever be DATA, never structure.
 func buildSDL(spec WorkSpec) string {
+	image := yamlQuote("helix/work:" + spec.ID)
+	model := yamlQuote(spec.GPUModel)
 	return fmt.Sprintf(`version: "2.0"
 services:
   work:
-    image: helix/work:%s
+    image: %s
     resources:
       gpu:
         units: 1
         attributes:
           model: %s
-`, spec.ID, spec.GPUModel)
+`, image, model)
+}
+
+// yamlQuote encodes s as a YAML double-quoted flow scalar (RFC: YAML 1.2 §7.3.1).
+// A double-quoted scalar is delimited by '"' and is the only YAML scalar form
+// that can carry arbitrary content (including ':', '#', leading indentation,
+// newlines and the "---"/"..." document markers) on a single physical line while
+// remaining a single contained value. We escape the two characters that would
+// otherwise terminate or corrupt the scalar — backslash and double-quote — and
+// render control characters (newline, carriage return, tab, and other C0 bytes)
+// as their YAML escape sequences so an injected line break can never become a
+// structural line break in the emitted manifest.
+//
+// This makes caller-controlled WorkSpec fields pure data: they cannot inject
+// additional services, top-level keys, or YAML documents.
+func yamlQuote(s string) string {
+	var b strings.Builder
+	b.Grow(len(s) + 2)
+	b.WriteByte('"')
+	for _, r := range s {
+		switch r {
+		case '\\':
+			b.WriteString(`\\`)
+		case '"':
+			b.WriteString(`\"`)
+		case '\n':
+			b.WriteString(`\n`)
+		case '\r':
+			b.WriteString(`\r`)
+		case '\t':
+			b.WriteString(`\t`)
+		case '\x00':
+			b.WriteString(`\0`)
+		default:
+			// Escape remaining C0 control characters (and DEL) which are not
+			// permitted raw inside a double-quoted scalar; everything else
+			// (printable UTF-8) is written verbatim as data.
+			if r < 0x20 || r == 0x7f {
+				fmt.Fprintf(&b, `\x%02x`, r)
+			} else {
+				b.WriteRune(r)
+			}
+		}
+	}
+	b.WriteByte('"')
+	return b.String()
 }

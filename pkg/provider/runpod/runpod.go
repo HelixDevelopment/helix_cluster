@@ -138,6 +138,15 @@ type RunPodProvider struct {
 	leased map[string]Worker
 	// origin maps a currently-leased instance ID -> how it was provisioned.
 	origin map[string]Origin
+	// endpoint maps a currently-leased instance ID -> the worker's reachable
+	// inference address, so callers can dial the instance they leased.
+	endpoint map[string]string
+
+	// reserved counts capacity slots reserved for in-flight cold provisions whose
+	// network RPC is running with p.mu released. It keeps capacity accounting
+	// correct (and prevents over-subscription) while the lock is NOT held across
+	// the ColdProvision wire call.
+	reserved int
 
 	warmHits  int
 	coldCalls int
@@ -199,6 +208,7 @@ func New(ctx context.Context, cfg Config) (*RunPodProvider, error) {
 		client:     client,
 		leased:     make(map[string]Worker),
 		origin:     make(map[string]Origin),
+		endpoint:   make(map[string]string),
 	}
 
 	// Pre-warm up front so the first overflow Provision hits the fast path.
@@ -230,11 +240,14 @@ func (p *RunPodProvider) Capacity() int { return p.capacity }
 // leased instance with its Origin so List and metrics reflect reality.
 func (p *RunPodProvider) Provision(ctx context.Context, spec pool.Spec) (pool.Instance, error) {
 	p.mu.Lock()
-	defer p.mu.Unlock()
 
-	if len(p.leased)+len(p.warm) >= p.capacity && len(p.warm) == 0 {
+	// Live count must account for in-flight cold provisions (reserved) so two
+	// concurrent cold paths cannot both slip past the capacity check.
+	if p.liveLocked() >= p.capacity && len(p.warm) == 0 {
 		// No warm worker to reuse and creating a new one would exceed capacity.
-		return pool.Instance{}, fmt.Errorf("%w: %d/%d", ErrAtCapacity, len(p.leased), p.capacity)
+		err := fmt.Errorf("%w: %d/%d", ErrAtCapacity, len(p.leased)+p.reserved, p.capacity)
+		p.mu.Unlock()
+		return pool.Instance{}, err
 	}
 
 	// FAST PATH: a pre-warmed worker exists -> hand it out, no client call.
@@ -242,15 +255,30 @@ func (p *RunPodProvider) Provision(ctx context.Context, spec pool.Spec) (pool.In
 		w := p.warm[len(p.warm)-1]
 		p.warm = p.warm[:len(p.warm)-1]
 		p.warmHits++
-		return p.recordLeasedLocked(w, OriginWarm), nil
+		inst := p.recordLeasedLocked(w, OriginWarm)
+		p.mu.Unlock()
+		return inst, nil
 	}
 
 	// COLD PATH: warm pool empty -> pay the cold-start over the wire.
-	if len(p.leased) >= p.capacity {
-		return pool.Instance{}, fmt.Errorf("%w: %d/%d", ErrAtCapacity, len(p.leased), p.capacity)
+	if p.liveLocked() >= p.capacity {
+		err := fmt.Errorf("%w: %d/%d", ErrAtCapacity, len(p.leased)+p.reserved, p.capacity)
+		p.mu.Unlock()
+		return pool.Instance{}, err
 	}
+	// Reserve a capacity slot, then RELEASE the lock for the network RPC so
+	// concurrent cold provisions overlap instead of serializing. The reservation
+	// keeps capacity accounting correct while the lock is not held.
 	p.coldCalls++
+	p.reserved++
+	p.mu.Unlock()
+
 	w, err := p.client.ColdProvision(ctx, spec)
+
+	// Re-acquire to record the lease (or roll back the reservation on failure).
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	p.reserved--
 	if err != nil {
 		return pool.Instance{}, fmt.Errorf("runpod: cold provision: %w", err)
 	}
@@ -260,11 +288,18 @@ func (p *RunPodProvider) Provision(ctx context.Context, spec pool.Spec) (pool.In
 	return p.recordLeasedLocked(w, OriginCold), nil
 }
 
+// liveLocked is the number of capacity slots currently consumed: warm workers,
+// leased workers, and in-flight cold reservations. Caller must hold p.mu.
+func (p *RunPodProvider) liveLocked() int {
+	return len(p.warm) + len(p.leased) + p.reserved
+}
+
 // recordLeasedLocked records w as a leased instance under origin and returns the
 // pool.Instance view. Caller must hold p.mu.
 func (p *RunPodProvider) recordLeasedLocked(w Worker, o Origin) pool.Instance {
 	p.leased[w.ID] = w
 	p.origin[w.ID] = o
+	p.endpoint[w.ID] = w.Endpoint
 	return pool.Instance{ID: w.ID, GPUType: w.GPUType, HourlyUSD: w.HourlyUSD}
 }
 
@@ -281,6 +316,7 @@ func (p *RunPodProvider) Release(ctx context.Context, inst pool.Instance) error 
 	}
 	delete(p.leased, inst.ID)
 	delete(p.origin, inst.ID)
+	delete(p.endpoint, inst.ID)
 
 	if len(p.warm) < p.warmTarget {
 		// Re-warm: keep the worker hot for the next fast-path Provision.
@@ -324,6 +360,17 @@ func (p *RunPodProvider) OriginOf(id string) (Origin, bool) {
 	defer p.mu.Unlock()
 	o, ok := p.origin[id]
 	return o, ok
+}
+
+// EndpointOf returns the reachable inference address of the currently-leased
+// instance id (the Worker.Endpoint parsed off the wire), and whether the id is
+// currently leased at all. This surfaces the endpoint end to end so callers can
+// actually dial the worker they leased; mirrors OriginOf.
+func (p *RunPodProvider) EndpointOf(id string) (string, bool) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	e, ok := p.endpoint[id]
+	return e, ok
 }
 
 // Metrics is a snapshot of warm-vs-cold provisioning counts for observability.

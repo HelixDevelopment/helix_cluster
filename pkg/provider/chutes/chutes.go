@@ -324,9 +324,9 @@ func parseRetryAfter(v string) time.Duration {
 	// HTTP-date form: try the RFC 1123 and RFC 850 / asctime variants used by
 	// HTTP (RFC 7231 §7.1.3).
 	for _, layout := range []string{
-		time.RFC1123,          // Mon, 02 Jan 2006 15:04:05 GMT
+		time.RFC1123,                     // Mon, 02 Jan 2006 15:04:05 GMT
 		"Monday, 02-Jan-06 15:04:05 MST", // RFC 850
-		"Mon Jan _2 15:04:05 2006",        // asctime
+		"Mon Jan _2 15:04:05 2006",       // asctime
 	} {
 		if t, err := time.Parse(layout, v); err == nil {
 			d := time.Until(t)

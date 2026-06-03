@@ -436,6 +436,26 @@ func TestParseRetryAfter(t *testing.T) {
 		{name: "empty", input: "", wantExact: 0},
 		{name: "garbage", input: "not-a-date-or-number", wantExact: 0},
 		{name: "negative delta", input: "-5", wantExact: 0},
+		// HTTP-date form: a date ~120s in the future must yield a duration
+		// within a window that tolerates clock/runtime skew. This exercises the
+		// time.RFC1123 parse + time.Until branch (lines 326-336).
+		{
+			name:     "http-date future",
+			input:    time.Now().Add(120 * time.Second).UTC().Format(time.RFC1123),
+			dateForm: true,
+			wantMin:  90 * time.Second,
+			wantMax:  150 * time.Second,
+		},
+		// HTTP-date form in the PAST: time.Until(t) is negative, so the d<0
+		// clamp (lines 333-335) must return exactly 0.
+		{
+			name:      "http-date past",
+			input:     time.Now().Add(-120 * time.Second).UTC().Format(time.RFC1123),
+			wantExact: 0,
+		},
+		// A syntactically date-shaped but unparseable value must fall through to
+		// the trailing return 0.
+		{name: "malformed date", input: "Mon, 99 Foo 9999 99:99:99 GMT", wantExact: 0},
 	}
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {

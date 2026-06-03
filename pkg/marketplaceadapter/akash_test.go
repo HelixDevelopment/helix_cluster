@@ -116,11 +116,12 @@ func TestAkash_SubmitWork_GoodProvider(t *testing.T) {
 	if cl.leaseCalls != 1 {
 		t.Fatalf("[%s] CreateLease called %d times want 1", runUUID, cl.leaseCalls)
 	}
-	// Sink-side: the SDL manifest was submitted and embeds the work id + GPU model.
-	if !strings.Contains(cl.recordedSDL, "helix/work:w-777") {
+	// Sink-side: the SDL manifest was submitted and embeds the work id + GPU model
+	// as double-quoted YAML scalars (the injection-safe encoding).
+	if !strings.Contains(cl.recordedSDL, `image: "helix/work:w-777"`) {
 		t.Fatalf("[%s] recorded SDL missing work id; got:\n%s", runUUID, cl.recordedSDL)
 	}
-	if !strings.Contains(cl.recordedSDL, "model: A100") {
+	if !strings.Contains(cl.recordedSDL, `model: "A100"`) {
 		t.Fatalf("[%s] recorded SDL missing gpu model; got:\n%s", runUUID, cl.recordedSDL)
 	}
 	if cl.recordedProvider != "akash1good" {
@@ -140,9 +141,9 @@ func TestAkash_SubmitWork_GoodProvider(t *testing.T) {
 // TestAkash_SubmitWork_BadProviderRejected is the LOAD-BEARING MUTATION GUARD
 // (closure criterion #3): a provider BELOW the reputation threshold MUST be
 // rejected with ErrProviderBelowThreshold and NO lease created. If the gate
-// branch `if rep < a.MinReputation { ... }` is removed (or inverted), this
-// below-threshold provider would slip through: CreateLease would be called and
-// the test fails on both leaseCalls!=0 and err==nil.
+// branch `if rep < a.effectiveMinReputation() { ... }` is removed (or inverted),
+// this below-threshold provider would slip through: CreateLease would be called
+// and the test fails on both leaseCalls!=0 and err==nil.
 func TestAkash_SubmitWork_BadProviderRejected(t *testing.T) {
 	const runUUID = "1458a000-0000-4000-8000-0000000000a4"
 	cl := &fakeAkashClient{
@@ -185,6 +186,161 @@ func TestAkash_SubmitWork_BoundaryReputation(t *testing.T) {
 	if cl.leaseCalls != 1 {
 		t.Fatalf("[%s] CreateLease called %d times want 1 at threshold", runUUID, cl.leaseCalls)
 	}
+}
+
+// TestAkash_SubmitWork_ZeroValueAdapterGate is the LOAD-BEARING guard for the
+// HXC-918 reputation-gate-bypass finding: a directly-constructed AkashAdapter{}
+// (NOT via NewAkashAdapter) has MinReputation==0. Without the safe-default at the
+// admission check, a zero-reputation provider would be admitted because
+// `rep(0) < min(0)` is false — a silent bypass of the 0.5 floor. This test pins
+// that a zero-value adapter rejects a below-safe-default provider and creates NO
+// lease. Removing the `effectiveMinReputation` clamp makes this fail.
+func TestAkash_SubmitWork_ZeroValueAdapterGate(t *testing.T) {
+	const runUUID = "1458a000-0000-4000-8000-0000000000a8"
+	cl := &fakeAkashClient{
+		bid:        AkashBid{Provider: "akash1zero", PriceAKT: 3.0, OrderID: "ord-zero"},
+		reputation: map[string]float64{"akash1zero": 0.0}, // zero reputation
+	}
+	// Directly constructed — MinReputation is the zero value, bypassing the
+	// constructor's 0.5 default.
+	a := &AkashAdapter{Client: cl}
+
+	got, err := a.SubmitWork(context.Background(), WorkSpec{ID: "w-zero", GPUModel: "A100"})
+	if !errors.Is(err, ErrProviderBelowThreshold) {
+		t.Fatalf("[%s] err=%v want ErrProviderBelowThreshold (zero-value adapter must not admit rep=0)", runUUID, err)
+	}
+	if got != (WorkResult{}) {
+		t.Fatalf("[%s] got=%+v want zero WorkResult on rejection", runUUID, got)
+	}
+	if cl.leaseCalls != 0 {
+		t.Fatalf("[%s] CreateLease called %d times via zero-value adapter; gate bypassed", runUUID, cl.leaseCalls)
+	}
+	t.Logf("[%s] before: AkashAdapter{}.SubmitWork(rep=0.0) -> after: ErrProviderBelowThreshold, leaseCalls=0", runUUID)
+}
+
+// TestAkash_SubmitWork_ZeroValueAdapterAdmitsAboveDefault proves the zero-value
+// adapter still ADMITS a provider at/above the safe default (0.5), so the clamp
+// uses the 0.5 floor — not an unconditional reject.
+func TestAkash_SubmitWork_ZeroValueAdapterAdmitsAboveDefault(t *testing.T) {
+	const runUUID = "1458a000-0000-4000-8000-0000000000a9"
+	cl := &fakeAkashClient{
+		bid:        AkashBid{Provider: "akash1ok", PriceAKT: 3.0},
+		reputation: map[string]float64{"akash1ok": 0.5}, // exactly the safe default
+	}
+	a := &AkashAdapter{Client: cl}
+
+	if _, err := a.SubmitWork(context.Background(), WorkSpec{ID: "w-ok", GPUModel: "A100"}); err != nil {
+		t.Fatalf("[%s] provider at safe-default threshold rejected by zero-value adapter: %v", runUUID, err)
+	}
+	if cl.leaseCalls != 1 {
+		t.Fatalf("[%s] CreateLease called %d times want 1", runUUID, cl.leaseCalls)
+	}
+}
+
+// TestAkash_BuildSDL_InjectionContained is the LOAD-BEARING guard for the
+// HXC-918 SDL-manifest-injection finding. A caller-controlled WorkSpec.ID
+// containing YAML/manifest metacharacters (newlines, ':', indentation, a '---'
+// document separator) MUST NOT inject manifest structure: the value must stay a
+// single contained YAML scalar. We assert the produced manifest has exactly the
+// expected number of services/top-level keys and that no injected key/document
+// leaked into structural position. Removing the sanitization (reverting to a raw
+// fmt.Sprintf splice) makes this fail.
+func TestAkash_BuildSDL_InjectionContained(t *testing.T) {
+	const runUUID = "1458a000-0000-4000-8000-0000000000aa"
+
+	// A hostile ID attempting to break out of the `image:` scalar and inject a
+	// second service + a new top-level mapping + a YAML document separator.
+	malicious := "evil\"\n    image: \"pwned\"\n  attacker:\n    image: \"x\"\n---\ninjected: true\n: weird"
+	spec := WorkSpec{ID: malicious, GPUModel: "A100"}
+
+	sdl := buildSDL(spec)
+
+	// 1) No new YAML document may be injected.
+	if strings.Contains(sdl, "\n---") || strings.HasPrefix(sdl, "---\n") {
+		t.Fatalf("[%s] injected YAML document separator leaked into manifest:\n%s", runUUID, sdl)
+	}
+	// 2) No injected top-level key may appear at column 0 (structural position).
+	for _, bad := range []string{"\ninjected:", "\nattacker:"} {
+		if strings.Contains(sdl, bad) {
+			t.Fatalf("[%s] injected top-level key %q leaked into manifest:\n%s", runUUID, bad, sdl)
+		}
+	}
+	// 3) The manifest must still parse to the SAME structure as a benign spec:
+	// exactly one service named "work" and exactly the known top-level keys. We
+	// verify structurally by counting lines at each indentation that begin a key.
+	if got := countTopLevelKeys(sdl); got != 2 { // "version" and "services"
+		t.Fatalf("[%s] manifest gained injected top-level keys: have %d top-level keys want 2:\n%s", runUUID, got, sdl)
+	}
+	if got := countServices(sdl); got != 1 { // only "work"
+		t.Fatalf("[%s] manifest gained injected services: have %d want 1:\n%s", runUUID, got, sdl)
+	}
+	// 4) The dangerous newline must NOT survive as a structural line break in the
+	// image value: the encoded scalar must be a single physical line containing
+	// the escaped content (the raw newline turned into the two-char sequence \n).
+	for _, line := range strings.Split(sdl, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "image:") {
+			// The whole image value lives on this one line; the raw injected
+			// newline must have been escaped, so "pwned" cannot appear as its own
+			// structural token on a separate line.
+			if strings.Contains(sdl, "\n    image: \"pwned\"") {
+				t.Fatalf("[%s] injected second image scalar leaked structurally:\n%s", runUUID, sdl)
+			}
+		}
+	}
+	t.Logf("[%s] before: buildSDL(malicious ID) -> after: 2 top-level keys, 1 service, no injected document/keys", runUUID)
+}
+
+// countTopLevelKeys counts lines that start a key at column 0 (no leading space),
+// i.e. "key:" — the structural top level of the SDL mapping.
+func countTopLevelKeys(sdl string) int {
+	n := 0
+	for _, line := range strings.Split(sdl, "\n") {
+		if line == "" {
+			continue
+		}
+		if line[0] == ' ' || line[0] == '\t' {
+			continue // indented => not top level
+		}
+		// A top-level key line looks like `name:` or `name: value`.
+		if i := strings.IndexByte(line, ':'); i > 0 {
+			n++
+		}
+	}
+	return n
+}
+
+// countServices counts service entries: keys indented exactly under "services:".
+// Service entries are at 2-space indentation directly below the services mapping.
+func countServices(sdl string) int {
+	lines := strings.Split(sdl, "\n")
+	inServices := false
+	n := 0
+	for _, line := range lines {
+		if line == "services:" {
+			inServices = true
+			continue
+		}
+		if !inServices {
+			continue
+		}
+		if line == "" {
+			continue
+		}
+		// Leaving the services block: a column-0 line ends it.
+		if line[0] != ' ' && line[0] != '\t' {
+			inServices = false
+			continue
+		}
+		// A service entry is at exactly 2 spaces of indent and ends with ':'.
+		if strings.HasPrefix(line, "  ") && !strings.HasPrefix(line, "   ") {
+			trimmed := strings.TrimSpace(line)
+			if strings.HasSuffix(trimmed, ":") {
+				n++
+			}
+		}
+	}
+	return n
 }
 
 // TestAkash_RegistryDispatch proves the AkashAdapter registers and routes under
