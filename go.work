@@ -1,5 +1,7 @@
 go 1.26
 
+toolchain go1.26.4
+
 use (
 	.
 	./DocProcessor
@@ -9,8 +11,8 @@ use (
 	./api/v1
 	./challenges
 	./cmd/hxc-registry
-	./containers
 	./config
+	./containers
 	./discovery
 	./pkg/build
 	./pkg/hxcregistry

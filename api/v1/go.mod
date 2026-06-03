@@ -2,6 +2,8 @@ module github.com/HelixDevelopment/helix_cluster/api/v1
 
 go 1.25.0
 
+toolchain go1.26.4
+
 require (
 	google.golang.org/grpc v1.81.1
 	google.golang.org/protobuf v1.36.11
