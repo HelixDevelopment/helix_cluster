@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>MVP_ARCHITECTURE</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">MVP_ARCHITECTURE</h1>
+</header>
+<h1 id="helix-cluster-os-mvp-architecture">Helix Cluster OS — MVP
+Architecture</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-06-03</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>HXC-1145.</strong> This is a <strong>living</strong> MVP
+architecture document: every component, service, package path, and
+schema described below is checkable against the source tree as it exists
+today (CLAUDE-3 / Constitution §11.4.106 — “No documentation ever can be
+out of sync with its codebase”). It complements the canonical <a
+href="ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a> hardened
+component map (lint-enforced by <a
+href="../pkg/archlint"><code>pkg/archlint</code></a>) and the
+reader-facing <a
+href="guides/phase_02_architecture.md"><code>phase_02_architecture.md</code></a>
+guide. Where this document names a package, that package is a real
+directory in the repository; where it names a service it is a real
+<code>cmd/</code> binary; where it names a table it exists in
+<code>data/hxc_registry.db</code>.</p>
+</blockquote>
+<hr />
+<h2 id="seven-layer-stack-l0l7">1. Seven-layer stack (L0–L7)</h2>
+<p>Helix is organised as a seven-layer stack over a hardware substrate,
+coordinated via <strong>SWIM gossip</strong> (<a
+href="../pkg/swim"><code>pkg/swim</code></a>) for membership and
+<strong>Raft</strong> consensus (<a
+href="../pkg/multiraft"><code>pkg/multiraft</code></a>, <a
+href="../pkg/kraft"><code>pkg/kraft</code></a>) for strongly-consistent
+state, with an <strong>Omega-model</strong> two-level scheduler using
+optimistic concurrency (<a
+href="../pkg/scheduler"><code>pkg/scheduler</code></a>).</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Concern</th>
+<th>Representative real packages</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>L7</strong></td>
+<td>Federation, multi-cluster &amp; observability</td>
+<td><a href="../pkg/federation"><code>pkg/federation</code></a>, <a
+href="../pkg/fedtopology"><code>pkg/fedtopology</code></a>, <a
+href="../pkg/metrics"><code>pkg/metrics</code></a>, <a
+href="../pkg/tracing"><code>pkg/tracing</code></a>, <a
+href="../pkg/grafanadash"><code>pkg/grafanadash</code></a></td>
+</tr>
+<tr>
+<td><strong>L6</strong></td>
+<td>Control-plane services</td>
+<td><a href="../internal/gateway"><code>internal/gateway</code></a>, <a
+href="../internal/session"><code>internal/session</code></a>, <a
+href="../internal/health"><code>internal/health</code></a>, <a
+href="../internal/policy"><code>internal/policy</code></a>, <a
+href="../internal/llm"><code>internal/llm</code></a>, <a
+href="../internal/scheduler"><code>internal/scheduler</code></a>, <a
+href="../internal/build"><code>internal/build</code></a>, <a
+href="../internal/advisory"><code>internal/advisory</code></a></td>
+</tr>
+<tr>
+<td><strong>L5</strong></td>
+<td>Secure transport &amp; networking</td>
+<td><a href="../pkg/hybridkex"><code>pkg/hybridkex</code></a>, <a
+href="../internal/wireguard"><code>internal/wireguard</code></a>, <a
+href="../pkg/ice"><code>pkg/ice</code></a>, <a
+href="../pkg/nattraversal"><code>pkg/nattraversal</code></a>, <a
+href="../pkg/hashslot"><code>pkg/hashslot</code></a></td>
+</tr>
+<tr>
+<td><strong>L4</strong></td>
+<td>Scheduling, placement &amp; economics</td>
+<td><a href="../pkg/scheduler"><code>pkg/scheduler</code></a>, <a
+href="../pkg/constraints"><code>pkg/constraints</code></a>, <a
+href="../pkg/preempt"><code>pkg/preempt</code></a>, <a
+href="../pkg/workloadrouter"><code>pkg/workloadrouter</code></a>, <a
+href="../pkg/carbonsched"><code>pkg/carbonsched</code></a>, <a
+href="../pkg/economics"><code>pkg/economics</code></a></td>
+</tr>
+<tr>
+<td><strong>L3</strong></td>
+<td>Consensus &amp; replicated state</td>
+<td><a href="../pkg/voting"><code>pkg/voting</code></a>, <a
+href="../pkg/mvcc"><code>pkg/mvcc</code></a>, <a
+href="../pkg/crdt"><code>pkg/crdt</code></a>, <a
+href="../pkg/deltacrdt"><code>pkg/deltacrdt</code></a>, <a
+href="../pkg/antientropy"><code>pkg/antientropy</code></a>, <a
+href="../pkg/hlc"><code>pkg/hlc</code></a></td>
+</tr>
+<tr>
+<td><strong>L2</strong></td>
+<td>Membership &amp; discovery</td>
+<td><a href="../pkg/swim"><code>pkg/swim</code></a>, <a
+href="../pkg/discovery"><code>pkg/discovery</code></a>, <a
+href="../pkg/scan"><code>pkg/scan</code></a>, <a
+href="../pkg/cellmesh"><code>pkg/cellmesh</code></a></td>
+</tr>
+<tr>
+<td><strong>L1</strong></td>
+<td>Node lifecycle &amp; boot</td>
+<td><a href="../internal/node"><code>internal/node</code></a>, <a
+href="../internal/console"><code>internal/console</code></a>, <a
+href="../cmd/helix-node"><code>cmd/helix-node</code></a>, <a
+href="../pkg/local"><code>pkg/local</code></a></td>
+</tr>
+<tr>
+<td><strong>L0</strong></td>
+<td>Hardware / resource substrate</td>
+<td><a href="../pkg/resources"><code>pkg/resources</code></a>, <a
+href="../pkg/gpuattest"><code>pkg/gpuattest</code></a>, <a
+href="../internal/gpu"><code>internal/gpu</code></a>, <a
+href="../pkg/devicecatalog"><code>pkg/devicecatalog</code></a>, <a
+href="../pkg/capability"><code>pkg/capability</code></a></td>
+</tr>
+</tbody>
+</table>
+<p>Each layer consumes only the layers beneath it. The exhaustive,
+lint-enforced component→package→origin mapping lives in <a
+href="ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a>; this MVP
+document focuses on the runtime services and the foundation-package
+interfaces an integrator touches first.</p>
+<hr />
+<h2 id="service-communication-matrix">2. Service-communication
+matrix</h2>
+<p>The diagram below is grounded in the <strong>real control-plane
+binaries</strong> under <a href="../cmd"><code>cmd/</code></a> and the
+<code>internal/</code> packages they import. Each
+<code>cmd/helix-*</code> <code>main.go</code> imports the
+correspondingly named <code>internal/*</code> package (verifiable, e.g.
+<a
+href="../cmd/helix-gateway/main.go"><code>cmd/helix-gateway/main.go</code></a>
+imports <code>internal/gateway</code>). The operator drives the cluster
+through the gateway and the session/console subsystem; the gateway
+fronts the session, policy, LLM-router, health and scheduler services;
+nodes register through discovery and run work placed by the
+scheduler.</p>
+<pre class="mermaid"><code>graph TD
+    operator([Operator / Client])
+
+    subgraph cp[&quot;Control plane (cmd/helix-*)&quot;]
+        gw[&quot;helix-gateway&lt;br/&gt;internal/gateway&quot;]
+        sess[&quot;helix-session&lt;br/&gt;internal/session&quot;]
+        pol[&quot;helix-policy&lt;br/&gt;internal/policy&quot;]
+        llm[&quot;helix-llm&lt;br/&gt;internal/llm&quot;]
+        health[&quot;helix-health&lt;br/&gt;internal/health&quot;]
+        sched[&quot;helix-scheduler&lt;br/&gt;internal/scheduler&quot;]
+        sec[&quot;helix-security&lt;br/&gt;internal/security&quot;]
+        build[&quot;helix-build&lt;br/&gt;internal/build&quot;]
+        adv[&quot;helix-advisory&lt;br/&gt;internal/advisory&quot;]
+    end
+
+    subgraph data[&quot;Data / coordination plane&quot;]
+        disc[&quot;pkg/discovery&lt;br/&gt;(etcd backend)&quot;]
+        swim[&quot;pkg/swim&lt;br/&gt;(SWIM gossip)&quot;]
+        reg[&quot;hxc-registry&lt;br/&gt;data/hxc_registry.db&quot;]
+    end
+
+    subgraph nodes[&quot;Worker nodes (cmd/helix-node)&quot;]
+        node[&quot;internal/node + internal/console&quot;]
+        res[&quot;pkg/resources&lt;br/&gt;(linux/darwin)&quot;]
+    end
+
+    operator --&gt;|&quot;HTTP / API&quot;| gw
+    gw --&gt;|&quot;auth + route&quot;| pol
+    gw --&gt;|&quot;PTY / streams&quot;| sess
+    gw --&gt;|&quot;inference&quot;| llm
+    gw --&gt;|&quot;liveness&quot;| health
+    gw --&gt;|&quot;placement&quot;| sched
+
+    sched --&gt;|&quot;resolve candidates&quot;| disc
+    sched --&gt;|&quot;score by capacity&quot;| res
+    sec --&gt;|&quot;attest / KYC gate&quot;| sched
+    adv --&gt;|&quot;recommendations&quot;| sched
+
+    node --&gt;|&quot;register instance&quot;| disc
+    node --&gt;|&quot;gossip membership&quot;| swim
+    node --&gt;|&quot;sample resources&quot;| res
+    health --&gt;|&quot;probe&quot;| node
+
+    reg -.-&gt;|&quot;HXC item tracking&quot;| cp</code></pre>
+<p>Edge legend: solid edges are runtime request/coordination paths
+between the named binaries and packages; the dotted edge is the
+out-of-band development registry (<code>cmd/hxc-registry</code>, §4)
+used for work-item tracking rather than serving traffic.</p>
+<p><strong>Verifiability.</strong> The binaries exist
+(<code>cmd/helix-gateway</code>, <code>cmd/helix-session</code>,
+<code>cmd/helix-policy</code>, <code>cmd/helix-llm</code>,
+<code>cmd/helix-health</code>, <code>cmd/helix-scheduler</code>,
+<code>cmd/helix-security</code>, <code>cmd/helix-build</code>,
+<code>cmd/helix-advisory</code>, <code>cmd/helix-node</code>,
+<code>cmd/hxc-registry</code>). The gateway routing surface is
+implemented in <a
+href="../internal/gateway/api.go"><code>internal/gateway/api.go</code></a>
+/ <a
+href="../internal/gateway/inference.go"><code>internal/gateway/inference.go</code></a>;
+discovery’s etcd backend is <a
+href="../pkg/discovery/etcd_backend.go"><code>pkg/discovery/etcd_backend.go</code></a>;
+node resource sampling is the <code>Reader</code> interface in <a
+href="../pkg/resources/types.go"><code>pkg/resources/types.go</code></a>.</p>
+<hr />
+<h2 id="component-specifications-foundation-packages">3. Component
+specifications (foundation packages)</h2>
+<p>The following are the key interfaces an integrator depends on.
+Signatures below are reproduced from the source and are kept in sync
+with it.</p>
+<h3 id="resource-substrate-pkgresources">3.1 Resource substrate —
+<code>pkg/resources</code></h3>
+<p>The node resource probe is split behind a single <code>Reader</code>
+interface, with <strong>real per-OS implementations selected by build
+tags</strong> (CLAUDE-2 cross-platform parity — no <code>!linux</code>
+stub for a real-operation feature):</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pkg/resources/types.go</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Reader <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    Read<span class="op">(</span>nodeID <span class="dt">string</span><span class="op">)</span> <span class="op">(</span>NodeResources<span class="op">,</span> <span class="dt">error</span><span class="op">)</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Aggregator <span class="kw">interface</span> <span class="op">{</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    Collect<span class="op">()</span> <span class="dt">error</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    GetNode<span class="op">(</span>id <span class="dt">string</span><span class="op">)</span> <span class="op">(</span>ResourceSnapshot<span class="op">,</span> <span class="dt">bool</span><span class="op">)</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    ListNodes<span class="op">()</span> <span class="op">[]</span>ResourceSnapshot</span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>Real implementations: cgroup-v2 + <code>/proc</code> on Linux (<a
+href="../pkg/resources/proc_linux.go"><code>proc_linux.go</code></a>, <a
+href="../pkg/resources/cgroup_v2.go"><code>cgroup_v2.go</code></a>, <a
+href="../pkg/resources/drm_linux.go"><code>drm_linux.go</code></a>);
+<code>sysctl</code> / <code>vm_stat</code> / Metal on macOS (<a
+href="../pkg/resources/proc_darwin.go"><code>proc_darwin.go</code></a>,
+<a href="../pkg/resources/drm_darwin.go"><code>drm_darwin.go</code></a>,
+<a
+href="../pkg/resources/accel_darwin.go"><code>accel_darwin.go</code></a>).
+The <a
+href="../pkg/resources/aggregator.go"><code>NodeAggregator.RegisterReader</code></a>
+fans multiple readers into one node view consumed by the scheduler.</p>
+<h3 id="membership-pkgswim">3.2 Membership — <code>pkg/swim</code></h3>
+<p>SWIM gossip provides eventually-consistent failure detection and
+membership for the node mesh (L2). It is the membership feed underneath
+discovery and is the substrate the scheduler trusts for “which nodes are
+alive.”</p>
+<h3 id="discovery-pkgdiscovery">3.3 Discovery —
+<code>pkg/discovery</code></h3>
+<p>The service registry maps logical service names to live instances,
+with an etcd watch backend and a federated multi-cell layer:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pkg/discovery</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Instance <span class="kw">struct</span> <span class="op">{</span> <span class="co">/* service identity + address */</span> <span class="op">}</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">// EtcdBackend implements registration/resolution over an etcd keyspace.</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> NewEtcdBackend<span class="op">(</span>client EtcdClient<span class="op">,</span> prefix <span class="dt">string</span><span class="op">)</span> <span class="op">*</span>EtcdBackend</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="co">// FederatedDiscovery overlays a local *ServiceRegistry with remote cells.</span></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> NewFederatedDiscovery<span class="op">(</span>localCellID <span class="dt">string</span><span class="op">,</span> local <span class="op">*</span>ServiceRegistry<span class="op">)</span> <span class="op">*</span>FederatedDiscovery</span></code></pre></div>
+<p>See <a
+href="../pkg/discovery/etcd_backend.go"><code>etcd_backend.go</code></a>
+and <a
+href="../pkg/discovery/federated.go"><code>federated.go</code></a>.</p>
+<h3 id="scheduling-pkgscheduler">3.4 Scheduling —
+<code>pkg/scheduler</code></h3>
+<p>The Omega-model scheduler filters and scores candidate nodes through
+a plugin model (ClassAd matching, cost/GPU/edge-aware placement, gang
+scheduling with preemption) and gates placement on attestation:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pkg/scheduler/attestation.go</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Attestor <span class="kw">interface</span> <span class="op">{</span> <span class="co">/* verify node attestation evidence */</span> <span class="op">}</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> NewHMACAttestor<span class="op">(</span>key <span class="op">[]</span><span class="dt">byte</span><span class="op">)</span> <span class="op">*</span>HMACAttestor</span></code></pre></div>
+<p>Placement plugins live alongside it: <a
+href="../pkg/scheduler/classad_match.go"><code>classad_match.go</code></a>,
+<a href="../pkg/scheduler/cost_gpu.go"><code>cost_gpu.go</code></a>, <a
+href="../pkg/scheduler/edgeaware.go"><code>edgeaware.go</code></a>, <a
+href="../pkg/scheduler/gang_preempt.go"><code>gang_preempt.go</code></a>.
+Constraints and preemption are in <a
+href="../pkg/constraints"><code>pkg/constraints</code></a> and <a
+href="../pkg/preempt"><code>pkg/preempt</code></a>.</p>
+<h3 id="secure-transport-pkghybridkex-internalwireguard-pkgice">3.5
+Secure transport — <code>pkg/hybridkex</code>,
+<code>internal/wireguard</code>, <code>pkg/ice</code></h3>
+<p>Post-quantum hybrid key exchange (X25519 + ML-KEM-768) in <a
+href="../pkg/hybridkex"><code>pkg/hybridkex</code></a> seeds the mesh;
+the WireGuard overlay (<a
+href="../internal/wireguard"><code>internal/wireguard</code></a>)
+carries inter-node traffic, with <a
+href="../pkg/ice"><code>pkg/ice</code></a> / <a
+href="../pkg/nattraversal"><code>pkg/nattraversal</code></a>
+establishing connectivity where peers are not directly routable.</p>
+<hr />
+<h2 id="registry-schema-datahxc_registry.db">4. Registry schema
+(<code>data/hxc_registry.db</code>)</h2>
+<p>The work-item registry is a <strong>real SQLite database</strong> at
+<a href="../data/hxc_registry.db"><code>data/hxc_registry.db</code></a>,
+served by the <a
+href="../pkg/hxcregistry"><code>pkg/hxcregistry</code></a> library and
+the <a href="../cmd/hxc-registry"><code>cmd/hxc-registry</code></a> CLI.
+It is <strong>not</strong> a 15-table schema; the live database contains
+exactly five tables: <code>items</code>, <code>item_history</code>,
+<code>meta</code>, <code>document_sources</code>, and the
+SQLite-internal <code>sqlite_sequence</code>. The two load-bearing
+tables are described below, transcribed from the live
+<code>.schema</code>.</p>
+<h3 id="items-primary-hxc-ticket-registry">4.1 <code>items</code> —
+primary HXC ticket registry</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type / constraint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>hxc_id</code></td>
+<td><code>TEXT PRIMARY KEY NOT NULL</code></td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>TEXT NOT NULL CHECK (type IN ('Bug','Feature','Task','Research','Docs'))</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td><code>TEXT NOT NULL CHECK (status IN ('Queued','In progress','Ready for testing','In testing','Completed','Obsolete'))</code></td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td><code>TEXT NOT NULL CHECK (priority IN ('P0','P1','P2','P3'))</code></td>
+</tr>
+<tr>
+<td><code>phase</code></td>
+<td><code>INTEGER NOT NULL DEFAULT 0</code></td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td><code>TEXT NOT NULL</code></td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td><code>TEXT NOT NULL</code></td>
+</tr>
+<tr>
+<td><code>commit_sha</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>forensic_anchor</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>closure_criteria</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>composes_with</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>current_location</code></td>
+<td><code>TEXT NOT NULL CHECK (current_location IN ('Issues','Fixed')) DEFAULT 'Issues'</code></td>
+</tr>
+<tr>
+<td><code>heading_hash</code></td>
+<td><code>TEXT NOT NULL UNIQUE</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>TEXT NOT NULL DEFAULT (datetime('now'))</code></td>
+</tr>
+<tr>
+<td><code>last_modified</code></td>
+<td><code>TEXT NOT NULL DEFAULT (datetime('now'))</code></td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>idx_items_status</code>, <code>idx_items_type</code>,
+<code>idx_items_priority</code>, <code>idx_items_phase</code>,
+<code>idx_items_location</code>.</p>
+<h3 id="item_history-append-only-audit-log">4.2
+<code>item_history</code> — append-only audit log</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Column</th>
+<th>Type / constraint</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>INTEGER PRIMARY KEY AUTOINCREMENT</code></td>
+</tr>
+<tr>
+<td><code>hxc_id</code></td>
+<td><code>TEXT NOT NULL REFERENCES items(hxc_id) ON DELETE CASCADE</code></td>
+</tr>
+<tr>
+<td><code>event_type</code></td>
+<td><code>TEXT NOT NULL CHECK (event_type IN ('Opened','Updated','StatusChanged','Completed','Obsolete'))</code></td>
+</tr>
+<tr>
+<td><code>by_entity</code></td>
+<td><code>TEXT CHECK (by_entity IN ('AI','User','System',NULL))</code></td>
+</tr>
+<tr>
+<td><code>on_date</code></td>
+<td><code>TEXT NOT NULL DEFAULT (datetime('now'))</code></td>
+</tr>
+<tr>
+<td><code>reason</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>evidence_path</code></td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>TEXT NOT NULL DEFAULT (datetime('now'))</code></td>
+</tr>
+</tbody>
+</table>
+<p>Indexes: <code>idx_item_history_hxc_id</code>,
+<code>idx_item_history_event_type</code>.</p>
+<blockquote>
+<p>Note: the live database is the source of truth. The seed DDL
+committed at <a
+href="../pkg/hxcregistry/schema.sql"><code>pkg/hxcregistry/schema.sql</code></a>
+is an earlier variant; the columns and CHECK sets above were transcribed
+from the live <code>.schema</code> of <code>data/hxc_registry.db</code>
+and supersede it for documentation purposes. A separate
+content-addressed artifact store (<a
+href="../pkg/hxcregistry/artifact_schema.sql"><code>pkg/hxcregistry/artifact_schema.sql</code></a>)
+defines <code>artifacts</code> / <code>artifact_tags</code> for the
+Postgres-backed registry and is not part of the SQLite work-item DB.</p>
+</blockquote>
+<hr />
+<h2 id="maintenance">5. Maintenance</h2>
+<p>This document is registered in <a
+href="../.docs_chain/contexts/tracked_docs.yaml"><code>.docs_chain/contexts/tracked_docs.yaml</code></a>
+(node group <code>mvp_*</code>) so its HTML/PDF/DOCX exports are kept in
+sync by <code>docs_chain sync</code> and gated by
+<code>docs_chain verify</code> (§11.4.106). When a control-plane
+service, foundation-package interface, or the registry schema changes,
+update this document in the same work unit. For the exhaustive
+lint-enforced component map see <a
+href="ARCHITECTURE.md"><code>ARCHITECTURE.md</code></a>; for the
+foundation-library catalogue see <a
+href="FOUNDATION_PACKAGES.md"><code>FOUNDATION_PACKAGES.md</code></a>;
+for the work-item registry doc see <a
+href="HXC_REGISTRY.md"><code>HXC_REGISTRY.md</code></a>.</p>
+</body>
+</html>

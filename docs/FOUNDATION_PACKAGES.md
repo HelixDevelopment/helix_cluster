@@ -1,6 +1,6 @@
 # Foundation Packages (`pkg/`)
 
-This catalogue describes the pure-Go foundation library that the Helix control plane is built from. There are **126+ packages** under `pkg/` (plus 19 private subsystems under `internal/`).
+This catalogue describes the pure-Go foundation library that the Helix control plane is built from. There are **129+ packages** under `pkg/` (plus 19 private subsystems under `internal/`).
 
 Every foundation package follows the same engineering contract:
 
@@ -88,7 +88,7 @@ Every foundation package follows the same engineering contract:
 | `capability`, `deviceprofile`, `device`, `devicemap` | Capability negotiation and device profiling. |
 | `devicecatalog` | Machine-readable 64-device taxonomy with case-insensitive substring `Lookup` resolving a discovered CPU model (e.g. `Rockchip RK3588`) to its tier / trust-level / compute-class. |
 | `tierdef`, `tiersec` | Tier definitions and tier security. |
-| `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. |
+| `burst`, `cloudspot`, `marketplace` | Burst-to-cloud autoscaling, spot pricing, and compute marketplace. `cloudspot` includes real AWS IMDSv2 (token `PUT`→authenticated `GET` instance-action), Azure scheduled-events, and GCP preemption interruption pollers (genuine token-dance wire protocol, `httptest`-proven) driving `drain→checkpoint→upload` via an injectable sink (HXC-1328; live cloud HXC-1617). |
 | `revenueopt` | `RevenueOptimizer.OptimizeAllocation` greedy GPU→marketplace assignment maximising expected revenue, with a TEE→Chutes revenue bias. |
 | `carbonsched` | Carbon-aware job placement: selects the lowest-carbon-intensity latency-eligible region (deterministic name tiebreak) with per-job kWh / gCO2 metering. |
 | `workloadrouter` | `UnifiedManager.RouteWorkload`: concurrent per-marketplace price probes + a weighted composite score (inverse price/latency, health) with a TEE multiplier re-ranking confidential offers when the workload requires a TEE. |
@@ -98,6 +98,9 @@ Every foundation package follows the same engineering contract:
 | `gputopo` | Topology-aware NUMA/NVLink GPU placement scoring that prefers NVLink-connected GPU pairs and falls back to PCIe. |
 | `balancemonitor` | USD account-balance monitor with a strict low-balance floor warning, over HTTP with `Authorization: Bearer`. |
 | `deviceplugin` | Nomad/K8s-style gRPC device-plugin / GRES fingerprinting framework: device plugins register over real gRPC reporting model / memory / driver / PCIe / capabilities / health / utilization; the registry parses GRES descriptors (`gpu:rtx3080:1,memory:10Gi`), atomically applies fingerprints, allocates by request, and rejects oversubscription beyond reported device count. |
+| `gpu` | `ProviderAdapter` registration hooks: a thread-safe registry (`Register`/`List`/`Get`/`Lookup`, duplicate-name guarded, race-free under `-race`) exposing a pool-facing provider listing so a new external provider adapter plugs into the GPU layer (HXC-1533; pool consumption HXC-1615). |
+| `benchmark` | Micro-benchmarker producing a real, repeatable normalized on-host CPU score (+ typed GPU TFLOPS / NPU TOPS seams) for tier assignment / scheduling hints; repeatability asserted within a coefficient-of-variation tolerance band (HXC-1308). |
+| `tierdetect` | Pre-provision host-capability gate: real cross-platform detection (darwin `sysctl`/arch + linux `/dev/kvm`,`/proc`,`binfmt` behind one build-tagged interface) returning a typed `MissingCapabilityError` when a requested tier's needs are unmet (HXC-1230). |
 
 ## Federation & Multi-cluster
 

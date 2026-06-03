@@ -178,7 +178,7 @@
 <h1 id="foundation-packages-pkg">Foundation Packages
 (<code>pkg/</code>)</h1>
 <p>This catalogue describes the pure-Go foundation library that the
-Helix control plane is built from. There are <strong>126+
+Helix control plane is built from. There are <strong>129+
 packages</strong> under <code>pkg/</code> (plus 19 private subsystems
 under <code>internal/</code>).</p>
 <p>Every foundation package follows the same engineering contract:</p>
@@ -568,8 +568,13 @@ compute-class.</td>
 <tr>
 <td><code>burst</code>, <code>cloudspot</code>,
 <code>marketplace</code></td>
-<td>Burst-to-cloud autoscaling, spot pricing, and compute
-marketplace.</td>
+<td>Burst-to-cloud autoscaling, spot pricing, and compute marketplace.
+<code>cloudspot</code> includes real AWS IMDSv2 (token
+<code>PUT</code>→authenticated <code>GET</code> instance-action), Azure
+scheduled-events, and GCP preemption interruption pollers (genuine
+token-dance wire protocol, <code>httptest</code>-proven) driving
+<code>drain→checkpoint→upload</code> via an injectable sink (HXC-1328;
+live cloud HXC-1617).</td>
 </tr>
 <tr>
 <td><code>revenueopt</code></td>
@@ -626,6 +631,31 @@ device plugins register over real gRPC reporting model / memory / driver
 descriptors (<code>gpu:rtx3080:1,memory:10Gi</code>), atomically applies
 fingerprints, allocates by request, and rejects oversubscription beyond
 reported device count.</td>
+</tr>
+<tr>
+<td><code>gpu</code></td>
+<td><code>ProviderAdapter</code> registration hooks: a thread-safe
+registry
+(<code>Register</code>/<code>List</code>/<code>Get</code>/<code>Lookup</code>,
+duplicate-name guarded, race-free under <code>-race</code>) exposing a
+pool-facing provider listing so a new external provider adapter plugs
+into the GPU layer (HXC-1533; pool consumption HXC-1615).</td>
+</tr>
+<tr>
+<td><code>benchmark</code></td>
+<td>Micro-benchmarker producing a real, repeatable normalized on-host
+CPU score (+ typed GPU TFLOPS / NPU TOPS seams) for tier assignment /
+scheduling hints; repeatability asserted within a
+coefficient-of-variation tolerance band (HXC-1308).</td>
+</tr>
+<tr>
+<td><code>tierdetect</code></td>
+<td>Pre-provision host-capability gate: real cross-platform detection
+(darwin <code>sysctl</code>/arch + linux
+<code>/dev/kvm</code>,<code>/proc</code>,<code>binfmt</code> behind one
+build-tagged interface) returning a typed
+<code>MissingCapabilityError</code> when a requested tier’s needs are
+unmet (HXC-1230).</td>
 </tr>
 </tbody>
 </table>

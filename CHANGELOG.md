@@ -8,6 +8,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Waves 76+77 — two concurrent subagent waves, 8 disjoint host-closeable streams (all independently gated build/vet/-race + load-bearing mutation bite per stream):**
+  - `internal/llm` — advisory engine (MIGRATION/SCALING/CONFIG/ALERT/OPTIMIZATION) carrying rationale + confidence + risk, `PENDING` persistence, a non-LOW-risk approval gate (never auto-applied without explicit approval), and a mandatory `LLMsVerifier` that rejects hallucinated/unsafe actions; the LLM is an injectable `Advisor` so the gate is deterministic and host-closeable (HXC-1126).
+  - `pkg/benchmark` — micro-benchmarker producing a real, repeatable normalized on-host CPU score (+ typed GPU TFLOPS / NPU TOPS seams), repeatability asserted within a coefficient-of-variation tolerance band (HXC-1308).
+  - `pkg/security/e2ee` (**security submodule**) — gzip-before-encrypt payload compression matching the Chutes envelope framing: measurable wire-size reduction, byte-exact decrypt+gunzip round-trip, only applied when it actually shrinks (HXC-1564).
+  - `cmd/dst-sim` — 1000-seed deterministic-simulation gate composing `pkg/porcupine`; exits non-zero naming the offending seed on a linearizability violation (ran 1000 seeds exit 0, deterministic across reruns) (HXC-915).
+  - `docs/MVP_ARCHITECTURE.md` — living seven-layer architecture + service-communication Mermaid grounded in real packages, with a Go drift-validator that fails the build if the doc names a path that no longer exists; docs_chain-tracked (HXC-1145).
+  - `pkg/gpu` — thread-safe `ProviderAdapter` registration hooks (`Register`/`List`/`Get`/`Lookup`) exposing a pool-facing listing, duplicate-name guarded, race-free under `-race` (HXC-1533).
+  - `pkg/cloudspot` — real AWS IMDSv2 (token `PUT` → authenticated `GET` spot instance-action), Azure scheduled-events, and GCP preemption pollers behind `SignalSource`, with `drain→checkpoint→upload` via an injectable sink; proven against `httptest` fixtures replaying the genuine wire protocol (live cloud deferred, HXC-1617) (HXC-1328).
+  - `pkg/tierdetect` — real cross-platform host-capability detection (darwin `sysctl`/arch + linux `/dev/kvm`,`/proc`,`binfmt` behind one build-tagged interface) gating tier requests pre-provision with a typed `MissingCapabilityError` (HXC-1230).
 - **Wave 75 — provider hardening, security & boot readiness (5 items, all independently gated):**
   - `pkg/provider/runpod` — `Provision` no longer holds the mutex across the `ColdProvision` network RPC (concurrent cold provisions overlap; `reserved` counter preserves capacity), and `EndpointOf(id)` surfaces the reachable worker endpoint (HXC-919).
   - `pkg/marketplaceadapter` (**security**) — `buildSDL` YAML-encodes caller-controlled fields to contain manifest injection, and the Akash reputation gate is no longer bypassable by a zero-value adapter (HXC-918).

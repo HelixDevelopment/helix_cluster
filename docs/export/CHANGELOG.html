@@ -185,6 +185,51 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Waves 76+77 — two concurrent subagent waves, 8 disjoint
+host-closeable streams (all independently gated build/vet/-race +
+load-bearing mutation bite per stream):</strong>
+<ul>
+<li><code>internal/llm</code> — advisory engine
+(MIGRATION/SCALING/CONFIG/ALERT/OPTIMIZATION) carrying rationale +
+confidence + risk, <code>PENDING</code> persistence, a non-LOW-risk
+approval gate (never auto-applied without explicit approval), and a
+mandatory <code>LLMsVerifier</code> that rejects hallucinated/unsafe
+actions; the LLM is an injectable <code>Advisor</code> so the gate is
+deterministic and host-closeable (HXC-1126).</li>
+<li><code>pkg/benchmark</code> — micro-benchmarker producing a real,
+repeatable normalized on-host CPU score (+ typed GPU TFLOPS / NPU TOPS
+seams), repeatability asserted within a coefficient-of-variation
+tolerance band (HXC-1308).</li>
+<li><code>pkg/security/e2ee</code> (<strong>security submodule</strong>)
+— gzip-before-encrypt payload compression matching the Chutes envelope
+framing: measurable wire-size reduction, byte-exact decrypt+gunzip
+round-trip, only applied when it actually shrinks (HXC-1564).</li>
+<li><code>cmd/dst-sim</code> — 1000-seed deterministic-simulation gate
+composing <code>pkg/porcupine</code>; exits non-zero naming the
+offending seed on a linearizability violation (ran 1000 seeds exit 0,
+deterministic across reruns) (HXC-915).</li>
+<li><code>docs/MVP_ARCHITECTURE.md</code> — living seven-layer
+architecture + service-communication Mermaid grounded in real packages,
+with a Go drift-validator that fails the build if the doc names a path
+that no longer exists; docs_chain-tracked (HXC-1145).</li>
+<li><code>pkg/gpu</code> — thread-safe <code>ProviderAdapter</code>
+registration hooks
+(<code>Register</code>/<code>List</code>/<code>Get</code>/<code>Lookup</code>)
+exposing a pool-facing listing, duplicate-name guarded, race-free under
+<code>-race</code> (HXC-1533).</li>
+<li><code>pkg/cloudspot</code> — real AWS IMDSv2 (token <code>PUT</code>
+→ authenticated <code>GET</code> spot instance-action), Azure
+scheduled-events, and GCP preemption pollers behind
+<code>SignalSource</code>, with <code>drain→checkpoint→upload</code> via
+an injectable sink; proven against <code>httptest</code> fixtures
+replaying the genuine wire protocol (live cloud deferred, HXC-1617)
+(HXC-1328).</li>
+<li><code>pkg/tierdetect</code> — real cross-platform host-capability
+detection (darwin <code>sysctl</code>/arch + linux
+<code>/dev/kvm</code>,<code>/proc</code>,<code>binfmt</code> behind one
+build-tagged interface) gating tier requests pre-provision with a typed
+<code>MissingCapabilityError</code> (HXC-1230).</li>
+</ul></li>
 <li><strong>Wave 75 — provider hardening, security &amp; boot readiness
 (5 items, all independently gated):</strong>
 <ul>
