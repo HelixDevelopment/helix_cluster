@@ -101,7 +101,7 @@ Commands run during this review (sink-side evidence):
 |---|------|--------|----------|
 | 44 | PostgreSQL migrations exist (real SQL) | PASS | `migrations/postgresql/0001_primary_schema.sql` and 15+ numbered up/down files (e.g. `011_create_build_jobs.up.sql`). |
 | 45 | dqlite migrations | PASS | `migrations/dqlite/` directory present. |
-| 46 | Migration runner wired | NOT-READY | `Makefile:migrate-up`/`migrate-down` are commented `# Placeholder:` lines (3 placeholder markers); no executable migration step. `scripts/run-migrations.sh` exists but is not invoked by the documented Make target. |
+| 46 | Migration runner wired | PASS | `Makefile:migrate-up`/`migrate-down` now invoke `scripts/run-migrations.sh up`/`down 1` (honor `DATABASE_URL`, no hardcoded secret). Verified against a real podman postgres: `make migrate-up` applied all 15 migrations (schema_migrations v15, 22 tables), `make migrate-down` rolled back exactly 1 (v14) (HXC-1629). |
 | 47 | Seed data | PASS | `scripts/seed-data.sql`, `Makefile:seed`. |
 | 48 | HXC work-item registry | PASS | `docs/HXC_REGISTRY.md` (47 ticket rows; 30 Fixed, 6 Queued). |
 | 49 | Registry-as-data package | PASS | `pkg/hxcregistry/` + `cmd/hxc-registry`. |
@@ -170,19 +170,19 @@ Counting only verified `PASS` rows:
 
 | Status | Count |
 |--------|-------|
-| PASS | 60 |
+| PASS | 61 |
 | PARTIAL | 12 |
-| NOT-READY | 8 |
+| NOT-READY | 7 |
 | **Total** | **80** |
 
-**Honest completion = 60 / 80 = 75.0% PASS.**
+**Honest completion = 61 / 80 = 76.25% PASS.**
 
 (If PARTIAL items were credited at half weight the figure would be ~82.5%, but this review
 counts only fully-verified PASS toward the bar, per CLAUDE-1.)
 
 ### Verdict
 
-**The nominal close bar is ≥95%. The honest PASS rate is 75.0%, which does NOT meet the bar.**
+**The nominal close bar is ≥95%. The honest PASS rate is 76.25%, which does NOT meet the bar.**
 Therefore HXC-1286 should remain **Queued**; this checklist ships as the deliverable artifact
 and the gap-list below is the remaining work. The repository is strong on implementation
 breadth (crypto/e2ee, attestation, observability, deployment manifests, docs-chain wiring,
@@ -201,10 +201,8 @@ Highest severity first:
 2. **WireGuard macOS parity (items 66, 67) — CLAUDE-2 violation.**
    `pkg/wireguard/manager.go` is kernel-`wgctrl`-only with a `NoOp` fallback; implement a real
    `wireguard-go` userspace path behind a darwin build tag.
-3. **Supply-chain / vuln scanning (items 34, 80).** Add `govulncheck` + SBOM (and a
-   dependabot/renovate config) and gate it in CI.
-4. **Migration runner is a placeholder (item 46).** Wire `Makefile:migrate-up/down` to
-   `scripts/run-migrations.sh` (or a real `migrate` invocation) instead of commented stubs.
+3. **Supply-chain / vuln scanning (items 34, 80).** govulncheck now RUN (HXC-1630, evidence qa-results/security/) — found 10 reachable advisories (fixes tracked HXC-1631 toolchain + HXC-1632 x/net); SBOM + dependabot/renovate still pending.
+4. **Migration runner (item 46) — RESOLVED (HXC-1629).** Makefile migrate-up/down now invoke scripts/run-migrations.sh, verified against a real postgres.
 5. **mTLS-everywhere not confirmed deployed (item 33).** HXC-600 still Queued; verify mTLS
    end-to-end with captured evidence.
 6. **Darwin GPU/device detection (items 64, 65).** Confirm or implement real

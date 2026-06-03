@@ -672,11 +672,14 @@ numbered up/down files
 <tr>
 <td>46</td>
 <td>Migration runner wired</td>
-<td>NOT-READY</td>
-<td><code>Makefile:migrate-up</code>/<code>migrate-down</code> are
-commented <code># Placeholder:</code> lines (3 placeholder markers); no
-executable migration step. <code>scripts/run-migrations.sh</code> exists
-but is not invoked by the documented Make target.</td>
+<td>PASS</td>
+<td><code>Makefile:migrate-up</code>/<code>migrate-down</code> now
+invoke <code>scripts/run-migrations.sh up</code>/<code>down 1</code>
+(honor <code>DATABASE_URL</code>, no hardcoded secret). Verified against
+a real podman postgres: <code>make migrate-up</code> applied all 15
+migrations (schema_migrations v15, 22 tables),
+<code>make migrate-down</code> rolled back exactly 1 (v14)
+(HXC-1629).</td>
 </tr>
 <tr>
 <td>47</td>
@@ -1053,7 +1056,7 @@ Tally</h2>
 <tbody>
 <tr>
 <td>PASS</td>
-<td>60</td>
+<td>61</td>
 </tr>
 <tr>
 <td>PARTIAL</td>
@@ -1061,7 +1064,7 @@ Tally</h2>
 </tr>
 <tr>
 <td>NOT-READY</td>
-<td>8</td>
+<td>7</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
@@ -1069,14 +1072,14 @@ Tally</h2>
 </tr>
 </tbody>
 </table>
-<p><strong>Honest completion = 60 / 80 = 75.0% PASS.</strong></p>
+<p><strong>Honest completion = 61 / 80 = 76.25% PASS.</strong></p>
 <p>(If PARTIAL items were credited at half weight the figure would be
 ~82.5%, but this review counts only fully-verified PASS toward the bar,
 per CLAUDE-1.)</p>
 <h3 id="verdict">Verdict</h3>
-<p><strong>The nominal close bar is ≥95%. The honest PASS rate is 75.0%,
-which does NOT meet the bar.</strong> Therefore HXC-1286 should remain
-<strong>Queued</strong>; this checklist ships as the deliverable
+<p><strong>The nominal close bar is ≥95%. The honest PASS rate is
+76.25%, which does NOT meet the bar.</strong> Therefore HXC-1286 should
+remain <strong>Queued</strong>; this checklist ships as the deliverable
 artifact and the gap-list below is the remaining work. The repository is
 strong on implementation breadth (crypto/e2ee, attestation,
 observability, deployment manifests, docs-chain wiring, and a 2255-file
@@ -1098,13 +1101,13 @@ violation.</strong> <code>pkg/wireguard/manager.go</code> is
 kernel-<code>wgctrl</code>-only with a <code>NoOp</code> fallback;
 implement a real <code>wireguard-go</code> userspace path behind a
 darwin build tag.</li>
-<li><strong>Supply-chain / vuln scanning (items 34, 80).</strong> Add
-<code>govulncheck</code> + SBOM (and a dependabot/renovate config) and
-gate it in CI.</li>
-<li><strong>Migration runner is a placeholder (item 46).</strong> Wire
-<code>Makefile:migrate-up/down</code> to
-<code>scripts/run-migrations.sh</code> (or a real <code>migrate</code>
-invocation) instead of commented stubs.</li>
+<li><strong>Supply-chain / vuln scanning (items 34, 80).</strong>
+govulncheck now RUN (HXC-1630, evidence qa-results/security/) — found 10
+reachable advisories (fixes tracked HXC-1631 toolchain + HXC-1632
+x/net); SBOM + dependabot/renovate still pending.</li>
+<li><strong>Migration runner (item 46) — RESOLVED (HXC-1629).</strong>
+Makefile migrate-up/down now invoke scripts/run-migrations.sh, verified
+against a real postgres.</li>
 <li><strong>mTLS-everywhere not confirmed deployed (item 33).</strong>
 HXC-600 still Queued; verify mTLS end-to-end with captured
 evidence.</li>

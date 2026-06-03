@@ -185,6 +185,20 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 89 — PRR-gap closures (HXC-1629 migrate wiring +
+HXC-1630 govulncheck), conductor-gated:</strong>
+<ul>
+<li><code>Makefile</code> (HXC-1629) — migrate-up/migrate-down now
+invoke scripts/run-migrations.sh (honor DATABASE_URL, no hardcoded
+secret); verified against a REAL podman postgres (15 migrations applied
+-&gt; schema_migrations v15/22 tables; down rolled back exactly 1).
+Raises PRR item 46 to PASS (honest score 60-&gt;61/80).</li>
+<li>govulncheck (HXC-1630) — installed + scanned main/api/v1/security;
+10 reachable advisories captured (evidence qa-results/security/): 9
+stdlib (toolchain bump -&gt; HXC-1631) + 1 third-party golang.org/x/net
+(-&gt; HXC-1632). No auto go.mod churn; remediation tracked as
+tickets.</li>
+</ul></li>
 <li><strong>Wave 88 — buf-lint clean + Production Readiness Review
 (HXC-1628 done; HXC-1286 executed, stays open):</strong>
 <ul>

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 89 — PRR-gap closures (HXC-1629 migrate wiring + HXC-1630 govulncheck), conductor-gated:**
+  - `Makefile` (HXC-1629) — migrate-up/migrate-down now invoke scripts/run-migrations.sh (honor DATABASE_URL, no hardcoded secret); verified against a REAL podman postgres (15 migrations applied -> schema_migrations v15/22 tables; down rolled back exactly 1). Raises PRR item 46 to PASS (honest score 60->61/80).
+  - govulncheck (HXC-1630) — installed + scanned main/api/v1/security; 10 reachable advisories captured (evidence qa-results/security/): 9 stdlib (toolchain bump -> HXC-1631) + 1 third-party golang.org/x/net (-> HXC-1632). No auto go.mod churn; remediation tracked as tickets.
 - **Wave 88 — buf-lint clean + Production Readiness Review (HXC-1628 done; HXC-1286 executed, stays open):**
   - `api/v1/buf.yaml` (HXC-1628) — `buf lint` now exits clean: 5 STYLE/naming rules excepted with per-rule rationale (proto-at-module-root layout; domain-named RPC request/response types incl. the shared KernelRequest; GPUProvider service name), DEFAULT->STANDARD category. `buf build` still passes; removing the except block re-fires 25 violations.
   - `docs/PRODUCTION_READINESS_REVIEW.md` (HXC-1286) — an 80-item production-readiness checklist with an HONEST assessment: **60/80 PASS (75%)**, below the 95% closure bar, so the ticket stays Queued with its gap-list (re-enable CI gates, macOS wireguard-go userspace, govulncheck/SBOM, Makefile migrate wiring, mTLS e2e evidence, darwin GPU probes, covgate enforcement, HelixQA challenge evidence). PASS rows cite real files/tests; NOT-READY rows cite the specific gap. docs_chain-tracked.
