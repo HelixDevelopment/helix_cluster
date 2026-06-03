@@ -19,6 +19,13 @@ import (
 type NATSBackend struct {
 	bus    *natsbus.Bus
 	source string
+
+	// wireFormat selects NodeEvent serialization on the wire (default WireJSON).
+	// avroWriter/avroRegistry are set when WithAvro is supplied and drive the
+	// Avro single-object publish/subscribe path (HXC-1626).
+	wireFormat   WireFormat
+	avroWriter   *AvroSchema
+	avroRegistry *SchemaRegistry
 }
 
 // natsBackendSource is the event.Event.Source stamped on outbound events. The
@@ -29,12 +36,16 @@ const natsBackendSource = "helixcluster/pkg/events"
 // NewNATSBackend connects to the NATS server at url and returns a real-backed
 // event bus. The provided context bounds the connection setup. Close the
 // returned backend to release the connection.
-func NewNATSBackend(ctx context.Context, url string) (*NATSBackend, error) {
+func NewNATSBackend(ctx context.Context, url string, opts ...NATSBackendOption) (*NATSBackend, error) {
 	bus, err := natsbus.New(ctx, natsbus.Config{URL: url})
 	if err != nil {
 		return nil, err
 	}
-	return &NATSBackend{bus: bus, source: natsBackendSource}, nil
+	b := &NATSBackend{bus: bus, source: natsBackendSource, wireFormat: WireJSON}
+	for _, opt := range opts {
+		opt(b)
+	}
+	return b, nil
 }
 
 // Publish maps the root Event onto an eventbus event.Event and publishes it.
