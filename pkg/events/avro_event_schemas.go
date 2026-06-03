@@ -24,10 +24,10 @@ import (
 // SessionEvent is a session-lifecycle event (create / attach / detach /
 // terminate) carried on the HELIX_SESSIONS stream under "sessions.>".
 type SessionEvent struct {
-	RunID     string
-	SessionID string
-	Action    string
-	Timestamp time.Time
+	RunID     string    `json:"run_id"`
+	SessionID string    `json:"session_id"`
+	Action    string    `json:"action"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // Subject returns the canonical "sessions.{SessionID}.{Action}" subject.
@@ -89,10 +89,10 @@ func DecodeSessionEventAvro(data []byte, registry *SchemaRegistry, readerSchema 
 // carried on the HELIX_SCHEDULER stream under "scheduler.>". EntityID is the
 // scheduled unit (e.g. a task or run id).
 type SchedulerEvent struct {
-	RunID     string
-	EntityID  string
-	Action    string
-	Timestamp time.Time
+	RunID     string    `json:"run_id"`
+	EntityID  string    `json:"entity_id"`
+	Action    string    `json:"action"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // Subject returns the canonical "scheduler.{EntityID}.{Action}" subject.
@@ -153,11 +153,11 @@ func DecodeSchedulerEventAvro(data []byte, registry *SchemaRegistry, readerSchem
 // AuditEvent is an audit-log event (an actor performed an action on a subject).
 // It carries the actor, the affected subject id, and the action.
 type AuditEvent struct {
-	RunID     string
-	Actor     string
-	SubjectID string
-	Action    string
-	Timestamp time.Time
+	RunID     string    `json:"run_id"`
+	Actor     string    `json:"actor"`
+	SubjectID string    `json:"subject_id"`
+	Action    string    `json:"action"`
+	Timestamp time.Time `json:"timestamp"`
 }
 
 // Subject returns the canonical "audit.{SubjectID}.{Action}" subject.

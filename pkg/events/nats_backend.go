@@ -26,6 +26,15 @@ type NATSBackend struct {
 	wireFormat   WireFormat
 	avroWriter   *AvroSchema
 	avroRegistry *SchemaRegistry
+
+	// Per-type writer schemas for the non-Node Helix event families (HXC-1627).
+	// They are populated by WithAvroEvents (or individually) and drive the typed
+	// Publish*/Subscribe* methods for SessionEvent/SchedulerEvent/AuditEvent.
+	// Each is registered into avroRegistry so the subscribe side resolves the
+	// writer fingerprint regardless of which type produced a payload.
+	sessionWriter   *AvroSchema
+	schedulerWriter *AvroSchema
+	auditWriter     *AvroSchema
 }
 
 // natsBackendSource is the event.Event.Source stamped on outbound events. The
