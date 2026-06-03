@@ -1,0 +1,63 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+// GPUProvider (HXC-1527) is the kernel-dispatch service exposed by a GPU proxy:
+// a caller submits a compute kernel plus its input buffers to a target device and
+// receives the kernel's output buffer and a terminal status. A server-streaming
+// variant lets long-running kernels report incremental output chunks.
+service GPUProvider {
+    // DispatchKernel runs a single kernel to completion and returns its output.
+    rpc DispatchKernel(KernelRequest) returns (KernelResponse);
+    // DispatchKernelStream runs a kernel and streams back incremental output
+    // chunks as the device produces them (e.g. partial results / progress).
+    rpc DispatchKernelStream(KernelRequest) returns (stream KernelChunk);
+}
+
+// KernelRequest carries everything the GPU proxy needs to dispatch one kernel:
+// which kernel to run, on which device, with which input buffers and launch
+// parameters.
+message KernelRequest {
+    // kernel_id names the kernel to execute (e.g. a registered kernel handle or
+    // entry-point symbol).
+    string kernel_id = 1;
+    // device_id selects the target GPU/accelerator on the proxy.
+    string device_id = 2;
+    // args are the opaque input buffers passed to the kernel, in order.
+    repeated bytes args = 3;
+    // params are launch/runtime parameters (e.g. grid/block dims, flags) as
+    // free-form key/value pairs.
+    map<string, string> params = 4;
+}
+
+// KernelResponse is the terminal outcome of a DispatchKernel call: the produced
+// output buffer plus a status and an optional error message.
+message KernelResponse {
+    // kernel_id echoes the request's kernel_id.
+    string kernel_id = 1;
+    // output is the opaque result buffer produced by the kernel.
+    bytes output = 2;
+    // status is the terminal disposition (e.g. "ok", "error").
+    string status = 3;
+    // error carries a human-readable failure reason when status indicates failure.
+    string error = 4;
+    // duration_micros is the measured device execution time in microseconds.
+    int64 duration_micros = 5;
+}
+
+// KernelChunk is one incremental output frame emitted by DispatchKernelStream.
+// The final chunk in a stream sets last=true and carries the terminal status.
+message KernelChunk {
+    // kernel_id echoes the request's kernel_id.
+    string kernel_id = 1;
+    // sequence is the 0-based index of this chunk within the stream.
+    int64 sequence = 2;
+    // output is the opaque output bytes for this chunk.
+    bytes output = 3;
+    // last marks the final chunk of the stream.
+    bool last = 4;
+    // status is set on the final chunk to the terminal disposition.
+    string status = 5;
+    // error carries a failure reason on the final chunk when status indicates failure.
+    string error = 6;
+}

@@ -1,0 +1,34 @@
+syntax = "proto3";
+package helix.v1;
+option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+
+import "types.proto";
+
+// EdgeWorkUnit (HXC-1187) is a single unit of work dispatched to an edge node.
+// It carries an opaque payload plus the placement constraints (target tier and
+// required capabilities) the edge runtime needs to decide whether it can run it.
+message EdgeWorkUnit {
+    // id uniquely identifies this work unit; the matching EdgeWorkResult echoes it.
+    string id = 1;
+    // payload is the opaque work body (e.g. a serialized task / blob).
+    bytes payload = 2;
+    // target_tier names the node tier this unit should run on (e.g. "edge",
+    // "premium"). Empty means no tier constraint.
+    string target_tier = 3;
+    // capabilities lists the capabilities the executing node must provide.
+    repeated Capability capabilities = 4;
+}
+
+// EdgeWorkResult (HXC-1187) is the outcome of executing an EdgeWorkUnit. It
+// echoes the originating id and reports a terminal status plus either an output
+// payload (on success) or an error message (on failure).
+message EdgeWorkResult {
+    // id matches the EdgeWorkUnit.id this result is for.
+    string id = 1;
+    // status is the terminal disposition (e.g. "succeeded", "failed").
+    string status = 2;
+    // output is the opaque result body produced on success.
+    bytes output = 3;
+    // error carries a human-readable failure reason when status indicates failure.
+    string error = 4;
+}

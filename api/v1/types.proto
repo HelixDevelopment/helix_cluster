@@ -14,6 +14,21 @@ message Node {
     map<string, string> labels = 9;
     string region = 10;
     string version = 11;
+    // HXC-1293: node classification fields. Appended after the existing max
+    // field number (11) to stay backward-compatible — never renumber 1..11.
+    string tier = 12;
+    string trust_level = 13;
+    string compute_class = 14;
+    string arch = 15;
+    // HXC-1165: per-node thermal state, surfaced for thermal-aware scheduling.
+    NodeThermal thermal = 16;
+}
+
+// NodeThermal (HXC-1165) carries a node's measured thermal state so the
+// scheduler can avoid placing work on overheating / throttling hardware.
+message NodeThermal {
+    double thermal_celsius = 1;
+    string thermal_state = 2;
 }
 
 message NodeResources {
@@ -22,6 +37,14 @@ message NodeResources {
     repeated GPUResource gpus = 3;
     StorageResources storage = 4;
     NetworkResources network = 5;
+    // HXC-1294: accelerator capacity fields. Appended after the existing max
+    // field number (5) to stay backward-compatible — never renumber 1..5.
+    // npu_tops: NPU compute capacity in tera-ops/sec (INT8).
+    double npu_tops = 6;
+    // fpga_logic_elements: total FPGA logic elements available across fabrics.
+    int64 fpga_logic_elements = 7;
+    // tflops_gpu: aggregate GPU compute capacity in TFLOPS (FP32).
+    double tflops_gpu = 8;
 }
 
 message CPUResources {

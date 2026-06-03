@@ -17,6 +17,10 @@ message ScheduleJobRequest {
     string session_id = 2;
     ResourceAllocation requirements = 3;
     map<string, string> constraints = 4;
+    // HXC-1295: tier constraints + power budget for tier-aware, power-capped scheduling.
+    repeated string allowed_tiers = 5;   // candidate nodes must be in one of these tiers (empty = any tier)
+    string min_tier = 6;                  // minimum acceptable tier (ordered tier floor)
+    int32 power_budget_watts = 7;         // max power draw allowed for the placement (0 = unconstrained)
 }
 
 message ScheduleJobResponse {

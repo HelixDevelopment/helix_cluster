@@ -22,18 +22,26 @@ const (
 )
 
 type Node struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Hostname      string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
-	IpAddresses   []string               `protobuf:"bytes,3,rep,name=ip_addresses,json=ipAddresses,proto3" json:"ip_addresses,omitempty"`
-	WgPubkey      string                 `protobuf:"bytes,4,opt,name=wg_pubkey,json=wgPubkey,proto3" json:"wg_pubkey,omitempty"`
-	SpiffeId      string                 `protobuf:"bytes,5,opt,name=spiffe_id,json=spiffeId,proto3" json:"spiffe_id,omitempty"`
-	Status        string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
-	Role          string                 `protobuf:"bytes,7,opt,name=role,proto3" json:"role,omitempty"`
-	Resources     *NodeResources         `protobuf:"bytes,8,opt,name=resources,proto3" json:"resources,omitempty"`
-	Labels        map[string]string      `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	Region        string                 `protobuf:"bytes,10,opt,name=region,proto3" json:"region,omitempty"`
-	Version       string                 `protobuf:"bytes,11,opt,name=version,proto3" json:"version,omitempty"`
+	state       protoimpl.MessageState `protogen:"open.v1"`
+	Id          string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Hostname    string                 `protobuf:"bytes,2,opt,name=hostname,proto3" json:"hostname,omitempty"`
+	IpAddresses []string               `protobuf:"bytes,3,rep,name=ip_addresses,json=ipAddresses,proto3" json:"ip_addresses,omitempty"`
+	WgPubkey    string                 `protobuf:"bytes,4,opt,name=wg_pubkey,json=wgPubkey,proto3" json:"wg_pubkey,omitempty"`
+	SpiffeId    string                 `protobuf:"bytes,5,opt,name=spiffe_id,json=spiffeId,proto3" json:"spiffe_id,omitempty"`
+	Status      string                 `protobuf:"bytes,6,opt,name=status,proto3" json:"status,omitempty"`
+	Role        string                 `protobuf:"bytes,7,opt,name=role,proto3" json:"role,omitempty"`
+	Resources   *NodeResources         `protobuf:"bytes,8,opt,name=resources,proto3" json:"resources,omitempty"`
+	Labels      map[string]string      `protobuf:"bytes,9,rep,name=labels,proto3" json:"labels,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Region      string                 `protobuf:"bytes,10,opt,name=region,proto3" json:"region,omitempty"`
+	Version     string                 `protobuf:"bytes,11,opt,name=version,proto3" json:"version,omitempty"`
+	// HXC-1293: node classification fields. Appended after the existing max
+	// field number (11) to stay backward-compatible — never renumber 1..11.
+	Tier         string `protobuf:"bytes,12,opt,name=tier,proto3" json:"tier,omitempty"`
+	TrustLevel   string `protobuf:"bytes,13,opt,name=trust_level,json=trustLevel,proto3" json:"trust_level,omitempty"`
+	ComputeClass string `protobuf:"bytes,14,opt,name=compute_class,json=computeClass,proto3" json:"compute_class,omitempty"`
+	Arch         string `protobuf:"bytes,15,opt,name=arch,proto3" json:"arch,omitempty"`
+	// HXC-1165: per-node thermal state, surfaced for thermal-aware scheduling.
+	Thermal       *NodeThermal `protobuf:"bytes,16,opt,name=thermal,proto3" json:"thermal,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -145,20 +153,117 @@ func (x *Node) GetVersion() string {
 	return ""
 }
 
+func (x *Node) GetTier() string {
+	if x != nil {
+		return x.Tier
+	}
+	return ""
+}
+
+func (x *Node) GetTrustLevel() string {
+	if x != nil {
+		return x.TrustLevel
+	}
+	return ""
+}
+
+func (x *Node) GetComputeClass() string {
+	if x != nil {
+		return x.ComputeClass
+	}
+	return ""
+}
+
+func (x *Node) GetArch() string {
+	if x != nil {
+		return x.Arch
+	}
+	return ""
+}
+
+func (x *Node) GetThermal() *NodeThermal {
+	if x != nil {
+		return x.Thermal
+	}
+	return nil
+}
+
+// NodeThermal (HXC-1165) carries a node's measured thermal state so the
+// scheduler can avoid placing work on overheating / throttling hardware.
+type NodeThermal struct {
+	state          protoimpl.MessageState `protogen:"open.v1"`
+	ThermalCelsius float64                `protobuf:"fixed64,1,opt,name=thermal_celsius,json=thermalCelsius,proto3" json:"thermal_celsius,omitempty"`
+	ThermalState   string                 `protobuf:"bytes,2,opt,name=thermal_state,json=thermalState,proto3" json:"thermal_state,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
+}
+
+func (x *NodeThermal) Reset() {
+	*x = NodeThermal{}
+	mi := &file_types_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *NodeThermal) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*NodeThermal) ProtoMessage() {}
+
+func (x *NodeThermal) ProtoReflect() protoreflect.Message {
+	mi := &file_types_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use NodeThermal.ProtoReflect.Descriptor instead.
+func (*NodeThermal) Descriptor() ([]byte, []int) {
+	return file_types_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *NodeThermal) GetThermalCelsius() float64 {
+	if x != nil {
+		return x.ThermalCelsius
+	}
+	return 0
+}
+
+func (x *NodeThermal) GetThermalState() string {
+	if x != nil {
+		return x.ThermalState
+	}
+	return ""
+}
+
 type NodeResources struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Cpu           *CPUResources          `protobuf:"bytes,1,opt,name=cpu,proto3" json:"cpu,omitempty"`
-	Memory        *MemoryResources       `protobuf:"bytes,2,opt,name=memory,proto3" json:"memory,omitempty"`
-	Gpus          []*GPUResource         `protobuf:"bytes,3,rep,name=gpus,proto3" json:"gpus,omitempty"`
-	Storage       *StorageResources      `protobuf:"bytes,4,opt,name=storage,proto3" json:"storage,omitempty"`
-	Network       *NetworkResources      `protobuf:"bytes,5,opt,name=network,proto3" json:"network,omitempty"`
+	state   protoimpl.MessageState `protogen:"open.v1"`
+	Cpu     *CPUResources          `protobuf:"bytes,1,opt,name=cpu,proto3" json:"cpu,omitempty"`
+	Memory  *MemoryResources       `protobuf:"bytes,2,opt,name=memory,proto3" json:"memory,omitempty"`
+	Gpus    []*GPUResource         `protobuf:"bytes,3,rep,name=gpus,proto3" json:"gpus,omitempty"`
+	Storage *StorageResources      `protobuf:"bytes,4,opt,name=storage,proto3" json:"storage,omitempty"`
+	Network *NetworkResources      `protobuf:"bytes,5,opt,name=network,proto3" json:"network,omitempty"`
+	// HXC-1294: accelerator capacity fields. Appended after the existing max
+	// field number (5) to stay backward-compatible — never renumber 1..5.
+	// npu_tops: NPU compute capacity in tera-ops/sec (INT8).
+	NpuTops float64 `protobuf:"fixed64,6,opt,name=npu_tops,json=npuTops,proto3" json:"npu_tops,omitempty"`
+	// fpga_logic_elements: total FPGA logic elements available across fabrics.
+	FpgaLogicElements int64 `protobuf:"varint,7,opt,name=fpga_logic_elements,json=fpgaLogicElements,proto3" json:"fpga_logic_elements,omitempty"`
+	// tflops_gpu: aggregate GPU compute capacity in TFLOPS (FP32).
+	TflopsGpu     float64 `protobuf:"fixed64,8,opt,name=tflops_gpu,json=tflopsGpu,proto3" json:"tflops_gpu,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *NodeResources) Reset() {
 	*x = NodeResources{}
-	mi := &file_types_proto_msgTypes[1]
+	mi := &file_types_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -170,7 +275,7 @@ func (x *NodeResources) String() string {
 func (*NodeResources) ProtoMessage() {}
 
 func (x *NodeResources) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[1]
+	mi := &file_types_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -183,7 +288,7 @@ func (x *NodeResources) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NodeResources.ProtoReflect.Descriptor instead.
 func (*NodeResources) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{1}
+	return file_types_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *NodeResources) GetCpu() *CPUResources {
@@ -221,6 +326,27 @@ func (x *NodeResources) GetNetwork() *NetworkResources {
 	return nil
 }
 
+func (x *NodeResources) GetNpuTops() float64 {
+	if x != nil {
+		return x.NpuTops
+	}
+	return 0
+}
+
+func (x *NodeResources) GetFpgaLogicElements() int64 {
+	if x != nil {
+		return x.FpgaLogicElements
+	}
+	return 0
+}
+
+func (x *NodeResources) GetTflopsGpu() float64 {
+	if x != nil {
+		return x.TflopsGpu
+	}
+	return 0
+}
+
 type CPUResources struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Arch          string                 `protobuf:"bytes,1,opt,name=arch,proto3" json:"arch,omitempty"`
@@ -233,7 +359,7 @@ type CPUResources struct {
 
 func (x *CPUResources) Reset() {
 	*x = CPUResources{}
-	mi := &file_types_proto_msgTypes[2]
+	mi := &file_types_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -245,7 +371,7 @@ func (x *CPUResources) String() string {
 func (*CPUResources) ProtoMessage() {}
 
 func (x *CPUResources) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[2]
+	mi := &file_types_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -258,7 +384,7 @@ func (x *CPUResources) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CPUResources.ProtoReflect.Descriptor instead.
 func (*CPUResources) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{2}
+	return file_types_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CPUResources) GetArch() string {
@@ -299,7 +425,7 @@ type MemoryResources struct {
 
 func (x *MemoryResources) Reset() {
 	*x = MemoryResources{}
-	mi := &file_types_proto_msgTypes[3]
+	mi := &file_types_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -311,7 +437,7 @@ func (x *MemoryResources) String() string {
 func (*MemoryResources) ProtoMessage() {}
 
 func (x *MemoryResources) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[3]
+	mi := &file_types_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -324,7 +450,7 @@ func (x *MemoryResources) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MemoryResources.ProtoReflect.Descriptor instead.
 func (*MemoryResources) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{3}
+	return file_types_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *MemoryResources) GetTotalBytes() int64 {
@@ -356,7 +482,7 @@ type GPUResource struct {
 
 func (x *GPUResource) Reset() {
 	*x = GPUResource{}
-	mi := &file_types_proto_msgTypes[4]
+	mi := &file_types_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -368,7 +494,7 @@ func (x *GPUResource) String() string {
 func (*GPUResource) ProtoMessage() {}
 
 func (x *GPUResource) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[4]
+	mi := &file_types_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -381,7 +507,7 @@ func (x *GPUResource) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GPUResource.ProtoReflect.Descriptor instead.
 func (*GPUResource) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{4}
+	return file_types_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *GPUResource) GetId() string {
@@ -443,7 +569,7 @@ type StorageResources struct {
 
 func (x *StorageResources) Reset() {
 	*x = StorageResources{}
-	mi := &file_types_proto_msgTypes[5]
+	mi := &file_types_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -455,7 +581,7 @@ func (x *StorageResources) String() string {
 func (*StorageResources) ProtoMessage() {}
 
 func (x *StorageResources) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[5]
+	mi := &file_types_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -468,7 +594,7 @@ func (x *StorageResources) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageResources.ProtoReflect.Descriptor instead.
 func (*StorageResources) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{5}
+	return file_types_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *StorageResources) GetTotalBytes() int64 {
@@ -495,7 +621,7 @@ type NetworkResources struct {
 
 func (x *NetworkResources) Reset() {
 	*x = NetworkResources{}
-	mi := &file_types_proto_msgTypes[6]
+	mi := &file_types_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -507,7 +633,7 @@ func (x *NetworkResources) String() string {
 func (*NetworkResources) ProtoMessage() {}
 
 func (x *NetworkResources) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[6]
+	mi := &file_types_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -520,7 +646,7 @@ func (x *NetworkResources) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use NetworkResources.ProtoReflect.Descriptor instead.
 func (*NetworkResources) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{6}
+	return file_types_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *NetworkResources) GetInterfaces() []string {
@@ -553,7 +679,7 @@ type Session struct {
 
 func (x *Session) Reset() {
 	*x = Session{}
-	mi := &file_types_proto_msgTypes[7]
+	mi := &file_types_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -565,7 +691,7 @@ func (x *Session) String() string {
 func (*Session) ProtoMessage() {}
 
 func (x *Session) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[7]
+	mi := &file_types_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -578,7 +704,7 @@ func (x *Session) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Session.ProtoReflect.Descriptor instead.
 func (*Session) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{7}
+	return file_types_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *Session) GetId() string {
@@ -648,7 +774,7 @@ type ResourceAllocation struct {
 
 func (x *ResourceAllocation) Reset() {
 	*x = ResourceAllocation{}
-	mi := &file_types_proto_msgTypes[8]
+	mi := &file_types_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -660,7 +786,7 @@ func (x *ResourceAllocation) String() string {
 func (*ResourceAllocation) ProtoMessage() {}
 
 func (x *ResourceAllocation) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[8]
+	mi := &file_types_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -673,7 +799,7 @@ func (x *ResourceAllocation) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResourceAllocation.ProtoReflect.Descriptor instead.
 func (*ResourceAllocation) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{8}
+	return file_types_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *ResourceAllocation) GetCpuMillicores() int32 {
@@ -708,7 +834,7 @@ type HealthScore struct {
 
 func (x *HealthScore) Reset() {
 	*x = HealthScore{}
-	mi := &file_types_proto_msgTypes[9]
+	mi := &file_types_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -720,7 +846,7 @@ func (x *HealthScore) String() string {
 func (*HealthScore) ProtoMessage() {}
 
 func (x *HealthScore) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[9]
+	mi := &file_types_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -733,7 +859,7 @@ func (x *HealthScore) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use HealthScore.ProtoReflect.Descriptor instead.
 func (*HealthScore) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{9}
+	return file_types_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *HealthScore) GetNodeId() string {
@@ -770,7 +896,7 @@ type Capability struct {
 
 func (x *Capability) Reset() {
 	*x = Capability{}
-	mi := &file_types_proto_msgTypes[10]
+	mi := &file_types_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -782,7 +908,7 @@ func (x *Capability) String() string {
 func (*Capability) ProtoMessage() {}
 
 func (x *Capability) ProtoReflect() protoreflect.Message {
-	mi := &file_types_proto_msgTypes[10]
+	mi := &file_types_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -795,7 +921,7 @@ func (x *Capability) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Capability.ProtoReflect.Descriptor instead.
 func (*Capability) Descriptor() ([]byte, []int) {
-	return file_types_proto_rawDescGZIP(), []int{10}
+	return file_types_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *Capability) GetName() string {
@@ -837,7 +963,7 @@ var File_types_proto protoreflect.FileDescriptor
 
 const file_types_proto_rawDesc = "" +
 	"\n" +
-	"\vtypes.proto\x12\bhelix.v1\"\x93\x03\n" +
+	"\vtypes.proto\x12\bhelix.v1\"\xb2\x04\n" +
 	"\x04Node\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\bhostname\x18\x02 \x01(\tR\bhostname\x12!\n" +
@@ -850,16 +976,29 @@ const file_types_proto_rawDesc = "" +
 	"\x06labels\x18\t \x03(\v2\x1a.helix.v1.Node.LabelsEntryR\x06labels\x12\x16\n" +
 	"\x06region\x18\n" +
 	" \x01(\tR\x06region\x12\x18\n" +
-	"\aversion\x18\v \x01(\tR\aversion\x1a9\n" +
+	"\aversion\x18\v \x01(\tR\aversion\x12\x12\n" +
+	"\x04tier\x18\f \x01(\tR\x04tier\x12\x1f\n" +
+	"\vtrust_level\x18\r \x01(\tR\n" +
+	"trustLevel\x12#\n" +
+	"\rcompute_class\x18\x0e \x01(\tR\fcomputeClass\x12\x12\n" +
+	"\x04arch\x18\x0f \x01(\tR\x04arch\x12/\n" +
+	"\athermal\x18\x10 \x01(\v2\x15.helix.v1.NodeThermalR\athermal\x1a9\n" +
 	"\vLabelsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"\x83\x02\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"[\n" +
+	"\vNodeThermal\x12'\n" +
+	"\x0fthermal_celsius\x18\x01 \x01(\x01R\x0ethermalCelsius\x12#\n" +
+	"\rthermal_state\x18\x02 \x01(\tR\fthermalState\"\xed\x02\n" +
 	"\rNodeResources\x12(\n" +
 	"\x03cpu\x18\x01 \x01(\v2\x16.helix.v1.CPUResourcesR\x03cpu\x121\n" +
 	"\x06memory\x18\x02 \x01(\v2\x19.helix.v1.MemoryResourcesR\x06memory\x12)\n" +
 	"\x04gpus\x18\x03 \x03(\v2\x15.helix.v1.GPUResourceR\x04gpus\x124\n" +
 	"\astorage\x18\x04 \x01(\v2\x1a.helix.v1.StorageResourcesR\astorage\x124\n" +
-	"\anetwork\x18\x05 \x01(\v2\x1a.helix.v1.NetworkResourcesR\anetwork\"h\n" +
+	"\anetwork\x18\x05 \x01(\v2\x1a.helix.v1.NetworkResourcesR\anetwork\x12\x19\n" +
+	"\bnpu_tops\x18\x06 \x01(\x01R\anpuTops\x12.\n" +
+	"\x13fpga_logic_elements\x18\a \x01(\x03R\x11fpgaLogicElements\x12\x1d\n" +
+	"\n" +
+	"tflops_gpu\x18\b \x01(\x01R\ttflopsGpu\"h\n" +
 	"\fCPUResources\x12\x12\n" +
 	"\x04arch\x18\x01 \x01(\tR\x04arch\x12\x14\n" +
 	"\x05cores\x18\x02 \x01(\x05R\x05cores\x12\x18\n" +
@@ -935,39 +1074,41 @@ func file_types_proto_rawDescGZIP() []byte {
 	return file_types_proto_rawDescData
 }
 
-var file_types_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_types_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
 var file_types_proto_goTypes = []any{
 	(*Node)(nil),               // 0: helix.v1.Node
-	(*NodeResources)(nil),      // 1: helix.v1.NodeResources
-	(*CPUResources)(nil),       // 2: helix.v1.CPUResources
-	(*MemoryResources)(nil),    // 3: helix.v1.MemoryResources
-	(*GPUResource)(nil),        // 4: helix.v1.GPUResource
-	(*StorageResources)(nil),   // 5: helix.v1.StorageResources
-	(*NetworkResources)(nil),   // 6: helix.v1.NetworkResources
-	(*Session)(nil),            // 7: helix.v1.Session
-	(*ResourceAllocation)(nil), // 8: helix.v1.ResourceAllocation
-	(*HealthScore)(nil),        // 9: helix.v1.HealthScore
-	(*Capability)(nil),         // 10: helix.v1.Capability
-	nil,                        // 11: helix.v1.Node.LabelsEntry
-	nil,                        // 12: helix.v1.HealthScore.ComponentsEntry
-	nil,                        // 13: helix.v1.Capability.AttributesEntry
+	(*NodeThermal)(nil),        // 1: helix.v1.NodeThermal
+	(*NodeResources)(nil),      // 2: helix.v1.NodeResources
+	(*CPUResources)(nil),       // 3: helix.v1.CPUResources
+	(*MemoryResources)(nil),    // 4: helix.v1.MemoryResources
+	(*GPUResource)(nil),        // 5: helix.v1.GPUResource
+	(*StorageResources)(nil),   // 6: helix.v1.StorageResources
+	(*NetworkResources)(nil),   // 7: helix.v1.NetworkResources
+	(*Session)(nil),            // 8: helix.v1.Session
+	(*ResourceAllocation)(nil), // 9: helix.v1.ResourceAllocation
+	(*HealthScore)(nil),        // 10: helix.v1.HealthScore
+	(*Capability)(nil),         // 11: helix.v1.Capability
+	nil,                        // 12: helix.v1.Node.LabelsEntry
+	nil,                        // 13: helix.v1.HealthScore.ComponentsEntry
+	nil,                        // 14: helix.v1.Capability.AttributesEntry
 }
 var file_types_proto_depIdxs = []int32{
-	1,  // 0: helix.v1.Node.resources:type_name -> helix.v1.NodeResources
-	11, // 1: helix.v1.Node.labels:type_name -> helix.v1.Node.LabelsEntry
-	2,  // 2: helix.v1.NodeResources.cpu:type_name -> helix.v1.CPUResources
-	3,  // 3: helix.v1.NodeResources.memory:type_name -> helix.v1.MemoryResources
-	4,  // 4: helix.v1.NodeResources.gpus:type_name -> helix.v1.GPUResource
-	5,  // 5: helix.v1.NodeResources.storage:type_name -> helix.v1.StorageResources
-	6,  // 6: helix.v1.NodeResources.network:type_name -> helix.v1.NetworkResources
-	8,  // 7: helix.v1.Session.resources:type_name -> helix.v1.ResourceAllocation
-	12, // 8: helix.v1.HealthScore.components:type_name -> helix.v1.HealthScore.ComponentsEntry
-	13, // 9: helix.v1.Capability.attributes:type_name -> helix.v1.Capability.AttributesEntry
-	10, // [10:10] is the sub-list for method output_type
-	10, // [10:10] is the sub-list for method input_type
-	10, // [10:10] is the sub-list for extension type_name
-	10, // [10:10] is the sub-list for extension extendee
-	0,  // [0:10] is the sub-list for field type_name
+	2,  // 0: helix.v1.Node.resources:type_name -> helix.v1.NodeResources
+	12, // 1: helix.v1.Node.labels:type_name -> helix.v1.Node.LabelsEntry
+	1,  // 2: helix.v1.Node.thermal:type_name -> helix.v1.NodeThermal
+	3,  // 3: helix.v1.NodeResources.cpu:type_name -> helix.v1.CPUResources
+	4,  // 4: helix.v1.NodeResources.memory:type_name -> helix.v1.MemoryResources
+	5,  // 5: helix.v1.NodeResources.gpus:type_name -> helix.v1.GPUResource
+	6,  // 6: helix.v1.NodeResources.storage:type_name -> helix.v1.StorageResources
+	7,  // 7: helix.v1.NodeResources.network:type_name -> helix.v1.NetworkResources
+	9,  // 8: helix.v1.Session.resources:type_name -> helix.v1.ResourceAllocation
+	13, // 9: helix.v1.HealthScore.components:type_name -> helix.v1.HealthScore.ComponentsEntry
+	14, // 10: helix.v1.Capability.attributes:type_name -> helix.v1.Capability.AttributesEntry
+	11, // [11:11] is the sub-list for method output_type
+	11, // [11:11] is the sub-list for method input_type
+	11, // [11:11] is the sub-list for extension type_name
+	11, // [11:11] is the sub-list for extension extendee
+	0,  // [0:11] is the sub-list for field type_name
 }
 
 func init() { file_types_proto_init() }
@@ -981,7 +1122,7 @@ func file_types_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_types_proto_rawDesc), len(file_types_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   14,
+			NumMessages:   15,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

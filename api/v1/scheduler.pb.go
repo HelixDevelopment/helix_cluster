@@ -22,13 +22,17 @@ const (
 )
 
 type ScheduleJobRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	JobId         string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
-	SessionId     string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Requirements  *ResourceAllocation    `protobuf:"bytes,3,opt,name=requirements,proto3" json:"requirements,omitempty"`
-	Constraints   map[string]string      `protobuf:"bytes,4,rep,name=constraints,proto3" json:"constraints,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state        protoimpl.MessageState `protogen:"open.v1"`
+	JobId        string                 `protobuf:"bytes,1,opt,name=job_id,json=jobId,proto3" json:"job_id,omitempty"`
+	SessionId    string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Requirements *ResourceAllocation    `protobuf:"bytes,3,opt,name=requirements,proto3" json:"requirements,omitempty"`
+	Constraints  map[string]string      `protobuf:"bytes,4,rep,name=constraints,proto3" json:"constraints,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	// HXC-1295: tier constraints + power budget for tier-aware, power-capped scheduling.
+	AllowedTiers     []string `protobuf:"bytes,5,rep,name=allowed_tiers,json=allowedTiers,proto3" json:"allowed_tiers,omitempty"`                // candidate nodes must be in one of these tiers (empty = any tier)
+	MinTier          string   `protobuf:"bytes,6,opt,name=min_tier,json=minTier,proto3" json:"min_tier,omitempty"`                               // minimum acceptable tier (ordered tier floor)
+	PowerBudgetWatts int32    `protobuf:"varint,7,opt,name=power_budget_watts,json=powerBudgetWatts,proto3" json:"power_budget_watts,omitempty"` // max power draw allowed for the placement (0 = unconstrained)
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *ScheduleJobRequest) Reset() {
@@ -87,6 +91,27 @@ func (x *ScheduleJobRequest) GetConstraints() map[string]string {
 		return x.Constraints
 	}
 	return nil
+}
+
+func (x *ScheduleJobRequest) GetAllowedTiers() []string {
+	if x != nil {
+		return x.AllowedTiers
+	}
+	return nil
+}
+
+func (x *ScheduleJobRequest) GetMinTier() string {
+	if x != nil {
+		return x.MinTier
+	}
+	return ""
+}
+
+func (x *ScheduleJobRequest) GetPowerBudgetWatts() int32 {
+	if x != nil {
+		return x.PowerBudgetWatts
+	}
+	return 0
 }
 
 type ScheduleJobResponse struct {
@@ -577,13 +602,16 @@ var File_scheduler_proto protoreflect.FileDescriptor
 
 const file_scheduler_proto_rawDesc = "" +
 	"\n" +
-	"\x0fscheduler.proto\x12\bhelix.v1\x1a\vtypes.proto\"\x9d\x02\n" +
+	"\x0fscheduler.proto\x12\bhelix.v1\x1a\vtypes.proto\"\x8b\x03\n" +
 	"\x12ScheduleJobRequest\x12\x15\n" +
 	"\x06job_id\x18\x01 \x01(\tR\x05jobId\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x02 \x01(\tR\tsessionId\x12@\n" +
 	"\frequirements\x18\x03 \x01(\v2\x1c.helix.v1.ResourceAllocationR\frequirements\x12O\n" +
-	"\vconstraints\x18\x04 \x03(\v2-.helix.v1.ScheduleJobRequest.ConstraintsEntryR\vconstraints\x1a>\n" +
+	"\vconstraints\x18\x04 \x03(\v2-.helix.v1.ScheduleJobRequest.ConstraintsEntryR\vconstraints\x12#\n" +
+	"\rallowed_tiers\x18\x05 \x03(\tR\fallowedTiers\x12\x19\n" +
+	"\bmin_tier\x18\x06 \x01(\tR\aminTier\x12,\n" +
+	"\x12power_budget_watts\x18\a \x01(\x05R\x10powerBudgetWatts\x1a>\n" +
 	"\x10ConstraintsEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"c\n" +
