@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 79 — 2 bounded host-closeable fixes (conductor-gated build/vet/-race + load-bearing mutation bite):**
+  - `pkg/multiraft` — the durability persist-error is now observable through a PUBLIC seam: a registerable `OnPersistError` hook (+ `LastPersistError` accessor) fires with the shard id + error from the same Ready-loop path that parks the un-persisted `Ready` and skips `Advance` (HXC-917); previously the fault was only `log.Printf`'d. Nil hook = prior behavior (HXC-927).
+  - `pkg/cloudspot` — the GCP and Azure preemption pollers now honor the injected `WithClock` when computing `PreemptionNotice.Deadline` (both used `time.Now()` directly, silently dropping the clock; only the AWS poller honored it), making all three providers deterministically testable with a fake clock (HXC-1616).
 - **Wave 78 — 4 disjoint host-closeable streams + a cross-platform SELinux fix (all conductor-gated build/vet/-race + load-bearing mutation bite, not agent self-reports):**
   - `internal/console` — fixture-driven device-classification hardening: `testdata/` `/proc`+`device-tree` trees for 6 device classes (PS4/PS5/x86-server/RK3588/Raspberry-Pi/generic) with exact-label table assertions; mutating the PS5 zen-2 SoC-match row flips `ps5_zen2` and fails the test. Non-console classes still classify `Unknown` today (positive labels tracked HXC-1624) (HXC-1158).
   - `scripts/cross-compile-agent.sh` + `Makefile` `cross-agent` target — reproducible ARM64 cross-compilation of `cmd/helix-agent`: emits linux/arm64 (ELF aarch64), linux/armv7 (ELF 32-bit ARM EABI5) and android/arm64 artifacts with a build-UUID via `-ldflags` and a `--version` print path; `crosscompile_test.go` asserts `elf.EM_AARCH64` via `debug/elf`. CGO-enabled cross (no `zig cc`/`aarch64-gnu-gcc` on host) and on-real-SBC execution are honest SKIPs (HXC-1622/HXC-1623) (HXC-1167).

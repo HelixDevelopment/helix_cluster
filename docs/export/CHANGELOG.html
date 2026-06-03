@@ -185,6 +185,23 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 79 — 2 bounded host-closeable fixes (conductor-gated
+build/vet/-race + load-bearing mutation bite):</strong>
+<ul>
+<li><code>pkg/multiraft</code> — the durability persist-error is now
+observable through a PUBLIC seam: a registerable
+<code>OnPersistError</code> hook (+ <code>LastPersistError</code>
+accessor) fires with the shard id + error from the same Ready-loop path
+that parks the un-persisted <code>Ready</code> and skips
+<code>Advance</code> (HXC-917); previously the fault was only
+<code>log.Printf</code>’d. Nil hook = prior behavior (HXC-927).</li>
+<li><code>pkg/cloudspot</code> — the GCP and Azure preemption pollers
+now honor the injected <code>WithClock</code> when computing
+<code>PreemptionNotice.Deadline</code> (both used
+<code>time.Now()</code> directly, silently dropping the clock; only the
+AWS poller honored it), making all three providers deterministically
+testable with a fake clock (HXC-1616).</li>
+</ul></li>
 <li><strong>Wave 78 — 4 disjoint host-closeable streams + a
 cross-platform SELinux fix (all conductor-gated build/vet/-race +
 load-bearing mutation bite, not agent self-reports):</strong>

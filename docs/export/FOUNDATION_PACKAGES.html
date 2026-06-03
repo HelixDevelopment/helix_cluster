@@ -260,7 +260,10 @@ path). Durability-correct Ready loop: a <code>ShardStorage</code>
 <code>SetHardState</code>/<code>Append</code> persistence error
 <strong>parks</strong> the un-persisted <code>Ready</code> and skips
 <code>Advance</code> so raft re-presents it (never falsely marking it
-durably handled) (HXC-917).</td>
+durably handled) (HXC-917); the persist-error is also surfaced through a
+public observability seam — a registerable <code>OnPersistError</code>
+hook + <code>LastPersistError</code> accessor fire with the shard id +
+error, nil hook = unchanged behavior (HXC-927).</td>
 </tr>
 <tr>
 <td><code>kraft</code></td>
