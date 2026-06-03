@@ -185,6 +185,22 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 81 — E2EE framed-transport concurrency + oversize
+hardening (HXC-1567; conductor-gated -race + load-bearing
+mutation):</strong>
+<ul>
+<li><strong><code>security</code> submodule (<code>pkg/e2ee</code>,
+<code>29a6193</code>)</strong> — the length-prefixed framed
+<code>Transport</code> (<code>WriteRecord</code>/<code>ReadRecord</code>
+over <code>io.ReadWriter</code>) and its
+<code>DefaultMaxRecordSize</code> guard already existed; added
+<code>TestTransportConcurrentRoundTripWithOversizeInjection</code>
+closing the closure’s composite gap — 16 concurrent independent framed
+round-trips stay intact while an injected 5 MiB length prefix (cap 1
+KiB) is rejected with <code>ErrRecordTooLarge</code>, all under
+<code>-race</code>. Mutation dropping the <code>ReadRecord</code>
+oversize guard fails the test (HXC-1567).</li>
+</ul></li>
 <li><strong>Wave 80 — Avro event schemas + schema-validated routing
 (HXC-1119; careful single-threaded TDD build, conductor-gated
 build/vet/-race + 2 load-bearing mutation bites):</strong>
