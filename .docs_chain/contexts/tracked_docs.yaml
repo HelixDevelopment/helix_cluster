@@ -81,6 +81,11 @@ nodes:
   ph02arch_html: { kind: html,     path: docs/export/phase_02_architecture.html }
   ph02arch_pdf:  { kind: pdf,      path: docs/export/phase_02_architecture.pdf }
   ph02arch_docx: { kind: docx,     path: docs/export/phase_02_architecture.docx }
+  # --- MVP architecture (HXC-1145; L0–L7 stack + service-comm Mermaid matrix + foundation interfaces + registry schema) ---
+  mvp_md:   { kind: markdown, path: docs/MVP_ARCHITECTURE.md }
+  mvp_html: { kind: html,     path: docs/export/MVP_ARCHITECTURE.html }
+  mvp_pdf:  { kind: pdf,      path: docs/export/MVP_ARCHITECTURE.pdf }
+  mvp_docx: { kind: docx,     path: docs/export/MVP_ARCHITECTURE.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -130,6 +135,9 @@ edges:
   - { type: derive-from, from: ph02arch_md,   to: ph02arch_html, transform: md2html }
   - { type: derive-from, from: ph02arch_html, to: ph02arch_pdf,  transform: html2pdf }
   - { type: derive-from, from: ph02arch_md,   to: ph02arch_docx, transform: md2docx }
+  - { type: derive-from, from: mvp_md,   to: mvp_html, transform: md2html }
+  - { type: derive-from, from: mvp_html, to: mvp_pdf,  transform: html2pdf }
+  - { type: derive-from, from: mvp_md,   to: mvp_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }

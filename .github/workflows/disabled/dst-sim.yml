@@ -1,0 +1,67 @@
+name: DST Linearizability Gate
+
+# HXC-915 — deterministic-simulation CI gate. cmd/dst-sim runs >= 1000 SEEDED
+# simulations of a replicated single-register scenario (pkg/dst harness) and
+# checks each seed's client-observed history for linearizability (pkg/porcupine
+# WGL checker). It exits NON-ZERO the moment any seed surfaces a safety/
+# linearizability violation, printing the offending seed for deterministic
+# replay; it exits zero only if every seed passes. Because trace = f(seed), the
+# same seed set always reproduces the same pass/fail outcome.
+#
+# Active workflows in this repo live disabled (this directory); the load-bearing
+# artifact is the binary itself, exercised by cmd/dst-sim's own -race test suite.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  dst-sim:
+    name: dst-sim >= 1000 seeds (linearizability)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: Per-run forensic UUID (§7.1)
+        run: echo "DST_RUN_ID=$(uuidgen)" >> "$GITHUB_ENV"
+
+      - name: Build dst-sim
+        run: go build ./cmd/dst-sim/...
+
+      - name: Vet
+        run: go vet ./cmd/dst-sim/...
+
+      # The load-bearing gate: 1000 seeded simulations, linearizability-checked.
+      # Exits non-zero (naming the offending seed) on the first violation.
+      - name: Run deterministic-simulation gate
+        run: |
+          echo "dst-sim gate run-id: ${DST_RUN_ID}"
+          go run ./cmd/dst-sim -seeds 1000 -start 0 -steps 4000
+
+  dst-sim-loadbearing:
+    name: prove the gate is load-bearing (-race)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      # The runner's own suite proves both halves of CLOSURE under the race
+      # detector: all 1000 correct seeds exit 0, AND an injected linearizability
+      # violation makes the gate exit non-zero naming the offending seed; plus
+      # same-seed-set determinism. A regression here means the gate could PASS a
+      # broken system (a CLAUDE-1 PASS-bluff) and fails the build.
+      - name: dst-sim test suite under race detector
+        run: go test -race -count=1 ./cmd/dst-sim/...
