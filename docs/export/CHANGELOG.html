@@ -185,6 +185,23 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 83 — typed Avro pub/sub for the remaining domain events
+(HXC-1627; conductor-gated build/vet/-race + REAL-broker integration +
+load-bearing mutation):</strong>
+<ul>
+<li><code>pkg/events</code> — <code>NATSBackend</code> gains typed
+<code>Publish*</code>/<code>Subscribe*</code> methods for
+<code>SessionEvent</code>/<code>SchedulerEvent</code>/<code>AuditEvent</code>
+at parity with <code>NodeEvent</code>: in <code>WireAvro</code> mode
+each carries an Avro single-object payload (<code>0xC3 0x01</code> +
+fingerprint) decoded via the <code>SchemaRegistry</code>; JSON stays
+default. <code>TestNATSBackend_TypedAvroWire_RealRoundTrip</code>
+(<code>//go:build integration</code>) boots a real NATS broker via
+<code>brokertest.StartNATS</code> and asserts the on-wire Avro marker +
+exact round-trip for all three types. Mutation forcing JSON on
+<code>PublishSessionEvent</code> fails the on-wire assertion. All four
+domain events now route over the live bus in Avro mode (HXC-1627).</li>
+</ul></li>
 <li><strong>Wave 82 — Avro codec wired into the live NATS event bus
 (HXC-1626; conductor-gated build/vet/-race + REAL-broker integration +
 load-bearing mutation):</strong>
