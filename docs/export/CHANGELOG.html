@@ -185,6 +185,22 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 87 — api/v1 proto schema extensions
+(HXC-1293/1165/1294/1295/1187/1527; buf-regenerated, conductor-gated,
+backward-compatible):</strong>
+<ul>
+<li><code>api/v1</code> — Node +tier/trust_level/compute_class/arch +
+nested NodeThermal (HXC-1293, absorbing HXC-1165 trust_level+thermal);
+NodeResources +npu_tops/fpga_logic_elements/tflops_gpu (HXC-1294);
+ScheduleJobRequest +allowed_tiers/min_tier/power_budget_watts
+(HXC-1295); new <code>edge.proto</code> EdgeWorkUnit/EdgeWorkResult
+(HXC-1187); new <code>gpu_proxy.proto</code> GPUProvider gRPC service
+(DispatchKernel + DispatchKernelStream, KernelRequest/Response/Chunk)
+(HXC-1527). All new field numbers appended (nothing renumbered/removed);
+9 round-trip tests prove field preservation; field-tag mutations fail
+them; buf generate idempotent; whole-tree build + consumer cmd tests
+green.</li>
+</ul></li>
 <li><strong>Wave 86 — proto service stubs build + generate (HXC-1117;
 buf now installed; conductor-gated):</strong>
 <ul>
