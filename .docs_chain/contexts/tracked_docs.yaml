@@ -96,6 +96,11 @@ nodes:
   p8cgate_html: { kind: html,     path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.html }
   p8cgate_pdf:  { kind: pdf,      path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.pdf }
   p8cgate_docx: { kind: docx,     path: docs/export/PHASE_8C_EXIT_GATE_EVIDENCE.docx }
+  # --- Production Readiness Review (HXC-1286; 80-item checklist, honest PASS/PARTIAL/NOT-READY assessment) ---
+  prr_md:   { kind: markdown, path: docs/PRODUCTION_READINESS_REVIEW.md }
+  prr_html: { kind: html,     path: docs/export/PRODUCTION_READINESS_REVIEW.html }
+  prr_pdf:  { kind: pdf,      path: docs/export/PRODUCTION_READINESS_REVIEW.pdf }
+  prr_docx: { kind: docx,     path: docs/export/PRODUCTION_READINESS_REVIEW.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -154,6 +159,9 @@ edges:
   - { type: derive-from, from: p8cgate_md,   to: p8cgate_html, transform: md2html }
   - { type: derive-from, from: p8cgate_html, to: p8cgate_pdf,  transform: html2pdf }
   - { type: derive-from, from: p8cgate_md,   to: p8cgate_docx, transform: md2docx }
+  - { type: derive-from, from: prr_md,   to: prr_html, transform: md2html }
+  - { type: derive-from, from: prr_html, to: prr_pdf,  transform: html2pdf }
+  - { type: derive-from, from: prr_md,   to: prr_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }

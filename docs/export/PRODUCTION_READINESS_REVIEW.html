@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PRODUCTION_READINESS_REVIEW</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">PRODUCTION_READINESS_REVIEW</h1>
+</header>
+<h1 id="production-readiness-review-helixcluster">Production Readiness
+Review — HelixCluster</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Ticket</td>
+<td>HXC-1286</td>
+</tr>
+<tr>
+<td>Type</td>
+<td>Docs / Production Readiness Review</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-06-03</td>
+</tr>
+<tr>
+<td>Reviewer</td>
+<td>AI agent (claude-opus-4-8)</td>
+</tr>
+<tr>
+<td>Authority</td>
+<td>CLAUDE-1 (anti-bluff), CLAUDE-2 (cross-platform parity), CLAUDE-3
+(docs-sync), Constitution §7.1 / §11.4.106</td>
+</tr>
+<tr>
+<td>Host of review</td>
+<td>macOS arm64 (Darwin 24.5.0), Go 1.25</td>
+</tr>
+</tbody>
+</table>
+<h2 id="purpose-method">Purpose &amp; Method</h2>
+<p>This is an <strong>honest, non-rubber-stamp</strong> assessment of
+the HelixCluster repository against an 80-item production-readiness
+checklist. Per CLAUDE-1, every <code>PASS</code> cites a real file path,
+test name, or registry id that was actually inspected during this
+review. Where evidence could not be produced, the item is marked
+<code>PARTIAL</code> or <code>NOT-READY</code> with the specific gap and
+(where one exists) the Queued ticket. <strong>A PASS without citable
+evidence is a forbidden PASS-bluff</strong> and was deliberately avoided
+— when unsure the item is downgraded.</p>
+<p>Status legend: - <strong>PASS</strong> — verified working with cited
+evidence. - <strong>PARTIAL</strong> — partially in place; named gap
+remains. - <strong>NOT-READY</strong> — absent, stubbed, placeholder, or
+disabled.</p>
+<p>Commands run during this review (sink-side evidence): -
+<code>go build ./...</code> → exit <code>0</code> (whole module compiles
+on host). - <code>go vet ./pkg/wireguard/... ./pkg/resources/...</code>
+→ exit <code>0</code>. - <code>go test ./pkg/resources/ -count=1</code>
+→ <code>ok ... 1.531s</code>. -
+<code>go test ./pkg/crypto/ -count=1</code> →
+<code>ok ... 0.289s</code>. -
+<code>GOOS=darwin go build ./pkg/wireguard/</code> → exit <code>0</code>
+(compiles, but see WG parity gap).</p>
+<hr />
+<h2 id="a.-build-local-gates-items-110">A. Build &amp; Local Gates
+(items 1–10)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Whole Go module compiles</td>
+<td>PASS</td>
+<td><code>go build ./...</code> exit 0, run this review (host
+darwin/arm64).</td>
+</tr>
+<tr>
+<td>2</td>
+<td><code>go vet</code> clean on hot packages</td>
+<td>PASS</td>
+<td><code>go vet ./pkg/wireguard/... ./pkg/resources/...</code> exit 0,
+run this review.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Makefile provides build/test/lint/format targets</td>
+<td>PASS</td>
+<td><code>Makefile</code> targets <code>build</code>, <code>test</code>,
+<code>test-unit</code>, <code>test-integration</code>,
+<code>lint</code>, <code>format</code>, <code>benchmark</code>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Lint config / runner present</td>
+<td>PASS</td>
+<td><code>scripts/lint.sh</code> (golangci-lint with <code>go vet</code>
+fallback); <code>Makefile:lint</code>.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Format runner present</td>
+<td>PASS</td>
+<td><code>scripts/format.sh</code>, <code>Makefile:format</code>
+(gofumpt + zig fmt + clang-format).</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Reproducible cross-build for agent</td>
+<td>PASS</td>
+<td><code>Makefile:cross-agent</code> →
+<code>scripts/cross-compile-agent.sh</code> (HXC-1167).</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Coverage gate machinery exists</td>
+<td>PARTIAL</td>
+<td><code>pkg/covgate/covgate.go</code> provides
+<code>MeetsThreshold</code>/<code>Shortfalls</code>;
+<code>scripts/test.sh</code> sets <code>COVERAGE_THRESHOLD=80</code>,
+but it is not enforced by any active CI (see item 11).</td>
+</tr>
+<tr>
+<td>8</td>
+<td>CI build/test pipeline ACTIVE</td>
+<td>NOT-READY</td>
+<td>All workflows are under <code>.github/workflows/disabled/</code>
+(go-build.yml, lint.yml, race.yml, release.yml, etc.);
+<code>.github/workflows/</code> has no active <code>.yml</code>. No
+automated gate runs on push/PR.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Release pipeline active</td>
+<td>NOT-READY</td>
+<td><code>.github/workflows/disabled/release.yml</code> exists but is
+disabled; no active release automation.</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Docker image build path</td>
+<td>PARTIAL</td>
+<td><code>Makefile:build-images</code> +
+<code>deploy/docker/*.dockerfile</code> (helixd/gateway/agent) present;
+not executed/verified in this review, and image build CI
+(<code>docker-build.yml</code>) is disabled.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="b.-test-coverage-anti-bluff-items-1122">B. Test Coverage &amp;
+Anti-Bluff (items 11–22)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>11</td>
+<td>Substantial test suite exists</td>
+<td>PASS</td>
+<td>2255 <code>*_test.go</code> files (excluding
+<code>HelixConstitution/</code>), <code>find</code> count this
+review.</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Tests actually execute green (sampled)</td>
+<td>PASS</td>
+<td><code>go test ./pkg/resources/</code> and <code>./pkg/crypto/</code>
+both <code>ok</code>, run this review.</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Real-OS oracle tests (not blanket skip)</td>
+<td>PASS</td>
+<td><code>pkg/resources/proc_darwin.go</code> (39 sysctl/mach/vm_stat
+refs) exercised by passing <code>pkg/resources</code> test on darwin
+host.</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Fuzz tests present</td>
+<td>PASS</td>
+<td><code>pkg/covgate/parse_fuzz_test.go</code>,
+<code>pkg/tracing/w3c_fuzz_test.go</code>.</td>
+</tr>
+<tr>
+<td>15</td>
+<td>Integration test build tag wired</td>
+<td>PASS</td>
+<td><code>Makefile:test-integration</code>
+(<code>-tags=integration</code>);
+<code>pkg/wireguard/meshconfig_integration_test.go</code>,
+<code>policy_integration_test.go</code>.</td>
+</tr>
+<tr>
+<td>16</td>
+<td>VM/node integration tests</td>
+<td>PARTIAL</td>
+<td><code>Makefile:vm-test</code>
+(<code>-tags=vm ./tests/vm_nodes/...</code>) defined; not executed in
+this review and its CI (<code>vm_integration.yml</code>) is
+disabled.</td>
+</tr>
+<tr>
+<td>17</td>
+<td>Race detector wired</td>
+<td>PASS</td>
+<td><code>Makefile:test</code> uses <code>go test -race</code>;
+<code>scripts/test.sh unit</code> uses <code>-race</code>.</td>
+</tr>
+<tr>
+<td>18</td>
+<td>Anti-cheat / PASS-bluff guard code</td>
+<td>PASS</td>
+<td><code>pkg/anticheat/token.go</code> +
+<code>token_test.go</code>.</td>
+</tr>
+<tr>
+<td>19</td>
+<td>Coverage-gate audit logic</td>
+<td>PASS</td>
+<td><code>pkg/covgate/audit.go</code> + <code>audit_test.go</code>.</td>
+</tr>
+<tr>
+<td>20</td>
+<td>HelixQA challenge framework present</td>
+<td>PASS</td>
+<td><code>challenges/</code> (55 entries incl. <code>challenges/</code>,
+<code>banks/</code>), <code>helixqa/</code> tree.</td>
+</tr>
+<tr>
+<td>21</td>
+<td>Challenge PASS bound to real feature (CLAUDE-1 §4)</td>
+<td>PARTIAL</td>
+<td>Framework exists (<code>helixqa/</code>, <code>challenges/</code>),
+but this review did not execute challenges to confirm sink-side evidence
+for each feature; no per-challenge evidence captured here.</td>
+</tr>
+<tr>
+<td>22</td>
+<td>Evidence-capture convention for tests</td>
+<td>PASS</td>
+<td><code>qa-results/docs_chain/&lt;run-id&gt;/</code> directories exist
+(e.g. <code>20260601T093308Z</code>);
+<code>pkg/crypto/package_evidence_test.go</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="c.-security-e2ee-attestation-items-2334">C. Security / E2EE /
+Attestation (items 23–34)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>23</td>
+<td>Double-encryption (e2ee) implementation</td>
+<td>PASS</td>
+<td><code>pkg/doublecrypt/doublecrypt.go</code> +
+<code>doublecrypt_test.go</code>.</td>
+</tr>
+<tr>
+<td>24</td>
+<td>Hybrid key exchange</td>
+<td>PASS</td>
+<td><code>pkg/hybridkex/hybridkex.go</code> +
+<code>hybridkex_test.go</code>.</td>
+</tr>
+<tr>
+<td>25</td>
+<td>X25519 session keys</td>
+<td>PASS</td>
+<td><code>pkg/x25519session/session.go</code> +
+<code>session_test.go</code>.</td>
+</tr>
+<tr>
+<td>26</td>
+<td>Core crypto package green</td>
+<td>PASS</td>
+<td><code>pkg/crypto/package.go</code>;
+<code>go test ./pkg/crypto/</code> → ok, this review.</td>
+</tr>
+<tr>
+<td>27</td>
+<td>GPU attestation</td>
+<td>PASS</td>
+<td><code>pkg/gpuattest/attest.go</code>, <code>seal.go</code>,
+<code>spotcheck.go</code>, <code>multigpu.go</code>,
+<code>povw.go</code> + tests.</td>
+</tr>
+<tr>
+<td>28</td>
+<td>Attestation admission control</td>
+<td>PASS</td>
+<td><code>pkg/attestadmit/admit.go</code> +
+<code>admit_test.go</code>.</td>
+</tr>
+<tr>
+<td>29</td>
+<td>SPIFFE federation identity</td>
+<td>PASS</td>
+<td><code>pkg/spiffefed/spiffefed.go</code> +
+<code>spiffefed_test.go</code>.</td>
+</tr>
+<tr>
+<td>30</td>
+<td>JWT handling</td>
+<td>PASS</td>
+<td><code>pkg/jwt/</code> package present in tree.</td>
+</tr>
+<tr>
+<td>31</td>
+<td>Threat model documented</td>
+<td>PASS</td>
+<td><code>docs/security/threat-model.md</code>.</td>
+</tr>
+<tr>
+<td>32</td>
+<td>RBAC documented</td>
+<td>PASS</td>
+<td><code>docs/security/rbac.md</code>.</td>
+</tr>
+<tr>
+<td>33</td>
+<td>TLS/mTLS setup documented</td>
+<td>PARTIAL</td>
+<td><code>docs/security/tls-setup.md</code> exists, but registry HXC-600
+(“Security Hardening — mTLS everywhere”) is still
+<strong>Queued</strong> — mTLS is not confirmed deployed
+end-to-end.</td>
+</tr>
+<tr>
+<td>34</td>
+<td>Dependency vulnerability scanning (govulncheck/SBOM/trivy)</td>
+<td>NOT-READY</td>
+<td>No <code>govulncheck</code>, <code>sbom</code>, or
+<code>trivy</code> references found in <code>scripts/</code> or disabled
+workflows. No supply-chain scan gate.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="d.-observability-metrics-items-3543">D. Observability &amp;
+Metrics (items 35–43)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>35</td>
+<td>Metrics collector</td>
+<td>PASS</td>
+<td><code>pkg/metrics/collector.go</code> +
+<code>collector_test.go</code>,
+<code>collector_integration_test.go</code>.</td>
+</tr>
+<tr>
+<td>36</td>
+<td>Metrics sidecar/exporter</td>
+<td>PASS</td>
+<td><code>pkg/metrics/sidecar.go</code> +
+<code>sidecar_test.go</code>.</td>
+</tr>
+<tr>
+<td>37</td>
+<td>Tier metrics</td>
+<td>PASS</td>
+<td><code>pkg/metrics/tiermetrics.go</code> +
+<code>tiermetrics_test.go</code>.</td>
+</tr>
+<tr>
+<td>38</td>
+<td>Distributed tracing (W3C)</td>
+<td>PASS</td>
+<td><code>pkg/tracing/w3c.go</code> + <code>w3c_test.go</code>,
+<code>w3c_fuzz_test.go</code>.</td>
+</tr>
+<tr>
+<td>39</td>
+<td>Tracing gRPC export</td>
+<td>PASS</td>
+<td><code>pkg/tracing/grpc.go</code> + <code>grpc_test.go</code>,
+<code>pkg/tracing/exporter.go</code>.</td>
+</tr>
+<tr>
+<td>40</td>
+<td>Grafana dashboards as code</td>
+<td>PASS</td>
+<td><code>pkg/grafanadash/grafanadash.go</code>,
+<code>tiercost_dash.go</code> + tests.</td>
+</tr>
+<tr>
+<td>41</td>
+<td>Health probes</td>
+<td>PASS</td>
+<td><code>pkg/healthprobe/</code>, <code>pkg/health/</code>,
+<code>pkg/healthmonitor/</code> present; <code>helix-health</code>
+binary built.</td>
+</tr>
+<tr>
+<td>42</td>
+<td>Cost/earnings metrics</td>
+<td>PASS</td>
+<td><code>pkg/metrics/earningsmetrics.go</code> +
+<code>earningsmetrics_test.go</code>.</td>
+</tr>
+<tr>
+<td>43</td>
+<td>Centralized logging package</td>
+<td>PASS</td>
+<td><code>pkg/log/</code> present in tree.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="e.-data-registry-schema-items-4451">E. Data / Registry / Schema
+(items 44–51)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>44</td>
+<td>PostgreSQL migrations exist (real SQL)</td>
+<td>PASS</td>
+<td><code>migrations/postgresql/0001_primary_schema.sql</code> and 15+
+numbered up/down files
+(e.g. <code>011_create_build_jobs.up.sql</code>).</td>
+</tr>
+<tr>
+<td>45</td>
+<td>dqlite migrations</td>
+<td>PASS</td>
+<td><code>migrations/dqlite/</code> directory present.</td>
+</tr>
+<tr>
+<td>46</td>
+<td>Migration runner wired</td>
+<td>NOT-READY</td>
+<td><code>Makefile:migrate-up</code>/<code>migrate-down</code> are
+commented <code># Placeholder:</code> lines (3 placeholder markers); no
+executable migration step. <code>scripts/run-migrations.sh</code> exists
+but is not invoked by the documented Make target.</td>
+</tr>
+<tr>
+<td>47</td>
+<td>Seed data</td>
+<td>PASS</td>
+<td><code>scripts/seed-data.sql</code>, <code>Makefile:seed</code>.</td>
+</tr>
+<tr>
+<td>48</td>
+<td>HXC work-item registry</td>
+<td>PASS</td>
+<td><code>docs/HXC_REGISTRY.md</code> (47 ticket rows; 30 Fixed, 6
+Queued).</td>
+</tr>
+<tr>
+<td>49</td>
+<td>Registry-as-data package</td>
+<td>PASS</td>
+<td><code>pkg/hxcregistry/</code> + <code>cmd/hxc-registry</code>.</td>
+</tr>
+<tr>
+<td>50</td>
+<td>etcd / redis keyspace documented</td>
+<td>PASS</td>
+<td><code>docs/etcd-keyspace.md</code>,
+<code>docs/redis-keyspace.md</code>.</td>
+</tr>
+<tr>
+<td>51</td>
+<td>etcd keyspace lint</td>
+<td>PASS</td>
+<td><code>pkg/etcdlint/</code> package present.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="f.-documentation-sync-claude-3-items-5260">F. Documentation Sync
+(CLAUDE-3) (items 52–60)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>52</td>
+<td>docs_chain submodule wired</td>
+<td>PASS</td>
+<td><code>.gitmodules</code> <code>[submodule "docs_chain"]</code> →
+<code>vasic-digital/docs_chain</code>; <code>docs_chain/</code> tree
+populated (cmd/internal/go.mod).</td>
+</tr>
+<tr>
+<td>53</td>
+<td>Tracked-docs context defined</td>
+<td>PASS</td>
+<td><code>.docs_chain/contexts/tracked_docs.yaml</code>
+(markdown→html/pdf/docx nodes for README, CLAUDE/AGENTS, issues,
+registry, etc.).</td>
+</tr>
+<tr>
+<td>54</td>
+<td>README tracked + exported</td>
+<td>PASS</td>
+<td><code>tracked_docs.yaml</code> <code>readme_md/html/pdf</code>;
+<code>docs/export/README.html</code>.</td>
+</tr>
+<tr>
+<td>55</td>
+<td>Governance docs tracked</td>
+<td>PASS</td>
+<td><code>docs/export/CLAUDE.{html,pdf,docx}</code>,
+<code>AGENTS.{html,pdf,docx}</code> present (57 export files
+total).</td>
+</tr>
+<tr>
+<td>56</td>
+<td>FOUNDATION_PACKAGES catalogue</td>
+<td>PASS</td>
+<td><code>docs/FOUNDATION_PACKAGES.md</code> + README doc-link line
+125.</td>
+</tr>
+<tr>
+<td>57</td>
+<td>CHANGELOG maintained</td>
+<td>PASS</td>
+<td><code>CHANGELOG.md</code> (32 KB, updated 2026-06-03) +
+<code>docs/export/CHANGELOG.*</code>.</td>
+</tr>
+<tr>
+<td>58</td>
+<td>Architecture docs + drift validator</td>
+<td>PASS</td>
+<td><code>docs/MVP_ARCHITECTURE.md</code> with Go drift-validator
+<code>docs/mvp_architecture_test.go</code> (HXC-1145);
+<code>pkg/archlint</code>.</td>
+</tr>
+<tr>
+<td>59</td>
+<td>README doc-link index</td>
+<td>PASS</td>
+<td><code>README.md</code> §Documentation (lines 119–129) links
+ARCHITECTURE, MVP, FOUNDATION_PACKAGES, REGISTRY, boundary docs.</td>
+</tr>
+<tr>
+<td>60</td>
+<td>docs-verify gate present</td>
+<td>PARTIAL</td>
+<td><code>Makefile:docs-verify</code> →
+<code>scripts/docs/verify.sh</code> and <code>docs_chain verify</code>
+referenced; <code>docs.yml</code> CI is disabled, so the sink-side gate
+is not enforced automatically.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="g.-cross-platform-parity-claude-2-items-6168">G. Cross-Platform
+Parity (CLAUDE-2) (items 61–68)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>61</td>
+<td>Resources reader split by build tag</td>
+<td>PASS</td>
+<td><code>pkg/resources/proc_linux.go</code>,
+<code>proc_darwin.go</code> (and <code>proc_mock.go</code> gated
+<code>//go:build !linux &amp;&amp; !darwin</code>, i.e. neither host
+OS).</td>
+</tr>
+<tr>
+<td>62</td>
+<td>Darwin resource probe uses real syscalls</td>
+<td>PASS</td>
+<td><code>pkg/resources/proc_darwin.go</code> has 39
+<code>sysctl</code>/<code>host_statistics</code>/<code>vm_stat</code>/<code>mach</code>
+references; <code>pkg/resources</code> test passes on darwin host.</td>
+</tr>
+<tr>
+<td>63</td>
+<td>GPU/DRM probe per-OS</td>
+<td>PASS</td>
+<td><code>pkg/resources/drm_linux.go</code>, <code>drm_darwin.go</code>,
+<code>accel_linux.go</code>, <code>accel_darwin.go</code> (with
+<code>_other.go</code> only for
+<code>!linux &amp;&amp; !darwin</code>).</td>
+</tr>
+<tr>
+<td>64</td>
+<td>Device probe per-OS</td>
+<td>PARTIAL</td>
+<td><code>pkg/device/probe_other.go</code> present; darwin-specific
+probe not confirmed (only an <code>_other</code> fallback was located in
+this review).</td>
+</tr>
+<tr>
+<td>65</td>
+<td>internal/gpu detect per-OS</td>
+<td>PARTIAL</td>
+<td><code>internal/gpu/detect_other.go</code> exists; a real darwin
+(<code>Metal</code>/IOKit) detector was not confirmed in this
+review.</td>
+</tr>
+<tr>
+<td>66</td>
+<td>WireGuard userspace equivalent on macOS</td>
+<td>NOT-READY</td>
+<td><code>pkg/wireguard/manager.go</code> uses kernel
+<code>wgctrl.New()</code> (Linux netlink) with <strong>no darwin
+<code>wireguard-go</code>/userspace build-tag variant</strong>; only a
+<code>NoOp</code> config flag exists. CLAUDE-2 §4 explicitly names this
+hotspot. <code>GOOS=darwin go build</code> compiles but wgctrl is
+non-functional on macOS at runtime.</td>
+</tr>
+<tr>
+<td>67</td>
+<td>No <code>!linux</code> stub masquerading as real feature</td>
+<td>PARTIAL</td>
+<td><code>pkg/resources</code> stubs are correctly limited to
+<code>!linux &amp;&amp; !darwin</code>; however the WireGuard
+<code>NoOp</code> path (item 66) is effectively a non-functional
+fallback on macOS.</td>
+</tr>
+<tr>
+<td>68</td>
+<td>NAT traversal / STUN cross-platform</td>
+<td>PASS</td>
+<td><code>pkg/wireguard/stun.go</code>, <code>holepunch.go</code>,
+<code>nat_traversal.go</code> are pure-Go (no per-OS tag) with
+tests.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="h.-resource-host-safety-items-6973">H. Resource / Host Safety
+(items 69–73)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>69</td>
+<td>Node-provisioning boundary documented (no jailbreak)</td>
+<td>PASS</td>
+<td><code>docs/NODE_PROVISIONING_BOUNDARY.md</code> (HXC-1146); README
+line 127.</td>
+</tr>
+<tr>
+<td>70</td>
+<td>Power/thermal safety controls</td>
+<td>PASS</td>
+<td><code>pkg/powergater/</code>, <code>pkg/thermalwarm/</code> packages
+present.</td>
+</tr>
+<tr>
+<td>71</td>
+<td>Sandbox / isolation primitives</td>
+<td>PASS</td>
+<td><code>pkg/sandbox/</code>, <code>pkg/wasm/</code>, wasmtime dep in
+<code>go.mod</code>.</td>
+</tr>
+<tr>
+<td>72</td>
+<td>Resource quotas / budget caps</td>
+<td>PASS</td>
+<td><code>pkg/budgetcap/</code>, <code>pkg/qos/</code>,
+<code>pkg/ratelimit/</code>.</td>
+</tr>
+<tr>
+<td>73</td>
+<td>Chaos / fault injection</td>
+<td>PASS</td>
+<td><code>pkg/chaosexp/</code>, <code>internal/chaos/</code>,
+<code>pkg/dst/</code> (deterministic sim),
+<code>cmd/dst-sim</code>.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="i.-deployment-items-7478">I. Deployment (items 74–78)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>74</td>
+<td>Kubernetes manifests</td>
+<td>PASS</td>
+<td><code>deploy/k8s/</code> (namespace, configmap, etcd, gateway,
+scheduler, security, session, policy, llm, health, agent-daemonset,
+kustomization).</td>
+</tr>
+<tr>
+<td>75</td>
+<td>Helm chart</td>
+<td>PASS</td>
+<td><code>deploy/helm/Chart.yaml</code>, <code>values.yaml</code>,
+<code>templates/*.yaml</code>, <code>NOTES.txt</code>.</td>
+</tr>
+<tr>
+<td>76</td>
+<td>Compose dev/prod overlays</td>
+<td>PASS</td>
+<td><code>deploy/compose/helix_core.yml</code>,
+<code>helix_infra.yml</code>, <code>override_dev.yml</code>,
+<code>override_prod.yml</code>.</td>
+</tr>
+<tr>
+<td>77</td>
+<td>Local infra orchestrator</td>
+<td>PASS</td>
+<td><code>cmd/helix_infra</code> (Makefile
+<code>dev</code>/<code>dev-down</code>/<code>dev-status</code>/<code>dev-logs</code>).</td>
+</tr>
+<tr>
+<td>78</td>
+<td>Service binaries build &amp; ship</td>
+<td>PASS</td>
+<td>16 <code>helix-*</code>/<code>helixd</code> binaries present at repo
+root, built 2026-06-02/03; <code>go build ./...</code> exit 0.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="j.-dependency-hygiene-items-7980">J. Dependency Hygiene (items
+79–80)</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 22%" />
+<col style="width: 29%" />
+<col style="width: 37%" />
+</colgroup>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Status</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>79</td>
+<td>Pinned deps + local module replaces</td>
+<td>PASS</td>
+<td><code>go.mod</code> pins (grpc 1.81.1, etcd 3.6.11, crypto 0.52.0,
+etc.) + 3 <code>replace</code> directives (HelixConstitution,
+containers, EventBus); <code>go.sum</code> present.</td>
+</tr>
+<tr>
+<td>80</td>
+<td>Automated dependency update / vuln workflow</td>
+<td>NOT-READY</td>
+<td>No dependabot/renovate config found; no <code>govulncheck</code> in
+scripts or (disabled) CI; combined with item 8 there is no automated
+dependency-security gate.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="summary-honest-completion-tally">Summary — Honest Completion
+Tally</h2>
+<p>Counting only verified <code>PASS</code> rows:</p>
+<table>
+<thead>
+<tr>
+<th>Status</th>
+<th>Count</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PASS</td>
+<td>60</td>
+</tr>
+<tr>
+<td>PARTIAL</td>
+<td>12</td>
+</tr>
+<tr>
+<td>NOT-READY</td>
+<td>8</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>80</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Honest completion = 60 / 80 = 75.0% PASS.</strong></p>
+<p>(If PARTIAL items were credited at half weight the figure would be
+~82.5%, but this review counts only fully-verified PASS toward the bar,
+per CLAUDE-1.)</p>
+<h3 id="verdict">Verdict</h3>
+<p><strong>The nominal close bar is ≥95%. The honest PASS rate is 75.0%,
+which does NOT meet the bar.</strong> Therefore HXC-1286 should remain
+<strong>Queued</strong>; this checklist ships as the deliverable
+artifact and the gap-list below is the remaining work. The repository is
+strong on implementation breadth (crypto/e2ee, attestation,
+observability, deployment manifests, docs-chain wiring, and a 2255-file
+test suite that compiles and passes on the host), but is <strong>not yet
+production-ready</strong> primarily because the automated
+quality/security gates are disabled and a core cross-platform primitive
+(WireGuard on macOS) lacks a real equivalent.</p>
+<h3 id="gap-list-remaining-work-to-reach-the-bar">Gap list (remaining
+work to reach the bar)</h3>
+<p>Highest severity first:</p>
+<ol type="1">
+<li><strong>CI/CD disabled (items 8, 9, 10, 16, 60).</strong> All
+workflows live under <code>.github/workflows/disabled/</code>. Re-enable
+go-build, lint, race, docs, vm_integration, and release so quality/docs
+gates run on every push/PR. Without this, “tests pass” is not
+continuously enforced.</li>
+<li><strong>WireGuard macOS parity (items 66, 67) — CLAUDE-2
+violation.</strong> <code>pkg/wireguard/manager.go</code> is
+kernel-<code>wgctrl</code>-only with a <code>NoOp</code> fallback;
+implement a real <code>wireguard-go</code> userspace path behind a
+darwin build tag.</li>
+<li><strong>Supply-chain / vuln scanning (items 34, 80).</strong> Add
+<code>govulncheck</code> + SBOM (and a dependabot/renovate config) and
+gate it in CI.</li>
+<li><strong>Migration runner is a placeholder (item 46).</strong> Wire
+<code>Makefile:migrate-up/down</code> to
+<code>scripts/run-migrations.sh</code> (or a real <code>migrate</code>
+invocation) instead of commented stubs.</li>
+<li><strong>mTLS-everywhere not confirmed deployed (item 33).</strong>
+HXC-600 still Queued; verify mTLS end-to-end with captured
+evidence.</li>
+<li><strong>Darwin GPU/device detection (items 64, 65).</strong> Confirm
+or implement real Metal/IOKit-backed probes for
+<code>internal/gpu</code> and <code>pkg/device</code> rather than
+<code>_other.go</code> fallbacks.</li>
+<li><strong>Coverage gate not enforced (item 7).</strong>
+<code>pkg/covgate</code> machinery exists but no active gate asserts the
+80% threshold; wire it into CI.</li>
+<li><strong>Challenge sink-side evidence (item 21).</strong> Execute
+HelixQA challenges and capture per-feature evidence to satisfy CLAUDE-1
+§4 (challenge PASS must prove a working feature).</li>
+</ol>
+<h3 id="notes-on-honesty-claude-1">Notes on honesty (CLAUDE-1)</h3>
+<ul>
+<li>Items where the framework/file exists but functional execution was
+not verified in this review are marked PARTIAL, not PASS (e.g. items 16,
+21, 60).</li>
+<li><code>pkg/resources/proc_mock.go</code> was inspected and is
+<strong>correctly</strong> gated <code>!linux &amp;&amp; !darwin</code>,
+so it does not mask the host platforms — hence items 61–63 are honest
+PASS.</li>
+<li>The WireGuard finding is deliberately NOT-READY despite
+<code>GOOS=darwin go build</code> succeeding, because compilation
+success does not equal runtime function — <code>wgctrl</code> cannot
+drive a WireGuard interface on macOS.</li>
+</ul>
+</body>
+</html>
