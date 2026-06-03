@@ -853,38 +853,43 @@ references; <code>pkg/resources</code> test passes on darwin host.</td>
 <tr>
 <td>64</td>
 <td>Device probe per-OS</td>
-<td>PARTIAL</td>
-<td><code>pkg/device/probe_other.go</code> present; darwin-specific
-probe not confirmed (only an <code>_other</code> fallback was located in
-this review).</td>
+<td>PASS</td>
+<td><code>pkg/device/probe_gpu_darwin.go</code> (darwin) probes via
+<code>system_profiler -json</code>; <code>probe_gpu_other.go</code> is
+the non-darwin fallback. Real-host oracle match: Apple M3 Pro,
+19327352832 B VRAM, metal=true (HXC-1634).</td>
 </tr>
 <tr>
 <td>65</td>
 <td>internal/gpu detect per-OS</td>
-<td>PARTIAL</td>
-<td><code>internal/gpu/detect_other.go</code> exists; a real darwin
-(<code>Metal</code>/IOKit) detector was not confirmed in this
-review.</td>
+<td>PASS</td>
+<td><code>internal/gpu/detect_darwin.go</code> (//go:build darwin) is a
+REAL darwin detector (system_profiler/Metal via
+<code>backend_darwin_apple.go</code>); <code>detect_linux.go</code>
+covers Linux; <code>detect_other.go</code> is correctly scoped
+<code>!linux &amp;&amp; !darwin</code>. (Prior PARTIAL was a review
+under-assessment.)</td>
 </tr>
 <tr>
 <td>66</td>
 <td>WireGuard userspace equivalent on macOS</td>
-<td>NOT-READY</td>
-<td><code>pkg/wireguard/manager.go</code> uses kernel
-<code>wgctrl.New()</code> (Linux netlink) with <strong>no darwin
-<code>wireguard-go</code>/userspace build-tag variant</strong>; only a
-<code>NoOp</code> config flag exists. CLAUDE-2 §4 explicitly names this
-hotspot. <code>GOOS=darwin go build</code> compiles but wgctrl is
-non-functional on macOS at runtime.</td>
+<td>PASS</td>
+<td><code>pkg/wireguard/netstack_darwin.go</code> (//go:build darwin)
+implements a REAL userspace WireGuard via gVisor netstack
+(<code>netstack.CreateNetTUN</code> + <code>device.NewDevice</code> +
+<code>conn.NewDefaultBind</code>); no root. Test moves real TCP traffic
+through the encrypted tunnel between two peers (HXC-1633). Linux
+<code>wgctrl</code> path intact.</td>
 </tr>
 <tr>
 <td>67</td>
 <td>No <code>!linux</code> stub masquerading as real feature</td>
-<td>PARTIAL</td>
-<td><code>pkg/resources</code> stubs are correctly limited to
-<code>!linux &amp;&amp; !darwin</code>; however the WireGuard
-<code>NoOp</code> path (item 66) is effectively a non-functional
-fallback on macOS.</td>
+<td>PASS</td>
+<td>The WireGuard <code>NoOp</code>/stub macOS path is replaced by a
+real gVisor-netstack darwin device (HXC-1633);
+<code>pkg/resources</code> stubs remain correctly limited to
+<code>!linux &amp;&amp; !darwin</code>. No real-operation feature behind
+a stub on darwin.</td>
 </tr>
 <tr>
 <td>68</td>
@@ -1037,10 +1042,12 @@ containers, EventBus); <code>go.sum</code> present.</td>
 <tr>
 <td>80</td>
 <td>Automated dependency update / vuln workflow</td>
-<td>NOT-READY</td>
-<td>No dependabot/renovate config found; no <code>govulncheck</code> in
-scripts or (disabled) CI; combined with item 8 there is no automated
-dependency-security gate.</td>
+<td>PARTIAL</td>
+<td><code>govulncheck</code> run + all reachable advisories fixed
+(HXC-1630/1631/1632) and <code>make sbom</code> (cyclonedx-gomod) emits
+CycloneDX SBOMs (HXC-1635). Remaining: an automated dependency-update
+mechanism (dependabot/renovate) — note the no-CI constitutional rule
+constrains the gating form.</td>
 </tr>
 </tbody>
 </table>
@@ -1058,15 +1065,15 @@ Tally</h2>
 <tbody>
 <tr>
 <td>PASS</td>
-<td>61</td>
+<td>65</td>
 </tr>
 <tr>
 <td>PARTIAL</td>
-<td>13</td>
+<td>11</td>
 </tr>
 <tr>
 <td>NOT-READY</td>
-<td>6</td>
+<td>4</td>
 </tr>
 <tr>
 <td><strong>Total</strong></td>
@@ -1074,13 +1081,13 @@ Tally</h2>
 </tr>
 </tbody>
 </table>
-<p><strong>Honest completion = 61 / 80 = 76.25% PASS.</strong></p>
+<p><strong>Honest completion = 65 / 80 = 81.25% PASS.</strong></p>
 <p>(If PARTIAL items were credited at half weight the figure would be
 ~82.5%, but this review counts only fully-verified PASS toward the bar,
 per CLAUDE-1.)</p>
 <h3 id="verdict">Verdict</h3>
 <p><strong>The nominal close bar is ≥95%. The honest PASS rate is
-76.25%, which does NOT meet the bar.</strong> Therefore HXC-1286 should
+81.25%, which does NOT meet the bar.</strong> Therefore HXC-1286 should
 remain <strong>Queued</strong>; this checklist ships as the deliverable
 artifact and the gap-list below is the remaining work. The repository is
 strong on implementation breadth (crypto/e2ee, attestation,
@@ -1098,11 +1105,10 @@ workflows live under <code>.github/workflows/disabled/</code>. Re-enable
 go-build, lint, race, docs, vm_integration, and release so quality/docs
 gates run on every push/PR. Without this, “tests pass” is not
 continuously enforced.</li>
-<li><strong>WireGuard macOS parity (items 66, 67) — CLAUDE-2
-violation.</strong> <code>pkg/wireguard/manager.go</code> is
-kernel-<code>wgctrl</code>-only with a <code>NoOp</code> fallback;
-implement a real <code>wireguard-go</code> userspace path behind a
-darwin build tag.</li>
+<li><strong>WireGuard macOS parity (items 66, 67) — RESOLVED
+(HXC-1633).</strong> Real gVisor-netstack userspace WireGuard on darwin
+(pkg/wireguard/netstack_darwin.go); real tunnel datapath tested, no
+root.</li>
 <li><strong>Supply-chain / vuln scanning (items 34, 80) — vulns
 CLEARED.</strong> govulncheck run (HXC-1630) found 10 reachable
 advisories, now ALL FIXED (HXC-1631 toolchain go1.26.4 + HXC-1632 x/net
@@ -1114,10 +1120,10 @@ against a real postgres.</li>
 <li><strong>mTLS-everywhere not confirmed deployed (item 33).</strong>
 HXC-600 still Queued; verify mTLS end-to-end with captured
 evidence.</li>
-<li><strong>Darwin GPU/device detection (items 64, 65).</strong> Confirm
-or implement real Metal/IOKit-backed probes for
-<code>internal/gpu</code> and <code>pkg/device</code> rather than
-<code>_other.go</code> fallbacks.</li>
+<li><strong>Darwin GPU/device detection (items 64, 65) — RESOLVED
+(HXC-1634).</strong> pkg/device/probe_gpu_darwin.go probes via
+system_profiler (real-host oracle match); internal/gpu/detect_darwin.go
+already real. Was: <code>_other.go</code> fallbacks.</li>
 <li><strong>Coverage gate not enforced (item 7).</strong>
 <code>pkg/covgate</code> machinery exists but no active gate asserts the
 80% threshold; wire it into CI.</li>

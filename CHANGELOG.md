@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 92 — last CLAUDE-2 hotspots + ChaCha + SBOM (HXC-1633/1634/1635/1561; operator-authorized local deps; conductor-gated):**
+  - HXC-1633 (CLAUDE-2): real userspace WireGuard on macOS via gVisor netstack (pkg/wireguard/netstack_darwin.go) — real Noise handshake + encrypted TCP datapath between two peers, no root; linux wgctrl path intact; go.mod records gvisor (standalone build green). Mutation neutering AddPeer fails the tunnel test.
+  - HXC-1634 (CLAUDE-2): real darwin GPU probe via system_profiler -json (pkg/device) — real-host oracle match (Apple M3 Pro/19.3GB/metal). Mutation breaking JSON tags => 0 GPUs.
+  - HXC-1635: make sbom via cyclonedx-gomod => CycloneDX SBOMs main/api-v1/security (96/6/2 comps), jq-validated.
+  - HXC-1561 (security submodule): ChaCha20-Poly1305 AEAD suite via x/crypto (RFC-8439 KAT); AES-GCM default preserved; dep clause amended.
+  PRR (HXC-1286) rises to 65/80 (81.25%): items 64/65/66/67 -> PASS, item 80 -> PARTIAL.
 - **Wave 90 — clear ALL govulncheck-reachable advisories (HXC-1631 + HXC-1632; conductor-gated security remediation):**
   - HXC-1632: `golang.org/x/net` v0.54.0 -> v0.55.0 (clears GO-2026-5026 idna, reachable in the gateway).
   - HXC-1631: pinned `toolchain go1.26.4` in main/api/v1/security (+go.work) — clears 9 reachable Go stdlib advisories (html/template XSS, net/http HTTP/2 SETTINGS infinite-loop DoS, crypto/x509, net/mail quadratic, net Dial panic), all fixed in go1.26.3/1.26.4. Verified: `govulncheck ./...` = "No vulnerabilities found" across all 3 modules; whole-tree build + tests green under go1.26.4. Raises PRR item 34 to PARTIAL (scan run + vulns fixed; SBOM/dependabot pending). (security toolchain pin: submodule 6154969.)

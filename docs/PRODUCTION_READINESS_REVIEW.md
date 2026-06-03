@@ -129,10 +129,10 @@ Commands run during this review (sink-side evidence):
 | 61 | Resources reader split by build tag | PASS | `pkg/resources/proc_linux.go`, `proc_darwin.go` (and `proc_mock.go` gated `//go:build !linux && !darwin`, i.e. neither host OS). |
 | 62 | Darwin resource probe uses real syscalls | PASS | `pkg/resources/proc_darwin.go` has 39 `sysctl`/`host_statistics`/`vm_stat`/`mach` references; `pkg/resources` test passes on darwin host. |
 | 63 | GPU/DRM probe per-OS | PASS | `pkg/resources/drm_linux.go`, `drm_darwin.go`, `accel_linux.go`, `accel_darwin.go` (with `_other.go` only for `!linux && !darwin`). |
-| 64 | Device probe per-OS | PARTIAL | `pkg/device/probe_other.go` present; darwin-specific probe not confirmed (only an `_other` fallback was located in this review). |
-| 65 | internal/gpu detect per-OS | PARTIAL | `internal/gpu/detect_other.go` exists; a real darwin (`Metal`/IOKit) detector was not confirmed in this review. |
-| 66 | WireGuard userspace equivalent on macOS | NOT-READY | `pkg/wireguard/manager.go` uses kernel `wgctrl.New()` (Linux netlink) with **no darwin `wireguard-go`/userspace build-tag variant**; only a `NoOp` config flag exists. CLAUDE-2 §4 explicitly names this hotspot. `GOOS=darwin go build` compiles but wgctrl is non-functional on macOS at runtime. |
-| 67 | No `!linux` stub masquerading as real feature | PARTIAL | `pkg/resources` stubs are correctly limited to `!linux && !darwin`; however the WireGuard `NoOp` path (item 66) is effectively a non-functional fallback on macOS. |
+| 64 | Device probe per-OS | PASS | `pkg/device/probe_gpu_darwin.go` (darwin) probes via `system_profiler -json`; `probe_gpu_other.go` is the non-darwin fallback. Real-host oracle match: Apple M3 Pro, 19327352832 B VRAM, metal=true (HXC-1634). |
+| 65 | internal/gpu detect per-OS | PASS | `internal/gpu/detect_darwin.go` (//go:build darwin) is a REAL darwin detector (system_profiler/Metal via `backend_darwin_apple.go`); `detect_linux.go` covers Linux; `detect_other.go` is correctly scoped `!linux && !darwin`. (Prior PARTIAL was a review under-assessment.) |
+| 66 | WireGuard userspace equivalent on macOS | PASS | `pkg/wireguard/netstack_darwin.go` (//go:build darwin) implements a REAL userspace WireGuard via gVisor netstack (`netstack.CreateNetTUN` + `device.NewDevice` + `conn.NewDefaultBind`); no root. Test moves real TCP traffic through the encrypted tunnel between two peers (HXC-1633). Linux `wgctrl` path intact. |
+| 67 | No `!linux` stub masquerading as real feature | PASS | The WireGuard `NoOp`/stub macOS path is replaced by a real gVisor-netstack darwin device (HXC-1633); `pkg/resources` stubs remain correctly limited to `!linux && !darwin`. No real-operation feature behind a stub on darwin. |
 | 68 | NAT traversal / STUN cross-platform | PASS | `pkg/wireguard/stun.go`, `holepunch.go`, `nat_traversal.go` are pure-Go (no per-OS tag) with tests. |
 
 ## H. Resource / Host Safety (items 69–73)
@@ -160,7 +160,7 @@ Commands run during this review (sink-side evidence):
 | # | Item | Status | Evidence |
 |---|------|--------|----------|
 | 79 | Pinned deps + local module replaces | PASS | `go.mod` pins (grpc 1.81.1, etcd 3.6.11, crypto 0.52.0, etc.) + 3 `replace` directives (HelixConstitution, containers, EventBus); `go.sum` present. |
-| 80 | Automated dependency update / vuln workflow | NOT-READY | No dependabot/renovate config found; no `govulncheck` in scripts or (disabled) CI; combined with item 8 there is no automated dependency-security gate. |
+| 80 | Automated dependency update / vuln workflow | PARTIAL | `govulncheck` run + all reachable advisories fixed (HXC-1630/1631/1632) and `make sbom` (cyclonedx-gomod) emits CycloneDX SBOMs (HXC-1635). Remaining: an automated dependency-update mechanism (dependabot/renovate) — note the no-CI constitutional rule constrains the gating form. |
 
 ---
 
@@ -170,19 +170,19 @@ Counting only verified `PASS` rows:
 
 | Status | Count |
 |--------|-------|
-| PASS | 61 |
-| PARTIAL | 13 |
-| NOT-READY | 6 |
+| PASS | 65 |
+| PARTIAL | 11 |
+| NOT-READY | 4 |
 | **Total** | **80** |
 
-**Honest completion = 61 / 80 = 76.25% PASS.**
+**Honest completion = 65 / 80 = 81.25% PASS.**
 
 (If PARTIAL items were credited at half weight the figure would be ~82.5%, but this review
 counts only fully-verified PASS toward the bar, per CLAUDE-1.)
 
 ### Verdict
 
-**The nominal close bar is ≥95%. The honest PASS rate is 76.25%, which does NOT meet the bar.**
+**The nominal close bar is ≥95%. The honest PASS rate is 81.25%, which does NOT meet the bar.**
 Therefore HXC-1286 should remain **Queued**; this checklist ships as the deliverable artifact
 and the gap-list below is the remaining work. The repository is strong on implementation
 breadth (crypto/e2ee, attestation, observability, deployment manifests, docs-chain wiring,
@@ -198,15 +198,12 @@ Highest severity first:
    `.github/workflows/disabled/`. Re-enable go-build, lint, race, docs, vm_integration, and
    release so quality/docs gates run on every push/PR. Without this, "tests pass" is not
    continuously enforced.
-2. **WireGuard macOS parity (items 66, 67) — CLAUDE-2 violation.**
-   `pkg/wireguard/manager.go` is kernel-`wgctrl`-only with a `NoOp` fallback; implement a real
-   `wireguard-go` userspace path behind a darwin build tag.
+2. **WireGuard macOS parity (items 66, 67) — RESOLVED (HXC-1633).** Real gVisor-netstack userspace WireGuard on darwin (pkg/wireguard/netstack_darwin.go); real tunnel datapath tested, no root.
 3. **Supply-chain / vuln scanning (items 34, 80) — vulns CLEARED.** govulncheck run (HXC-1630) found 10 reachable advisories, now ALL FIXED (HXC-1631 toolchain go1.26.4 + HXC-1632 x/net v0.55.0; scan = "No vulnerabilities found"). Remaining: SBOM + dependabot/renovate + a continuous gate.
 4. **Migration runner (item 46) — RESOLVED (HXC-1629).** Makefile migrate-up/down now invoke scripts/run-migrations.sh, verified against a real postgres.
 5. **mTLS-everywhere not confirmed deployed (item 33).** HXC-600 still Queued; verify mTLS
    end-to-end with captured evidence.
-6. **Darwin GPU/device detection (items 64, 65).** Confirm or implement real
-   Metal/IOKit-backed probes for `internal/gpu` and `pkg/device` rather than `_other.go`
+6. **Darwin GPU/device detection (items 64, 65) — RESOLVED (HXC-1634).** pkg/device/probe_gpu_darwin.go probes via system_profiler (real-host oracle match); internal/gpu/detect_darwin.go already real. Was: `_other.go`
    fallbacks.
 7. **Coverage gate not enforced (item 7).** `pkg/covgate` machinery exists but no active gate
    asserts the 80% threshold; wire it into CI.
