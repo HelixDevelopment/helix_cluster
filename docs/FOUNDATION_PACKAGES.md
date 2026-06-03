@@ -130,7 +130,7 @@ Every foundation package follows the same engineering contract:
 | `hashslot` | CRC16 16,384 hash-slot router with MOVED/ASK in-flight migration redirection. |
 | `slotmigration` | Atomic live-session slot migration FSM (PREPARE → TRANSFER → COMMIT/ABORT). |
 | `fiber`, `pubsub`, `events`, `serde` | Framed transport, pub/sub, events, serialization. |
-| `events` (Avro) | Stdlib-only Avro-subset codec for domain events: flat primitive records, spec-faithful binary encoding (zig-zag varint, LE-IEEE-754 double), single-object framing (`0xC3 0x01` + CRC-64-AVRO fingerprint) so payloads are self-describing, a `SchemaRegistry` for schema-VALIDATED routing (unknown fingerprint rejected), and writer→reader schema RESOLUTION enabling backward+forward-compatible evolution (defaulted fields fill reader-only, writer-only fields skip). `NodeEventSchemaV1/V2` evolution round-trips both directions (HXC-1119). |
+| `events` (Avro) | Stdlib-only Avro-subset codec for domain events: flat primitive records, spec-faithful binary encoding (zig-zag varint, LE-IEEE-754 double), single-object framing (`0xC3 0x01` + CRC-64-AVRO fingerprint) so payloads are self-describing, a `SchemaRegistry` for schema-VALIDATED routing (unknown fingerprint rejected), and writer→reader schema RESOLUTION enabling backward+forward-compatible evolution (defaulted fields fill reader-only, writer-only fields skip). `NodeEventSchemaV1/V2` evolution round-trips both directions (HXC-1119). Wired into the live `NATSBackend` wire path (`WireAvro` mode: NodeEvent published as an Avro single-object payload, subscriber decodes via the registry; JSON default preserved), proven against a real NATS broker via `brokertest.StartNATS` asserting the `0xC3 0x01` marker on the wire (HXC-1626). |
 
 ## Edge
 

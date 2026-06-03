@@ -185,6 +185,27 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 82 — Avro codec wired into the live NATS event bus
+(HXC-1626; conductor-gated build/vet/-race + REAL-broker integration +
+load-bearing mutation):</strong>
+<ul>
+<li><code>pkg/events</code> — <code>NATSBackend</code> gains an Avro
+wire mode: <code>PublishNodeEvent</code> emits an Avro single-object
+payload (<code>0xC3 0x01</code> + CRC-64-AVRO fingerprint) when
+<code>WireAvro</code> is selected and <code>SubscribeNodeEvents</code>
+decodes via a <code>SchemaRegistry</code> (validated routing); JSON
+stays the default (back-compat). Concrete Avro schemas +
+<code>Encode*</code>/<code>Decode*</code> helpers added for
+<code>SessionEvent</code>/<code>SchedulerEvent</code>/<code>AuditEvent</code>
+(backend typed pub/sub for those three tracked HXC-1627). Proven by
+<code>TestNATSBackend_AvroWire_RealRoundTrip</code>
+(<code>//go:build integration</code>) which boots a <strong>real
+NATS+JetStream broker</strong> via <code>brokertest.StartNATS</code>,
+captures the on-wire bytes and asserts the Avro marker (JSON would start
+with <code>{</code>), and round-trips schema evolution both directions
+across the live bus. Mutation forcing JSON on the publish path fails the
+on-wire assertion (HXC-1626).</li>
+</ul></li>
 <li><strong>Wave 81 — E2EE framed-transport concurrency + oversize
 hardening (HXC-1567; conductor-gated -race + load-bearing
 mutation):</strong>
