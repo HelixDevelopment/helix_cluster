@@ -185,6 +185,32 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 74 — accelerator probing, power-aware edge &amp; raft
+durability (5 items, all independently gated build/vet/-race +
+load-bearing mutation bite):</strong>
+<ul>
+<li><code>pkg/resources</code> accelerator reporting:
+<code>GPUInfo.TFLOPS</code> +
+<code>Accelerators{NPUTops,FPGALogicElements,QPUPresent}</code>, real
+per-OS probe (darwin Apple-GPU TFLOPS from <code>system_profiler</code>,
+linux sysfs PCI catalog) + operator override-label fallback
+(HXC-1300).</li>
+<li><code>pkg/powergater</code> — charging-gated
+<code>CanAcceptWork() (bool, reason)</code> work-acceptance guard with
+real darwin <code>pmset</code> / linux sysfs <code>PowerSource</code>
+(HXC-1175).</li>
+<li><code>pkg/edgeheartbeat</code> — battery/charging/thermal/network
+heartbeat + churn-timeout collector over a real loopback transport, real
+per-OS <code>TelemetrySource</code> (HXC-1185).</li>
+<li><code>pkg/multiraft</code> <strong>durability fix</strong>: a
+<code>ShardStorage</code> persistence error now <strong>parks</strong>
+the un-persisted <code>Ready</code> and skips <code>Advance</code> (no
+false “durably handled”), instead of swallowing the error
+(HXC-917).</li>
+<li><code>docs/NODE_PROVISIONING_BOUNDARY.md</code> — normative
+no-jailbreak/no-root/no-unlock provisioning boundary, registered in
+docs_chain (HXC-1146).</li>
+</ul></li>
 <li><strong>Foundation distributed-systems library
 (<code>pkg/</code>)</strong> — a large, growing pure-Go, deterministic,
 mutation-tested package set. Recent additions include:

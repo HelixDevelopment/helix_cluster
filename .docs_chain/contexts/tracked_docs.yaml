@@ -71,6 +71,11 @@ nodes:
   arch_html: { kind: html,     path: docs/export/ARCHITECTURE.html }
   arch_pdf:  { kind: pdf,      path: docs/export/ARCHITECTURE.pdf }
   arch_docx: { kind: docx,     path: docs/export/ARCHITECTURE.docx }
+  # --- node-provisioning boundary (HXC-1146; provisions operator-controlled nodes, no device-security bypass) ---
+  npbound_md:   { kind: markdown, path: docs/NODE_PROVISIONING_BOUNDARY.md }
+  npbound_html: { kind: html,     path: docs/export/NODE_PROVISIONING_BOUNDARY.html }
+  npbound_pdf:  { kind: pdf,      path: docs/export/NODE_PROVISIONING_BOUNDARY.pdf }
+  npbound_docx: { kind: docx,     path: docs/export/NODE_PROVISIONING_BOUNDARY.docx }
 edges:
   - { type: derive-from, from: cont_md,  to: cont_html, transform: md2html }
   - { type: derive-from, from: cont_html, to: cont_pdf, transform: html2pdf }
@@ -114,6 +119,9 @@ edges:
   - { type: derive-from, from: arch_md,   to: arch_html, transform: md2html }
   - { type: derive-from, from: arch_html, to: arch_pdf,  transform: html2pdf }
   - { type: derive-from, from: arch_md,   to: arch_docx, transform: md2docx }
+  - { type: derive-from, from: npbound_md,   to: npbound_html, transform: md2html }
+  - { type: derive-from, from: npbound_html, to: npbound_pdf,  transform: html2pdf }
+  - { type: derive-from, from: npbound_md,   to: npbound_docx, transform: md2docx }
 transforms:
   md2html:  { builtin: pandoc-html }
   html2pdf: { builtin: weasyprint-pdf }

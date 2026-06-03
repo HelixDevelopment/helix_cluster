@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>NODE_PROVISIONING_BOUNDARY</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">NODE_PROVISIONING_BOUNDARY</h1>
+</header>
+<h1 id="helix-cluster-os-node-provisioning-boundary">Helix Cluster OS —
+Node-Provisioning Boundary</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-06-03</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>HXC-1146.</strong> This document is the canonical, normative
+statement of the node-provisioning <strong>boundary</strong> for Helix
+Cluster OS. It defines, without ambiguity, what the project does and
+does <strong>not</strong> do when a node is brought into the cluster. It
+is binding on every component that provisions, flashes, onboards,
+enrolls, or attests a node.</p>
+</blockquote>
+<hr />
+<h2 id="normative-statement">1. Normative Statement</h2>
+<p><strong>Helix Cluster OS provisions and onboards nodes that the
+operator already controls and has lawful administrative access to. It
+does NOT defeat, bypass, or weaken any device’s security
+model.</strong></p>
+<p>The project’s provisioning surface — building agent images, flashing
+operator-owned boards, side-loading the agent onto operator-controlled
+devices, enrolling owned servers, mesh enrollment, attestation, and
+trust admission — begins <strong>after</strong> the operator has lawful
+root/admin control of the device. The act of <em>obtaining</em> that
+control is <strong>out of scope</strong> and is the operator’s own,
+independently-acquired responsibility.</p>
+<p>The verbs <strong>MUST</strong>, <strong>MUST NOT</strong>,
+<strong>SHALL</strong>, and <strong>SHALL NOT</strong> in this document
+are normative (RFC 2119 sense).</p>
+<hr />
+<h2 id="out-of-scope-the-project-must-not-implement">2. OUT OF SCOPE
+(the project MUST NOT implement)</h2>
+<p>Helix Cluster OS <strong>MUST NOT</strong> implement, ship, bundle,
+document-as-a-feature, or automate any of the following, because each
+requires defeating a device’s security model:</p>
+<ul>
+<li><strong>Jailbreaking</strong> — escaping a vendor-locked OS sandbox
+(e.g. consoles, locked mobile OSes).</li>
+<li><strong>Rooting</strong> — privilege-escalation exploits to obtain
+administrative access the device’s owner has not been granted by lawful
+means.</li>
+<li><strong>Bootloader unlocking via exploit</strong> — defeating a
+locked or signed bootloader / verified-boot / secure-boot chain.</li>
+<li><strong>Carrier / SIM / network unlock</strong> — removing carrier
+or operator locks.</li>
+<li><strong>DRM / signature / fuse / TPM bypass</strong> — circumventing
+code-signing, e-fuse, secure-enclave, or attestation enforcement that
+the device vendor put in place.</li>
+<li><strong>Any OS- or security-bypass</strong> — any technique whose
+purpose is to obtain access that a device’s security model is designed
+to deny.</li>
+</ul>
+<p>A pull request, package, script, or document that adds any of the
+above is a boundary violation and a release blocker. There is
+<strong>no</strong> flag, build tag, or “research mode” that re-enables
+it.</p>
+<hr />
+<h2 id="in-scope-the-project-does-implement">3. IN SCOPE (the project
+DOES implement)</h2>
+<p>Helix Cluster OS provisions nodes the operator <strong>already
+controls</strong>. In scope:</p>
+<ul>
+<li><strong>Flashing operator-owned SBCs.</strong> Building and writing
+Helix node images to single-board computers the operator physically owns
+and is free to reflash (e.g. ARM64 SBCs), using the board’s normal,
+vendor-sanctioned flashing path.</li>
+<li><strong>Side-loading the agent on operator-controlled
+devices.</strong> Installing the Helix node agent onto devices where the
+operator already has lawful admin rights and the platform permits
+app/binary installation (e.g. side-loading the agent build on an Android
+device the operator administers, installing on a developer-unlocked
+handheld the operator owns).</li>
+<li><strong>Enrolling owned servers and workstations.</strong>
+Onboarding datacenter GPUs, servers, and workstations the operator owns
+or is lawfully authorized to administer.</li>
+<li><strong>Cluster onboarding for already-controlled nodes</strong> —
+mesh enrollment (WireGuard), membership (SWIM gossip), service
+discovery, GPU/resource attestation, and trust admission. These all
+operate on a node to which the operator already holds admin access.</li>
+</ul>
+<p>Related roadmap work items: ARM64 cross-compile / toolchain and SBC
+node agent provisioning, and the Android / edge-mobile agent track (see
+<em>Phase 3 — Edge/mobile agents (ARM64, Android, iOS)</em> in <a
+href="research/PHASE_2_ROADMAP.md"><code>docs/research/PHASE_2_ROADMAP.md</code></a>).
+Each builds and installs an agent for a node the operator already
+controls; none unlocks a device.</p>
+<hr />
+<h2 id="lawful-control-precondition">4. Lawful-Control Precondition</h2>
+<p>Every in-scope provisioning path assumes — and the operator warrants
+— that the operator has <strong>lawful administrative control</strong>
+of the target node:</p>
+<ol type="1">
+<li>The operator <strong>owns</strong> the device, or is
+<strong>explicitly authorized</strong> by the owner to administer it;
+and</li>
+<li>Admin/root access was obtained by <strong>lawful, vendor-sanctioned
+means</strong> (the operator flashed it, the device shipped
+operator-administered, the operator was granted credentials, the device
+is developer-unlocked by its own owner), <strong>not</strong> by any
+technique in §2.</li>
+</ol>
+<p>Helix Cluster OS treats this precondition as already satisfied at the
+point of provisioning. It neither provides nor automates the means to
+satisfy it by bypassing a device’s protections.</p>
+<hr />
+<h2 id="rationale-security-trust-model">5. Rationale — Security &amp;
+Trust Model</h2>
+<p>Helix’s security model is <strong>trust-by-attestation among
+operator-controlled nodes</strong>, not trust-by-conquest of locked
+devices:</p>
+<ul>
+<li><strong>Admission requires attestation, not exploitation.</strong> A
+node joins via cryptographic identity (SPIFFE federation), mesh keys
+(WireGuard), and hardware/GPU attestation challenge/response. These
+prove <em>what</em> a node is to the cluster; they presuppose the
+operator already administers it. They are not, and must never become, a
+means of seizing a device.</li>
+<li><strong>The bypass surface is a non-goal and a liability.</strong>
+Shipping unlock/exploit tooling would expand the attack surface,
+undermine the attestation chain, and create legal and supply-chain
+exposure entirely orthogonal to the project’s purpose (orchestrating
+compute across nodes operators already run).</li>
+<li><strong>Clarity for contributors and reviewers.</strong> Code review
+(CLAUDE-1) and the governance rules treat any device-security-bypass
+contribution as a first-class defect. This document is the authoritative
+reference reviewers cite when rejecting such work.</li>
+</ul>
+<p>In short: <strong>we provision the nodes you control; we do not
+unlock the ones you don’t.</strong></p>
+<hr />
+<h2 id="cross-references">6. Cross-References</h2>
+<ul>
+<li><a href="../README.md"><code>README.md</code></a> — project overview
+and Documentation index.</li>
+<li><a href="../CLAUDE.md"><code>CLAUDE.md</code></a> — AI-agent
+engineering &amp; governance rules (CLAUDE-1 usability, CLAUDE-2
+cross-platform parity, CLAUDE-3 docs-sync).</li>
+<li><a href="ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a> —
+L0–L7 architecture; mesh, membership, discovery, and attestation
+components referenced above.</li>
+<li><a
+href="research/PHASE_2_ROADMAP.md"><code>docs/research/PHASE_2_ROADMAP.md</code></a>
+— console / edge node integration context and the edge/mobile agent
+track.</li>
+</ul>
+</body>
+</html>

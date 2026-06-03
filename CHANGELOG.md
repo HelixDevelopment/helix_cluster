@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 74 — accelerator probing, power-aware edge & raft durability (5 items, all independently gated build/vet/-race + load-bearing mutation bite):**
+  - `pkg/resources` accelerator reporting: `GPUInfo.TFLOPS` + `Accelerators{NPUTops,FPGALogicElements,QPUPresent}`, real per-OS probe (darwin Apple-GPU TFLOPS from `system_profiler`, linux sysfs PCI catalog) + operator override-label fallback (HXC-1300).
+  - `pkg/powergater` — charging-gated `CanAcceptWork() (bool, reason)` work-acceptance guard with real darwin `pmset` / linux sysfs `PowerSource` (HXC-1175).
+  - `pkg/edgeheartbeat` — battery/charging/thermal/network heartbeat + churn-timeout collector over a real loopback transport, real per-OS `TelemetrySource` (HXC-1185).
+  - `pkg/multiraft` **durability fix**: a `ShardStorage` persistence error now **parks** the un-persisted `Ready` and skips `Advance` (no false "durably handled"), instead of swallowing the error (HXC-917).
+  - `docs/NODE_PROVISIONING_BOUNDARY.md` — normative no-jailbreak/no-root/no-unlock provisioning boundary, registered in docs_chain (HXC-1146).
 - **Foundation distributed-systems library (`pkg/`)** — a large, growing pure-Go, deterministic, mutation-tested package set. Recent additions include:
   - Consensus/coordination: `voting`, `failconfirm`, `heartbeatcoalescer`, `splitbrainalert`.
   - Replication/state: `mvcc` (B-tree time-travel store), `antientropy` (hinted-handoff + read-repair + Merkle diff), `watchmanager` (synced/unsynced/victim watch groups), `crdt`/`merkle`.

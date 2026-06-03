@@ -256,7 +256,11 @@ leader loss while others keep committing. Includes a
 <code>LeaseTracker</code> for CockroachDB-style leaseholder local reads
 (no Raft round-trip; follower reads route via
 <code>RaftTransport.SendRead</code>; lease expiry re-routes the fast
-path).</td>
+path). Durability-correct Ready loop: a <code>ShardStorage</code>
+<code>SetHardState</code>/<code>Append</code> persistence error
+<strong>parks</strong> the un-persisted <code>Ready</code> and skips
+<code>Advance</code> so raft re-presents it (never falsely marking it
+durably handled) (HXC-917).</td>
 </tr>
 <tr>
 <td><code>kraft</code></td>
@@ -499,6 +503,16 @@ Management</h2>
 <td><code>pool</code></td>
 <td>Node/instance pool manager with a <code>GPUProvider</code>
 provisioning seam.</td>
+</tr>
+<tr>
+<td><code>resources</code></td>
+<td>Node resource probe (CPU/mem/disk/net/GPU) extended with accelerator
+reporting: <code>GPUInfo.TFLOPS</code> +
+<code>Accelerators{NPUTops,FPGALogicElements,QPUPresent}</code>. Real
+per-OS probe (darwin Apple-GPU TFLOPS from <code>system_profiler</code>
+core count; linux sysfs PCI-identity catalog) with an operator
+override-label fallback for non-self-probeable NPU/FPGA/QPU
+(HXC-1300).</td>
 </tr>
 <tr>
 <td><code>local</code></td>
@@ -765,6 +779,24 @@ SHA-256 checksum.</td>
 <tr>
 <td><code>edgefusion</code></td>
 <td>Edge data fusion.</td>
+</tr>
+<tr>
+<td><code>edgeheartbeat</code></td>
+<td>Edge heartbeat carrying battery%/charging/CPU-temp/network-type with
+a churn-tolerant collector that marks a device offline past a
+configurable timeout; real per-OS <code>TelemetrySource</code> (darwin
+<code>pmset</code>/<code>sysctl</code>, linux
+<code>/sys</code>+<code>/proc/net</code>) behind one interface, injected
+clock, validated over a real loopback transport (HXC-1185).</td>
+</tr>
+<tr>
+<td><code>powergater</code></td>
+<td>Charging-gated work-acceptance guard:
+<code>CanAcceptWork() (bool, reason)</code> returning
+<code>not_charging</code>/<code>battery_low_X%</code>/<code>daytime</code>/<code>cpu_hot_XC</code>
+from a real per-OS <code>PowerSource</code> (darwin <code>pmset</code>,
+linux <code>/sys/class/power_supply</code>+<code>thermal</code>) behind
+one interface (HXC-1175).</td>
 </tr>
 </tbody>
 </table>

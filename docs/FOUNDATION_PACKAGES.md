@@ -22,7 +22,7 @@ Every foundation package follows the same engineering contract:
 | `splitbrain`, `splitbrainalert` | Split-brain detection and alerting. |
 | `phasegate` | Sub-phase dependency-gate validation. |
 | `epochresolve` | Config-epoch failover slot-ownership conflict resolution (highest-epoch wins, deterministic lexicographic equal-epoch tiebreak, order-independent convergence). |
-| `multiraft` | `MultiRaftManager` partitioning cluster state into independent per-shard `go.etcd.io/raft/v3` groups (own leader each) with per-shard `Propose` routing and an in-process `RaftTransport`; write throughput scales with shard count instead of hitting the single-leader ceiling, and a shard re-elects on leader loss while others keep committing. Includes a `LeaseTracker` for CockroachDB-style leaseholder local reads (no Raft round-trip; follower reads route via `RaftTransport.SendRead`; lease expiry re-routes the fast path). |
+| `multiraft` | `MultiRaftManager` partitioning cluster state into independent per-shard `go.etcd.io/raft/v3` groups (own leader each) with per-shard `Propose` routing and an in-process `RaftTransport`; write throughput scales with shard count instead of hitting the single-leader ceiling, and a shard re-elects on leader loss while others keep committing. Includes a `LeaseTracker` for CockroachDB-style leaseholder local reads (no Raft round-trip; follower reads route via `RaftTransport.SendRead`; lease expiry re-routes the fast path). Durability-correct Ready loop: a `ShardStorage` `SetHardState`/`Append` persistence error **parks** the un-persisted `Ready` and skips `Advance` so raft re-presents it (never falsely marking it durably handled) (HXC-917). |
 | `kraft` | KRaft-style self-managed Raft metadata quorum (`go.etcd.io/raft/v3`, no ZooKeeper): replicated `CreateTopic`/`ListTopics` + partition-leader assignment via a controller quorum, with controller election and controller-loss failover. |
 | `stonith` | Shoot-The-Other-Node-In-The-Head fencing: a `FencingAgent` interface with IPMI / AWS-EC2 / Azure-ARM / SBD-shared-disk / NoOp drivers and a `MultiLevelFencer` multi-level fallback, with sink-side fence confirmation (target reachable→unreachable). |
 
@@ -77,6 +77,7 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `pool` | Node/instance pool manager with a `GPUProvider` provisioning seam. |
+| `resources` | Node resource probe (CPU/mem/disk/net/GPU) extended with accelerator reporting: `GPUInfo.TFLOPS` + `Accelerators{NPUTops,FPGALogicElements,QPUPresent}`. Real per-OS probe (darwin Apple-GPU TFLOPS from `system_profiler` core count; linux sysfs PCI-identity catalog) with an operator override-label fallback for non-self-probeable NPU/FPGA/QPU (HXC-1300). |
 | `local` | Local GPU TCO model (amortized capital + power, utilization-scaled). |
 | `costsched`, `latencysched` | Cost-aware and latency-aware schedulers. |
 | `healthmonitor` | Edge-triggered health transitions with auto-failover / recovery callbacks. |
@@ -135,6 +136,8 @@ Every foundation package follows the same engineering contract:
 | `edgeregistry` | Multi-tier (T3–T8) edge device registration with tier/trust/capability labels. |
 | `edgeverify` | Redundant edge-output verification against a trusted anchor via SHA-256 checksum. |
 | `edgefusion` | Edge data fusion. |
+| `edgeheartbeat` | Edge heartbeat carrying battery%/charging/CPU-temp/network-type with a churn-tolerant collector that marks a device offline past a configurable timeout; real per-OS `TelemetrySource` (darwin `pmset`/`sysctl`, linux `/sys`+`/proc/net`) behind one interface, injected clock, validated over a real loopback transport (HXC-1185). |
+| `powergater` | Charging-gated work-acceptance guard: `CanAcceptWork() (bool, reason)` returning `not_charging`/`battery_low_X%`/`daytime`/`cpu_hot_XC` from a real per-OS `PowerSource` (darwin `pmset`, linux `/sys/class/power_supply`+`thermal`) behind one interface (HXC-1175). |
 
 ## Security & Verification
 

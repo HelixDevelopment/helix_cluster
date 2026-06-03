@@ -123,6 +123,7 @@ cd web && npm install && npm run dev
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — hardened L0–L7 architecture diagram + component map (lint-enforced by [`pkg/archlint`](pkg/archlint))
 - [`docs/FOUNDATION_PACKAGES.md`](docs/FOUNDATION_PACKAGES.md) — full catalogue of `pkg/` packages
 - [`docs/HXC_REGISTRY.md`](docs/HXC_REGISTRY.md) — the work-item registry model
+- [`docs/NODE_PROVISIONING_BOUNDARY.md`](docs/NODE_PROVISIONING_BOUNDARY.md) — node-provisioning boundary: Helix provisions operator-controlled nodes; it does **not** jailbreak/root/unlock or bypass any device security (HXC-1146)
 - [`CODING_STANDARDS_GO.md`](CODING_STANDARDS_GO.md) / [`CODING_STANDARDS_C.md`](CODING_STANDARDS_C.md) / [`CODING_STANDARDS_ZIG.md`](CODING_STANDARDS_ZIG.md) — language standards
 - [`DEVELOPMENT.md`](DEVELOPMENT.md) — development workflow
 - [`CHANGELOG.md`](CHANGELOG.md) — release history
