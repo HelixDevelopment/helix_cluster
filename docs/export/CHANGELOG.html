@@ -185,6 +185,27 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 75 — provider hardening, security &amp; boot readiness
+(5 items, all independently gated):</strong>
+<ul>
+<li><code>pkg/provider/runpod</code> — <code>Provision</code> no longer
+holds the mutex across the <code>ColdProvision</code> network RPC
+(concurrent cold provisions overlap; <code>reserved</code> counter
+preserves capacity), and <code>EndpointOf(id)</code> surfaces the
+reachable worker endpoint (HXC-919).</li>
+<li><code>pkg/marketplaceadapter</code> (<strong>security</strong>) —
+<code>buildSDL</code> YAML-encodes caller-controlled fields to contain
+manifest injection, and the Akash reputation gate is no longer
+bypassable by a zero-value adapter (HXC-918).</li>
+<li><code>pkg/provider/chutes</code> — <code>parseRetryAfter</code>
+HTTP-date branch + past-date clamp now covered by tests (HXC-920).</li>
+<li><code>internal/console</code> — <code>BootCoordinator</code> wired
+into the real <code>Registrar</code> via a <code>ReadyGate</code> so
+node registration blocks on boot readiness (HXC-1147).</li>
+<li><code>docs/guides/phase_02_architecture.md</code> — Phase-02
+architecture guide + Mermaid diagram, docs_chain-tracked
+(HXC-1164).</li>
+</ul></li>
 <li><strong>Wave 74 — accelerator probing, power-aware edge &amp; raft
 durability (5 items, all independently gated build/vet/-race +
 load-bearing mutation bite):</strong>

@@ -975,8 +975,13 @@ with HTTP-429 retry + ctx-interruptible backoff that honors
 <td><code>provider/runpod</code></td>
 <td>RunPodProvider serverless GPU adapter (implements
 <code>pool.GPUProvider</code>) with a warm-pool fast path (pre-warmed
-instances served before cold provisioning) over an injectable
-client.</td>
+instances served before cold provisioning) over an injectable client.
+<code>Provision</code> releases the mutex across the
+<code>ColdProvision</code> RPC (reserve-slot → unlock → RPC → relock →
+record/rollback) so concurrent cold provisions overlap while a
+<code>reserved</code> counter keeps capacity correct;
+<code>EndpointOf(id)</code> exposes the reachable worker endpoint
+(HXC-919).</td>
 </tr>
 <tr>
 <td><code>provider/aws</code></td>
@@ -1017,7 +1022,12 @@ with a <code>Name()</code>-keyed dispatch <code>Registry</code>, an
 HTTP-backed <code>ChutesAdapter</code> (non-2xx rejected), and an
 <code>AkashAdapter</code> (Cosmos/AKT reverse-auction pricing, SDL
 submission, provider-reputation gate) over an injectable client; routes
-work to the named marketplace.</td>
+work to the named marketplace. <code>buildSDL</code>
+YAML-double-quote-encodes caller-controlled <code>WorkSpec</code> fields
+(<code>yamlQuote</code>) so a crafted value cannot inject manifest
+structure, and the reputation gate clamps a non-positive
+<code>MinReputation</code> to a 0.5 safe floor so a zero-value
+<code>AkashAdapter{}</code> cannot admit everyone (HXC-918).</td>
 </tr>
 </tbody>
 </table>

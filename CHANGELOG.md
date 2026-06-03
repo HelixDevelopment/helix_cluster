@@ -8,6 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 75 — provider hardening, security & boot readiness (5 items, all independently gated):**
+  - `pkg/provider/runpod` — `Provision` no longer holds the mutex across the `ColdProvision` network RPC (concurrent cold provisions overlap; `reserved` counter preserves capacity), and `EndpointOf(id)` surfaces the reachable worker endpoint (HXC-919).
+  - `pkg/marketplaceadapter` (**security**) — `buildSDL` YAML-encodes caller-controlled fields to contain manifest injection, and the Akash reputation gate is no longer bypassable by a zero-value adapter (HXC-918).
+  - `pkg/provider/chutes` — `parseRetryAfter` HTTP-date branch + past-date clamp now covered by tests (HXC-920).
+  - `internal/console` — `BootCoordinator` wired into the real `Registrar` via a `ReadyGate` so node registration blocks on boot readiness (HXC-1147).
+  - `docs/guides/phase_02_architecture.md` — Phase-02 architecture guide + Mermaid diagram, docs_chain-tracked (HXC-1164).
 - **Wave 74 — accelerator probing, power-aware edge & raft durability (5 items, all independently gated build/vet/-race + load-bearing mutation bite):**
   - `pkg/resources` accelerator reporting: `GPUInfo.TFLOPS` + `Accelerators{NPUTops,FPGALogicElements,QPUPresent}`, real per-OS probe (darwin Apple-GPU TFLOPS from `system_profiler`, linux sysfs PCI catalog) + operator override-label fallback (HXC-1300).
   - `pkg/powergater` — charging-gated `CanAcceptWork() (bool, reason)` work-acceptance guard with real darwin `pmset` / linux sysfs `PowerSource` (HXC-1175).

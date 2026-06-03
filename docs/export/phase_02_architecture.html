@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_02_architecture</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_02_architecture</h1>
+</header>
+<h1 id="helix-cluster-os-phase-02-architecture-guide">Helix Cluster OS —
+Phase 02 Architecture Guide</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Revision</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Created</td>
+<td>2026-06-03</td>
+</tr>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>HXC-1164.</strong> This guide describes the Phase 02 runtime
+architecture: how an operator drives the cluster from the
+<strong>operator console / terminal-multiplexer UI</strong>, how nodes
+are knit together by the <strong>WireGuard + SWIM mesh</strong>, how
+<strong>discovery and the scheduler</strong> place work, and where the
+<strong>Linux-node integration boundary</strong> sits. It is a
+reader-facing companion to the canonical <a
+href="../ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a> (L0–L7
+component map) and to the normative <a
+href="../NODE_PROVISIONING_BOUNDARY.md"><code>docs/NODE_PROVISIONING_BOUNDARY.md</code></a>
+no-jailbreak boundary (HXC-1146). Use it to trace a single job from
+console submission all the way to execution on a Linux node.</p>
+</blockquote>
+<hr />
+<h2 id="scope">1. Scope</h2>
+<p>Phase 02 turns the single-node prototype into a multi-node
+distributed system (see <a
+href="../research/PHASE_2_ROADMAP.md"><code>docs/research/PHASE_2_ROADMAP.md</code></a>).
+The four moving parts a reader must understand to follow a job are:</p>
+<ol type="1">
+<li><strong>Operator console / terminal-multiplexer UI</strong> — the
+human entry point. Built on the session subsystem
+(<code>internal/session</code> / <code>pkg/session</code> with
+<code>pkg/session/backends</code> tmux + native-PTY backends) and
+reached through the gateway (<code>internal/gateway</code>).</li>
+<li><strong>The mesh</strong> — secure transport
+(<code>internal/wireguard</code>, HXC-1163) plus membership
+(<code>pkg/swim</code>, HXC-1344), with NAT traversal
+(<code>pkg/nattraversal</code>, HXC-1383) and ICE connectivity
+(<code>pkg/ice</code>, HXC-1349) where peers are not directly
+routable.</li>
+<li><strong>Discovery + scheduler</strong> — the service registry
+(<code>pkg/discovery</code>, HXC-1363) feeds the Omega-model scheduler
+(<code>pkg/scheduler</code> / <code>internal/scheduler</code>,
+HXC-1137), which filters and scores candidate nodes using node resource
+data (<code>pkg/resources</code>).</li>
+<li><strong>The Linux node</strong> — the node agent
+(<code>internal/node</code>, HXC-1159 → <code>cmd/helix-node</code>)
+and, for console/boot specifics, the operator-console boot adapter
+(<code>internal/console</code>, HXC-1147). This is where the
+<strong>no-jailbreak boundary</strong> applies.</li>
+</ol>
+<p>Each component above is a real package; the authoritative
+component→package→origin mapping lives in <a
+href="../ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a>’s
+Component Map, which is lint-enforced by <a
+href="../../pkg/archlint"><code>pkg/archlint</code></a>.</p>
+<hr />
+<h2 id="architecture-diagram">2. Architecture Diagram</h2>
+<pre class="mermaid"><code>flowchart TB
+    subgraph Operator[&quot;Operator Console / Terminal-Multiplexer UI&quot;]
+        TUI[&quot;TUI / terminal multiplexer&lt;br/&gt;(tmux + native-PTY backends)&quot;]
+        SESS[&quot;Session service&lt;br/&gt;internal/session · pkg/session&quot;]
+        TUI --&gt; SESS
+    end
+
+    subgraph Edge[&quot;Edge&quot;]
+        GW[&quot;Gateway&lt;br/&gt;internal/gateway (HXC-1469)&quot;]
+    end
+
+    subgraph Mesh[&quot;Cluster Mesh (WireGuard + SWIM)&quot;]
+        WG[&quot;WireGuard secure transport&lt;br/&gt;internal/wireguard (HXC-1163)&quot;]
+        SWIM[&quot;SWIM gossip membership&lt;br/&gt;pkg/swim (HXC-1344)&quot;]
+        NAT[&quot;NAT traversal / ICE&lt;br/&gt;pkg/nattraversal · pkg/ice&quot;]
+        WG --- SWIM
+        WG --- NAT
+    end
+
+    subgraph Placement[&quot;Discovery + Scheduling&quot;]
+        DISC[&quot;Service discovery registry&lt;br/&gt;pkg/discovery (HXC-1363)&quot;]
+        SCHED[&quot;Omega scheduler&lt;br/&gt;pkg/scheduler · internal/scheduler (HXC-1137)&quot;]
+        RES[&quot;Resource probe&lt;br/&gt;pkg/resources&quot;]
+        DISC --&gt; SCHED
+        RES --&gt; SCHED
+    end
+
+    subgraph Node[&quot;Linux Node (operator-controlled)&quot;]
+        AGENT[&quot;Node agent&lt;br/&gt;internal/node · cmd/helix-node (HXC-1159)&quot;]
+        BOOT[&quot;Console / boot adapter&lt;br/&gt;internal/console (HXC-1147)&quot;]
+        EXEC[&quot;Job execution / session backend&quot;]
+        AGENT --&gt; EXEC
+        BOOT --&gt; AGENT
+    end
+
+    SESS --&gt; GW
+    GW --&gt; SCHED
+    GW --&gt; WG
+    SWIM --&gt; DISC
+    AGENT --&gt; SWIM
+    AGENT --&gt; WG
+    AGENT --&gt; RES
+    SCHED --&gt; WG
+    WG --&gt; AGENT
+    AGENT --&gt; EXEC
+
+    BOUND[&quot;No-jailbreak boundary&lt;br/&gt;docs/NODE_PROVISIONING_BOUNDARY.md (HXC-1146)&quot;]
+    BOUND -. &quot;operator already holds lawful admin&quot; .-&gt; Node</code></pre>
+<p>The dashed edge marks the <strong>provisioning boundary</strong>:
+everything inside the <em>Linux Node</em> box presupposes the operator
+already holds lawful administrative control of that node. Helix never
+crosses that line to <em>obtain</em> control — see §5.</p>
+<hr />
+<h2 id="tracing-a-job-console-submission-node-execution">3. Tracing a
+Job: Console Submission → Node Execution</h2>
+<p>Follow one job end-to-end. Each step names the package that does the
+work.</p>
+<ol type="1">
+<li><strong>Submit from the console.</strong> The operator types into
+the terminal-multiplexer UI. The session subsystem
+(<code>internal/session</code>, <code>pkg/session</code>, with a
+<code>pkg/session/backends</code> tmux or native-PTY backend) captures
+the request and forwards it through the gateway
+(<code>internal/gateway</code>).</li>
+<li><strong>Gateway admits the request.</strong>
+<code>internal/gateway</code> authenticates and routes the submission
+toward the scheduler. All cluster-internal hops ride the secure
+transport rather than the public network.</li>
+<li><strong>Discovery supplies candidates.</strong> The scheduler reads
+the live service registry (<code>pkg/discovery</code>), whose membership
+view is fed by <strong>SWIM gossip</strong> (<code>pkg/swim</code>):
+only nodes currently <em>alive</em> in the membership list are eligible.
+Per-node capacity comes from the resource probe
+(<code>pkg/resources</code>).</li>
+<li><strong>Scheduler places the job.</strong> The Omega-model scheduler
+(<code>pkg/scheduler</code> / <code>internal/scheduler</code>) runs its
+<strong>filter → score</strong> pipeline under optimistic concurrency
+and selects a target Linux node.</li>
+<li><strong>The mesh carries the dispatch.</strong> The placement
+decision and the job I/O travel over the <strong>WireGuard</strong>
+tunnel (<code>internal/wireguard</code>) to the chosen node. Where the
+node is behind NAT, <code>pkg/nattraversal</code> + <code>pkg/ice</code>
+establish connectivity first; SWIM keeps the path’s liveness
+honest.</li>
+<li><strong>The node agent executes.</strong> On the target, the node
+agent (<code>internal/node</code> / <code>cmd/helix-node</code>) accepts
+the dispatch and runs the workload (or attaches the session backend).
+For console/boot-specific nodes, <code>internal/console</code>
+(HXC-1147) is the adapter that brought the agent up and exposes its
+resources.</li>
+<li><strong>Results stream back.</strong> Output flows back over the
+same WireGuard path to the gateway and into the operator’s
+terminal-multiplexer session — closing the loop the operator started in
+step 1.</li>
+</ol>
+<p>A reader can therefore trace the request as: <strong>console UI →
+session → gateway → discovery(SWIM) → scheduler → WireGuard mesh → node
+agent → execution → back to the console.</strong></p>
+<hr />
+<h2 id="component-reference">4. Component Reference</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Component</th>
+<th>Package</th>
+<th>Origin</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Console / UI</td>
+<td>Session service + multiplexer backends</td>
+<td><code>internal/session</code>, <code>pkg/session</code>,
+<code>pkg/session/backends</code></td>
+<td>HXC-1136</td>
+</tr>
+<tr>
+<td>Edge</td>
+<td>Gateway</td>
+<td><code>internal/gateway</code></td>
+<td>HXC-1469</td>
+</tr>
+<tr>
+<td>Mesh transport</td>
+<td>WireGuard mesh</td>
+<td><code>internal/wireguard</code></td>
+<td>HXC-1163</td>
+</tr>
+<tr>
+<td>Mesh membership</td>
+<td>SWIM gossip</td>
+<td><code>pkg/swim</code></td>
+<td>HXC-1344</td>
+</tr>
+<tr>
+<td>Mesh reachability</td>
+<td>NAT traversal / ICE</td>
+<td><code>pkg/nattraversal</code>, <code>pkg/ice</code></td>
+<td>HXC-1383 / HXC-1349</td>
+</tr>
+<tr>
+<td>Discovery</td>
+<td>Service registry</td>
+<td><code>pkg/discovery</code></td>
+<td>HXC-1363</td>
+</tr>
+<tr>
+<td>Scheduling</td>
+<td>Omega scheduler</td>
+<td><code>pkg/scheduler</code>, <code>internal/scheduler</code></td>
+<td>HXC-1137</td>
+</tr>
+<tr>
+<td>Node capacity</td>
+<td>Resource probe</td>
+<td><code>pkg/resources</code></td>
+<td>HXC-1153</td>
+</tr>
+<tr>
+<td>Node</td>
+<td>Node agent + binary</td>
+<td><code>internal/node</code>, <code>cmd/helix-node</code></td>
+<td>HXC-1159</td>
+</tr>
+<tr>
+<td>Node boot</td>
+<td>Console / boot adapter</td>
+<td><code>internal/console</code></td>
+<td>HXC-1147</td>
+</tr>
+</tbody>
+</table>
+<p>The canonical, lint-enforced mapping is <a
+href="../ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a>; the
+rows above are the Phase-02 job-path subset.</p>
+<hr />
+<h2 id="the-linux-node-integration-boundary-no-jailbreak">5. The
+Linux-Node Integration Boundary (No-Jailbreak)</h2>
+<p>Everything in §3 step 6–7 runs <strong>on a node the operator already
+controls</strong>. The mesh-join, membership, discovery, and attestation
+flows operate <em>after</em> the operator holds lawful root/admin access
+to the device — they are a means of <strong>admission by attestation,
+never of seizing a device</strong>.</p>
+<p>Helix Cluster OS therefore <strong>MUST NOT</strong> jailbreak, root,
+unlock bootloaders, defeat secure/verified boot, or bypass DRM/TPM/fuse
+protections to bring a node in. Obtaining administrative control of a
+device is the operator’s own, independently-acquired responsibility and
+is <strong>out of scope</strong>. The in-scope paths — flashing
+operator-owned SBCs, side-loading the agent on operator-controlled
+devices, and enrolling owned servers/workstations — all begin at the
+dashed boundary in the diagram above.</p>
+<p>This guide is descriptive; the <strong>normative</strong> statement,
+its MUST/MUST-NOT rules, the lawful-control precondition, and the
+security/trust rationale live in <a
+href="../NODE_PROVISIONING_BOUNDARY.md"><code>docs/NODE_PROVISIONING_BOUNDARY.md</code></a>
+(HXC-1146), which is binding on every component named here.</p>
+<hr />
+<h2 id="cross-references">6. Cross-References</h2>
+<ul>
+<li><a href="../ARCHITECTURE.md"><code>docs/ARCHITECTURE.md</code></a> —
+canonical L0–L7 stack and lint-enforced Component Map (the source of
+every package name above).</li>
+<li><a
+href="../NODE_PROVISIONING_BOUNDARY.md"><code>docs/NODE_PROVISIONING_BOUNDARY.md</code></a>
+— normative node-provisioning / no-jailbreak boundary (HXC-1146).</li>
+<li><a
+href="../research/PHASE_2_ROADMAP.md"><code>docs/research/PHASE_2_ROADMAP.md</code></a>
+— Phase 02 scope, sub-phases, and package breakdown.</li>
+<li><a href="../../README.md"><code>README.md</code></a> — project
+overview and Documentation index.</li>
+<li><a href="../../CLAUDE.md"><code>CLAUDE.md</code></a> — governance
+(CLAUDE-1 usability, CLAUDE-2 cross-platform parity, CLAUDE-3
+docs-sync).</li>
+</ul>
+</body>
+</html>
