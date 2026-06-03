@@ -185,6 +185,12 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 93 — local dependency-update maintenance
+(HXC-1636):</strong> <code>make deps-update</code>
+(scripts/deps-update.sh) runs per-module <code>go get -u</code> +
+<code>go work sync</code> + <code>govulncheck</code> +
+<code>make sbom</code> — the no-CI local equivalent of dependabot
+(operator-chosen). Closes PRR item 80; PRR now 66/80 (82.5%).</li>
 <li><strong>Wave 92 — last CLAUDE-2 hotspots + ChaCha + SBOM
 (HXC-1633/1634/1635/1561; operator-authorized local deps;
 conductor-gated):</strong>

@@ -1042,12 +1042,12 @@ containers, EventBus); <code>go.sum</code> present.</td>
 <tr>
 <td>80</td>
 <td>Automated dependency update / vuln workflow</td>
-<td>PARTIAL</td>
-<td><code>govulncheck</code> run + all reachable advisories fixed
-(HXC-1630/1631/1632) and <code>make sbom</code> (cyclonedx-gomod) emits
-CycloneDX SBOMs (HXC-1635). Remaining: an automated dependency-update
-mechanism (dependabot/renovate) — note the no-CI constitutional rule
-constrains the gating form.</td>
+<td>PASS</td>
+<td>govulncheck + all reachable advisories fixed (HXC-1630/1631/1632);
+<code>make sbom</code> (cyclonedx-gomod, HXC-1635); and
+<code>make deps-update</code> (scripts/deps-update.sh) is the no-CI
+local dependency-update maintenance chain (go get -u + work sync +
+govulncheck + sbom) (HXC-1636).</td>
 </tr>
 </tbody>
 </table>
@@ -1065,11 +1065,11 @@ Tally</h2>
 <tbody>
 <tr>
 <td>PASS</td>
-<td>65</td>
+<td>66</td>
 </tr>
 <tr>
 <td>PARTIAL</td>
-<td>11</td>
+<td>10</td>
 </tr>
 <tr>
 <td>NOT-READY</td>
@@ -1081,14 +1081,14 @@ Tally</h2>
 </tr>
 </tbody>
 </table>
-<p><strong>Honest completion = 65 / 80 = 81.25% PASS.</strong></p>
+<p><strong>Honest completion = 66 / 80 = 82.5% PASS.</strong></p>
 <p>(If PARTIAL items were credited at half weight the figure would be
 ~82.5%, but this review counts only fully-verified PASS toward the bar,
 per CLAUDE-1.)</p>
 <h3 id="verdict">Verdict</h3>
-<p><strong>The nominal close bar is ≥95%. The honest PASS rate is
-81.25%, which does NOT meet the bar.</strong> Therefore HXC-1286 should
-remain <strong>Queued</strong>; this checklist ships as the deliverable
+<p><strong>The nominal close bar is ≥95%. The honest PASS rate is 82.5%,
+which does NOT meet the bar.</strong> Therefore HXC-1286 should remain
+<strong>Queued</strong>; this checklist ships as the deliverable
 artifact and the gap-list below is the remaining work. The repository is
 strong on implementation breadth (crypto/e2ee, attestation,
 observability, deployment manifests, docs-chain wiring, and a 2255-file

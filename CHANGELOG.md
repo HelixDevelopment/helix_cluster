@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Wave 93 — local dependency-update maintenance (HXC-1636):** `make deps-update` (scripts/deps-update.sh) runs per-module `go get -u` + `go work sync` + `govulncheck` + `make sbom` — the no-CI local equivalent of dependabot (operator-chosen). Closes PRR item 80; PRR now 66/80 (82.5%).
 - **Wave 92 — last CLAUDE-2 hotspots + ChaCha + SBOM (HXC-1633/1634/1635/1561; operator-authorized local deps; conductor-gated):**
   - HXC-1633 (CLAUDE-2): real userspace WireGuard on macOS via gVisor netstack (pkg/wireguard/netstack_darwin.go) — real Noise handshake + encrypted TCP datapath between two peers, no root; linux wgctrl path intact; go.mod records gvisor (standalone build green). Mutation neutering AddPeer fails the tunnel test.
   - HXC-1634 (CLAUDE-2): real darwin GPU probe via system_profiler -json (pkg/device) — real-host oracle match (Apple M3 Pro/19.3GB/metal). Mutation breaking JSON tags => 0 GPUs.

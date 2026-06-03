@@ -160,7 +160,7 @@ Commands run during this review (sink-side evidence):
 | # | Item | Status | Evidence |
 |---|------|--------|----------|
 | 79 | Pinned deps + local module replaces | PASS | `go.mod` pins (grpc 1.81.1, etcd 3.6.11, crypto 0.52.0, etc.) + 3 `replace` directives (HelixConstitution, containers, EventBus); `go.sum` present. |
-| 80 | Automated dependency update / vuln workflow | PARTIAL | `govulncheck` run + all reachable advisories fixed (HXC-1630/1631/1632) and `make sbom` (cyclonedx-gomod) emits CycloneDX SBOMs (HXC-1635). Remaining: an automated dependency-update mechanism (dependabot/renovate) — note the no-CI constitutional rule constrains the gating form. |
+| 80 | Automated dependency update / vuln workflow | PASS | govulncheck + all reachable advisories fixed (HXC-1630/1631/1632); `make sbom` (cyclonedx-gomod, HXC-1635); and `make deps-update` (scripts/deps-update.sh) is the no-CI local dependency-update maintenance chain (go get -u + work sync + govulncheck + sbom) (HXC-1636). |
 
 ---
 
@@ -170,19 +170,19 @@ Counting only verified `PASS` rows:
 
 | Status | Count |
 |--------|-------|
-| PASS | 65 |
-| PARTIAL | 11 |
+| PASS | 66 |
+| PARTIAL | 10 |
 | NOT-READY | 4 |
 | **Total** | **80** |
 
-**Honest completion = 65 / 80 = 81.25% PASS.**
+**Honest completion = 66 / 80 = 82.5% PASS.**
 
 (If PARTIAL items were credited at half weight the figure would be ~82.5%, but this review
 counts only fully-verified PASS toward the bar, per CLAUDE-1.)
 
 ### Verdict
 
-**The nominal close bar is ≥95%. The honest PASS rate is 81.25%, which does NOT meet the bar.**
+**The nominal close bar is ≥95%. The honest PASS rate is 82.5%, which does NOT meet the bar.**
 Therefore HXC-1286 should remain **Queued**; this checklist ships as the deliverable artifact
 and the gap-list below is the remaining work. The repository is strong on implementation
 breadth (crypto/e2ee, attestation, observability, deployment manifests, docs-chain wiring,
