@@ -295,8 +295,17 @@ reachable→unreachable).</td>
 hierarchical tiers.</td>
 </tr>
 <tr>
-<td><code>discovery</code> (+ <code>discovery/federated</code>)</td>
-<td>Service discovery, including federated cross-cell discovery.</td>
+<td><code>discovery</code> (+ <code>discovery/federated</code>, +
+<code>mdns.go</code>)</td>
+<td>Service discovery, including federated cross-cell discovery and
+zero-config mDNS/DNS-SD LAN discovery on
+<code>_helix-cluster._tcp</code> (stdlib <code>net</code> +
+<code>x/net/dnsmessage</code>): an advertiser publishing TXT records
+(cellid/nodeid/version/wgpubkey/clusteraddr) and a browser parsing
+entries into <code>DiscoveredPeer</code> while rejecting any
+missing/invalid required field. Discovery only — trust requires SPIFFE
+attestation afterward (live two-node LAN capture tracked as
+HXC-925).</td>
 </tr>
 <tr>
 <td><code>nattraversal</code></td>
@@ -647,6 +656,23 @@ reported device count.</td>
 <td><code>spiffefed</code>, <code>doublecrypt</code></td>
 <td>SPIFFE federation (mTLS + x509) and double-encryption.</td>
 </tr>
+<tr>
+<td><code>internal/federation</code></td>
+<td>Karmada PropagationPolicy + OverridePolicy engine: CRs modeled as Go
+structs → YAML (no client-go dep), constraint-aware
+(data-locality/latency/cost/compliance) two-level cell selection, and
+failover reselect that excludes a downed/NotReady cell; deterministic
+failover proven via in-process FakeHub (live &lt;60s Karmada capture
+tracked as HXC-924).</td>
+</tr>
+<tr>
+<td><code>gitops</code></td>
+<td>ArgoCD ApplicationSet federation client over an injectable HTTP API:
+matrix generator (one Application per cell), <code>syncPolicy</code>
+prune+selfHeal, RollingSync canary→tier-2 (50%)→tier-1 (25%) progressive
+rollout, and drift/prune detection; proven against an httptest ArgoCD
+(live UI capture tracked as HXC-922).</td>
+</tr>
 </tbody>
 </table>
 <h2 id="messaging-flow-routing">Messaging, Flow &amp; Routing</h2>
@@ -929,6 +955,18 @@ Spot + tagging, and a TOCTOU-safe capacity gate
 (<code>launched+reserved</code>).</td>
 </tr>
 <tr>
+<td><code>provider/ionet</code></td>
+<td>IONetProvider over the io.net REST API
+(<code>cloud.io.net/api/v1</code>, injectable base URL +
+<code>*http.Client</code> + bearer; implements
+<code>pool.GPUProvider</code>): <code>DeployCluster</code>
+(gpu_type/count/region/image/command/env) returns the backend-minted
+cluster run-UUID (parsed, never fabricated), <code>HealthCheck</code>
+derives healthy state on the active cluster, and a concurrency-safe
+reserve-under-lock capacity gate; closure proven against a
+<code>net/http/httptest</code> io.net backend.</td>
+</tr>
+<tr>
 <td><code>chutesaccount</code></td>
 <td>Chutes API client over HTTP (<code>Authorization: Bearer</code>):
 model-list (TEE / price fields) and <code>/users/me</code>
@@ -981,7 +1019,10 @@ all with deterministic ordering and concurrent-safe setters.</td>
 </tr>
 <tr>
 <td><code>health</code></td>
-<td>Health aggregation.</td>
+<td>Health aggregation; includes miner-api (HTTP liveness) and GraVal
+bootstrap DaemonSet attestation-readiness dependency checks wired into
+the rollup, which names the specific failing check on a
+healthy→unhealthy transition.</td>
 </tr>
 <tr>
 <td><code>grafanadash</code></td>

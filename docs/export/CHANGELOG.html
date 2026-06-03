@@ -507,6 +507,46 @@ Phase-8B tier-utilization + cost dashboard generator (panels target
 <code>gpu_tier_utilization</code>/<code>gpu_cost_per_hour</code>), valid
 + deterministic (HXC-1551).</li>
 </ul></li>
+<li>Wave 73 (5 units, subagent-driven, 5 parallel streams in disjoint
+packages; impl→spec-review→quality-review + independent
+build/vet/-race/mutation gate):
+<ul>
+<li><code>provider/ionet</code> — IONetProvider over the io.net REST API
+(implements <code>pool.GPUProvider</code>, injectable base URL +
+<code>*http.Client</code> + bearer): <code>DeployCluster</code> returns
+the backend-minted cluster run-UUID (parsed, never fabricated),
+<code>HealthCheck</code> derives healthy state, concurrency-safe
+reserve-under-lock capacity gate; closure proven against a
+<code>net/http/httptest</code> io.net backend (HXC-1514).</li>
+<li><code>gitops</code> — ArgoCD ApplicationSet federation client:
+matrix generator expands one Application per cell,
+<code>syncPolicy</code> prune+selfHeal, RollingSync canary→tier-2
+(50%)→tier-1 (25%) ordering, drift/prune detection; logic proven vs an
+httptest ArgoCD, strictly-live UI capture honestly skipped (follow-up
+HXC-922) (HXC-1367).</li>
+<li><code>internal/federation</code> — Karmada PropagationPolicy +
+OverridePolicy engine (CRs modeled as Go structs → YAML, no client-go
+dep) with constraint-aware (data-locality/latency/cost/compliance)
+two-level cell selection and failover reselect; deterministic failover
+proven via in-process FakeHub, live Karmada &lt;60s capture honestly
+skipped (follow-up HXC-924) (HXC-1364).</li>
+<li><code>health</code> (additive <code>miner.go</code>) — miner-api +
+GraVal bootstrap DaemonSet dependency checks wired into the health
+rollup, naming the specific failing check; healthy→unhealthy delta
+proven against an httptest miner-api (HXC-1484).</li>
+<li><code>discovery</code> (additive <code>mdns.go</code>) — mDNS/DNS-SD
+advertiser+browser on <code>_helix-cluster._tcp</code> (stdlib
+<code>net</code> + <code>x/net/dnsmessage</code>): TXT encode/decode +
+reject-invalid + in-process loopback discovery; real-multicast two-node
+LAN capture sandbox-skipped (follow-up HXC-925); discovery-only (trust
+via SPIFFE) (HXC-1347).</li>
+<li>Reconciled stale P0 <code>HXC-904</code> Phase-4 Build Service:
+delivered podman-based multi-arch container build orchestration +
+artifact cache
+(<code>internal/build</code>/<code>pkg/build</code>/<code>cmd/helix-build</code>,
+green) marked Completed; Bazel REAPI interop split to follow-up
+HXC-921.</li>
+</ul></li>
 </ul></li>
 <li><strong>Security fix (HIGH):</strong> closed a TOCTOU replay-bypass
 in <code>pkg/gpuattest.Verify</code> — the nonce check and consume are

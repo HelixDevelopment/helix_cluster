@@ -31,7 +31,7 @@ Every foundation package follows the same engineering contract:
 | Package | Purpose |
 |---|---|
 | `swim` | SWIM gossip membership with phi-accrual failure detection and hierarchical tiers. |
-| `discovery` (+ `discovery/federated`) | Service discovery, including federated cross-cell discovery. |
+| `discovery` (+ `discovery/federated`, + `mdns.go`) | Service discovery, including federated cross-cell discovery and zero-config mDNS/DNS-SD LAN discovery on `_helix-cluster._tcp` (stdlib `net` + `x/net/dnsmessage`): an advertiser publishing TXT records (cellid/nodeid/version/wgpubkey/clusteraddr) and a browser parsing entries into `DiscoveredPeer` while rejecting any missing/invalid required field. Discovery only — trust requires SPIFFE attestation afterward (live two-node LAN capture tracked as HXC-925). |
 | `nattraversal` | STUN-based NAT traversal. |
 | `ice` | ICE connectivity establishment. |
 | `cellmesh` | Cross-cell mesh networking. |
@@ -109,6 +109,8 @@ Every foundation package follows the same engineering contract:
 | `residency` | Data-residency admission evaluation. |
 | `raftprofile` | etcd Raft WAN tuning profiles. |
 | `spiffefed`, `doublecrypt` | SPIFFE federation (mTLS + x509) and double-encryption. |
+| `internal/federation` | Karmada PropagationPolicy + OverridePolicy engine: CRs modeled as Go structs → YAML (no client-go dep), constraint-aware (data-locality/latency/cost/compliance) two-level cell selection, and failover reselect that excludes a downed/NotReady cell; deterministic failover proven via in-process FakeHub (live <60s Karmada capture tracked as HXC-924). |
+| `gitops` | ArgoCD ApplicationSet federation client over an injectable HTTP API: matrix generator (one Application per cell), `syncPolicy` prune+selfHeal, RollingSync canary→tier-2 (50%)→tier-1 (25%) progressive rollout, and drift/prune detection; proven against an httptest ArgoCD (live UI capture tracked as HXC-922). |
 
 ## Messaging, Flow & Routing
 
@@ -171,6 +173,7 @@ Every foundation package follows the same engineering contract:
 | `provider/chutes` | OpenAI-compatible `/v1/chat/completions` provider (configurable base URL + `cpk_` Bearer key, `ChatCompletionRequest`/`Response`/`Message`/`Usage`) with HTTP-429 retry + ctx-interruptible backoff that honors `Retry-After`, and typed non-retryable errors. |
 | `provider/runpod` | RunPodProvider serverless GPU adapter (implements `pool.GPUProvider`) with a warm-pool fast path (pre-warmed instances served before cold provisioning) over an injectable client. |
 | `provider/aws` | AWSProvider EC2 Spot adapter (implements `pool.GPUProvider`) over an injectable EC2-client interface (no aws-sdk dependency): GPU model→instance-type selection (p5/p4de/g5), Spot + tagging, and a TOCTOU-safe capacity gate (`launched+reserved`). |
+| `provider/ionet` | IONetProvider over the io.net REST API (`cloud.io.net/api/v1`, injectable base URL + `*http.Client` + bearer; implements `pool.GPUProvider`): `DeployCluster` (gpu_type/count/region/image/command/env) returns the backend-minted cluster run-UUID (parsed, never fabricated), `HealthCheck` derives healthy state on the active cluster, and a concurrency-safe reserve-under-lock capacity gate; closure proven against a `net/http/httptest` io.net backend. |
 | `chutesaccount` | Chutes API client over HTTP (`Authorization: Bearer`): model-list (TEE / price fields) and `/users/me` account-balance retrieval. |
 | `llmadapter` | Claude Messages / OpenAI Responses-API request and response shape adapters to OpenAI chat-completions, preserving tool-call order. |
 | `marketplaceadapter` | `MarketplaceAdapter` interface (`Name`/`GetCurrentPricing`/`SubmitWork`) with a `Name()`-keyed dispatch `Registry`, an HTTP-backed `ChutesAdapter` (non-2xx rejected), and an `AkashAdapter` (Cosmos/AKT reverse-auction pricing, SDL submission, provider-reputation gate) over an injectable client; routes work to the named marketplace. |
@@ -181,7 +184,7 @@ Every foundation package follows the same engineering contract:
 |---|---|
 | `metrics` | Metrics collection (Prometheus-text `NodeCollector`); plus `TierMetrics` (`tiermetrics.go`) exposing `gpu_tier_utilization`, `gpu_cost_per_hour`, and `provider_health` series, and `EarningsMetrics` (`earningsmetrics.go`) exposing `tao_earnings_total`, `graval_attestation_status`, `token_throughput`, and `gpu_utilization` series — all with deterministic ordering and concurrent-safe setters. |
 | `tracing` | W3C distributed tracing. |
-| `health` | Health aggregation. |
+| `health` | Health aggregation; includes miner-api (HTTP liveness) and GraVal bootstrap DaemonSet attestation-readiness dependency checks wired into the rollup, which names the specific failing check on a healthy→unhealthy transition. |
 | `grafanadash` | Grafana dashboard generation + validation. |
 | `log` | Structured logging. |
 

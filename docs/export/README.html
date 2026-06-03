@@ -351,9 +351,12 @@ IPMI/EC2/Azure/SBD + multi-level fallback), <code>kraft</code>
 <tr>
 <td><strong>Membership &amp; discovery</strong></td>
 <td><code>swim</code> (+ phi-accrual, hierarchical),
-<code>discovery</code> (+ federated), <code>nattraversal</code> (STUN),
-<code>ice</code>, <code>cellmesh</code>, <code>scan</code> (Oracle-SCAN
-stable virtual endpoint)</td>
+<code>discovery</code> (+ federated, + mDNS/DNS-SD
+<code>_helix-cluster._tcp</code> advertiser/browser: TXT
+cellid/nodeid/wgpubkey, reject-invalid; discovery-only, trust via
+SPIFFE), <code>nattraversal</code> (STUN), <code>ice</code>,
+<code>cellmesh</code>, <code>scan</code> (Oracle-SCAN stable virtual
+endpoint)</td>
 </tr>
 <tr>
 <td><strong>Replication &amp; state</strong></td>
@@ -400,6 +403,11 @@ GRES fingerprinting + oversubscription rejection),
 <tr>
 <td><strong>Federation &amp; multi-cluster</strong></td>
 <td><code>federation</code> (+ <code>suspicion</code>),
+<code>internal/federation</code> (Karmada
+PropagationPolicy/OverridePolicy engine: constraint-aware two-level cell
+selection + &lt;60s failover reselect), <code>gitops</code> (ArgoCD
+ApplicationSet client: matrix per-cell generation + prune/self-heal +
+canary→tier-2→tier-1 rolling sync + drift/prune),
 <code>fedtopology</code>, <code>fedtrust</code>,
 <code>configsync</code>, <code>residency</code>,
 <code>raftprofile</code>, <code>spiffefed</code>,
@@ -453,7 +461,9 @@ with treasury/reinvest conservation + participant ROI/break-even),
 <code>provider/chutes</code> (OpenAI-compatible /v1 provider + 429
 retry/backoff + Retry-After), <code>provider/runpod</code> (serverless
 warm-pool GPUProvider), <code>provider/aws</code> (EC2 Spot GPUProvider,
-injectable client), <code>llmadapter</code> (Claude/OpenAI
+injectable client), <code>provider/ionet</code> (io.net REST Ray-cluster
+GPUProvider: DeployCluster/HealthCheck + capacity gate,
+httptest-proven), <code>llmadapter</code> (Claude/OpenAI
 request/response shape adapters)</td>
 </tr>
 <tr>
@@ -472,7 +482,8 @@ checker + recorder), <code>internal/chaos</code>
 <td><strong>Observability</strong></td>
 <td><code>metrics</code> (+ tier/cost/provider-health series, +
 TAO-earnings/GraVal-status/token-throughput/gpu-utilization series),
-<code>tracing</code> (W3C), <code>health</code>,
+<code>tracing</code> (W3C), <code>health</code> (+ miner-api/GraVal
+DaemonSet dependency checks named in the rollup),
 <code>grafanadash</code>, <code>log</code></td>
 </tr>
 </tbody>
