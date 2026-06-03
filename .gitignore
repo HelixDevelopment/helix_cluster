@@ -86,3 +86,6 @@ qa-results/docs_chain/
 
 # runtime test evidence (§7.1 capture); closure evidence is referenced in HXC item_history
 qa-results/
+
+# CycloneDX SBOM build derivatives (CONST-053) — regenerate via `make sbom` (HXC-1635)
+sbom/*.cdx.json

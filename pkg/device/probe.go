@@ -12,9 +12,12 @@
 //	MemoryBytes   — per-OS native call via platformTotalMemoryBytes()
 //	                (darwin: sysctl hw.memsize; linux: syscall.Sysinfo; other:
 //	                 runtime.MemStats.Sys as an honest lower-bound).
-//	GPUCount      — 0; GPU/NPU enumeration is delegated to internal/gpu and is
-//	GPUVRAMBytes    not performed here to preserve package disjointness. Honest
-//	NPUTops         zero with documentation is not a PASS-bluff.
+//	GPUCount      — real per-OS GPU probe via platformProbeGPU()
+//	GPUVRAMBytes    (darwin: system_profiler SPDisplaysDataType -json + sysctl
+//	                 hw.memsize for the Apple-Silicon unified-memory pool; linux/
+//	                 other: honest 0 until a native probe lands). A probe failure
+//	                 yields honest 0, never a fabricated value.
+//	NPUTops       — 0; NPU enumeration is delegated to a specialised subsystem.
 //	PowerBudgetWatts — 0 for the same reason.
 //	HasBattery    — false (conservative default; battery detection needs IOKit/
 //	                ACPI and belongs in a separate pkg/battery).
@@ -77,17 +80,25 @@ func Probe(ctx context.Context) (DeviceDescriptor, error) {
 	// platformTotalMemoryBytes is defined per OS in probe_{darwin,linux,other}.go.
 	memBytes := platformTotalMemoryBytes()
 
+	// --- GPU (count + VRAM) ---
+	// platformProbeGPU is defined per OS in probe_gpu_{darwin,linux,other}.go.
+	// It returns REAL, OS-native GPU data: on darwin via
+	// `system_profiler SPDisplaysDataType -json` (+ sysctl hw.memsize for the
+	// Apple-Silicon unified-memory pool). A probe error is non-fatal — a host
+	// with no detectable GPU honestly reports zero, never a fabricated value
+	// (§CLAUDE-1 rule 5, §CLAUDE-2 rule 1).
+	gpuCount, gpuVRAM := platformProbeGPU()
+
 	return DeviceDescriptor{
 		ID:          id,
 		Arch:        arch,
 		CPUCores:    cores,
 		MemoryBytes: memBytes,
-		// GPU / NPU / power-budget / battery are delegated to specialised
-		// subsystems (internal/gpu, pkg/battery) and are not probed here.
-		// Setting them to zero is honest; fabricating values would be a
-		// CLAUDE-1 PASS-bluff (§CLAUDE-1 operative rule 5).
-		GPUCount:         0,
-		GPUVRAMBytes:     0,
+		// GPU count + VRAM are probed per-OS via platformProbeGPU (real system
+		// facility per OS). NPU / power-budget / battery remain delegated to
+		// specialised subsystems and are honest zeros until probed.
+		GPUCount:         gpuCount,
+		GPUVRAMBytes:     gpuVRAM,
 		NPUTops:          0,
 		PowerBudgetWatts: 0,
 		HasBattery:       false,

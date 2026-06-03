@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -90,6 +90,15 @@ seed: ## Seed development data
 codegraph-index: ## Re-index CodeGraph
 	@echo "Re-indexing CodeGraph..."
 	# Placeholder: invoke codegraph indexer
+
+## Software Bill of Materials (HXC-1635)
+sbom: ## Generate CycloneDX SBOMs (sbom/*.cdx.json) for the main module + api/v1 + security
+	@command -v cyclonedx-gomod >/dev/null 2>&1 || { \
+	  echo "cyclonedx-gomod not found on PATH."; \
+	  echo "Install: go install github.com/CycloneDX/cyclonedx-gomod/cmd/cyclonedx-gomod@latest"; \
+	  echo "Then ensure \$$(go env GOPATH)/bin (usually ~/go/bin) is on PATH."; \
+	  exit 1; }
+	@bash scripts/gen-sbom.sh
 
 ## Documentation targets
 docs: ## Generate all documentation exports
