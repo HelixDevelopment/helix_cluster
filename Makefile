@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -99,6 +99,9 @@ sbom: ## Generate CycloneDX SBOMs (sbom/*.cdx.json) for the main module + api/v1
 	  echo "Then ensure \$$(go env GOPATH)/bin (usually ~/go/bin) is on PATH."; \
 	  exit 1; }
 	@bash scripts/gen-sbom.sh
+
+deps-update: ## Local dependency-update maintenance (go get -u + work sync + govulncheck + sbom); no-CI manual equivalent of dependabot
+	@bash scripts/deps-update.sh
 
 ## Documentation targets
 docs: ## Generate all documentation exports
