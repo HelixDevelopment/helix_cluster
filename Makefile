@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update security-scan sonar-up sonar-down sonar-scan gates gate-check
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration test-chaos test-e2e benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update security-scan sonar-up sonar-down sonar-scan gates gate-check
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -45,6 +45,12 @@ test-unit: ## Run unit tests only
 
 test-integration: ## Run integration tests
 	go test -tags=integration ./...
+
+test-chaos: ## Run chaos fault-injection tests (build tag: chaos)
+	go test -race -tags=chaos ./...
+
+test-e2e: ## Run end-to-end tests against real wired binaries (build tag: e2e)
+	go test -tags=e2e ./...
 
 benchmark: ## Run benchmarks
 	go test -bench=. -benchmem ./...
