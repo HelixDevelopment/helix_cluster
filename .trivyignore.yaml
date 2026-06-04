@@ -11,6 +11,38 @@
 # ---------------------------------------------------------------------------
 
 # ===========================================================================
+# 0) VULNERABILITY false positives — vendored telebot lockfile (HXC-944 parts 2/3)
+# ===========================================================================
+# trivy scans Herald/submodules/telebot's STANDALONE go.mod/go.sum in isolation
+# and reports the 2 CRITICAL CVEs below against transitive version FLOORS that
+# are never selected by the real build. telebot is consumed only via a `replace`
+# directive in Herald/commons_messaging and Herald/qaherald; Go's minimal-version
+# selection across those modules elevates the effective versions FAR past the fix:
+#   go list -m golang.org/x/crypto  -> v0.52.0  (CVE-2024-45337 fixed at 0.31.0)
+#   go list -m google.golang.org/grpc -> v1.81.1 (CVE-2026-33186 fixed at 1.79.3)
+# in BOTH consuming modules (re-runnable proof). The only telebot code path that
+# could pull these (telebot/layout -> viper) is unused by Herald. The vendored
+# go.mod is third-party pinned (CONST-051) and not editable from this superproject.
+# Scoped to the exact vendored path + the 2 in-scope CRITICAL IDs only.
+vulnerabilities:
+  - id: CVE-2024-45337
+    paths:
+      - "Herald/submodules/telebot/go.mod"
+    statement: >-
+      Transitive-only floor in the vendored telebot lockfile (x/crypto
+      v0.0.0-2022...). Never selected: the real consuming modules
+      (Herald/commons_messaging, Herald/qaherald) resolve x/crypto v0.52.0,
+      well past the 0.31.0 fix. telebot/layout (the only viper path) is unused.
+  - id: CVE-2026-33186
+    paths:
+      - "Herald/submodules/telebot/go.mod"
+    statement: >-
+      Transitive-only floor in the vendored telebot lockfile (grpc v1.46.2).
+      Never selected: the real consuming modules resolve grpc v1.81.1, past the
+      1.79.3 fix. Vendored third-party go.mod is pinned (CONST-051), not editable
+      here; bumping telebot would not change the already-patched resolved graph.
+
+# ===========================================================================
 # 1) SECRET false positives — deliberate ANTI-LEAK sentinel tokens
 # ===========================================================================
 # These are NOT real credentials. They are placeholder sentinel strings
