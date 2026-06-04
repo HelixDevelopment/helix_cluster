@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update security-scan sonar-up sonar-down sonar-scan
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -103,6 +103,20 @@ sbom: ## Generate CycloneDX SBOMs (sbom/*.cdx.json) for the main module + api/v1
 
 deps-update: ## Local dependency-update maintenance (go get -u + work sync + govulncheck + sbom); no-CI manual equivalent of dependabot
 	@bash scripts/deps-update.sh
+
+## Security scanning (token-free, 100% FOSS) — local, no-CI, no paid subscription
+security-scan: ## Run token-free FOSS security scan (govulncheck + gosec + trivy); evidence -> qa-results/security/<run-id>/
+	@bash scripts/security/security-scan.sh
+
+sonar-up: ## Start self-hosted SonarQube CE (free, Podman); open http://localhost:9000
+	podman-compose -f deploy/compose/security_sonarqube.yml up -d
+	@echo "SonarQube CE starting at http://localhost:9000 (admin/admin first login). Mint a free local token, then: export SONAR_TOKEN=... && make sonar-scan"
+
+sonar-down: ## Stop self-hosted SonarQube CE (no container left running)
+	podman-compose -f deploy/compose/security_sonarqube.yml down
+
+sonar-scan: ## Run SonarQube CE analysis (gated on SONAR_TOKEN — a FREE locally-minted token, NOT a paid sub)
+	@bash scripts/security/sonar-scan.sh
 
 ## Documentation targets
 docs: ## Generate all documentation exports

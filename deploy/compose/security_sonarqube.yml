@@ -1,0 +1,47 @@
+# SonarQube Community Edition (CE) — self-hosted, FREE, no paid subscription.
+#
+# SonarQube CE is open-source (LGPL). This brings up a LOCAL server you own; the
+# scanner authenticates with a token you mint on this very instance — that is free
+# local auth, NOT a SonarCloud account and NOT a paid tier. There is no Snyk- or
+# SonarCloud-style account token involved.
+#
+# Host is Podman-only — drive this file with podman-compose:
+#   make sonar-up      # podman-compose -f deploy/compose/security_sonarqube.yml up -d
+#   make sonar-scan    # runs scripts/security/sonar-scan.sh (needs SONAR_TOKEN)
+#   make sonar-down    # podman-compose ... down  (never leaves a container up)
+#
+# First login at http://localhost:9000 is admin/admin (you will be forced to
+# change it). Then My Account > Security > Generate Tokens to mint SONAR_TOKEN.
+#
+# Low-RAM dev note: SonarQube embeds Elasticsearch, which normally enforces a
+# vm.max_map_count >= 262144 bootstrap check. We disable that bootstrap check
+# (SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true) so the server starts on a default
+# dev box / podman-machine without sysctl tuning (no sudo needed). For a real
+# production deployment you would instead raise vm.max_map_count on the host.
+services:
+  sonarqube:
+    image: docker.io/library/sonarqube:community
+    container_name: helix-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      # Disable the Elasticsearch bootstrap check for low-RAM dev hosts.
+      SONAR_ES_BOOTSTRAP_CHECKS_DISABLE: "true"
+      # Embedded H2 is fine for local dev. For persistence across re-creates the
+      # named volumes below retain data/extensions; point SONAR_JDBC_* at the
+      # Helix Postgres if you want a shared DB.
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:9000/api/system/status | grep -q '\"status\":\"UP\"' || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
