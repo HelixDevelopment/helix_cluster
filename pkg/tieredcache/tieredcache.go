@@ -20,10 +20,23 @@
 package tieredcache
 
 import (
+	"container/list"
 	"errors"
 	"sync"
 	"time"
 )
+
+// DefaultMaxHotEntries is the defensive upper bound on the number of keys the
+// Hot (in-memory) tier may hold when Config.MaxHotEntries is not set (<= 0).
+//
+// F9 (concurrency-audit, memleak): before this bound existed, the Hot map grew
+// without limit because eviction was purely time/idle based and only ran when an
+// external caller invoked RunMaintenance(). If maintenance was never scheduled,
+// or the write/promote rate exceeded the idle-demotion rate, c.hot grew
+// unbounded. This default keeps growth bounded out of the box while remaining
+// high enough that existing small-working-set callers are unaffected; eviction
+// demotes (never drops) the least-recently-used Hot entry to Warm.
+const DefaultMaxHotEntries = 4096
 
 // ErrCapabilityAbsent is returned when a real hardware capability (NVMe, SSD)
 // is genuinely absent — the caller's Tier.Get/Put implementation should return
@@ -59,7 +72,8 @@ const (
 // access metadata.
 type Record struct {
 	Value      []byte
-	lastAccess time.Time // updated on every Get; measured by the injected now func
+	lastAccess time.Time     // updated on every Get; measured by the injected now func
+	elem       *list.Element // back-pointer into the LRU recency list (front = most recent)
 }
 
 // Stats carries per-tier hit counters. A hit is counted on the tier where the
@@ -74,11 +88,13 @@ type Stats struct {
 type Cache struct {
 	mu sync.Mutex
 
-	hot          map[string]*Record
-	warm         Tier
-	cold         Tier
+	hot           map[string]*Record
+	lru           *list.List // recency order of Hot keys; Front = most recently used, Back = LRU
+	maxHotEntries int        // hard cap on len(hot); enforced on every insert/promote (F9)
+	warm          Tier
+	cold          Tier
 	idleThreshold time.Duration
-	now          func() time.Time
+	now           func() time.Time
 
 	stats Stats
 }
@@ -95,6 +111,14 @@ type Config struct {
 	// Now is an injected clock function; pass time.Now for production.
 	// Tests MUST inject a controllable clock.
 	Now func() time.Time
+	// MaxHotEntries is the hard upper bound on the number of keys held in the
+	// Hot (in-memory) tier. When an insert or promotion would exceed this bound
+	// the least-recently-used Hot key is demoted Hot->Warm (never dropped),
+	// independent of RunMaintenance. This is the F9 memory-leak defense.
+	//
+	// If <= 0, DefaultMaxHotEntries is used so growth is always bounded out of
+	// the box. To opt into a larger or smaller working set, set this explicitly.
+	MaxHotEntries int
 }
 
 // New validates Config and returns a ready Cache.
@@ -126,13 +150,88 @@ func New(cfg Config) (*Cache, error) {
 		return nil, errors.New("tieredcache: Cold.AccessLatency must be > Warm.AccessLatency")
 	}
 
+	maxHot := cfg.MaxHotEntries
+	if maxHot <= 0 {
+		maxHot = DefaultMaxHotEntries
+	}
+
 	return &Cache{
 		hot:           make(map[string]*Record),
+		lru:           list.New(),
+		maxHotEntries: maxHot,
 		warm:          cfg.Warm,
 		cold:          cfg.Cold,
 		idleThreshold: cfg.IdleThreshold,
 		now:           cfg.Now,
 	}, nil
+}
+
+// hotSet inserts or replaces key in the Hot tier with the given record, keeps
+// the LRU recency list in sync (key becomes most-recently-used), and enforces
+// the Hot size cap by demoting least-recently-used entries to Warm.
+//
+// Caller MUST hold c.mu. rec.lastAccess must already be set by the caller.
+func (c *Cache) hotSet(key string, rec *Record) {
+	if existing, ok := c.hot[key]; ok {
+		// Replace in place: reuse the LRU element, move it to the front.
+		rec.elem = existing.elem
+		rec.elem.Value = key
+		c.hot[key] = rec
+		c.lru.MoveToFront(rec.elem)
+		return
+	}
+	rec.elem = c.lru.PushFront(key)
+	c.hot[key] = rec
+	c.enforceHotCap()
+}
+
+// touchHot marks key as most-recently-used in the LRU list.
+// Caller MUST hold c.mu and key MUST be present in c.hot.
+func (c *Cache) touchHot(rec *Record) {
+	if rec.elem != nil {
+		c.lru.MoveToFront(rec.elem)
+	}
+}
+
+// hotDelete removes key from the Hot tier and its LRU element.
+// Caller MUST hold c.mu.
+func (c *Cache) hotDelete(key string) {
+	if rec, ok := c.hot[key]; ok {
+		if rec.elem != nil {
+			c.lru.Remove(rec.elem)
+		}
+		delete(c.hot, key)
+	}
+}
+
+// enforceHotCap demotes least-recently-used Hot keys to Warm until len(hot) is
+// within the cap. This is the F9 defensive bound: it runs on every insert/
+// promote, independent of RunMaintenance, so the Hot map can never grow without
+// limit. Evicted keys are DEMOTED to Warm (preserving tier-demotion semantics),
+// never dropped. If the Warm write fails (e.g. ErrCapabilityAbsent), the LRU key
+// is left in Hot so data is not lost — matching RunMaintenance's best-effort
+// discipline — and the loop stops to avoid spinning on an un-evictable backend.
+//
+// Caller MUST hold c.mu.
+func (c *Cache) enforceHotCap() {
+	for len(c.hot) > c.maxHotEntries {
+		back := c.lru.Back()
+		if back == nil {
+			return // map/list desync guard; nothing to evict.
+		}
+		key := back.Value.(string)
+		rec, ok := c.hot[key]
+		if !ok {
+			c.lru.Remove(back)
+			continue
+		}
+		// Demote LRU Hot key -> Warm. Only evict from Hot when the Warm write
+		// succeeds, so a key is never lost when Warm is unavailable.
+		if err := c.warm.Put(key, rec.Value); err != nil {
+			return
+		}
+		c.hotDelete(key)
+	}
 }
 
 // Put stores value under key in the Hot tier only.
@@ -148,10 +247,10 @@ func (c *Cache) Put(key string, value []byte) error {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	c.hot[key] = &Record{
+	c.hotSet(key, &Record{
 		Value:      cp,
 		lastAccess: c.now(),
-	}
+	})
 	return nil
 }
 
@@ -165,6 +264,7 @@ func (c *Cache) Get(key string) ([]byte, TierName, error) {
 	// Hot tier lookup.
 	if rec, ok := c.hot[key]; ok {
 		rec.lastAccess = c.now()
+		c.touchHot(rec)
 		c.stats.HotHits++
 		// Return a copy so the caller cannot alias the internal record.
 		out := make([]byte, len(rec.Value))
@@ -179,7 +279,7 @@ func (c *Cache) Get(key string) ([]byte, TierName, error) {
 		// to the caller so neither can alias the other's buffer.
 		stored := make([]byte, len(val))
 		copy(stored, val)
-		c.hot[key] = &Record{Value: stored, lastAccess: c.now()}
+		c.hotSet(key, &Record{Value: stored, lastAccess: c.now()})
 		c.stats.WarmHits++
 		out := make([]byte, len(val))
 		copy(out, val)
@@ -196,7 +296,7 @@ func (c *Cache) Get(key string) ([]byte, TierName, error) {
 		// return another copy to the caller.
 		stored := make([]byte, len(val))
 		copy(stored, val)
-		c.hot[key] = &Record{Value: stored, lastAccess: c.now()}
+		c.hotSet(key, &Record{Value: stored, lastAccess: c.now()})
 		_ = c.warm.Put(key, val)
 		c.stats.ColdHits++
 		out := make([]byte, len(val))
@@ -246,12 +346,12 @@ func (c *Cache) RunMaintenance() {
 				// will be absent from all tiers rather than stale in Warm.
 				_ = c.cold.Put(key, rec.Value)
 				_ = c.warm.Delete(key)
-				delete(c.hot, key)
+				c.hotDelete(key)
 			} else if errors.Is(warmErr, ErrNotFound) {
 				// Key not yet in Warm → demote Hot->Warm (first demotion).
 				// Only evict from Hot when the write to Warm succeeds.
 				if putErr := c.warm.Put(key, rec.Value); putErr == nil {
-					delete(c.hot, key)
+					c.hotDelete(key)
 				}
 				// If Warm is unavailable, leave the key in Hot so it is not lost.
 			}
