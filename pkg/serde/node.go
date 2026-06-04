@@ -3,6 +3,8 @@
 package serde
 
 import (
+	"fmt"
+
 	capnp "capnproto.org/go/capnp/v3"
 )
 
@@ -39,7 +41,11 @@ func MarshalNode(n NodeRecord) ([]byte, error) {
 	root.SetMemBytes(n.MemBytes)
 
 	if len(n.Labels) > 0 {
-		lbls, err := root.NewLabels(int32(len(n.Labels)))
+		nLabels := len(n.Labels)
+		if nLabels > 0x7fffffff { // capnp count is int32; refuse absurd label sets
+			return nil, fmt.Errorf("serde: too many labels: %d", nLabels)
+		}
+		lbls, err := root.NewLabels(int32(nLabels)) //gosec:disable G115 -- bounds-checked to int32 max above; len is non-negative
 		if err != nil {
 			return nil, err
 		}

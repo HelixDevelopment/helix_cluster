@@ -69,9 +69,15 @@ func (s *Server) ScheduleJob(ctx context.Context, req *helixv1.ScheduleJobReques
 		job.ID = fmt.Sprintf("job-%d", time.Now().UnixNano())
 	}
 	if req.Requirements != nil {
+		// MemoryBytes is a proto int64; a negative value would wrap to a huge
+		// uint64. Floor at 0 before converting to the MB resource count.
+		memMB := req.Requirements.MemoryBytes / (1024 * 1024)
+		if memMB < 0 {
+			memMB = 0
+		}
 		job.Resources = scheduler.Resources{
 			CPU:    float64(req.Requirements.CpuMillicores) / 1000.0,
-			Memory: uint64(req.Requirements.MemoryBytes / (1024 * 1024)),
+			Memory: uint64(memMB), //gosec:disable G115 -- floored at 0 above; non-negative int64->uint64 is value-preserving
 		}
 		if len(req.Requirements.GpuIds) > 0 {
 			job.Resources.GPU = len(req.Requirements.GpuIds)

@@ -99,7 +99,7 @@ type FallbackAction string
 const (
 	ActionRetryAfterDelay  FallbackAction = "retry_after_delay"
 	ActionSwitchEndpoint   FallbackAction = "switch_endpoint"
-	ActionReduceTokenCount FallbackAction = "reduce_token_count"
+	ActionReduceTokenCount FallbackAction = "reduce_token_count" //gosec:disable G101 -- enum label for an LLM recovery step, not a credential ("token" = LLM context token)
 	ActionQueueForLater    FallbackAction = "queue_for_later"
 	ActionEscalateAlert    FallbackAction = "escalate_alert"
 	ActionFallbackModel    FallbackAction = "fallback_model"

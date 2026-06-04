@@ -110,7 +110,8 @@ func (c *PNCounter) Dec(id ReplicaID, delta uint64) {
 
 // Value returns the signed logical value (increments minus decrements).
 func (c *PNCounter) Value() int64 {
-	return int64(c.p.Value()) - int64(c.n.Value())
+	return int64(c.p.Value()) - int64(c.n.Value()) //gosec:disable G115 -- PN-counter semantics: GCounter totals are bounded well within int64; difference is the signed value
+
 }
 
 // Clone returns a deep copy.

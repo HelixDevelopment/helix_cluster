@@ -88,7 +88,7 @@ func DefaultBootMarkers() BootMarkers {
 // Readiness tokens expected on the kernel command line.
 const (
 	userspaceReadyToken = "helix.userspace=ready"
-	clusterReadyToken   = "helix.cluster=ready"
+	clusterReadyToken   = "helix.cluster=ready" //gosec:disable G101 -- kernel cmdline readiness sentinel string, not a credential
 )
 
 // deviceTreeNoClusterToken, when present in the device-tree marker, explicitly
@@ -285,8 +285,8 @@ func newUUIDv4() string {
 		// Degenerate fallback: still unique-enough per run via the clock.
 		n := uint64(time.Now().UnixNano())
 		for i := 0; i < 8; i++ {
-			b[i] = byte(n >> (8 * i))
-			b[i+8] = byte(n>>(8*i)) ^ 0x5a
+			b[i] = byte((n >> (8 * i)) & 0xff)
+			b[i+8] = byte((n>>(8*i))&0xff) ^ 0x5a
 		}
 	}
 	// Set version (4) and variant (RFC 4122) bits.

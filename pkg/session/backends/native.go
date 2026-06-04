@@ -72,9 +72,12 @@ func (n *NativeBackend) Create(name string, cmd string) (string, error) {
 
 	var c *exec.Cmd
 	if cmd != "" {
-		c = exec.Command(shell, "-c", cmd)
+		// Interactive terminal-session backend: by design it runs the command the
+		// authenticated session owner asked to execute inside their own PTY (akin
+		// to `ssh host <cmd>`). shell is the operator's own $SHELL. Not injection.
+		c = exec.Command(shell, "-c", cmd) //gosec:disable G702 -- session owner's own command in their own PTY shell (intended terminal behavior), not untrusted injection
 	} else {
-		c = exec.Command(shell)
+		c = exec.Command(shell) //gosec:disable G702 -- launches the operator's own $SHELL interactively (intended terminal behavior)
 	}
 
 	ptmx, err := pty.Start(c)
@@ -183,9 +186,11 @@ func (n *NativeBackend) Resize(id string, rows, cols int) error {
 		return fmt.Errorf("session %q is closed", id)
 	}
 
+	// Terminal dimensions fit in a uint16; clamp to that range so an out-of-band
+	// value cannot wrap during the conversion.
 	ws := &winsize{
-		Row: uint16(rows),
-		Col: uint16(cols),
+		Row: clampUint16(rows),
+		Col: clampUint16(cols),
 	}
 	_, _, errno := syscall.Syscall(
 		syscall.SYS_IOCTL,
@@ -261,6 +266,18 @@ func (n *NativeBackend) CaptureOutput(id string) (string, error) {
 		}
 	}
 	return string(out), nil
+}
+
+// clampUint16 narrows a terminal dimension to the uint16 range without wrapping:
+// negatives become 0 and values above 0xffff are capped.
+func clampUint16(v int) uint16 {
+	if v < 0 {
+		return 0
+	}
+	if v > 0xffff {
+		return 0xffff
+	}
+	return uint16(v) //gosec:disable G115 -- value is bounds-checked to [0,0xffff] above
 }
 
 // winsize mirrors the C struct used by TIOCSWINSZ.

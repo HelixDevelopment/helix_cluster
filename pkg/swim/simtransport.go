@@ -110,7 +110,7 @@ func NewSimNetwork(seed int64, policy DeliveryPolicy) *SimNetwork {
 		policy = PerfectLink
 	}
 	return &SimNetwork{
-		rng:       rand.New(rand.NewSource(seed)),
+		rng:       rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic SWIM sim-network requires a reproducible seeded PRNG, not crypto/rand
 		endpoints: make(map[string]*SimTransport),
 		policy:    policy,
 	}

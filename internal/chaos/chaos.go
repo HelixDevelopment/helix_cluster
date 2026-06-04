@@ -328,7 +328,7 @@ func NewChaosRunner(cfg RunnerConfig, target Target, faults []Fault) *ChaosRunne
 		cfg:    cfg,
 		target: target,
 		faults: faults,
-		rng:    rand.New(rand.NewSource(cfg.Seed)), //nolint:gosec — intentionally seeded
+		rng:    rand.New(rand.NewSource(cfg.Seed)), //gosec:disable G404 -- deterministic chaos run requires a reproducible seeded PRNG, not crypto/rand //nolint:gosec
 		clk:    cfg.clock(),
 	}
 }

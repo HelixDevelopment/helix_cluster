@@ -178,7 +178,7 @@ func (e *Executor) Run(ctx context.Context, unit EdgeWorkUnit, work func(context
 	var peakMemDelta float64
 	if unit.MaxMemoryMB > 0 {
 		runtime.ReadMemStats(&memAfter)
-		liveGrowth := int64(memAfter.HeapInuse) - int64(memBefore.HeapInuse)
+		liveGrowth := int64(memAfter.HeapInuse) - int64(memBefore.HeapInuse) //gosec:disable G115 -- HeapInuse bytes are bounded by RAM, far below int64 max
 		if liveGrowth < 0 {
 			liveGrowth = 0
 		}

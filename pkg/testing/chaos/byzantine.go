@@ -70,6 +70,6 @@ func (f *ByzantineFault) Query(peer string) string {
 		h ^= uint64(peer[i])
 		h *= 1099511628211 // FNV prime
 	}
-	idx := int(h % uint64(len(f.Values)))
+	idx := int(h % uint64(len(f.Values))) //gosec:disable G115 -- len is non-negative and the mod result is < len, so the conversions are value-bounded
 	return f.Values[idx]
 }

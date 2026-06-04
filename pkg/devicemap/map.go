@@ -39,6 +39,18 @@ import (
 // resulting Node carries no representation of them.  Node fields with no
 // Descriptor equivalent (Hostname, IpAddresses, WgPubkey, SpiffeId, Status,
 // Role, Region, Version, Labels) are left at their zero values.
+// clampInt32 narrows a non-negative count to the int32 range used by the proto
+// schema without wrapping: negatives become 0, oversized values cap at int32max.
+func clampInt32(v int) int32 {
+	if v < 0 {
+		return 0
+	}
+	if v > 0x7fffffff {
+		return 0x7fffffff
+	}
+	return int32(v) //gosec:disable G115 -- bounds-checked to [0,0x7fffffff] above
+}
+
 func DescriptorToNode(d device.DeviceDescriptor) *helixv1.Node {
 	gpus := buildGPUSlice(d.GPUCount, d.GPUVRAMBytes)
 
@@ -47,7 +59,7 @@ func DescriptorToNode(d device.DeviceDescriptor) *helixv1.Node {
 		Resources: &helixv1.NodeResources{
 			Cpu: &helixv1.CPUResources{
 				Arch:  string(d.Arch),
-				Cores: int32(d.CPUCores),
+				Cores: clampInt32(d.CPUCores),
 			},
 			Memory: &helixv1.MemoryResources{
 				TotalBytes: d.MemoryBytes,

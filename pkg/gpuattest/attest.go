@@ -96,7 +96,7 @@ func signedMessage(nonce, fp [32]byte, tick int64) []byte {
 	msg = append(msg, nonce[:]...)
 	msg = append(msg, fp[:]...)
 	var t [8]byte
-	binary.BigEndian.PutUint64(t[:], uint64(tick))
+	binary.BigEndian.PutUint64(t[:], uint64(tick)) //gosec:disable G115 -- full-width int64->uint64 bit-pattern for signing; no truncation
 	msg = append(msg, t[:]...)
 	return msg
 }

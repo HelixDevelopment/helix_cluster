@@ -132,7 +132,7 @@ func (r *Retry) computeDelay(attempt int) time.Duration {
 		// Add up to 25% random jitter. Guard: rand.Int63n panics on n<=0, which
 		// happens when delay < 4ns (int64(delay)/4 == 0). Skip jitter in that case.
 		if n := int64(delay) / 4; n > 0 {
-			jitter := time.Duration(rand.Int63n(n))
+			jitter := time.Duration(rand.Int63n(n)) //gosec:disable G404 -- backoff jitter is load-spreading, not security-sensitive; weak PRNG is correct here
 			delay += jitter
 		}
 	}

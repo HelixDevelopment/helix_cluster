@@ -59,7 +59,7 @@ const encodedLen = 12
 // total order, which is convenient for use as a key.
 func (t Timestamp) Encode() []byte {
 	b := make([]byte, encodedLen)
-	binary.BigEndian.PutUint64(b[0:8], uint64(t.Physical))
+	binary.BigEndian.PutUint64(b[0:8], uint64(t.Physical)) //gosec:disable G115 -- bit-pattern round-trip; Decode reverses it exactly with int64(Uint64(...))
 	binary.BigEndian.PutUint32(b[8:12], t.Logical)
 	return b
 }
@@ -75,7 +75,7 @@ func Decode(b []byte) (Timestamp, error) {
 		return Timestamp{}, ErrShortBuffer
 	}
 	return Timestamp{
-		Physical: int64(binary.BigEndian.Uint64(b[0:8])),
+		Physical: int64(binary.BigEndian.Uint64(b[0:8])), //gosec:disable G115 -- exact full-width inverse of Encode's uint64(t.Physical) round-trip, no truncation
 		Logical:  binary.BigEndian.Uint32(b[8:12]),
 	}, nil
 }

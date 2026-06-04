@@ -2,8 +2,9 @@ package session
 
 import (
 	"context"
+	cryptorand "crypto/rand"
+	"encoding/hex"
 	"fmt"
-	"math/rand"
 	"sync"
 	"time"
 )
@@ -103,7 +104,13 @@ func (m *Manager) Create(ctx context.Context, req *CreateRequest) (*Session, err
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	id := SessionID(fmt.Sprintf("session-%d-%d", time.Now().UnixNano(), rand.Int()))
+	// Session IDs gate Attach/Detach access, so the random component MUST be
+	// unpredictable. Use crypto/rand (16 random bytes) instead of math/rand.
+	var randBytes [16]byte
+	if _, err := cryptorand.Read(randBytes[:]); err != nil {
+		return nil, fmt.Errorf("session: generate id: %w", err)
+	}
+	id := SessionID(fmt.Sprintf("session-%d-%s", time.Now().UnixNano(), hex.EncodeToString(randBytes[:])))
 
 	s := &Session{
 		ID:            id,

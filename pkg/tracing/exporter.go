@@ -325,7 +325,7 @@ func fnvHex(s string, hexLen int) string {
 		}
 		var b [8]byte
 		for i := 0; i < 8; i++ {
-			b[i] = byte(h >> (8 * (7 - i)))
+			b[i] = byte((h >> (8 * (7 - i))) & 0xff)
 		}
 		out = append(out, b[:]...)
 		seed = hex.EncodeToString(b[:]) + s // chain for the next block

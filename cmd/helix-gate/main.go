@@ -254,7 +254,7 @@ func runCovgate(root string, args []string) bool {
 			"(set COVERAGE_OUT or pass a path / run `go test -coverprofile=coverage.out ./...`)")
 		return ok
 	}
-	f, err := os.Open(profilePath)
+	f, err := os.Open(filepath.Clean(profilePath)) //gosec:disable G703 -- profilePath comes from an operator CLI arg / COVERAGE_OUT env / committed default; trusted operator input in a local gate tool
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[covgate] FAIL: open coverage profile %s: %v\n", profilePath, err)
 		return false
@@ -317,7 +317,7 @@ func runQualitygate(root string, args []string) bool {
 		metricsPath = filepath.Join(root, "test", "qualitygate", "baseline_metrics.json")
 	}
 
-	data, err := os.ReadFile(metricsPath)
+	data, err := os.ReadFile(filepath.Clean(metricsPath)) //gosec:disable G703 -- metricsPath comes from an operator CLI arg / QUALITYGATE_METRICS env / committed default; trusted operator input in a local gate tool
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "[qualitygate] FAIL: read metrics snapshot %s: %v\n", metricsPath, err)
 		return false

@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/testing/chaos"
 	"github.com/HelixDevelopment/helix_cluster/pkg/testing/device"
@@ -184,7 +185,7 @@ func cmdSnapshot(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		name, file := args[1], args[2]
-		data, err := os.ReadFile(file)
+		data, err := os.ReadFile(filepath.Clean(file)) //gosec:disable G703 -- file is an operator-supplied CLI argument; reading the operator's own file is the intended action
 		if err != nil {
 			fmt.Fprintf(stderr, "read file: %v\n", err)
 			return 1
@@ -203,7 +204,7 @@ func cmdSnapshot(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		name, file := args[1], args[2]
-		data, err := os.ReadFile(file)
+		data, err := os.ReadFile(filepath.Clean(file)) //gosec:disable G703 -- file is an operator-supplied CLI argument; reading the operator's own file is the intended action
 		if err != nil {
 			fmt.Fprintf(stderr, "read file: %v\n", err)
 			return 1

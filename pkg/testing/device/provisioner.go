@@ -172,7 +172,7 @@ type SoftwareProvisioner struct {
 // identical device IDs and identical event timestamps across runs.
 func NewSoftwareProvisioner(seed int64) *SoftwareProvisioner {
 	return &SoftwareProvisioner{
-		rng:   rand.New(rand.NewSource(seed)),
+		rng:   rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic device-provisioning simulation requires a reproducible seeded PRNG, not crypto/rand
 		now:   time.Unix(0, 0).UTC(),
 		delay: time.Millisecond,
 	}

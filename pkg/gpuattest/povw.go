@@ -64,7 +64,7 @@ func hashRow(prev [32]byte, c []int64, row, n int) [32]byte {
 	h.Write(prev[:])
 	var buf [8]byte
 	for j := 0; j < n; j++ {
-		binary.BigEndian.PutUint64(buf[:], uint64(c[row*n+j]))
+		binary.BigEndian.PutUint64(buf[:], uint64(c[row*n+j])) //gosec:disable G115 -- full-width int64->uint64 bit-pattern for hashing; no truncation
 		h.Write(buf[:])
 	}
 	var out [32]byte

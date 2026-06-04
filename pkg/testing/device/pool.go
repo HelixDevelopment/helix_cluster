@@ -130,8 +130,11 @@ func (p *Pool) provisionAndTrack(ctx context.Context, spec DeviceSpec) (*Device,
 	defer p.mu.Unlock()
 	if len(p.live) >= p.cap {
 		// Lost a race for the last slot; release the just-provisioned device.
-		// Best-effort teardown so we don't leak the backend resource.
-		go func() { _ = p.prov.Release(context.Background(), d) }()
+		// Best-effort teardown so we don't leak the backend resource. This MUST
+		// use a detached context, not the request ctx: the request is failing and
+		// its ctx is about to be cancelled, which would abort the very cleanup we
+		// need to run. The teardown therefore deliberately outlives the request.
+		go func() { _ = p.prov.Release(context.Background(), d) }() //gosec:disable G118 -- detached best-effort teardown must outlive the cancelled request ctx, so request-scoped ctx is intentionally NOT used
 		return nil, fmt.Errorf("%w: cap=%d (lost race)", ErrPoolExhausted, p.cap)
 	}
 	// Mark the provisioner-side device as claimed (Ready->InUse) when supported.

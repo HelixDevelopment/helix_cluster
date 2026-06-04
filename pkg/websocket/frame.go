@@ -392,7 +392,15 @@ func (c *Conn) sendClose(code int, reason string) error {
 	var sendErr error
 	c.closeOnce.Do(func() {
 		body := make([]byte, 2+len(reason))
-		binary.BigEndian.PutUint16(body[:2], uint16(code))
+		// WebSocket close codes are 16-bit (RFC 6455 §7.4). Clamp defensively so an
+		// out-of-range code cannot wrap into a different, valid-looking code.
+		cc := code
+		if cc < 0 {
+			cc = 0
+		} else if cc > 0xffff {
+			cc = 0xffff
+		}
+		binary.BigEndian.PutUint16(body[:2], uint16(cc)) //gosec:disable G115 -- cc is bounds-checked to [0,0xffff] above
 		copy(body[2:], reason)
 		if len(body) > 125 {
 			body = body[:125]

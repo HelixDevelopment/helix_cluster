@@ -25,6 +25,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"testing"
 	"time"
 )
@@ -61,6 +62,11 @@ func New(feature, baseDir string) (*Evidence, error) {
 	if feature == "" {
 		return nil, fmt.Errorf("evidence: feature must be non-empty")
 	}
+	// feature is a path component; reject anything that could escape baseDir
+	// (separators, traversal). id is generated locally and is hex-only.
+	if strings.ContainsAny(feature, `/\`) || feature == ".." || strings.Contains(feature, "..") {
+		return nil, fmt.Errorf("evidence: feature %q must not contain path separators or traversal", feature)
+	}
 	if baseDir == "" {
 		baseDir = os.Getenv("QA_RESULTS_DIR")
 		if baseDir == "" {
@@ -68,8 +74,13 @@ func New(feature, baseDir string) (*Evidence, error) {
 		}
 	}
 	id := newToken()
-	dir := filepath.Join(baseDir, feature, id)
-	if err := os.MkdirAll(dir, 0o755); err != nil {
+	// Clean the join and confirm it stays under baseDir before creating it.
+	cleanBase := filepath.Clean(baseDir)
+	dir := filepath.Join(cleanBase, feature, id)
+	if rel, err := filepath.Rel(cleanBase, dir); err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return nil, fmt.Errorf("evidence: resolved dir %q escapes base %q", dir, cleanBase)
+	}
+	if err := os.MkdirAll(dir, 0o755); err != nil { //gosec:disable G703 -- dir is validated above to stay under baseDir; feature is separator/traversal-free
 		return nil, fmt.Errorf("evidence: mkdir run dir: %w", err)
 	}
 	return &Evidence{feature: feature, runID: id, dir: dir}, nil

@@ -203,10 +203,10 @@ func (c *Checkpoint) Restore(targetNode string) (*Session, error) {
 func checksumOf(version uint32, data []byte) [32]byte {
 	h := sha256.New()
 	var vb [4]byte
-	vb[0] = byte(version >> 24)
-	vb[1] = byte(version >> 16)
-	vb[2] = byte(version >> 8)
-	vb[3] = byte(version)
+	vb[0] = byte((version >> 24) & 0xff)
+	vb[1] = byte((version >> 16) & 0xff)
+	vb[2] = byte((version >> 8) & 0xff)
+	vb[3] = byte(version & 0xff)
 	h.Write(vb[:])
 	h.Write(data)
 	var out [32]byte

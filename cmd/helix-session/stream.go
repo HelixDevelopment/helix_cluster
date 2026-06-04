@@ -50,7 +50,7 @@ func realPTYProvider(sessionID string) (ptyHandle, error) {
 	if shell == "" {
 		shell = "/bin/sh"
 	}
-	cmd := exec.Command(shell)
+	cmd := exec.Command(shell) //gosec:disable G702 -- launches the operator's own $SHELL interactively (intended terminal behavior); no request-controlled command/args, sessionID only flows into an env var
 	cmd.Env = append(os.Environ(), "TERM=xterm-256color", "HELIX_SESSION="+sessionID)
 	ptmx, err := pty.Start(cmd)
 	if err != nil {

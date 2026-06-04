@@ -152,7 +152,7 @@ type sandbox struct {
 // suitable as the backward-compatible default for existing modules.
 func defaultSandbox() *sandbox {
 	logs := make([]string, 0)
-	r := rand.New(rand.NewSource(1)) // explicit seed: DST-reproducible default.
+	r := rand.New(rand.NewSource(1)) //gosec:disable G404 -- explicit seed for DST-reproducible default; deterministic by design, not security-sensitive
 	// *rand.Rand is NOT goroutine-safe (documented since Go 1). Guard it with a
 	// mutex so concurrent guest calls drawing host randomness do not race on the
 	// shared source. The lock is uncontended on the single-goroutine fast path.
@@ -208,7 +208,7 @@ func (s *sandbox) defineHostFuncs(linker *wasmtime.Linker) error {
 		if mem == nil || int(ptr)+8 > len(mem) {
 			return 0, wasmtime.NewTrap("clock_now: bad memory range")
 		}
-		binary.LittleEndian.PutUint64(mem[ptr:ptr+8], uint64(s.clock()))
+		binary.LittleEndian.PutUint64(mem[ptr:ptr+8], uint64(s.clock())) //gosec:disable G115 -- full-width int64->uint64 bit-pattern for the guest clock word; no truncation
 		return 1, nil
 	}
 	if err := linker.FuncWrap("helix", "clock_now", clockFn); err != nil {

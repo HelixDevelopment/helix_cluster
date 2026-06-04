@@ -28,8 +28,11 @@ func (n *NodeResourcesFit) Score(job *Job, node *Node) int {
 	if job.Resources.CPU > 0 {
 		score += int((node.AvailableResources.CPU - job.Resources.CPU) * 100)
 	}
-	if job.Resources.Memory > 0 {
-		score += int((node.AvailableResources.Memory - job.Resources.Memory) / 1024)
+	if job.Resources.Memory > 0 && node.AvailableResources.Memory >= job.Resources.Memory {
+		// Memory is in MB; the difference cannot approach int64 max, so the
+		// uint64->int score conversion is value-preserving. Guarding the
+		// subtraction also prevents a uint64 underflow when job > available.
+		score += int((node.AvailableResources.Memory - job.Resources.Memory) / 1024) //gosec:disable G115 -- bounded MB-scale resource value, well within int range
 	}
 	if job.Resources.GPU > 0 {
 		score += (node.AvailableResources.GPU - job.Resources.GPU) * 1000
@@ -110,7 +113,7 @@ func (l *LoadAware) Score(job *Job, node *Node) int {
 	}
 	// Higher score for more free resources.
 	score := int(node.AvailableResources.CPU*10) +
-		int(node.AvailableResources.Memory/1024) +
+		int(node.AvailableResources.Memory/1024) + //gosec:disable G115 -- bounded MB-scale resource value, well within int range
 		node.AvailableResources.GPU*100
 	return score
 }

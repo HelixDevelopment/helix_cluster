@@ -213,7 +213,9 @@ func (c *clientDriver) issueNext(sim *dst.Simulation) {
 // harness internals draw differently; seeded from the run seed for determinism.
 type seededRNG struct{ s uint64 }
 
-func newSeededRNG(seed int64) *seededRNG { return &seededRNG{s: uint64(seed)*2862933555777941757 + 3037000493} }
+func newSeededRNG(seed int64) *seededRNG { //gosec:disable G115 -- LCG state uses the seed's bit pattern; int64->uint64 is intentional and value-preserving
+	return &seededRNG{s: uint64(seed)*2862933555777941757 + 3037000493}
+}
 
 func (r *seededRNG) next() uint64 {
 	r.s = r.s*6364136223846793005 + 1442695040888963407
@@ -224,7 +226,7 @@ func (r *seededRNG) IntN(n int) int {
 	if n <= 0 {
 		return 0
 	}
-	return int((r.next() >> 33) % uint64(n))
+	return int((r.next() >> 33) % uint64(n)) //gosec:disable G115 -- n>0 (guarded above); the mod result is in [0,n), so the conversions are value-bounded
 }
 
 // RunSeed executes one full simulation for `seed`, collects the client history,

@@ -133,9 +133,9 @@ func (m *Monitor) checkAll() {
 
 func (m *Monitor) checkGPU(id string) {
 	// Mock metrics: simulate temperature, memory usage, and utilization.
-	temp := 30.0 + rand.Float64()*70.0 // 30-100 C
-	util := rand.Float64() * 100.0     // 0-100%
-	memUsed := rand.Float64() * 0.9    // 0-90% of total memory
+	temp := 30.0 + rand.Float64()*70.0 //gosec:disable G404 -- simulated telemetry value, not security-sensitive
+	util := rand.Float64() * 100.0     //gosec:disable G404 -- simulated telemetry value, not security-sensitive
+	memUsed := rand.Float64() * 0.9    //gosec:disable G404 -- simulated telemetry value, not security-sensitive
 
 	m.manager.updateGPU(id, func(gpu *GPU) {
 		if gpu.Status == Offline {

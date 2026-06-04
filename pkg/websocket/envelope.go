@@ -93,47 +93,61 @@ const mpStr8 byte = 0xd9
 // appendUint appends the most compact MessagePack integer encoding for v.
 func appendUint(dst []byte, v uint64) []byte {
 	switch {
+	// Each byte() below takes the low 8 bits of a big-endian word: the &0xff
+	// masks make the truncation explicit and intentional (MessagePack encoding).
 	case v <= 0x7f: // positive fixint
-		return append(dst, byte(v))
+		return append(dst, byte(v&0xff))
 	case v <= 0xff:
-		return append(dst, mpUint8, byte(v))
+		return append(dst, mpUint8, byte(v&0xff))
 	case v <= 0xffff:
-		return append(dst, mpUint16, byte(v>>8), byte(v))
+		return append(dst, mpUint16, byte((v>>8)&0xff), byte(v&0xff))
 	case v <= 0xffffffff:
-		b := [5]byte{mpUint32, byte(v >> 24), byte(v >> 16), byte(v >> 8), byte(v)}
+		b := [5]byte{mpUint32, byte((v >> 24) & 0xff), byte((v >> 16) & 0xff), byte((v >> 8) & 0xff), byte(v & 0xff)}
 		return append(dst, b[:]...)
 	default:
 		b := [9]byte{mpUint64,
-			byte(v >> 56), byte(v >> 48), byte(v >> 40), byte(v >> 32),
-			byte(v >> 24), byte(v >> 16), byte(v >> 8), byte(v),
+			byte((v >> 56) & 0xff), byte((v >> 48) & 0xff), byte((v >> 40) & 0xff), byte((v >> 32) & 0xff),
+			byte((v >> 24) & 0xff), byte((v >> 16) & 0xff), byte((v >> 8) & 0xff), byte(v & 0xff),
 		}
 		return append(dst, b[:]...)
 	}
 }
 
-// appendStr appends a MessagePack str encoding for s.
+// appendStr appends a MessagePack str encoding for s. Strings longer than the
+// str8 format limit (255 bytes) are truncated to keep the length prefix and the
+// payload consistent (the only variable field here is a short PaneID).
 func appendStr(dst []byte, s string) []byte {
+	if len(s) > 0xff {
+		s = s[:0xff]
+	}
 	n := len(s)
 	switch {
 	case n <= 31:
-		dst = append(dst, mpFixstrBase|byte(n))
+		dst = append(dst, mpFixstrBase|byte(n&0xff))
 	default:
-		// str8 (we only need this for PaneID > 31 chars, unlikely but correct)
-		dst = append(dst, mpStr8, byte(n))
+		// str8: n is now bounded to [32,255], so byte(n) is exact.
+		dst = append(dst, mpStr8, byte(n&0xff))
 	}
 	return append(dst, s...)
 }
 
-// appendBin appends a MessagePack bin encoding for b.
+// appendBin appends a MessagePack bin encoding for b. Payloads larger than the
+// bin32 limit (4 GiB) are truncated to keep the length prefix and payload
+// consistent; on a 64-bit int this guards the >0xffffffff edge.
 func appendBin(dst []byte, b []byte) []byte {
+	if len(b) > 0xffffffff {
+		b = b[:0xffffffff]
+	}
 	n := len(b)
+	// The byte()/&0xff extractions take the low 8 bits of a big-endian length
+	// word; each case is bounded by the switch guard, so the truncation is exact.
 	switch {
 	case n <= 0xff:
-		dst = append(dst, mpBin8, byte(n))
+		dst = append(dst, mpBin8, byte(n&0xff))
 	case n <= 0xffff:
-		dst = append(dst, mpBin16, byte(n>>8), byte(n))
+		dst = append(dst, mpBin16, byte((n>>8)&0xff), byte(n&0xff))
 	default:
-		be := [5]byte{mpBin32, byte(n >> 24), byte(n >> 16), byte(n >> 8), byte(n)}
+		be := [5]byte{mpBin32, byte((n >> 24) & 0xff), byte((n >> 16) & 0xff), byte((n >> 8) & 0xff), byte(n & 0xff)}
 		dst = append(dst, be[:]...)
 	}
 	return append(dst, b...)
@@ -324,6 +338,11 @@ func DecodeEnvelope(data []byte) (Envelope, error) {
 			v, err := r.readUint()
 			if err != nil {
 				return Envelope{}, fmt.Errorf("msgpack decode 't': %w", err)
+			}
+			// v is untrusted wire data; MsgType is a uint8 with a small valid
+			// range. Reject out-of-range values instead of silently truncating.
+			if v > uint64(MsgError) {
+				return Envelope{}, fmt.Errorf("msgpack decode 't': invalid message type %d", v)
 			}
 			e.Type = MsgType(v)
 			seen[0] = true

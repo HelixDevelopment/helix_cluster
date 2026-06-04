@@ -328,7 +328,7 @@ func decodeBytesLike(data []byte) ([]byte, int, error) {
 
 // encodeVarint writes a zig-zag varint (Avro long/int wire form).
 func encodeVarint(n int64) []byte {
-	u := uint64(n<<1) ^ uint64(n>>63) // zig-zag
+	u := uint64(n<<1) ^ uint64(n>>63) //gosec:disable G115 -- zig-zag encoding deliberately reinterprets the int64 bit pattern as uint64; no truncation
 	var buf [10]byte
 	i := 0
 	for u >= 0x80 {
@@ -406,7 +406,7 @@ func init() {
 func crc64Avro(buf []byte) uint64 {
 	fp := uint64(0xc15d213aa4d7a795)
 	for _, b := range buf {
-		fp = (fp >> 8) ^ crc64AvroTable[byte(fp)^b]
+		fp = (fp >> 8) ^ crc64AvroTable[byte(fp&0xff)^b]
 	}
 	return fp
 }

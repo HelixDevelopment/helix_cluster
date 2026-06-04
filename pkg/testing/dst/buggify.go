@@ -24,7 +24,7 @@ type Buggify struct {
 // When enabled is false every Fire* call returns false unconditionally.
 func NewBuggify(seed int64, enabled bool) *Buggify {
 	return &Buggify{
-		rng:     rand.New(rand.NewSource(seed)),
+		rng:     rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic simulation testing requires a reproducible seeded PRNG, not crypto/rand
 		enabled: enabled,
 	}
 }

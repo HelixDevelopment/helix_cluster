@@ -802,12 +802,12 @@ func (f *RPCMalformed) Response(method string, payload []byte) []byte {
 // fault type in the package, suitable for round-trip ApplyAll/RestoreAll
 // testing. The provided seed makes any randomized faults reproducible.
 func FaultCatalog(seed int64) []Fault {
-	rng := rand.New(rand.NewSource(seed))
+	rng := rand.New(rand.NewSource(seed)) //gosec:disable G404 -- deterministic chaos fault catalog requires a reproducible seeded PRNG, not crypto/rand
 	faults := []Fault{
 		// Existing (fault.go) types.
 		&NetworkPartition{Nodes: []string{"a", "b"}},
-		NewPacketLoss("a", "b", 50.0, rand.New(rand.NewSource(seed+1))),
-		NewLatencyInjection("a", "b", 100*time.Millisecond, 10*time.Millisecond, rand.New(rand.NewSource(seed+2))),
+		NewPacketLoss("a", "b", 50.0, rand.New(rand.NewSource(seed+1))),                                            //gosec:disable G404 -- deterministic chaos fault requires a reproducible seeded PRNG, not crypto/rand
+		NewLatencyInjection("a", "b", 100*time.Millisecond, 10*time.Millisecond, rand.New(rand.NewSource(seed+2))), //gosec:disable G404 -- deterministic chaos fault requires a reproducible seeded PRNG, not crypto/rand
 		&NodeCrash{NodeID: "n1"},
 		&ResourceExhaustion{NodeID: "n1", Resource: "cpu", Percent: 95.0},
 		// Network.

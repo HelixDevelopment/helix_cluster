@@ -23,7 +23,7 @@ func platformMemoryMB() int {
 	// Fallback: runtime.MemStats.Sys is a real lower-bound from the Go runtime.
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
-	sysMB := int(ms.Sys / (1024 * 1024))
+	sysMB := int(ms.Sys / (1024 * 1024)) //gosec:disable G115 -- runtime Sys bytes are bounded by physical RAM; MB value is well within int range
 	if sysMB < 1 {
 		sysMB = 1
 	}

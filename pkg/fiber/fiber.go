@@ -102,6 +102,11 @@ func NewConn(rw io.ReadWriter, maxFrameSize int) *Conn {
 	if maxFrameSize <= 0 {
 		maxFrameSize = DefaultMaxFrameSize
 	}
+	// The on-wire length prefix is a uint32; cap maxSize so a valid payload
+	// length always fits the header field (writeFrame relies on this).
+	if maxFrameSize > 0xffffffff {
+		maxFrameSize = 0xffffffff
+	}
 	return &Conn{
 		rw:      rw,
 		maxSize: maxFrameSize,
@@ -137,7 +142,7 @@ func (c *Conn) writeFrame(t FrameType, payload []byte) error {
 
 	buf := make([]byte, headerSize+len(payload))
 	buf[0] = byte(t)
-	binary.BigEndian.PutUint32(buf[1:headerSize], uint32(len(payload)))
+	binary.BigEndian.PutUint32(buf[1:headerSize], uint32(len(payload))) //gosec:disable G115 -- len(payload) <= c.maxSize, which NewConn caps at 0xffffffff; fits uint32
 	copy(buf[headerSize:], payload)
 
 	c.wmu.Lock()

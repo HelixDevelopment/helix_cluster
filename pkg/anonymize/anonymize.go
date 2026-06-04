@@ -80,14 +80,15 @@ func (a *Anonymizer) hashBlock(tenantKey []byte, block string) string {
 func writeFramed(w interface{ Write([]byte) (int, error) }, s string) {
 	var l [8]byte
 	n := uint64(len(s))
-	l[0] = byte(n >> 56)
-	l[1] = byte(n >> 48)
-	l[2] = byte(n >> 40)
-	l[3] = byte(n >> 32)
-	l[4] = byte(n >> 24)
-	l[5] = byte(n >> 16)
-	l[6] = byte(n >> 8)
-	l[7] = byte(n)
+	// Manual big-endian PutUint64: each byte() takes the intended low 8 bits.
+	l[0] = byte((n >> 56) & 0xff)
+	l[1] = byte((n >> 48) & 0xff)
+	l[2] = byte((n >> 40) & 0xff)
+	l[3] = byte((n >> 32) & 0xff)
+	l[4] = byte((n >> 24) & 0xff)
+	l[5] = byte((n >> 16) & 0xff)
+	l[6] = byte((n >> 8) & 0xff)
+	l[7] = byte(n & 0xff)
 	// hash.Hash.Write never returns an error.
 	_, _ = w.Write(l[:])
 	_, _ = w.Write([]byte(s))

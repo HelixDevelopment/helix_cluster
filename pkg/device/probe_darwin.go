@@ -27,7 +27,7 @@ func platformTotalMemoryBytes() int64 {
 	// Honest lower-bound fallback via the Go runtime.
 	var ms runtime.MemStats
 	runtime.ReadMemStats(&ms)
-	sys := int64(ms.Sys)
+	sys := int64(ms.Sys) //gosec:disable G115 -- runtime Sys bytes are bounded by physical RAM, far below int64 max
 	if sys < 1 {
 		sys = 1
 	}

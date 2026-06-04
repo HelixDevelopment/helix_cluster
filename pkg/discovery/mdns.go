@@ -180,12 +180,27 @@ func (a *MDNSAdvertisement) hostName() string {
 	return h
 }
 
+// clampPort narrows a port number to the valid uint16 range without wrapping.
+func clampPort(p int) uint16 {
+	if p < 0 {
+		return 0
+	}
+	if p > 0xffff {
+		return 0xffff
+	}
+	return uint16(p) //gosec:disable G115 -- bounds-checked to [0,0xffff] above
+}
+
 // ttlSeconds returns the advertised TTL in whole seconds (>=1).
 func (a *MDNSAdvertisement) ttlSeconds() uint32 {
 	if a.TTL <= 0 {
 		return mdnsDefaultTTL
 	}
-	s := uint32(a.TTL / time.Second)
+	secs := int64(a.TTL / time.Second)
+	if secs > int64(^uint32(0)) { // cap absurd TTLs at the uint32 max
+		return ^uint32(0)
+	}
+	s := uint32(secs) //gosec:disable G115 -- secs is >0 (a.TTL>0 checked above) and capped to uint32 max
 	if s == 0 {
 		s = 1
 	}
@@ -308,7 +323,7 @@ func buildAdvertisementResponse(a *MDNSAdvertisement) ([]byte, error) {
 	}, dnsmessage.SRVResource{
 		Priority: 0,
 		Weight:   0,
-		Port:     uint16(a.Port),
+		Port:     clampPort(a.Port),
 		Target:   hostName,
 	}); err != nil {
 		return nil, fmt.Errorf("srv: %w", err)

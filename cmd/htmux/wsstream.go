@@ -181,8 +181,9 @@ func streamSession(sessionID, wsAddr string, se streamEnv) error {
 					continue
 				}
 				payload := make([]byte, 4)
-				binary.BigEndian.PutUint16(payload[0:2], uint16(rows))
-				binary.BigEndian.PutUint16(payload[2:4], uint16(cols))
+				// Terminal dims fit in uint16; clamp so an out-of-range size can't wrap.
+				binary.BigEndian.PutUint16(payload[0:2], clampTermDim(rows))
+				binary.BigEndian.PutUint16(payload[2:4], clampTermDim(cols))
 				env := wsenv.Envelope{
 					Type:      wsenv.MsgResize,
 					PaneID:    sessionID,
@@ -202,6 +203,18 @@ func streamSession(sessionID, wsAddr string, se streamEnv) error {
 }
 
 // getTermSize returns (cols, rows) for the given fd, or (80, 24) if not a terminal.
+// clampTermDim narrows a terminal dimension to uint16 without wrapping:
+// negatives become 0, values above 0xffff are capped.
+func clampTermDim(v int) uint16 {
+	if v < 0 {
+		return 0
+	}
+	if v > 0xffff {
+		return 0xffff
+	}
+	return uint16(v) //gosec:disable G115 -- bounds-checked to [0,0xffff] above
+}
+
 func getTermSize(fd int) (cols, rows int, err error) {
 	if fd < 0 || !term.IsTerminal(fd) {
 		return 80, 24, nil

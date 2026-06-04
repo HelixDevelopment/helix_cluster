@@ -56,7 +56,7 @@ func NewRunID() string {
 		// Extremely unlikely; derive a non-empty unique-ish id from the clock.
 		now := uint64(time.Now().UnixNano())
 		for i := 0; i < 8; i++ {
-			b[i] = byte(now >> (8 * i))
+			b[i] = byte((now >> (8 * i)) & 0xff)
 		}
 	}
 	// Set version (4) and variant (RFC 4122) bits.

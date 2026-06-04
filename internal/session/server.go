@@ -238,6 +238,18 @@ func (s *Server) DeleteSession(ctx context.Context, req *helixv1.DeleteSessionRe
 	return &helixv1.DeleteSessionResponse{Success: true}, nil
 }
 
+// clampInt32 narrows an int64 resource value to the int32 proto field without
+// wrapping: negatives become 0, oversized values cap at int32max.
+func clampInt32(v int64) int32 {
+	if v < 0 {
+		return 0
+	}
+	if v > 0x7fffffff {
+		return 0x7fffffff
+	}
+	return int32(v) //gosec:disable G115 -- bounds-checked to [0,0x7fffffff] above
+}
+
 func sessionToProto(sess *session.Session) *helixv1.Session {
 	if sess == nil {
 		return nil
@@ -251,7 +263,7 @@ func sessionToProto(sess *session.Session) *helixv1.Session {
 		Backend: string(sess.Backend),
 		NodeId:  sess.NodeID,
 		Resources: &helixv1.ResourceAllocation{
-			CpuMillicores: int32(sess.CPURequest),
+			CpuMillicores: clampInt32(sess.CPURequest),
 			MemoryBytes:   sess.MemoryRequest,
 			GpuIds:        sess.GPURequest,
 		},

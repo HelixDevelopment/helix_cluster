@@ -84,10 +84,10 @@ type awsInstanceAction struct {
 }
 
 const (
-	awsTokenPath          = "/latest/api/token"
+	awsTokenPath          = "/latest/api/token"                  //gosec:disable G101 -- public AWS IMDSv2 endpoint path, not a secret
 	awsInstanceActionPath = "/latest/meta-data/spot/instance-action"
-	awsTokenTTLHeader     = "X-aws-ec2-metadata-token-ttl-seconds"
-	awsTokenHeader        = "X-aws-ec2-metadata-token"
+	awsTokenTTLHeader     = "X-aws-ec2-metadata-token-ttl-seconds" //gosec:disable G101 -- HTTP header name, not a credential value
+	awsTokenHeader        = "X-aws-ec2-metadata-token"             //gosec:disable G101 -- HTTP header name, not a credential value
 )
 
 // NewAWSPoller builds an AWS IMDSv2 poller. baseURL points at the metadata

@@ -53,7 +53,7 @@ func (rcv *Tensor) Dims(j int) int32 {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.GetInt32(a + flatbuffers.UOffsetT(j*4))
+		return rcv._tab.GetInt32(a + flatbuffers.UOffsetT(j*4)) //gosec:disable G115 -- flatbuffers-generated offset arithmetic; j is a bounded vector index
 	}
 	return 0
 }
@@ -70,7 +70,7 @@ func (rcv *Tensor) MutateDims(j int, n int32) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(6))
 	if o != 0 {
 		a := rcv._tab.Vector(o)
-		return rcv._tab.MutateInt32(a+flatbuffers.UOffsetT(j*4), n)
+		return rcv._tab.MutateInt32(a+flatbuffers.UOffsetT(j*4), n) //gosec:disable G115 -- flatbuffers-generated offset arithmetic; j is a bounded vector index
 	}
 	return false
 }
@@ -156,7 +156,7 @@ func (rcv *ComputeTask) Inputs(obj *Tensor, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(8))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
+		x += flatbuffers.UOffsetT(j) * 4 //gosec:disable G115 -- flatbuffers-generated offset arithmetic; j is a bounded vector index
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true
@@ -176,7 +176,7 @@ func (rcv *ComputeTask) Outputs(obj *Tensor, j int) bool {
 	o := flatbuffers.UOffsetT(rcv._tab.Offset(10))
 	if o != 0 {
 		x := rcv._tab.Vector(o)
-		x += flatbuffers.UOffsetT(j) * 4
+		x += flatbuffers.UOffsetT(j) * 4 //gosec:disable G115 -- flatbuffers-generated offset arithmetic; j is a bounded vector index
 		x = rcv._tab.Indirect(x)
 		obj.Init(rcv._tab.Bytes, x)
 		return true

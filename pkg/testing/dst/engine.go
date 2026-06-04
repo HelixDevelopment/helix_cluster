@@ -78,7 +78,7 @@ type Engine struct {
 // NewEngine creates a new DST engine with the given seed.
 func NewEngine(seed int64) *Engine {
 	return &Engine{
-		rng:      rand.New(rand.NewSource(seed)),
+		rng:      rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic simulation testing requires a reproducible seeded PRNG, not crypto/rand
 		seed:     seed,
 		nodes:    make(map[string]*Node),
 		handlers: make(map[string]func(e *Event)),

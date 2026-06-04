@@ -400,7 +400,7 @@ func decodeControl(s string) []byte {
 		// Need three following octal digits.
 		if i+3 < len(s) && isOctal(s[i+1]) && isOctal(s[i+2]) && isOctal(s[i+3]) {
 			v := (int(s[i+1]-'0') << 6) | (int(s[i+2]-'0') << 3) | int(s[i+3]-'0')
-			out = append(out, byte(v))
+			out = append(out, byte(v&0xff)) // octal byte escape; low 8 bits is the decoded byte
 			i += 3
 			continue
 		}

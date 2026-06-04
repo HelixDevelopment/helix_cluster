@@ -227,7 +227,7 @@ type Simulation struct {
 func New(seed int64) *Simulation {
 	return &Simulation{
 		seed:      seed,
-		rng:       rand.New(rand.NewSource(seed)),
+		rng:       rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic simulation testing requires a reproducible seeded PRNG, not crypto/rand
 		handlers:  make(map[ActorID]Handler),
 		disk:      make(map[ActorID]map[string]string),
 		busyUntil: make(map[ActorID]Time),

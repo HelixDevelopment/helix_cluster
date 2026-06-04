@@ -222,8 +222,8 @@ func NewRunID() string {
 		// still well-formed UUID rather than panicking in a library.
 		t := uint64(time.Now().UnixNano())
 		for i := 0; i < 8; i++ {
-			b[i] = byte(t >> (8 * i))
-			b[8+i] = byte(t >> (8 * i))
+			b[i] = byte((t >> (8 * i)) & 0xff)
+			b[8+i] = byte((t >> (8 * i)) & 0xff)
 		}
 	}
 	b[6] = (b[6] & 0x0f) | 0x40 // version 4

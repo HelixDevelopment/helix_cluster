@@ -324,6 +324,9 @@ func ParseFlags(flags []string) (Profile, error) {
 		return Profile{}, err
 	}
 	scRaw, err := parseInt64("snapshot-count", true)
+	if err == nil && scRaw < 0 {
+		err = fmt.Errorf("%w: --snapshot-count must be non-negative, got %d", ErrInvalidFlag, scRaw)
+	}
 	if err != nil {
 		return Profile{}, err
 	}
@@ -339,7 +342,8 @@ func ParseFlags(flags []string) (Profile, error) {
 	p := Profile{
 		HeartbeatInterval: time.Duration(hiMs) * time.Millisecond,
 		ElectionTimeout:   time.Duration(etMs) * time.Millisecond,
-		SnapshotCount:     uint64(scRaw),
+		SnapshotCount:     uint64(scRaw), //gosec:disable G115 -- validated non-negative above; int64->uint64 is value-preserving
+
 		MaxInflightMsgs:   int(miRaw),
 		QuotaBackendBytes: qbbRaw,
 	}

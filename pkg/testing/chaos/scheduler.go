@@ -60,7 +60,7 @@ func ExtendedCatalog(seed int64) []Fault {
 func NewSchedule(seed int64) *Schedule {
 	return &Schedule{
 		seed:   seed,
-		rng:    rand.New(rand.NewSource(seed)),
+		rng:    rand.New(rand.NewSource(seed)), //gosec:disable G404 -- deterministic chaos schedule requires a reproducible seeded PRNG, not crypto/rand
 		faults: ExtendedCatalog(seed),
 	}
 }
