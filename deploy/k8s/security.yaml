@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-security
         app.kubernetes.io/component: security
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: security
           image: helixcluster/helix-security:latest

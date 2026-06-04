@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-policy
         app.kubernetes.io/component: policy
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: policy
           image: helixcluster/helix-policy:latest

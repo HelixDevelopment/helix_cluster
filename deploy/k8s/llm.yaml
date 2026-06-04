@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-llm
         app.kubernetes.io/component: llm
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: llm
           image: helixcluster/helix-llm:latest

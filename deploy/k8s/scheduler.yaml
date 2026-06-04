@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-scheduler
         app.kubernetes.io/component: scheduler
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: scheduler
           image: helixcluster/helix-scheduler:latest

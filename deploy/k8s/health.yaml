@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-health
         app.kubernetes.io/component: health
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: health
           image: helixcluster/helix-health:latest

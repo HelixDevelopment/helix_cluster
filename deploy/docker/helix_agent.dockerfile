@@ -23,6 +23,13 @@ RUN apk add --no-cache ca-certificates wget
 
 COPY --from=builder /bin/helix-agent /usr/local/bin/helix-agent
 
+# Image default user is unprivileged (DS-0002: image user must not be root).
+# The node DaemonSet that needs host /proc + /sys introspection overrides this
+# with an explicit privileged securityContext at deploy time; the image itself
+# must not default to root.
+RUN addgroup -g 65532 -S nonroot && adduser -u 65532 -S nonroot -G nonroot
+USER 65532:65532
+
 EXPOSE 8081 51820 9090 6062
 
 ENTRYPOINT ["helix-agent"]

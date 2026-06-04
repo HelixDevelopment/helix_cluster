@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-gateway
         app.kubernetes.io/component: gateway
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: gateway
           image: helixcluster/helix-gateway:latest

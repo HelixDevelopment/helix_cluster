@@ -23,6 +23,10 @@ RUN apk add --no-cache ca-certificates wget
 
 COPY --from=builder /bin/helixd /usr/local/bin/helixd
 
+# Run as an unprivileged user (DS-0002: image user must not be root).
+RUN addgroup -g 65532 -S nonroot && adduser -u 65532 -S nonroot -G nonroot
+USER 65532:65532
+
 EXPOSE 8080 50051 9090 6060
 
 ENTRYPOINT ["helixd"]

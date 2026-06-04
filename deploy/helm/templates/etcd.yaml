@@ -35,6 +35,12 @@ spec:
         {{- include "helix-cluster.selectorLabels" . | nindent 8 }}
     spec:
       serviceAccountName: {{ include "helix-cluster.serviceAccountName" . }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -105,6 +111,14 @@ spec:
             failureThreshold: 3
           resources:
             {{- toYaml .Values.etcd.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
           {{- if .Values.etcd.persistence.enabled }}
           volumeMounts:
             - name: etcd-data

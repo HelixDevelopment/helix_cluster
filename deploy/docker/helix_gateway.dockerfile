@@ -23,6 +23,10 @@ RUN apk add --no-cache ca-certificates wget
 
 COPY --from=builder /bin/helix-gateway /usr/local/bin/helix-gateway
 
+# Run as an unprivileged user (DS-0002: image user must not be root).
+RUN addgroup -g 65532 -S nonroot && adduser -u 65532 -S nonroot -G nonroot
+USER 65532:65532
+
 EXPOSE 80 443 9090 6061
 
 ENTRYPOINT ["helix-gateway"]

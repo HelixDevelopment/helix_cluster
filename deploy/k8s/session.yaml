@@ -17,6 +17,11 @@ spec:
         app.kubernetes.io/name: helix-session
         app.kubernetes.io/component: session
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: session
           image: helixcluster/helix-session:latest

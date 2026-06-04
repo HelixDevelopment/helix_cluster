@@ -56,7 +56,12 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           securityContext:
+            # privileged is REQUIRED: the host-agent introspects the node's real
+            # /proc and /sys to report measured resource state (CLAUDE-2 — no mock
+            # host metrics). readOnlyRootFilesystem still applies: the agent writes
+            # nothing to its own container rootfs (host mounts below are readOnly).
             privileged: true
+            readOnlyRootFilesystem: true
           volumeMounts:
             - name: proc
               mountPath: /host/proc

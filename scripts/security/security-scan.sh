@@ -163,11 +163,23 @@ scan_trivy() {
   local cache="${REPO_ROOT}/qa-results/.trivy-cache"
   mkdir -p "${cache}"
 
+  # Apply the repo's NARROW, fully-commented suppressions (.trivyignore.yaml):
+  # confirmed anti-leak QA sentinel "secrets" + submodule-owned / intentional
+  # host-agent misconfigs (see that file for the per-path justifications).
+  # trivy's working dir differs (native: repo root; podman: '/'), so we pass
+  # --ignorefile explicitly instead of relying on auto-discovery, which would
+  # silently NOT load the file under Podman. Honest SKIP-with-reason, not a
+  # blanket severity downgrade.
+  local ignorefile_native="${REPO_ROOT}/.trivyignore.yaml"
+  local ignorefile_podman="/src/.trivyignore.yaml"
+
   if [ "$trivy_mode" = "native" ]; then
     log "    using native trivy: $(command -v trivy)"
-    trivy fs --cache-dir "${cache}" --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
+    trivy fs --cache-dir "${cache}" --ignorefile "${ignorefile_native}" \
+      --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
       --format table --output "${txt_out}" . 2>"${OUT_DIR}/trivy-stderr.log" || rc=$?
-    trivy fs --cache-dir "${cache}" --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
+    trivy fs --cache-dir "${cache}" --ignorefile "${ignorefile_native}" \
+      --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
       --format json --output "${json_out}" . 2>>"${OUT_DIR}/trivy-stderr.log" || true
   else
     log "    using Podman: docker.io/aquasec/trivy:latest"
@@ -177,12 +189,14 @@ scan_trivy() {
       -v "${REPO_ROOT}:/src:z" \
       docker.io/aquasec/trivy:latest fs \
       --cache-dir /src/qa-results/.trivy-cache \
+      --ignorefile "${ignorefile_podman}" \
       --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
       --format table /src >"${txt_out}" 2>"${OUT_DIR}/trivy-stderr.log" || rc=$?
     podman run --rm \
       -v "${REPO_ROOT}:/src:z" \
       docker.io/aquasec/trivy:latest fs \
       --cache-dir /src/qa-results/.trivy-cache \
+      --ignorefile "${ignorefile_podman}" \
       --scanners vuln,misconfig,secret --skip-dirs "${skipdirs}" \
       --format json /src >"${json_out}" 2>>"${OUT_DIR}/trivy-stderr.log" || true
   fi

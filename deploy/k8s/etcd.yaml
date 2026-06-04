@@ -39,6 +39,12 @@ spec:
         app.kubernetes.io/name: etcd
         app.kubernetes.io/component: datastore
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
@@ -113,6 +119,14 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            runAsUser: 1000
+            capabilities:
+              drop:
+                - ALL
           volumeMounts:
             - name: etcd-data
               mountPath: /etcd-data
