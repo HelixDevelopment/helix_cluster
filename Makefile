@@ -1,4 +1,4 @@
-.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update security-scan sonar-up sonar-down sonar-scan
+.PHONY: help dev dev-down dev-status dev-logs dev-compose dev-compose-down build-images vm-test test test-unit test-integration benchmark lint format build cross-agent clean migrate-up migrate-down seed codegraph-index docs docs-verify docs-update sbom deps-update security-scan sonar-up sonar-down sonar-scan gates gate-check
 
 help: ## List all targets
 	@echo "Available targets:"
@@ -52,6 +52,12 @@ benchmark: ## Run benchmarks
 lint: ## Run all linters
 	golangci-lint run ./...
 	@echo "Lint complete."
+
+## Orphan-prevention gate suite (HXC-940) — archlint/etcdlint/covgate/qualitygate/phasegate
+gates: gate-check ## Alias for gate-check
+gate-check: ## Run the helix-gate enforcement suite against the real repo (fails the build on any gate violation)
+	@echo "=== Running helix-gate enforcement suite (HXC-940) ==="
+	@HELIX_REPO_ROOT="$(CURDIR)" go run ./cmd/helix-gate all
 
 format: ## Format all code
 	gofumpt -w .

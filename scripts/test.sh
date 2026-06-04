@@ -21,6 +21,16 @@ case "${MODE}" in
             bash tests/constitution/test_inheritance.sh
         fi
         go test -short -race -coverprofile=coverage.out ./...
+        # Orphan-prevention gate suite (HXC-940): the gate packages must actually
+        # enforce. Run them against the real tree, feeding the freshly produced
+        # coverage profile to covgate's coverage-threshold check.
+        echo "[post-test] helix-gate enforcement suite (HXC-940)..."
+        HELIX_REPO_ROOT="${PROJECT_ROOT}" COVERAGE_OUT="${PROJECT_ROOT}/coverage.out" \
+            go run ./cmd/helix-gate all
+        ;;
+    gates)
+        echo "=== Running helix-gate enforcement suite (HXC-940) ==="
+        HELIX_REPO_ROOT="${PROJECT_ROOT}" go run ./cmd/helix-gate all
         ;;
     integration)
         echo "=== Running integration tests ==="
@@ -52,7 +62,7 @@ case "${MODE}" in
         make test-integration
         ;;
     *)
-        echo "Usage: $0 {unit|integration|mutation|chaos|benchmark|all}"
+        echo "Usage: $0 {unit|integration|mutation|chaos|benchmark|gates|all}"
         exit 1
         ;;
 esac

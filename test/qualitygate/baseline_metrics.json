@@ -1,0 +1,12 @@
+{
+  "helix_nodes_total": 6,
+  "helix_nodes_healthy": 6,
+  "helix_tasks_unscheduled": 0,
+  "helix_tasks_unscheduled_rate": 0.1,
+  "schedule_latency_p99": 250,
+  "consensus_rounds_rate": 3,
+  "test_duration_p95": 120,
+  "firecracker_vcpu": 40,
+  "chaos_faults_injected": 2,
+  "recovery_time_p99": 8000
+}
