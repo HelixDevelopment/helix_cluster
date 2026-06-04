@@ -5,6 +5,28 @@
 
 Audited 2026-06-01 against actual code in `pkg/`, `internal/`, `cmd/`, and the `security/` submodule (`vasic-digital/security`). A deliverable is **DONE** only if implemented AND covered by real-behavior tests; stub/partial/untested → PARTIAL/MISSING.
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it.
+>
+> **STALENESS CORRECTION:** the 2026-06-01 table below marked `pkg/modelintegrity` (then `hf_cache_verify`), `pkg/inferenceproxy`, and `pkg/marketplace` as MISSING. As of 2026-06-04 **all three EXIST and are TESTED** — but **all three are ORPHANED** (not reachable from any `cmd/` binary). The registry would show them "Completed"; the measured `wired` column shows they are exists-but-unused. The rows below override the older prose.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/modelintegrity` | yes | **NO (orphaned)** | yes |
+| `pkg/inferenceproxy` | yes | **NO (orphaned)** | yes |
+| `pkg/marketplace` | yes | **NO (orphaned)** | yes |
+| `pkg/fiber` (miner↔validator transport) | yes | **NO (orphaned)** | yes |
+| `pkg/scheduler` (cost_gpu + preempt) | yes | yes | yes |
+| `pkg/resources` (GPU model — no attested/multiplier yet) | yes | yes | yes |
+| `internal/llm` (router — stub `Inference`) | yes | yes | yes |
+| `security/pkg/e2ee` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `security/pkg/gpuattest` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `security/pkg/attestation` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `security/pkg/admission` / signed-image gate | **NO (absent)** | n/a | n/a |
+
+**Orphan callouts:** `pkg/modelintegrity`, `pkg/inferenceproxy`, `pkg/marketplace`, `pkg/fiber` are implemented+tested but reachable from no binary. They satisfy "the package exists" and would pass `go test`, but deliver zero end-user value until a binary (e.g. `internal/llm`'s `LoadModel`, or the gateway) imports them — exactly the gap the 3-axis model exposes that "Completed" hid.
+
 ## Deliverable Status Table
 
 | Deliverable (roadmap §) | Status | Evidence (file:line) | Notes |

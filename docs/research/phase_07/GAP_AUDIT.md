@@ -5,6 +5,37 @@
 
 **One-line summary:** None of the 15 planned `pkg/*` Phase 7 packages or the 2 planned `internal/*` packages exist by name; the only real Phase 7 progress is *partial* hardening folded into pre-existing packages (gang scheduling/preemption, session CRDT convergence + migration, SWIM suspicion, 2-of-3 health tiers, real etcd integration), and the rest of the 23-gap matrix (Multi-Raft, MVCC, backfill, hash-slot, voting, STONITH, DST/BUGGIFY, Porcupine, device-plugin/GRES, admission control, repair, BOINC trust) is MISSING.
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it. Almost every named Phase 7 package is **unimplemented**; the one notable trap is the `internal/advisory` name collision (it exists, but as a lock service, NOT the planned BOINC trust package).
+
+| Package (planned name) | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/multiraft` | **NO** | n/a | n/a |
+| `pkg/mvcc` | **NO** | n/a | n/a |
+| `pkg/crdt` (standalone) | **NO** | n/a | n/a |
+| `pkg/backfill` | **NO** | n/a | n/a |
+| `pkg/deviceplugin` | **NO** | n/a | n/a |
+| `pkg/hashslot` | **NO** | n/a | n/a |
+| `pkg/stonith` | **NO** | n/a | n/a |
+| `pkg/constraint` | **NO** | n/a | n/a |
+| `pkg/voting` | **NO** | n/a | n/a |
+| `pkg/scan` | **NO** | n/a | n/a |
+| `pkg/dst` (named) | **NO** (`pkg/testing/dst` is the unrelated Phase-4 one) | n/a | n/a |
+| `pkg/porcupine` | **NO** | n/a | n/a |
+| `pkg/gangscheduler` | **NO** (gang logic lives in `pkg/scheduler`) | n/a | n/a |
+| `pkg/admissioncontrol` | **NO** | n/a | n/a |
+| `pkg/repair` | **NO** | n/a | n/a |
+| `internal/advisory` (planned: BOINC trust) | **NO — name collision** | yes (the *lock* service is wired) | yes |
+| `internal/chaos` | **NO** | n/a | n/a |
+| `pkg/scheduler` (gang/preempt folded here) | yes | yes | yes |
+| `pkg/session` (CRDT/migration folded here) | yes | yes | yes |
+| `pkg/swim` (suspicion folded here) | yes | yes | yes |
+| `pkg/health` (2-of-3 tiers) | yes | yes | yes |
+| `pkg/etcd` (substrate) | yes | yes | yes |
+
+**Name-collision warning (verified):** `internal/advisory` IS implemented, wired and tested — but as an **Advisory Lock gRPC service**, NOT the planned `internal/advisory` BOINC trust scorer. Do **not** mark Phase 7 gap G-09 done from its `wired=yes`. This is precisely the kind of "exists ≠ the thing you wanted" trap the 3-axis view surfaces.
+
 ---
 
 ## Method & Caveats

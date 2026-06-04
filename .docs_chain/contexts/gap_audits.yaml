@@ -1,0 +1,94 @@
+context: gap_audits
+description: >
+  Per-phase GAP_AUDIT.md files (HXC-939, CLAUDE-3 / §11.4.106). Each canonical
+  Markdown audit under docs/research/*/GAP_AUDIT.md derives html + pdf + docx
+  exports into docs/export/gap_audits/. Driven by the docs_chain engine so the
+  3-axis (implemented / wired / tested) audits are kept in sync out of the box.
+  The "wired" axis is mechanically grounded in `go list -deps ./cmd/...`
+  reachability; a stale audit is treated as a failing test (§11.4.106).
+nodes:
+  # --- mvp ---
+  mvpgap_md:   { kind: markdown, path: docs/research/mvp/GAP_AUDIT.md }
+  mvpgap_html: { kind: html,     path: docs/export/gap_audits/mvp_GAP_AUDIT.html }
+  mvpgap_pdf:  { kind: pdf,      path: docs/export/gap_audits/mvp_GAP_AUDIT.pdf }
+  mvpgap_docx: { kind: docx,     path: docs/export/gap_audits/mvp_GAP_AUDIT.docx }
+  # --- phase_02 ---
+  p02gap_md:   { kind: markdown, path: docs/research/phase_02/GAP_AUDIT.md }
+  p02gap_html: { kind: html,     path: docs/export/gap_audits/phase_02_GAP_AUDIT.html }
+  p02gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_02_GAP_AUDIT.pdf }
+  p02gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_02_GAP_AUDIT.docx }
+  # --- phase_03 ---
+  p03gap_md:   { kind: markdown, path: docs/research/phase_03/GAP_AUDIT.md }
+  p03gap_html: { kind: html,     path: docs/export/gap_audits/phase_03_GAP_AUDIT.html }
+  p03gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_03_GAP_AUDIT.pdf }
+  p03gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_03_GAP_AUDIT.docx }
+  # --- phase_04 ---
+  p04gap_md:   { kind: markdown, path: docs/research/phase_04/GAP_AUDIT.md }
+  p04gap_html: { kind: html,     path: docs/export/gap_audits/phase_04_GAP_AUDIT.html }
+  p04gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_04_GAP_AUDIT.pdf }
+  p04gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_04_GAP_AUDIT.docx }
+  # --- phase_05 ---
+  p05gap_md:   { kind: markdown, path: docs/research/phase_05/GAP_AUDIT.md }
+  p05gap_html: { kind: html,     path: docs/export/gap_audits/phase_05_GAP_AUDIT.html }
+  p05gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_05_GAP_AUDIT.pdf }
+  p05gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_05_GAP_AUDIT.docx }
+  # --- phase_06 ---
+  p06gap_md:   { kind: markdown, path: docs/research/phase_06/GAP_AUDIT.md }
+  p06gap_html: { kind: html,     path: docs/export/gap_audits/phase_06_GAP_AUDIT.html }
+  p06gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_06_GAP_AUDIT.pdf }
+  p06gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_06_GAP_AUDIT.docx }
+  # --- phase_07 ---
+  p07gap_md:   { kind: markdown, path: docs/research/phase_07/GAP_AUDIT.md }
+  p07gap_html: { kind: html,     path: docs/export/gap_audits/phase_07_GAP_AUDIT.html }
+  p07gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_07_GAP_AUDIT.pdf }
+  p07gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_07_GAP_AUDIT.docx }
+  # --- phase_08 ---
+  p08gap_md:   { kind: markdown, path: docs/research/phase_08/GAP_AUDIT.md }
+  p08gap_html: { kind: html,     path: docs/export/gap_audits/phase_08_GAP_AUDIT.html }
+  p08gap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_08_GAP_AUDIT.pdf }
+  p08gap_docx: { kind: docx,     path: docs/export/gap_audits/phase_08_GAP_AUDIT.docx }
+  # --- phase_08_B ---
+  p08bgap_md:   { kind: markdown, path: docs/research/phase_08_B/GAP_AUDIT.md }
+  p08bgap_html: { kind: html,     path: docs/export/gap_audits/phase_08_B_GAP_AUDIT.html }
+  p08bgap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_08_B_GAP_AUDIT.pdf }
+  p08bgap_docx: { kind: docx,     path: docs/export/gap_audits/phase_08_B_GAP_AUDIT.docx }
+  # --- phase_08C ---
+  p08cgap_md:   { kind: markdown, path: docs/research/phase_08C/GAP_AUDIT.md }
+  p08cgap_html: { kind: html,     path: docs/export/gap_audits/phase_08C_GAP_AUDIT.html }
+  p08cgap_pdf:  { kind: pdf,      path: docs/export/gap_audits/phase_08C_GAP_AUDIT.pdf }
+  p08cgap_docx: { kind: docx,     path: docs/export/gap_audits/phase_08C_GAP_AUDIT.docx }
+edges:
+  - { type: derive-from, from: mvpgap_md,   to: mvpgap_html, transform: md2html }
+  - { type: derive-from, from: mvpgap_html, to: mvpgap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: mvpgap_md,   to: mvpgap_docx, transform: md2docx }
+  - { type: derive-from, from: p02gap_md,   to: p02gap_html, transform: md2html }
+  - { type: derive-from, from: p02gap_html, to: p02gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p02gap_md,   to: p02gap_docx, transform: md2docx }
+  - { type: derive-from, from: p03gap_md,   to: p03gap_html, transform: md2html }
+  - { type: derive-from, from: p03gap_html, to: p03gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p03gap_md,   to: p03gap_docx, transform: md2docx }
+  - { type: derive-from, from: p04gap_md,   to: p04gap_html, transform: md2html }
+  - { type: derive-from, from: p04gap_html, to: p04gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p04gap_md,   to: p04gap_docx, transform: md2docx }
+  - { type: derive-from, from: p05gap_md,   to: p05gap_html, transform: md2html }
+  - { type: derive-from, from: p05gap_html, to: p05gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p05gap_md,   to: p05gap_docx, transform: md2docx }
+  - { type: derive-from, from: p06gap_md,   to: p06gap_html, transform: md2html }
+  - { type: derive-from, from: p06gap_html, to: p06gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p06gap_md,   to: p06gap_docx, transform: md2docx }
+  - { type: derive-from, from: p07gap_md,   to: p07gap_html, transform: md2html }
+  - { type: derive-from, from: p07gap_html, to: p07gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p07gap_md,   to: p07gap_docx, transform: md2docx }
+  - { type: derive-from, from: p08gap_md,   to: p08gap_html, transform: md2html }
+  - { type: derive-from, from: p08gap_html, to: p08gap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p08gap_md,   to: p08gap_docx, transform: md2docx }
+  - { type: derive-from, from: p08bgap_md,   to: p08bgap_html, transform: md2html }
+  - { type: derive-from, from: p08bgap_html, to: p08bgap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p08bgap_md,   to: p08bgap_docx, transform: md2docx }
+  - { type: derive-from, from: p08cgap_md,   to: p08cgap_html, transform: md2html }
+  - { type: derive-from, from: p08cgap_html, to: p08cgap_pdf,  transform: html2pdf }
+  - { type: derive-from, from: p08cgap_md,   to: p08cgap_docx, transform: md2docx }
+transforms:
+  md2html:  { builtin: pandoc-html }
+  html2pdf: { builtin: weasyprint-pdf }
+  md2docx:  { builtin: pandoc-docx }

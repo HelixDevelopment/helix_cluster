@@ -7,6 +7,36 @@
 | Scope | `docs/research/PHASE_3_ROADMAP.md` deliverables vs. actual `pkg/ internal/ cmd/ api/` |
 | **Honest completion** | **~70% of Phase 3 P0/P1 scope DONE; ~15% PARTIAL; ~15% MISSING/DEFERRED** |
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** The narrative table below mixes "exists" with "used". A package can be **implemented** and **tested** yet never reached from any binary (**orphaned**). `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed in the HXC registry means source+tests exist; it does NOT prove a shipped binary reaches it.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/etcd` | yes | yes | yes |
+| `pkg/lock` | yes | **NO (orphaned)** | yes |
+| `pkg/leader` | yes | **NO (orphaned)** | yes |
+| `pkg/scheduler` | yes | yes | yes |
+| `pkg/classads` | yes | yes | yes |
+| `internal/scheduler` | yes | yes | yes |
+| `internal/node` | yes | yes | yes |
+| `pkg/discovery` | yes | yes | yes |
+| `pkg/security` | yes | yes | yes |
+| `internal/security` | yes | yes | yes |
+| `internal/gateway` | yes | yes | yes |
+| `internal/policy` | yes | yes | yes |
+| `pkg/metrics` | yes | yes | yes |
+| `pkg/tracing` | yes | **NO (orphaned)** | yes |
+| `internal/health` | yes | yes | yes |
+| `pkg/health` | yes | yes | yes |
+| `pkg/storage` | yes | **NO (orphaned)** | yes |
+| `pkg/build` | yes | yes | yes |
+| `internal/build` | yes | yes | yes |
+| `internal/gpu` | yes | yes | yes |
+| `pkg/gateway` (roadmap name) | **NO (only `internal/gateway` exists)** | n/a | n/a |
+
+**Orphan callouts (implemented+tested but NOT reachable from any `cmd/` binary):** `pkg/lock`, `pkg/leader`, `pkg/tracing`, `pkg/storage`. The audit text already flags `pkg/discovery`'s etcd backend and `pkg/classads` as "implemented but unwired into the cluster/scheduler path" — the package-level `wired` column above is the mechanical version of that finding (note: the *package* `pkg/classads` is compiled into a binary, but its scheduler-Filter/Score integration is still absent, so feature-wiring ≠ package-wiring here).
+
 **One-line summary:** The P0 consensus/scheduler/security/gateway skeletons and most cmd binaries are genuinely implemented with real-behavior tests (real etcd/NATS/Postgres via brokertest), but several integrations are unwired (etcd discovery backend, ClassAds→scheduler, OTel tracing) and the GPU/storage/migration backends remain stubs or pure-Go placeholders.
 
 ---

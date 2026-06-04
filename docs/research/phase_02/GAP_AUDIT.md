@@ -6,6 +6,29 @@
 | Date | 2026-06-01 |
 | Method | Direct inspection of `pkg/`, `internal/`, `cmd/`, `api/` + `go test` of all Phase 2 packages |
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** The old single-status table below conflated "the package exists" with "the package is used." A package can be **implemented** and **tested** yet never reached from any binary (**orphaned / not wired**). `wired` here is **measured**, not assumed: `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`). **"Completed (registry) ≠ wired"** — a package marked Completed in the HXC registry only means source+tests exist; it does NOT prove it is reachable from a shipped binary.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/swim` | yes | yes | yes |
+| `pkg/wireguard` | yes | yes | yes |
+| `pkg/discovery` | yes | yes | yes |
+| `pkg/leader` | yes | **NO (orphaned)** | yes |
+| `pkg/resources` | yes | yes | yes |
+| `pkg/scheduler` | yes | yes | yes |
+| `pkg/session` | yes | yes | yes |
+| `pkg/session/backends` | yes | yes | yes |
+| `internal/node` | yes | yes | yes |
+| `internal/console` | yes | **NO (orphaned)** | yes |
+| `internal/gpu` | yes | yes | yes |
+| `internal/scheduler` | yes | yes | yes |
+| `internal/wireguard` | yes | **NO (orphaned)** | yes |
+| `internal/session` | yes | yes | yes |
+
+**Orphan callouts (implemented+tested but NOT reachable from any `cmd/` binary):** `pkg/leader`, `internal/console`, `internal/wireguard`. These pass tests and look "done" in the registry but are not wired into a shipped binary — exactly the exists-but-unused state the old audit hid. Wiring (or an explicit consumer) is required before they count as end-user-usable per CLAUDE-1.
+
 ## Verdict: ~80% complete
 
 **Summary:** All P0/P1 distributed-foundation packages (`swim`, `wireguard`, `discovery`, `leader`, `resources`, `scheduler`, `session`, node agent) are genuinely implemented with real-behavior tests that all pass; the remaining ~20% gap is concentrated in console boot coordination (no `linux_boot.go`), real NAT traversal (STUN/UPnP/hole-punching is a stub), and live-migration strategies (CRIU/DMTCP/container correctly deferred). No PASS-bluffs found in the implemented core — tests assert sink-side behavior, not just non-panic.

@@ -7,6 +7,27 @@
 | Method | Direct inspection of `pkg/`, `internal/`, `cmd/`, `api/` against PHASE_5_ROADMAP.md deliverables |
 | **Honest completion** | **~3% complete** |
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it. Phase 5 is almost entirely **unimplemented**, so most rows are `implemented=NO`; the table makes that mechanical rather than narrative.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/device` | **NO** | n/a | n/a |
+| `pkg/handheld` | **NO** | n/a | n/a |
+| `pkg/fpga` | **NO** | n/a | n/a |
+| `pkg/riscv` | **NO** | n/a | n/a |
+| `pkg/cloudspot` | **NO** | n/a | n/a |
+| `pkg/inference` | **NO** | n/a | n/a |
+| `pkg/quantum` | **NO** | n/a | n/a |
+| `internal/handheld` / `sbc` / `fpga` / `enterprise` / `iot` / `exotic` | **NO** | n/a | n/a |
+| `pkg/scheduler` (would be *extended* for tier/power) | yes (base only) | yes | yes |
+| `pkg/resources` (would be *extended* for NPU/FPGA/TFLOPS) | yes (base only) | yes | yes |
+| `pkg/discovery` (would be *extended* for 15-tier/trust) | yes (base only) | yes | yes |
+| `pkg/wireguard` (would be *extended* for spot teardown) | yes (base only) | yes | yes |
+
+**Note:** the four "extended" base packages are implemented+wired+tested for their *Phase 2–4* scope but carry **none** of the Phase 5 tier/trust/power/NPU behaviour, so they are not Phase 5 deliverables. No Phase 5 package is orphaned because no Phase 5 package exists yet.
+
 **One-line summary:** Phase 5 is effectively unstarted in code — none of the 7 planned `pkg/` packages, none of the 6 planned `internal/` packages, and none of the planned proto fields (`tier`, `trust_level`, `compute_class`, `arch`, `npu_tops`, `power_budget`) exist; the only adjacent assets are generic Phase 2–4/8C foundations (scheduler, resources, wireguard, llm manager) that were NOT extended for device-tier/trust/power-aware behaviour. Recent "Wave1–5 / Phase 8C" hardening (RBAC scopes, `pkg/fiber`, cost-aware GPU placement, PQ-crypto/`gpuattest`/TEE attestation in the `security/` submodule) is real but belongs to other tracks and does not satisfy any Phase 5 deliverable.
 
 ---

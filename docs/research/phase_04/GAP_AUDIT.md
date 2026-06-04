@@ -5,6 +5,24 @@
 
 Audited 2026-06-01 against actual code under `pkg/`, `internal/`, `cmd/`, `containers/`. All cited tests were executed (`go test ./pkg/testing/... ./pkg/wasm/... ./cmd/helix-test/...` → all `ok`).
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". A package can be **implemented** and **tested** yet never reached from any binary (**orphaned**). `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/testing/dst` | yes | yes | yes |
+| `pkg/testing/chaos` | yes | yes | yes |
+| `pkg/testing/device` | yes | yes | yes |
+| `pkg/testing/snapshot` | yes | yes | yes |
+| `pkg/wasm` | yes | **NO (orphaned)** | yes |
+| `cmd/helix-test` | yes | yes | yes |
+| `cmd/helix-snapshot` | yes | yes | yes |
+| `cmd/helix-testd` | **NO (absent)** | n/a | n/a |
+| `containers/pkg/vm` (QEMU, Phase-1 carryover) | yes | **NO (orphaned)** | yes |
+
+**Orphan callouts (implemented+tested but NOT reachable from any `cmd/` binary):** `pkg/wasm`, `containers/pkg/vm`. Note `cmd/helix-snapshot` now **exists and is built** (the old text marked it MISSING — that is stale; the standalone binary is present). `cmd/helix-testd` is still absent.
+
 ## Deliverable Status
 
 | Deliverable (roadmap §) | Status | Evidence (file:line) | Notes |

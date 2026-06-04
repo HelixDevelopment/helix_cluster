@@ -11,6 +11,45 @@
 The roadmap/MVP_PROGRESS docs overstate stubs (events/etcd are now real) **and** overstate completion
 (build, pubsub, session-forwarding, gateway-auth are weaker than implied). This audit corrects both.
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". A package can be **implemented** and **tested** yet never reached from any binary (**orphaned**). `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it.
+>
+> **STALENESS CORRECTION:** the original table called `pkg/gpuattest` an "empty dir / dangling placeholder". As of 2026-06-02 it is a **real, populated, tested local package** (attest/povw/seal/spotcheck/multigpu) — implemented + tested, but **orphaned** (no binary imports it). Row below is authoritative.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/events` (NATS) | yes | **NO (orphaned)** | yes |
+| `pkg/etcd` | yes | yes | yes |
+| `pkg/discovery` (etcd backend) | yes | yes | yes |
+| `pkg/pubsub` (in-memory only) | yes | **NO (orphaned)** | yes |
+| `pkg/resources` (cgroup v2 + /proc) | yes | yes | yes |
+| `pkg/scheduler` (Omega core) | yes | yes | yes |
+| `internal/scheduler` | yes | yes | yes |
+| `pkg/session` (+ backends) | yes | yes | yes |
+| `internal/node` / `cmd/helix-node` | yes | yes | yes |
+| `pkg/wireguard` | yes | yes | yes |
+| `internal/gateway` / `cmd/helix-gateway` | yes | yes | yes |
+| `pkg/swim` | yes | yes | yes |
+| `pkg/leader` | yes | **NO (orphaned)** | yes |
+| `pkg/lock` | yes | **NO (orphaned)** | yes |
+| `pkg/hxcregistry` (Postgres, nested module) | yes | **NO (orphaned)** | yes |
+| `internal/gpu` | yes | yes | yes |
+| `internal/build` / `cmd/helix-build` (simulated build) | yes | yes | yes |
+| `internal/security` (RBAC scopes) | yes | yes | yes |
+| `cmd/htmux` | yes | yes | yes |
+| `internal/session` / `cmd/helix-session` | yes | yes | yes |
+| `pkg/metrics` | yes | yes | yes |
+| `pkg/tracing` | yes | **NO (orphaned)** | yes |
+| `cmd/helix-test` (HelixQA-ish runner) | yes | yes | yes |
+| `pkg/gpuattest` (local; was "empty") | yes | **NO (orphaned)** | yes |
+| `pkg/jwt` | yes | yes | yes |
+| `pkg/middleware` | yes | **NO (orphaned)** | yes |
+| `pkg/websocket` | yes | yes | yes |
+| `security/pkg/e2ee` / `attestation` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+
+**Orphan callouts (implemented+tested but reachable from NO `cmd/` binary):** `pkg/events`, `pkg/pubsub`, `pkg/leader`, `pkg/lock`, `pkg/hxcregistry`, `pkg/tracing`, `pkg/gpuattest`, `pkg/middleware`. Several of these are precisely the MVP gaps the prose already names (e.g. `pkg/middleware`+`pkg/jwt` exist but the gateway doesn't enforce auth → `pkg/middleware` orphaned; node registry not etcd-backed → relevant backends sit unwired). `pkg/websocket` IS now wired (the old "not wired to session attach" note may be partially stale at the package level — verify the *feature* path separately).
+
 ## Methodology
 
 DONE = real implementation **and** real-behavior test (unit + integration vs real service where the

@@ -8,6 +8,26 @@
 
 One-line summary: the *security-substrate primitives* that Phase 8 depends on (post-quantum E2EE session/transport, GraVal-style GPU attestation, TEE attestation) are genuinely implemented with real crypto and real-behavior tests in the `security/` submodule — but every Phase-8-*specific* deliverable (Chutes API client, MinerController, Bittensor wallet/registration, marketplace adapters, Helm charts, node scripts, model router, E2EE proxy wiring, GraVal CUDA kernel) is MISSING. No `pkg/chutes`, `pkg/marketplace`, `pkg/bittensor` exists; no code references `chutes`, `bittensor`, `TAO`, `metagraph`, or an OpenAI-compatible inference endpoint.
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it. Note: `security/pkg/*` lives in the **separate `vasic-digital/security` module**, so it is **not** in HelixCluster's `cmd/` dep graph by construction — those primitives are reusable building blocks, not wired Phase-8 features.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/chutes` | **NO** | n/a | n/a |
+| `pkg/marketplace` | **NO** | n/a | n/a |
+| `pkg/bittensor` | **NO** | n/a | n/a |
+| `security/pkg/e2ee` (separate module) | yes | **NO (not imported by any helix cmd)** | yes |
+| `security/pkg/gpuattest` (separate module) | yes | **NO (not imported by any helix cmd)** | yes |
+| `security/pkg/attestation` (separate module) | yes | **NO (not imported by any helix cmd)** | yes |
+| `pkg/gpuattest` (local placeholder shim) | yes | **NO (orphaned)** | yes |
+| `pkg/fiber` (8C miner↔validator transport) | yes | **NO (orphaned)** | yes |
+| `internal/llm` (model router — stub `Inference`) | yes | yes | yes |
+| `internal/gpu` (local alloc; no Phase-8 hooks) | yes | yes | yes |
+| `pkg/scheduler` (Omega core; no carbon/compliance) | yes | yes | yes |
+
+**Orphan callouts:** the local `pkg/gpuattest` shim and `pkg/fiber` are implemented+tested but reachable from **no** binary. The genuine crypto primitives in the `security/` submodule are tested but, being a separate module, are not part of any HelixCluster binary's dependency graph — so no Phase-8 consumer integrates them yet. `internal/llm` is wired but its `Inference` is a self-labelled stub, so package-wired ≠ feature-working here.
+
 ## Method & caveats
 
 - Searched `pkg/ internal/ cmd/ api/ security/` for: `chutes`, `bittensor`, `subtensor`, `metagraph`, `TAO`, `coldkey/hotkey`, `yuma`, `graval`, `marketplace`, `mlkem`, `e2ee`, `attestation`, `llm.chutes.ai`, `text/event-stream`. Only attestation/e2ee (in `security/`) and incidental matches hit.

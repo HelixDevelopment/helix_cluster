@@ -7,6 +7,29 @@
 | Scope | `docs/research/PHASE_6_ROADMAP.md` deliverables vs. actual code in `pkg/`, `internal/`, `cmd/`, `api/`, `security/` submodule |
 | **Honest completion** | **~4% of Phase 6 deliverables DONE** |
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it. All 11 planned federation packages are **unimplemented**; only single-cluster base packages exist.
+
+| Package | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `pkg/federation` | **NO** | n/a | n/a |
+| `pkg/swim/hierarchical` | **NO** | n/a | n/a |
+| `pkg/crdt` (+ `pkg/crdt/merkle`) | **NO** | n/a | n/a |
+| `pkg/hlc` | **NO** | n/a | n/a |
+| `pkg/nattraversal` | **NO** | n/a | n/a |
+| `pkg/cilium` | **NO** | n/a | n/a |
+| `pkg/spiffe/federation` | **NO** | n/a | n/a |
+| `pkg/gitops` | **NO** | n/a | n/a |
+| `internal/cell` / `internal/federation` / `internal/chaos` | **NO** | n/a | n/a |
+| `cmd/helix-federation` | **NO** | n/a | n/a |
+| `pkg/swim` (base, would be *extended* for Phi-accrual/gateway-relay) | yes (base only) | yes | yes |
+| `pkg/wireguard` (base, would be *extended* for multi-cell) | yes (base only) | yes | yes |
+| `pkg/security` (base, would be *extended* for SPIFFE federation) | yes (base only) | yes | yes |
+| `pkg/scheduler` (base, would be *extended* for inter-cell) | yes (base only) | yes | yes |
+
+**Note:** the four base packages are implemented+wired+tested for single-cluster Phase 2–5 scope but carry **no** federation behaviour, so they are not Phase 6 deliverables. No Phase 6 package is orphaned because no Phase 6 package exists yet.
+
 **One-line summary:** Phase 6 (federation: cells, hierarchical SWIM, CRDT/HLC, NAT traversal, SPIFFE federation, Cilium/Karmada/ArgoCD) is **essentially not started** — all 11 planned packages are absent and there are zero federation/cross-cell terms in the Go codebase; the only Phase-6-adjacent code is single-cluster scaffolding (`pkg/swim`, `pkg/wireguard`) plus a documented NAT-traversal **stub** that returns "not implemented".
 
 ---

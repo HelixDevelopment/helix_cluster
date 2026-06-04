@@ -10,6 +10,35 @@
 
 **One-line summary:** Phase 8B's *crypto foundation* is real and well-tested (ML-KEM-768 E2EE, software TEE attestation, and software GraVal proof-of-GPU all exist in the `security/` submodule), but **every Phase 8B-specific deliverable — the `GPUProvider` interface, `PoolManager`, all four provider adapters, `BurstController`, `ComputeBroker`, CUDA proxy, and all three `cmd/` binaries — is MISSING**. No remote GPU is consumed anywhere in the codebase; `internal/gpu` is strictly local detection/allocation.
 
+## 3-Axis Package Status (Refreshed 2026-06-04, HXC-939)
+
+> **Why this section exists:** "exists" ≠ "used". `wired` is **measured** via `go list -deps ./cmd/... | grep -Fx <module-path>/<pkg>` (module = `github.com/HelixDevelopment/helix_cluster`), not assumed. **"Completed (registry) ≠ wired"** — Completed only means source+tests exist; it does NOT prove a shipped binary reaches it. `security/pkg/*` is a **separate module** and so never appears in HelixCluster's `cmd/` dep graph.
+>
+> **MAJOR STALENESS CORRECTION:** the original 2026-06-01 table marked nearly all of Phase 8B MISSING. That is now **wrong in both directions**. As of 2026-06-04, the three binaries **and** the whole package set **EXIST and are TESTED** — `cmd/gpu-pool-manager`, `cmd/burst-controller`, `cmd/e2ee-proxy`, `pkg/pool`, `pkg/burst`, `pkg/local`, `internal/costbroker`, and all four `pkg/provider/{chutes,ionet,runpod,aws}` adapters. **However, every one of those value packages is ORPHANED — not reachable from any `cmd/` binary's dependency graph** (the binaries do not yet import them). So the registry would call these "Completed" while they are exists-but-unused. The rows below are authoritative over the older prose.
+
+| Package / binary | implemented | wired (reachable from `cmd/`) | tested |
+|---|:---:|:---:|:---:|
+| `cmd/gpu-pool-manager` | yes | yes (is a `main`) | yes |
+| `cmd/burst-controller` | yes | yes (is a `main`) | yes |
+| `cmd/e2ee-proxy` | yes | yes (is a `main`) | yes |
+| `pkg/pool` | yes | **NO (orphaned)** | yes |
+| `pkg/pool/scheduler` | **NO (subdir absent)** | n/a | n/a |
+| `pkg/provider/chutes` | yes | **NO (orphaned)** | yes |
+| `pkg/provider/ionet` | yes | **NO (orphaned)** | yes |
+| `pkg/provider/runpod` | yes | **NO (orphaned)** | yes |
+| `pkg/provider/aws` | yes | **NO (orphaned)** | yes |
+| `pkg/burst` | yes | **NO (orphaned)** | yes |
+| `pkg/local` (LocalGPURegistrar) | yes | **NO (orphaned)** | yes |
+| `internal/costbroker` | yes | **NO (orphaned)** | yes |
+| `pkg/proxy` (CUDA interceptor) | **NO (absent)** | n/a | n/a |
+| `pkg/gpu` (top-level adapter hooks) | **NO (only `internal/gpu`)** | n/a | n/a |
+| `security/pkg/e2ee` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `security/pkg/gpuattest` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `security/pkg/attestation` (separate module) | yes | **NO (not in helix cmd graph)** | yes |
+| `internal/gpu` (local-only, no tier/provider) | yes | yes | yes |
+
+**Callout (textbook double-orphan):** the three `cmd/*` binaries are wired *as binaries*, and the pool/burst/provider/costbroker packages are implemented+tested — but the binaries and the value packages are **not connected to each other** (`go list -deps ./cmd/gpu-pool-manager` does not include `pkg/pool`). Both halves look "done" in isolation; the feature is non-functional because the wiring between them is missing. The old "all MISSING" verdict and any "Completed" registry entry are equally misleading — only the measured `wired` column reveals the truth.
+
 ## Evidence-Backed Anti-Bluff Notes
 
 - The crypto primitives are genuine: `security/pkg/e2ee/package.go` imports stdlib `crypto/mlkem` (ML-KEM-768, FIPS 203) + `crypto/hkdf` + AES-256-GCM, with 14 real tests (`package_test.go`). This satisfies the *cryptographic core* of P8B's `pkg/e2ee` but is **not** wired into any proxy, provider, or outbound-traffic path — so the roadmap deliverable "E2EEProxy for outbound remote-GPU traffic" is PARTIAL at best (primitive present, integration absent).
