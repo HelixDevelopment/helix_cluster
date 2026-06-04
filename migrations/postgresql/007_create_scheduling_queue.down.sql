@@ -3,7 +3,4 @@
 -- Drop Scheduling Queue
 -- ============================================================
 
-DROP INDEX IF EXISTS idx_scheduling_created;
-DROP INDEX IF EXISTS idx_scheduling_priority;
-DROP INDEX IF EXISTS idx_scheduling_status;
-DROP TABLE IF EXISTS scheduling_queue;
+DROP TABLE IF EXISTS scheduling_queue CASCADE;

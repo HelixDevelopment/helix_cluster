@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 )
 
@@ -120,6 +121,68 @@ func ReadSQL() (string, error) {
 		return "", fmt.Errorf("schema: read %s: %w", p, err)
 	}
 	return string(data), nil
+}
+
+// MigrationsDir returns the absolute path to the golang-migrate chain directory
+// (migrations/postgresql/), resolved relative to this source file so it works
+// regardless of the process working directory.
+func MigrationsDir() (string, error) {
+	_, callerFile, _, ok := runtime.Caller(0)
+	if !ok {
+		return "", fmt.Errorf("schema: unable to resolve caller path via runtime.Caller")
+	}
+	repoRoot := filepath.Join(filepath.Dir(callerFile), "..", "..")
+	return filepath.Clean(filepath.Join(repoRoot, "migrations", "postgresql")), nil
+}
+
+// ChainUpFiles returns the ordered list of golang-migrate "*.up.sql" files in the
+// numbered chain (001_*.up.sql … NNN_*.up.sql), sorted by version. The
+// consolidated 0001_primary_schema.sql is deliberately EXCLUDED — it is the
+// derived artifact, not a member of the chain.
+func ChainUpFiles() ([]string, error) {
+	dir, err := MigrationsDir()
+	if err != nil {
+		return nil, err
+	}
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("schema: read dir %s: %w", dir, err)
+	}
+	var files []string
+	for _, e := range entries {
+		name := e.Name()
+		if e.IsDir() || !strings.HasSuffix(name, ".up.sql") {
+			continue
+		}
+		// Exclude the consolidated derived artifact (it has no ".up.sql" suffix,
+		// but guard explicitly in case of future renames).
+		if name == "0001_primary_schema.sql" {
+			continue
+		}
+		files = append(files, filepath.Join(dir, name))
+	}
+	sort.Strings(files)
+	return files, nil
+}
+
+// ReadChainSQL reads and concatenates every chain "*.up.sql" file in version
+// order, returning the combined SQL text. This is the canonical schema as the
+// golang-migrate runner applies it (see scripts/run-migrations.sh).
+func ReadChainSQL() (string, error) {
+	files, err := ChainUpFiles()
+	if err != nil {
+		return "", err
+	}
+	var b strings.Builder
+	for _, f := range files {
+		data, err := os.ReadFile(f)
+		if err != nil {
+			return "", fmt.Errorf("schema: read %s: %w", f, err)
+		}
+		b.Write(data)
+		b.WriteByte('\n')
+	}
+	return b.String(), nil
 }
 
 // StructuralFact describes one structural assertion about the SQL text.

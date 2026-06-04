@@ -1,6 +1,6 @@
 -- ============================================================
--- 012_create_build_artifacts.down.sql
--- Drop Build Artifacts
+-- 009_create_llm_advisories.down.sql
+-- Drop LLM Brain Advisories
 -- ============================================================
 
-DROP TABLE IF EXISTS build_artifacts CASCADE;
+DROP TABLE IF EXISTS llm_advisories CASCADE;

@@ -1,6 +1,6 @@
 -- ============================================================
--- 012_create_build_artifacts.down.sql
--- Drop Build Artifacts
+-- 006_create_reservations.down.sql
+-- Drop Reservations (resource reservations)
 -- ============================================================
 
-DROP TABLE IF EXISTS build_artifacts CASCADE;
+DROP TABLE IF EXISTS reservations CASCADE;

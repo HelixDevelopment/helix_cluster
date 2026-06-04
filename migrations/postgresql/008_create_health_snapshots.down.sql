@@ -1,6 +1,6 @@
 -- ============================================================
--- 012_create_build_artifacts.down.sql
--- Drop Build Artifacts
+-- 008_create_health_snapshots.down.sql
+-- Drop Health Snapshots
 -- ============================================================
 
-DROP TABLE IF EXISTS build_artifacts CASCADE;
+DROP TABLE IF EXISTS health_snapshots CASCADE;
