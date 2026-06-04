@@ -59,7 +59,12 @@ func (gb *GossipBuffer) Recent(n int) []GossipEvent {
 	return result
 }
 
-// RandomMembers selects k random members for gossip target.
+// RandomMembers selects k random members for gossip target. Member liveness is
+// read via m.IsHealthy() (which takes the member's own m.mu) rather than reading
+// m.State directly: callers (e.g. Protocol.gossip) invoke this on the live
+// membership concurrently with State mutators such as UpdateState/ClearSuspect
+// that hold only m.mu, so a bare m.State read here would be the same F2 data
+// race that HealthyMembers avoids.
 func RandomMembers(members []*Member, k int, excludeID string) []*Member {
 	if k <= 0 || len(members) == 0 {
 		return nil
@@ -67,7 +72,7 @@ func RandomMembers(members []*Member, k int, excludeID string) []*Member {
 
 	filtered := make([]*Member, 0, len(members))
 	for _, m := range members {
-		if m.ID != excludeID && m.State == StateAlive {
+		if m.ID != excludeID && m.IsHealthy() {
 			filtered = append(filtered, m)
 		}
 	}
