@@ -26,7 +26,34 @@ type nativeSession struct {
 	name string
 	cmd  *exec.Cmd
 	pty  *os.File
-	mu   sync.Mutex
+	// mu guards the pty fd: it serialises pty I/O (Read/Write/ioctl/fcntl)
+	// against the single close, so I/O can never operate on a closed (and
+	// possibly recycled) fd. closed records that the fd has been closed so
+	// closePTY closes it exactly once (no double-close of the fd).
+	mu     sync.Mutex
+	closed bool
+}
+
+// closePTY closes the session's pty fd exactly once. Both the reaper goroutine
+// and Kill funnel through here, so the fd is never double-closed even when they
+// race. Holding mu also blocks any in-flight pty I/O until the close completes.
+func (s *nativeSession) closePTY() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if s.closed {
+		return
+	}
+	s.closed = true
+	if s.pty != nil {
+		_ = s.pty.Close()
+	}
+}
+
+// isClosed reports whether the pty fd has been closed.
+func (s *nativeSession) isClosed() bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.closed
 }
 
 // NewNativeBackend creates a fallback backend that allocates PTYs directly.
@@ -70,9 +97,14 @@ func (n *NativeBackend) Create(name string, cmd string) (string, error) {
 	go func() {
 		_ = c.Wait()
 		n.mu.Lock()
-		delete(n.sessions, name)
+		// Only drop the session if it is still the one we created; a
+		// duplicate Create with the same name may have replaced it.
+		if n.sessions[name] == sess {
+			delete(n.sessions, name)
+		}
 		n.mu.Unlock()
-		_ = ptmx.Close()
+		// Close-once seam: safe even if Kill already closed the fd.
+		sess.closePTY()
 	}()
 
 	return name, nil
@@ -128,9 +160,8 @@ func (n *NativeBackend) Kill(id string) error {
 	if sess.cmd != nil && sess.cmd.Process != nil {
 		_ = sess.cmd.Process.Kill()
 	}
-	if sess.pty != nil {
-		_ = sess.pty.Close()
-	}
+	// Close-once seam: closes the fd exactly once even if the reaper also runs.
+	sess.closePTY()
 	return nil
 }
 
@@ -141,6 +172,15 @@ func (n *NativeBackend) Resize(id string, rows, cols int) error {
 	n.mu.Unlock()
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
+	}
+
+	// Serialise the fd access against closePTY: holding sess.mu guarantees the
+	// fd cannot be closed (and possibly recycled) mid-ioctl, and the closed
+	// check avoids operating on an already-closed fd.
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+	if sess.closed {
+		return fmt.Errorf("session %q is closed", id)
 	}
 
 	ws := &winsize{
@@ -167,6 +207,11 @@ func (n *NativeBackend) SendInput(id string, input string) error {
 	if !ok {
 		return fmt.Errorf("session %q not found", id)
 	}
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+	if sess.closed {
+		return fmt.Errorf("session %q is closed", id)
+	}
 	_, err := sess.pty.Write([]byte(input))
 	return err
 }
@@ -179,6 +224,15 @@ func (n *NativeBackend) CaptureOutput(id string) (string, error) {
 	n.mu.Unlock()
 	if !ok {
 		return "", fmt.Errorf("session %q not found", id)
+	}
+
+	// Hold sess.mu for the whole drain so the fd cannot be closed mid-read. The
+	// reads below are non-blocking (O_NONBLOCK), so this is a bounded critical
+	// section and cannot stall closePTY indefinitely.
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+	if sess.closed {
+		return "", fmt.Errorf("session %q is closed", id)
 	}
 
 	// Set non-blocking read temporarily.

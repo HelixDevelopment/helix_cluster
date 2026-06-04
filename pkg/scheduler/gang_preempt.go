@@ -58,6 +58,55 @@ func (s *Scheduler) IsRunning(jobID string) bool {
 	return ok
 }
 
+// Complete is the documented completion hook: it MUST be called when a job
+// finishes (reaches JobStatusCompleted/Failed or is otherwise torn down) so its
+// running placement is released. Without it, s.placements would grow unbounded
+// for the lifetime of the scheduler — the only other deletion path is preemptive
+// eviction. Complete removes the placement under the scheduler lock and restores
+// the node's resources, exactly mirroring the eviction restore path so resource
+// accounting stays correct.
+//
+// It is idempotent and safe: completing an unknown or already-completed job is a
+// no-op. It returns true if a placement was released, false otherwise. Active
+// placements for other jobs are never touched, so scheduling decisions for them
+// are unaffected.
+func (s *Scheduler) Complete(jobID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.releasePlacementLocked(jobID, JobStatusCompleted)
+}
+
+// Release is an alias for Complete for callers that tear a job's placement down
+// for reasons other than normal completion (e.g. cancellation). Same semantics:
+// idempotent, restores node resources, returns true iff a placement was removed.
+func (s *Scheduler) Release(jobID string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.releasePlacementLocked(jobID, JobStatusCompleted)
+}
+
+// releasePlacementLocked removes the placement for jobID, restoring the consumed
+// resources to its node, and flips the job's status to finalStatus. It mirrors
+// the resource restoration performed by the preemption-eviction path. Returns
+// false (no-op) if no such placement exists. Caller must hold s.mu.
+func (s *Scheduler) releasePlacementLocked(jobID string, finalStatus JobStatus) bool {
+	p, ok := s.placements[jobID]
+	if !ok {
+		return false
+	}
+	if node, ok := s.nodes[p.NodeID]; ok {
+		node.AvailableResources.CPU += p.Resources.CPU
+		node.AvailableResources.Memory += p.Resources.Memory
+		node.AvailableResources.GPU += p.Resources.GPU
+	}
+	delete(s.placements, jobID)
+	if p.job != nil {
+		p.job.Status = finalStatus
+	}
+	s.version++
+	return true
+}
+
 // ScheduleGang places a group of tasks all-or-nothing: either every task in
 // jobs is placed atomically, or none are and node state is left unchanged.
 //

@@ -58,10 +58,11 @@ format: ## Format all code
 	zig fmt .
 	find . -regextype posix-extended -regex '.*\.(c|h|cpp|hpp|cc|cxx)$' -exec clang-format -i {} +
 
-build: ## Build all binaries
-	go build -o bin/helix-cluster ./cmd/helix-cluster
-	zig build
-	cmake -B build -S . && cmake --build build
+build: ## Build all binaries (every ./cmd/* Go binary into bin/, plus zig/cmake when present)
+	@echo "Building all Go cmd binaries into bin/ ..."
+	go build -o bin/ ./cmd/...
+	@command -v zig >/dev/null 2>&1 && { echo "zig build ..."; zig build; } || echo "zig not found on PATH; skipping zig build"
+	@command -v cmake >/dev/null 2>&1 && { echo "cmake build ..."; cmake -B build -S . && cmake --build build; } || echo "cmake not found on PATH; skipping native build"
 
 cross-agent: ## Reproducible ARM64 cross-build of helix-agent into dist/ (HXC-1167)
 	bash scripts/cross-compile-agent.sh

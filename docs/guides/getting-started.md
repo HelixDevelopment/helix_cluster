@@ -74,19 +74,26 @@ The gateway is the entry point for all external traffic. It routes requests to t
 
 ## Submit Your First Build Job
 
-Use `helixctl` to submit a build:
+Use `helixctl` to submit a build. `helixctl build` is a thin gRPC client of the
+`helix-build` service (default `localhost:50051`, overridable by `--addr` or the
+`HELIX_BUILD_ADDR` env var):
 
 ```bash
 ./bin/helixctl build submit \
-  --image alpine:latest \
-  --command "echo 'Hello, Helix!'"
+  --repo-url https://github.com/helix/cluster \
+  --ref main \
+  --dockerfile Dockerfile \
+  --build-arg FOO=bar
 ```
 
-Check the job status:
+`submit` prints the returned build id, e.g. `build submitted: id=<job-id> queued=true`.
+
+Check the job status, stream its logs, or cancel it:
 
 ```bash
-./bin/helixctl build list
 ./bin/helixctl build status <job-id>
+./bin/helixctl build logs   <job-id>
+./bin/helixctl build cancel <job-id>
 ```
 
 ---

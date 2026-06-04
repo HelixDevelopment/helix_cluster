@@ -52,6 +52,7 @@ type Protocol struct {
 	// State
 	incarnation  uint32
 	shutdown     chan struct{}
+	stopOnce     sync.Once
 	wg           sync.WaitGroup
 	gossipBuffer *GossipBuffer
 	fd           *FailureDetector
@@ -166,12 +167,17 @@ func (p *Protocol) Start() error {
 	return nil
 }
 
-// Stop gracefully shuts down the protocol.
+// Stop gracefully shuts down the protocol. It is idempotent and safe to call
+// concurrently or more than once (e.g. Leave() then Stop(), or a deferred Stop()
+// after an explicit one): the teardown runs exactly once under sync.Once, so the
+// shutdown channel is never double-closed and the transport is closed only once.
 func (p *Protocol) Stop() error {
-	p.cancel()
-	close(p.shutdown)
-	p.transport.Close()
-	p.wg.Wait()
+	p.stopOnce.Do(func() {
+		p.cancel()
+		close(p.shutdown)
+		p.transport.Close()
+		p.wg.Wait()
+	})
 	return nil
 }
 
@@ -239,13 +245,17 @@ func (p *Protocol) Members() []*Member {
 	return result
 }
 
-// HealthyMembers returns only alive members.
+// HealthyMembers returns only alive members. The membership map is read under
+// p.mu, but each member's State is read via m.IsHealthy() (which takes the
+// member's own m.mu) rather than touching m.State directly — otherwise this would
+// race with concurrent State mutators such as UpdateState/ClearSuspect that hold
+// only m.mu (e.g. handleAck -> m.ClearSuspect()).
 func (p *Protocol) HealthyMembers() []*Member {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	result := make([]*Member, 0, len(p.members))
 	for _, m := range p.members {
-		if m.State == StateAlive {
+		if m.IsHealthy() {
 			result = append(result, m)
 		}
 	}
@@ -593,13 +603,22 @@ func (p *Protocol) probeRandomMember() {
 		TargetID: target.ID,
 	}
 
-	// Send ping and wait for ack with timeout
+	// Send ping and wait for ack with timeout. The waiter is tracked by p.wg and
+	// honours p.ctx so it does not outlive Stop(): on shutdown the wait aborts
+	// immediately instead of blocking for the full probeTimeout.
 	ackCh := make(chan bool, 1)
+	p.wg.Add(1)
 	go func() {
+		defer p.wg.Done()
 		// In a real implementation, we'd correlate acks with pings.
 		// Here we just wait for any ack handler to touch the member.
 		oldSeen := target.TimeSinceLastSeen()
-		time.Sleep(p.probeTimeout)
+		select {
+		case <-time.After(p.probeTimeout):
+		case <-p.ctx.Done():
+			ackCh <- false
+			return
+		}
 		if target.TimeSinceLastSeen() < oldSeen {
 			ackCh <- true
 		} else {

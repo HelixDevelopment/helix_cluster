@@ -64,31 +64,49 @@ func (fd *FailureDetector) Suspect(memberID string, incarnation uint32) {
 	fd.suspects[memberID] = rec
 }
 
-// Refute removes suspicion when member responds.
+// Refute removes suspicion when member responds. The onRefute callback (which in
+// the protocol acquires p.mu and performs cluster work) is invoked AFTER fd.mu is
+// released: holding fd.mu across the callback would impose a fragile fd.mu->p.mu
+// lock order and serialize all suspicion processing behind cluster mutations.
 func (fd *FailureDetector) Refute(memberID string) {
 	fd.mu.Lock()
-	defer fd.mu.Unlock()
-
-	if rec, ok := fd.suspects[memberID]; ok {
-		rec.timer.Stop()
-		delete(fd.suspects, memberID)
-		if fd.onRefute != nil {
-			fd.onRefute(memberID)
-		}
+	rec, ok := fd.suspects[memberID]
+	if !ok {
+		fd.mu.Unlock()
+		return
+	}
+	rec.timer.Stop()
+	delete(fd.suspects, memberID)
+	cb := fd.onRefute
+	// Release fd.mu BEFORE invoking the callback: the callback (in the protocol)
+	// acquires p.mu / re-enters the detector, so holding fd.mu here would impose a
+	// fragile fd.mu->p.mu lock order and self-deadlock on re-entry.
+	fd.mu.Unlock()
+	if cb != nil {
+		cb(memberID)
 	}
 }
 
-// Confirm marks a member as dead (suspicion timeout expired).
+// Confirm marks a member as dead (suspicion timeout expired). As with Refute, the
+// onConfirm callback is invoked AFTER fd.mu is released to avoid an fd.mu->p.mu
+// lock-order hazard and to keep suspicion bookkeeping from blocking on cluster
+// work performed inside the callback.
 func (fd *FailureDetector) Confirm(memberID string) {
 	fd.mu.Lock()
-	defer fd.mu.Unlock()
-
-	if rec, ok := fd.suspects[memberID]; ok {
-		rec.timer.Stop()
-		delete(fd.suspects, memberID)
-		if fd.onConfirm != nil {
-			fd.onConfirm(memberID)
-		}
+	rec, ok := fd.suspects[memberID]
+	if !ok {
+		fd.mu.Unlock()
+		return
+	}
+	rec.timer.Stop()
+	delete(fd.suspects, memberID)
+	cb := fd.onConfirm
+	// Release fd.mu BEFORE invoking the callback (see Refute): the protocol's
+	// onConfirm acquires p.mu and performs cluster work, and the callback may
+	// re-enter the detector; holding fd.mu across it would deadlock.
+	fd.mu.Unlock()
+	if cb != nil {
+		cb(memberID)
 	}
 }
 

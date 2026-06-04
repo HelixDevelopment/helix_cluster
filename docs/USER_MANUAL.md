@@ -108,12 +108,17 @@ cmd/helix-node        cmd/helix-llm          cmd/helix-snapshot
 cmd/helix-setup       cmd/helix-agent        cmd/helix-test
 cmd/helix_infra       cmd/gpu-pool-manager   cmd/e2ee-proxy
 cmd/dst-sim           cmd/htmux              cmd/hxc-registry
+cmd/helixctl
 ```
 
-> There is **no `helixctl` binary** in this repository. Documentation elsewhere
-> (`docs/guides/getting-started.md`) references `./bin/helixctl build submit …`; that CLI is not
-> present in `cmd/`. Do not expect `helixctl` to build. Operator interactions happen through the
-> per-service binaries and their HTTP/gRPC surfaces described below.
+> `helixctl` (`cmd/helixctl`) is the operator-facing CLI. Its `build` command
+> group is a thin gRPC client of the `helix-build` service (`BuildService`):
+> `helixctl build submit|status|logs|cancel` each perform a real RPC against a
+> running build service at `--addr` (default `localhost:50051`, overridable by the
+> `HELIX_BUILD_ADDR` env var). It is built into `bin/helixctl` by `make build`
+> along with the per-service binaries. Other operator interactions continue to
+> happen through the per-service binaries and their HTTP/gRPC surfaces described
+> below.
 
 ---
 
