@@ -51,7 +51,7 @@ Convert the Chutes AI distributed-GPU-compute blueprint into **native Go HelixCl
 | Pillar | Description | Outcome |
 |--------|-------------|---------|
 | **Trust the GPU** | Port GraVal-style software proof-of-GPU + sek8s-style TEE attestation | Schedule work onto untrusted/edge GPUs with cryptographic proof |
-| **Confidential Serving** | Port the PQ E2EE inference envelope (ML-KEM-768 + ChaCha20-Poly1305) terminating inside attested enclaves | Tenant prompts unreadable by relay/miner operators |
+| **Confidential Serving** | Port the PQ E2EE inference envelope (ML-KEM-768 + AES-256-GCM default / ChaCha20-Poly1305 negotiable; see HXC-941) terminating inside attested enclaves | Tenant prompts unreadable by relay/miner operators |
 | **Decentralized Marketplace** | Port Gepetto scheduling/preemption + chutes-api/chutes-audit economics into Phase 8/8B | Cost-aware placement + auditable, reproducible reward settlement |
 
 ### Decoupled Public Submodules (planned `vasic-digital` repos)
@@ -60,7 +60,7 @@ Several deliverables are general-purpose and will be created as **new PUBLIC `va
 
 | Planned PUBLIC repo (vasic-digital) | Purpose |
 |-------------------------------------|---------|
-| `pkg/security/e2ee` **(planned)** | PQ E2EE inference transport (ML-KEM-768 + HKDF + ChaCha20-Poly1305), client + worker |
+| `pkg/security/e2ee` **(planned)** | PQ E2EE inference transport (ML-KEM-768 + HKDF + AES-256-GCM default / ChaCha20-Poly1305 negotiable; see HXC-941), client + worker |
 | `pkg/gpuattest` **(planned)** | Software GPU attestation (GraVal-style PoVW) — Go + CUDA/OpenCL kernels |
 | `pkg/security/attestation` **(planned)** | Hardware TEE attestation (Intel TDX + NVIDIA), measured-boot/key-release |
 | `pkg/security/admission` **(planned)** | Workload admission (OPA-style policy + signed-image verification) |
@@ -90,7 +90,7 @@ Several deliverables are general-purpose and will be created as **new PUBLIC `va
 
 | Package | Purpose | Integration Point | Source Reference |
 |---------|---------|-------------------|------------------|
-| `pkg/security/e2ee` **(planned PUBLIC repo)** | PQ E2EE envelope (ML-KEM-768 + HKDF-SHA256 + ChaCha20-Poly1305) + streaming + nonce discovery | LLMOrchestrator, federation | chutes-e2ee-transport (PORT), e2ee-proxy, e2ee-test |
+| `pkg/security/e2ee` **(planned PUBLIC repo)** | PQ E2EE envelope (ML-KEM-768 + HKDF-SHA256 + AES-256-GCM default / ChaCha20-Poly1305 negotiable; see HXC-941) + streaming + nonce discovery | LLMOrchestrator, federation | chutes-e2ee-transport (PORT), e2ee-proxy, e2ee-test |
 | `pkg/gpuattest` **(planned PUBLIC repo)** | Software proof-of-GPU: device-info challenge + matmul PoVW + O(1) spot-check + device-sealed encrypt | `pkg/scheduler`, `pkg/resources` | graval, chutes, chutes-api |
 | `pkg/security/attestation` **(planned PUBLIC repo)** | Hardware TEE: TDX/NVIDIA quote gen+verify, measured boot, attested key release | scheduler placement gating, GPU | sek8s, chutes-api, chutes |
 | `pkg/security/admission` **(planned PUBLIC repo)** | Policy admission + signed-image (cosign-style) + model-integrity gate | control-plane edge | sek8s (OPA/Rego), sglang (hf_cache_verify) |
@@ -243,5 +243,5 @@ Phase 8C provides the **trust, confidentiality, and scheduling primitives** that
 6. `docs/research/PHASE_8_ROADMAP.md`, `PHASE_8B_ROADMAP.md` — miner/marketplace targets
 7. Source repos: chutesai/{graval, chutes-miner, chutes-api, chutes, sek8s, fiber, chutes-e2ee-transport, e2ee-proxy, e2ee-test, sglang, vllm, chutes-audit, cllmv, genlayer-studio, squad-api, chutes-autopilot, research-data-opt-in-proxy}
 8. `CLAUDE.md` §CLAUDE-1 — End-User Usability Guarantee (usability exit gate above)
-9. Go 1.24 stdlib `crypto/mlkem` + `golang.org/x/crypto/{hkdf,chacha20poly1305}` — E2EE primitives
+9. Go 1.24+ stdlib `crypto/mlkem` + `crypto/hkdf` + `crypto/aes`/`crypto/cipher` (AES-256-GCM default) + `golang.org/x/crypto/chacha20poly1305` (ChaCha20-Poly1305 negotiable; see HXC-941) — E2EE primitives
 10. go-tdx-guest / Intel DCAP + NVIDIA NRAS — TEE attestation primitives for `pkg/security/attestation`
