@@ -1,0 +1,87 @@
+graph TD
+    subgraph API["Build API"]
+        BUILD_REST["REST API<br/>/v1/builds<br/>(trigger, status, logs)"]
+        BUILD_GRPC["gRPC API<br/>/build.v1.BuildService<br/>(streaming logs)"]
+        BUILD_WEBHOOK["Webhook Receiver<br/>(GitHub/GitLab)"]
+    end
+
+    subgraph Orchestrator["Build Orchestrator"]
+        ORCH_RECV["Request Receiver<br/>(validate + enqueue)"]
+        ORCH_QUEUE["Build Queue<br/>(Redis sorted set<br/>by priority + timestamp)"]
+        ORCH_ASSIGN["Assignment Engine<br/>(match build → worker)"]
+        ORCH_TRACK["Build Tracker<br/>(state machine)"]
+        ORCH_ARTIFACT["Artifact Manager<br/>(output collection)"]
+    end
+
+    subgraph WorkerPool["Worker Pool"]
+        W1["Worker 1<br/>(Linux amd64)"]
+        W2["Worker 2<br/>(Linux arm64)"]
+        W3["Worker 3<br/>(Windows)"]
+        W4["Worker 4<br/>(macOS)"]
+    end
+
+    subgraph Execution["Execution Backends"]
+        subgraph Exec["Native Exec Backend"]
+            EXEC_NS["Namespace Isolation<br/>(clone CLONE_NEWNS<br/>CLONE_NEWPID, CLONE_NEWNET)"]
+            EXEC_CGRP["Cgroup v2<br/>(cpu.max, memory.max,<br/>pids.max)"]
+            EXEC_SECCOMP["Seccomp Filter<br/>(build-specific allowlist)"]
+            EXEC_ROOT["Rootless execution<br/>(user namespaces)"]
+        end
+        subgraph Podman["Podman Backend"]
+            POD_CTR["Container Per Step<br/>(hermetic isolation)"]
+            POD_NET["Podman Network<br/>(CNI, restricted)"]
+            POD_VOL["Volume Mounts<br/>(cache, secrets, output)"]
+            POD_ROOT["Rootless Podman<br/>(user namespaces)"]
+        end
+    end
+
+    subgraph Cache["Build Cache"]
+        CACHE_LOCAL["Local Cache<br/>(content-addressable<br/>zstd-compressed)"]
+        CACHE_REMOTE["Remote Cache<br/>(S3 / GCS bucket)"]
+        CACHE_DEPS["Dependency Cache<br/>(pip, npm, cargo, go)"]
+    end
+
+    subgraph Output["Build Output"]
+        OUT_IMG["Container Image<br/>(OCI + push to Registry)"]
+        OUT_BIN["Binary Artifact<br/>(tar.gz + checksum)"]
+        OUT_WASM["WASM Module<br/>(.wasm + wit)"]
+        OUT_LOG["Build Log<br/>(structured JSON)"]
+    end
+
+    BUILD_REST --> ORCH_RECV
+    BUILD_GRPC --> ORCH_RECV
+    BUILD_WEBHOOK --> ORCH_RECV
+
+    ORCH_RECV --> ORCH_QUEUE
+    ORCH_QUEUE --> ORCH_ASSIGN
+    ORCH_ASSIGN --> ORCH_TRACK
+    ORCH_TRACK --> ORCH_ARTIFACT
+
+    ORCH_ASSIGN --> W1
+    ORCH_ASSIGN --> W2
+    ORCH_ASSIGN --> W3
+    ORCH_ASSIGN --> W4
+
+    W1 --> EXEC_NS
+    W1 --> POD_CTR
+    W2 --> EXEC_NS
+    W2 --> POD_CTR
+    W3 --> POD_CTR
+    W4 --> POD_CTR
+
+    EXEC_NS --> CACHE_LOCAL
+    POD_CTR --> CACHE_LOCAL
+    CACHE_LOCAL --> CACHE_REMOTE
+    CACHE_LOCAL --> CACHE_DEPS
+
+    ORCH_ARTIFACT --> OUT_IMG
+    ORCH_ARTIFACT --> OUT_BIN
+    ORCH_ARTIFACT --> OUT_WASM
+    ORCH_TRACK --> OUT_LOG
+
+    style API fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Orchestrator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style WorkerPool fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Execution fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Cache fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Output fill:#e0f2f1,stroke:#00695c,stroke-width:2px

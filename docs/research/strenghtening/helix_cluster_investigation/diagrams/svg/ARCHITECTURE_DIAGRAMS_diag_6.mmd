@@ -1,0 +1,84 @@
+graph TD
+    subgraph Input["Scheduler Input"]
+        REQ["Workload Spec<br/>CPU/Mem/GPU/Affinity"]
+        QUEUE["Priority Queue<br/>(FIFO + Priority)"]
+        CACHE["Scheduler Cache<br/>(etcd watch)"]
+    end
+
+    subgraph Filter["Phase 1 — Filter Pipeline"]
+        F1["NodeResourceFit<br/>Filter"]
+        F2["TaintToleration<br/>Filter"]
+        F3["GPUAvailability<br/>Filter"]
+        F4["AffinityAntiAffinity<br/>Filter"]
+        F5["PortConflict<br/>Filter"]
+        F6["PodTopologySpread<br/>Filter"]
+        F7["CustomFilter<br/>Plugin Extension"]
+        F_MERGE["Filter Result<br/>Feasible Nodes[]"]
+    end
+
+    subgraph Score["Phase 2 — Score Pipeline"]
+        S1["BinPacking<br/>Score (0-100)"]
+        S2["GPULocality<br/>Score (0-100)"]
+        S3["NodeAffinity<br/>Score (0-100)"]
+        S4["PodSpread<br/>Score (0-100)"]
+        S5["InterWorkloadAffinity<br/>Score (0-100)"]
+        S6["CustomScore<br/>Plugin Extension"]
+        S_WEIGHT["Weighted Sum<br/>Σ(wi × si)"]
+        S_RANK["Ranked Node List"]
+    end
+
+    subgraph Bind["Phase 3 — Bind Pipeline"]
+        B1["PreBind Hook<br/>(volume attach, GPU claim)"]
+        B2["Transactional Bind<br/>(etcd txn: reserve + assign)"]
+        B3["PostBind Hook<br/>(notify worker-mgr)"]
+        B_RESULT["Bind Result"]
+    end
+
+    subgraph Plugins["Scheduler Plugins"]
+        PG1["SchedulingProfile<br/>(YAML config)"]
+        PG2["Extension Points:<br/>PreFilter, Filter,<br/>PreScore, Score,<br/>PreBind, Bind, PostBind"]
+        PG3["Plugin Registry<br/>(WASM + Native)"]
+    end
+
+    subgraph Backoff["Scheduling Backoff"]
+        BO1["Retry Queue<br/>(exponential backoff)"]
+        BO2["Unschedulable Cache<br/>(cluster change → flush)"]
+    end
+
+    REQ --> QUEUE
+    CACHE --> F1
+
+    QUEUE --> F1
+    F1 --> F2 --> F3 --> F4 --> F5 --> F6 --> F7 --> F_MERGE
+
+    F_MERGE --> S1
+    F_MERGE --> S2
+    F_MERGE --> S3
+    F_MERGE --> S4
+    F_MERGE --> S5
+    F_MERGE --> S6
+    S1 --> S_WEIGHT
+    S2 --> S_WEIGHT
+    S3 --> S_WEIGHT
+    S4 --> S_WEIGHT
+    S5 --> S_WEIGHT
+    S6 --> S_WEIGHT
+    S_WEIGHT --> S_RANK
+
+    S_RANK --> B1 --> B2 --> B3 --> B_RESULT
+
+    B_RESULT -->|"Success"| BO2
+    B_RESULT -->|"Failure"| BO1
+    BO1 -->|"Retry"| QUEUE
+
+    PG1 --> PG2
+    PG2 --> PG3
+    PG3 -.->|"Register"| F7
+    PG3 -.->|"Register"| S6
+    PG3 -.->|"Register"| B1
+    PG3 -.->|"Register"| B3
+
+    style Filter fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Score fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Bind fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Plugins fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px

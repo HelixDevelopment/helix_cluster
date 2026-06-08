@@ -1,0 +1,83 @@
+graph TD
+    subgraph Raft["Raft Consensus Layer"]
+        RAFT_LEADER["Leader Node<br/>(process writes)"]
+        RAFT_FOLLOW1["Follower Node 1<br/>(replicate + vote)"]
+        RAFT_FOLLOW2["Follower Node 2<br/>(replicate + vote)"]
+        RAFT_CANDIDATE["Candidate<br/>(election in progress)"]
+        RAFT_LOG["Raft Log<br/>(append-only entries)"]
+        RAFT_SNAP["Snapshot<br/>(compacted log)"]
+        RAFT_WAL["WAL<br/>(write-ahead log)"]
+    end
+
+    subgraph Etcd["etcd Data Layer"]
+        ETCD_KV["Key-Value Store<br/>(revision-based MVCC)"]
+        ETCD_LEASE["Lease Manager<br/>(TTL-based ephemeral keys)"]
+        ETCD_WATCH["Watch Service<br/>(change notifications)"]
+        ETCD_TXN["Transaction<br/>(compare + ops, atomic)"]
+        ETCD_MAINT["Maintenance<br/>(compaction, defrag)"]
+        ETCD_AUTH["Auth<br/>(role-based access)"]
+    end
+
+    subgraph Election["Leader Election"]
+        EL_VOTE["Vote Request<br/>(RequestVote RPC)"]
+        EL_TERM["Term Counter<br/>(monotonically increasing)"]
+        EL_TIMEOUT["Election Timeout<br/>(randomized 150–300ms)"]
+        EL_QUORUM["Quorum<br/>(⌈N/2⌉ + 1 votes)"]
+        EL_LEASE["Leader Lease<br/>(renewed via heartbeat)"]
+    end
+
+    subgraph Clients["Consensus Clients"]
+        CL_SCHED["Scheduler<br/>(transactional binds)"]
+        CL_GPU["GPU Service<br/>(GPU reservations)"]
+        CL_AUTH["Auth Service<br/>(token validation)"]
+        CL_MESH["Mesh Controller<br/>(xDS snapshots)"]
+        CL_FED["Federation<br/>(cluster state)"]
+        CL_AUDIT["Audit Service<br/>(event persistence)"]
+    end
+
+    subgraph Snap["Snapshot & Recovery"]
+        SN_AUTO["Auto-Snapshot<br/>(every 10,000 entries)"]
+        SN_MANUAL["Manual Snapshot<br/>(operator trigger)"]
+        SN_DEFRAG["Defragmentation<br/>(online, per-revision)"]
+        SN_BACKUP["Backup<br/>(S3 / NFS)"]
+        SN_RESTORE["Restore<br/>(from snapshot + WAL)"]
+    end
+
+    RAFT_LEADER --> RAFT_LOG
+    RAFT_FOLLOW1 --> RAFT_LOG
+    RAFT_FOLLOW2 --> RAFT_LOG
+    RAFT_LOG --> RAFT_SNAP
+    RAFT_LOG --> RAFT_WAL
+
+    RAFT_LEADER --> ETCD_KV
+    RAFT_LEADER --> ETCD_LEASE
+    RAFT_LEADER --> ETCD_WATCH
+    RAFT_LEADER --> ETCD_TXN
+    RAFT_LEADER --> ETCD_MAINT
+    RAFT_LEADER --> ETCD_AUTH
+
+    RAFT_CANDIDATE --> EL_VOTE
+    EL_VOTE --> EL_TERM
+    EL_VOTE --> EL_TIMEOUT
+    EL_VOTE --> EL_QUORUM
+    RAFT_LEADER --> EL_LEASE
+
+    CL_SCHED --> ETCD_TXN
+    CL_GPU --> ETCD_TXN
+    CL_AUTH --> ETCD_KV
+    CL_MESH --> ETCD_WATCH
+    CL_FED --> ETCD_KV
+    CL_AUDIT --> ETCD_KV
+
+    ETCD_KV --> SN_AUTO
+    ETCD_MAINT --> SN_DEFRAG
+    SN_AUTO --> SN_BACKUP
+    SN_MANUAL --> SN_BACKUP
+    SN_BACKUP --> SN_RESTORE
+    RAFT_SNAP --> SN_AUTO
+
+    style Raft fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Etcd fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Election fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Clients fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Snap fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px

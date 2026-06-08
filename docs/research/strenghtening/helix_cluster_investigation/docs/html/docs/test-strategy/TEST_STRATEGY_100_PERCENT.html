@@ -1,0 +1,3019 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>TEST_STRATEGY_100_PERCENT</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:900px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;overflow-x:auto}code{background:#f4f4f4;padding:2px 5px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f0f0f0}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">TEST_STRATEGY_100_PERCENT</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#helix-cluster-os-test-strategy-100-coverage-per-test-type"
+id="toc-helix-cluster-os-test-strategy-100-coverage-per-test-type">Helix
+Cluster OS — Test Strategy: 100% Coverage Per Test Type</a>
+<ul>
+<li><a href="#table-of-contents" id="toc-table-of-contents">Table of
+Contents</a></li>
+</ul></li>
+<li><a href="#executive-summary" id="toc-executive-summary">Executive
+Summary</a>
+<ul>
+<li><a href="#current-test-inventory"
+id="toc-current-test-inventory">Current Test Inventory</a></li>
+<li><a href="#current-test-type-distribution"
+id="toc-current-test-type-distribution">Current Test Type
+Distribution</a></li>
+<li><a href="#missing-test-types-11-of-20"
+id="toc-missing-test-types-11-of-20">Missing Test Types (11 of
+20)</a></li>
+<li><a href="#target" id="toc-target">Target</a></li>
+</ul></li>
+<li><a href="#chapter-1-test-type-definitions-and-requirements"
+id="toc-chapter-1-test-type-definitions-and-requirements">Chapter 1:
+Test Type Definitions and Requirements</a>
+<ul>
+<li><a href="#unit-tests-with-paired-mutation-per-constitution-1.1"
+id="toc-unit-tests-with-paired-mutation-per-constitution-1.1">1.1 Unit
+Tests (with Paired Mutation per Constitution §1.1)</a>
+<ul>
+<li><a href="#definition" id="toc-definition">Definition</a></li>
+<li><a href="#when-to-use" id="toc-when-to-use">When to Use</a></li>
+<li><a href="#frameworktool-requirements"
+id="toc-frameworktool-requirements">Framework/Tool Requirements</a></li>
+<li><a href="#coverage-targets" id="toc-coverage-targets">Coverage
+Targets</a></li>
+<li><a href="#evidence-requirements-per-constitution"
+id="toc-evidence-requirements-per-constitution">Evidence Requirements
+(per Constitution)</a></li>
+<li><a href="#mutation-test-specification"
+id="toc-mutation-test-specification">Mutation Test
+Specification</a></li>
+</ul></li>
+<li><a href="#integration-tests-against-real-services-per-claude-1"
+id="toc-integration-tests-against-real-services-per-claude-1">1.2
+Integration Tests (Against REAL Services per CLAUDE-1)</a>
+<ul>
+<li><a href="#definition-1" id="toc-definition-1">Definition</a></li>
+<li><a href="#when-to-use-1" id="toc-when-to-use-1">When to Use</a></li>
+<li><a href="#frameworktool-requirements-1"
+id="toc-frameworktool-requirements-1">Framework/Tool
+Requirements</a></li>
+<li><a href="#coverage-targets-1" id="toc-coverage-targets-1">Coverage
+Targets</a></li>
+<li><a href="#evidence-requirements"
+id="toc-evidence-requirements">Evidence Requirements</a></li>
+<li><a href="#integration-test-specification"
+id="toc-integration-test-specification">Integration Test
+Specification</a></li>
+</ul></li>
+<li><a href="#e2e-tests-end-user-visible-behavior-per-claude-1"
+id="toc-e2e-tests-end-user-visible-behavior-per-claude-1">1.3 E2E Tests
+(End-User-Visible Behavior per CLAUDE-1)</a>
+<ul>
+<li><a href="#definition-2" id="toc-definition-2">Definition</a></li>
+<li><a href="#when-to-use-2" id="toc-when-to-use-2">When to Use</a></li>
+<li><a href="#frameworktool-requirements-2"
+id="toc-frameworktool-requirements-2">Framework/Tool
+Requirements</a></li>
+<li><a href="#coverage-targets-2" id="toc-coverage-targets-2">Coverage
+Targets</a></li>
+<li><a href="#evidence-requirements-1"
+id="toc-evidence-requirements-1">Evidence Requirements</a></li>
+</ul></li>
+<li><a href="#chaos-tests-25-fault-types-per-phase-4"
+id="toc-chaos-tests-25-fault-types-per-phase-4">1.4 Chaos Tests (25+
+Fault Types per Phase 4)</a>
+<ul>
+<li><a href="#definition-3" id="toc-definition-3">Definition</a></li>
+<li><a href="#fault-type-catalog" id="toc-fault-type-catalog">Fault Type
+Catalog</a></li>
+<li><a href="#coverage-targets-3" id="toc-coverage-targets-3">Coverage
+Targets</a></li>
+<li><a href="#evidence-requirements-2"
+id="toc-evidence-requirements-2">Evidence Requirements</a></li>
+</ul></li>
+<li><a href="#fuzz-tests-crypto-parsing-serialization"
+id="toc-fuzz-tests-crypto-parsing-serialization">1.5 Fuzz Tests (Crypto,
+Parsing, Serialization)</a>
+<ul>
+<li><a href="#definition-4" id="toc-definition-4">Definition</a></li>
+<li><a href="#when-to-use-3" id="toc-when-to-use-3">When to Use</a></li>
+<li><a href="#frameworktool-requirements-3"
+id="toc-frameworktool-requirements-3">Framework/Tool
+Requirements</a></li>
+<li><a href="#coverage-targets-4" id="toc-coverage-targets-4">Coverage
+Targets</a></li>
+<li><a href="#current-fuzz-test-inventory"
+id="toc-current-fuzz-test-inventory">Current Fuzz Test
+Inventory</a></li>
+<li><a href="#missing-fuzz-targets-30"
+id="toc-missing-fuzz-targets-30">Missing Fuzz Targets (30+)</a></li>
+</ul></li>
+<li><a href="#benchmarkperformance-tests"
+id="toc-benchmarkperformance-tests">1.6 Benchmark/Performance Tests</a>
+<ul>
+<li><a href="#definition-5" id="toc-definition-5">Definition</a></li>
+<li><a href="#when-to-use-4" id="toc-when-to-use-4">When to Use</a></li>
+<li><a href="#frameworktool-requirements-4"
+id="toc-frameworktool-requirements-4">Framework/Tool
+Requirements</a></li>
+<li><a href="#coverage-targets-5" id="toc-coverage-targets-5">Coverage
+Targets</a></li>
+<li><a href="#current-benchmarks" id="toc-current-benchmarks">Current
+Benchmarks</a></li>
+</ul></li>
+<li><a href="#stress-tests-sustained-load-48-hour-soak"
+id="toc-stress-tests-sustained-load-48-hour-soak">1.7 Stress Tests
+(Sustained Load, 48-Hour Soak)</a>
+<ul>
+<li><a href="#definition-6" id="toc-definition-6">Definition</a></li>
+<li><a href="#when-to-use-5" id="toc-when-to-use-5">When to Use</a></li>
+<li><a href="#coverage-targets-6" id="toc-coverage-targets-6">Coverage
+Targets</a></li>
+<li><a href="#missing-implementation"
+id="toc-missing-implementation">Missing Implementation</a></li>
+</ul></li>
+<li><a href="#mutation-tests-anti-bluff-per-1.1"
+id="toc-mutation-tests-anti-bluff-per-1.1">1.8 Mutation Tests
+(Anti-Bluff per §1.1)</a>
+<ul>
+<li><a href="#definition-7" id="toc-definition-7">Definition</a></li>
+<li><a href="#constitution-requirement"
+id="toc-constitution-requirement">Constitution Requirement</a></li>
+<li><a href="#coverage-targets-7" id="toc-coverage-targets-7">Coverage
+Targets</a></li>
+<li><a href="#current-state" id="toc-current-state">Current
+State</a></li>
+<li><a href="#required-mutation-tests-by-package"
+id="toc-required-mutation-tests-by-package">Required Mutation Tests by
+Package</a></li>
+</ul></li>
+<li><a href="#hardening-tests-security-boundary-conditions"
+id="toc-hardening-tests-security-boundary-conditions">1.9 Hardening
+Tests (Security, Boundary Conditions)</a>
+<ul>
+<li><a href="#definition-8" id="toc-definition-8">Definition</a></li>
+<li><a href="#when-to-use-6" id="toc-when-to-use-6">When to Use</a></li>
+<li><a href="#coverage-targets-8" id="toc-coverage-targets-8">Coverage
+Targets</a></li>
+<li><a href="#current-hardening-tests"
+id="toc-current-hardening-tests">Current Hardening Tests</a></li>
+</ul></li>
+<li><a href="#behavior-tests-end-user-scenarios"
+id="toc-behavior-tests-end-user-scenarios">1.10 Behavior Tests (End-User
+Scenarios)</a>
+<ul>
+<li><a href="#definition-9" id="toc-definition-9">Definition</a></li>
+<li><a href="#when-to-use-7" id="toc-when-to-use-7">When to Use</a></li>
+<li><a href="#coverage-targets-9" id="toc-coverage-targets-9">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#dst-deterministic-simulation-testing"
+id="toc-dst-deterministic-simulation-testing">1.11 DST (Deterministic
+Simulation Testing)</a>
+<ul>
+<li><a href="#definition-10" id="toc-definition-10">Definition</a></li>
+<li><a href="#when-to-use-8" id="toc-when-to-use-8">When to Use</a></li>
+<li><a href="#framework" id="toc-framework">Framework</a></li>
+<li><a href="#coverage-targets-10" id="toc-coverage-targets-10">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#compliance-tests-constitution-inheritance"
+id="toc-compliance-tests-constitution-inheritance">1.12 Compliance Tests
+(Constitution Inheritance)</a>
+<ul>
+<li><a href="#definition-11" id="toc-definition-11">Definition</a></li>
+<li><a href="#when-to-use-9" id="toc-when-to-use-9">When to Use</a></li>
+<li><a href="#coverage-targets-11" id="toc-coverage-targets-11">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#cross-platform-tests-linux-macos-windowswsl2"
+id="toc-cross-platform-tests-linux-macos-windowswsl2">1.13
+Cross-Platform Tests (Linux, macOS, Windows/WSL2)</a>
+<ul>
+<li><a href="#definition-12" id="toc-definition-12">Definition</a></li>
+<li><a href="#constitution-requirement-1"
+id="toc-constitution-requirement-1">Constitution Requirement</a></li>
+<li><a href="#coverage-targets-12" id="toc-coverage-targets-12">Coverage
+Targets</a></li>
+<li><a href="#current-cross-platform-tests"
+id="toc-current-cross-platform-tests">Current Cross-Platform
+Tests</a></li>
+</ul></li>
+<li><a href="#gpu-backend-tests-4-vendor-backends-per-pcs-2"
+id="toc-gpu-backend-tests-4-vendor-backends-per-pcs-2">1.14 GPU Backend
+Tests (4 Vendor Backends per PCS-2)</a>
+<ul>
+<li><a href="#definition-13" id="toc-definition-13">Definition</a></li>
+<li><a href="#coverage-targets-13" id="toc-coverage-targets-13">Coverage
+Targets</a></li>
+<li><a href="#current-gpu-tests" id="toc-current-gpu-tests">Current GPU
+Tests</a></li>
+</ul></li>
+<li><a href="#helixqa-challenges-per-constitution"
+id="toc-helixqa-challenges-per-constitution">1.15 HelixQA Challenges
+(per Constitution)</a>
+<ul>
+<li><a href="#definition-14" id="toc-definition-14">Definition</a></li>
+<li><a href="#constitution-requirement-2"
+id="toc-constitution-requirement-2">Constitution Requirement</a></li>
+<li><a href="#coverage-targets-14" id="toc-coverage-targets-14">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#regression-tests-welchs-t-test-per-phase-4"
+id="toc-regression-tests-welchs-t-test-per-phase-4">1.16 Regression
+Tests (Welch’s t-test per Phase 4)</a>
+<ul>
+<li><a href="#definition-15" id="toc-definition-15">Definition</a></li>
+<li><a href="#framework-1" id="toc-framework-1">Framework</a></li>
+<li><a href="#coverage-targets-15" id="toc-coverage-targets-15">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#load-tests-50k-writessec-per-phase-7-slo"
+id="toc-load-tests-50k-writessec-per-phase-7-slo">1.17 Load Tests (50K
+Writes/sec per Phase 7 SLO)</a>
+<ul>
+<li><a href="#definition-16" id="toc-definition-16">Definition</a></li>
+<li><a href="#slos" id="toc-slos">SLOs</a></li>
+<li><a href="#missing-implementation-1"
+id="toc-missing-implementation-1">Missing Implementation</a></li>
+</ul></li>
+<li><a href="#soak-tests-7-day-sustained-per-phase-8"
+id="toc-soak-tests-7-day-sustained-per-phase-8">1.18 Soak Tests (7-Day
+Sustained per Phase 8)</a>
+<ul>
+<li><a href="#definition-17" id="toc-definition-17">Definition</a></li>
+<li><a href="#coverage-targets-16" id="toc-coverage-targets-16">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#gameday-tests-manual-fault-injection"
+id="toc-gameday-tests-manual-fault-injection">1.19 GameDay Tests (Manual
+Fault Injection)</a>
+<ul>
+<li><a href="#definition-18" id="toc-definition-18">Definition</a></li>
+<li><a href="#coverage-targets-17" id="toc-coverage-targets-17">Coverage
+Targets</a></li>
+</ul></li>
+<li><a href="#security-scanning-govulncheck-gosec-trivy"
+id="toc-security-scanning-govulncheck-gosec-trivy">1.20 Security
+Scanning (govulncheck, gosec, trivy)</a>
+<ul>
+<li><a href="#definition-19" id="toc-definition-19">Definition</a></li>
+<li><a href="#tools" id="toc-tools">Tools</a></li>
+<li><a href="#coverage-targets-18" id="toc-coverage-targets-18">Coverage
+Targets</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#chapter-2-coverage-matrix"
+id="toc-chapter-2-coverage-matrix">Chapter 2: Coverage Matrix</a>
+<ul>
+<li><a href="#package-test-type-matrix"
+id="toc-package-test-type-matrix">Package × Test Type Matrix</a></li>
+</ul></li>
+<li><a href="#chapter-3-missing-test-implementations"
+id="toc-chapter-3-missing-test-implementations">Chapter 3: Missing Test
+Implementations</a>
+<ul>
+<li><a href="#missing-test-implementations-by-type"
+id="toc-missing-test-implementations-by-type">3.1 Missing Test
+Implementations by Type</a>
+<ul>
+<li><a href="#unit-tests-missing-50-packages"
+id="toc-unit-tests-missing-50-packages">Unit Tests (Missing: ~50
+packages)</a></li>
+<li><a href="#mutation-tests-missing-200-packages"
+id="toc-mutation-tests-missing-200-packages">Mutation Tests (Missing:
+~200 packages)</a></li>
+<li><a href="#integration-tests-missing-100-packages"
+id="toc-integration-tests-missing-100-packages">Integration Tests
+(Missing: ~100 packages)</a></li>
+<li><a href="#e2e-tests-missing-30-features"
+id="toc-e2e-tests-missing-30-features">E2E Tests (Missing: ~30
+features)</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#chapter-4-test-infrastructure-requirements"
+id="toc-chapter-4-test-infrastructure-requirements">Chapter 4: Test
+Infrastructure Requirements</a>
+<ul>
+<li><a href="#test-runners-and-frameworks"
+id="toc-test-runners-and-frameworks">4.1 Test Runners and
+Frameworks</a></li>
+<li><a href="#cicd-integration-plan" id="toc-cicd-integration-plan">4.2
+CI/CD Integration Plan</a></li>
+<li><a href="#test-environment-requirements"
+id="toc-test-environment-requirements">4.3 Test Environment
+Requirements</a></li>
+<li><a href="#test-data-management" id="toc-test-data-management">4.4
+Test Data Management</a></li>
+<li><a href="#evidence-collection-and-storage"
+id="toc-evidence-collection-and-storage">4.5 Evidence Collection and
+Storage</a></li>
+</ul></li>
+<li><a href="#chapter-5-helixqa-integration"
+id="toc-chapter-5-helixqa-integration">Chapter 5: HelixQA
+Integration</a>
+<ul>
+<li><a href="#challenge-runner-integration"
+id="toc-challenge-runner-integration">5.1 Challenge Runner
+Integration</a></li>
+<li><a href="#bank-creation-for-helix_cluster-features"
+id="toc-bank-creation-for-helix_cluster-features">5.2 Bank Creation for
+helix_cluster Features</a>
+<ul>
+<li><a href="#node-orchestration-challenges"
+id="toc-node-orchestration-challenges">Node Orchestration
+Challenges</a></li>
+<li><a href="#service-deployment-challenges"
+id="toc-service-deployment-challenges">Service Deployment
+Challenges</a></li>
+<li><a href="#health-monitoring-challenges"
+id="toc-health-monitoring-challenges">Health Monitoring
+Challenges</a></li>
+<li><a href="#security-challenges" id="toc-security-challenges">Security
+Challenges</a></li>
+</ul></li>
+<li><a href="#anti-bluff-enforcement"
+id="toc-anti-bluff-enforcement">5.3 Anti-Bluff Enforcement</a></li>
+<li><a href="#evidence-taxonomy" id="toc-evidence-taxonomy">5.4 Evidence
+Taxonomy</a></li>
+</ul></li>
+<li><a href="#chapter-6-implementation-plan"
+id="toc-chapter-6-implementation-plan">Chapter 6: Implementation
+Plan</a>
+<ul>
+<li><a href="#prioritized-task-list" id="toc-prioritized-task-list">6.1
+Prioritized Task List</a>
+<ul>
+<li><a href="#phase-0-foundation-this-wave"
+id="toc-phase-0-foundation-this-wave">Phase 0: Foundation (This
+Wave)</a></li>
+<li><a href="#phase-1-dead-code-resolution-owner-gated"
+id="toc-phase-1-dead-code-resolution-owner-gated">Phase 1: Dead-Code
+Resolution (Owner-Gated)</a></li>
+<li><a href="#phase-2-test-coverage-to-maximum"
+id="toc-phase-2-test-coverage-to-maximum">Phase 2: Test Coverage to
+Maximum</a></li>
+<li><a href="#phase-3-challenges-helixqa"
+id="toc-phase-3-challenges-helixqa">Phase 3: Challenges
+(HelixQA)</a></li>
+<li><a href="#phase-4-responsiveness"
+id="toc-phase-4-responsiveness">Phase 4: Responsiveness</a></li>
+<li><a href="#phase-5-security-scanning"
+id="toc-phase-5-security-scanning">Phase 5: Security Scanning</a></li>
+<li><a href="#phase-6-autonomously-actionable-backlog"
+id="toc-phase-6-autonomously-actionable-backlog">Phase 6:
+Autonomously-Actionable Backlog</a></li>
+<li><a href="#phase-7-documentation"
+id="toc-phase-7-documentation">Phase 7: Documentation</a></li>
+</ul></li>
+<li><a href="#per-package-test-requirements"
+id="toc-per-package-test-requirements">6.2 Per-Package Test
+Requirements</a>
+<ul>
+<li><a href="#template-for-new-tests"
+id="toc-template-for-new-tests">Template for New Tests</a></li>
+<li><a href="#priority-order-for-test-implementation"
+id="toc-priority-order-for-test-implementation">Priority Order for Test
+Implementation</a></li>
+</ul></li>
+<li><a href="#code-level-specifications-for-new-tests"
+id="toc-code-level-specifications-for-new-tests">6.3 Code-Level
+Specifications for New Tests</a>
+<ul>
+<li><a href="#specification-pkgjwt-mutation-test"
+id="toc-specification-pkgjwt-mutation-test">Specification:
+<code>pkg/jwt</code> Mutation Test</a></li>
+<li><a href="#specification-pkgcrypto-fuzz-test"
+id="toc-specification-pkgcrypto-fuzz-test">Specification:
+<code>pkg/crypto</code> Fuzz Test</a></li>
+<li><a href="#specification-pkgswim-chaos-test"
+id="toc-specification-pkgswim-chaos-test">Specification:
+<code>pkg/swim</code> Chaos Test</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="helix-cluster-os-test-strategy-100-coverage-per-test-type">Helix
+Cluster OS — Test Strategy: 100% Coverage Per Test Type</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Document ID</td>
+<td>TS-100PCT</td>
+</tr>
+<tr class="even">
+<td>Revision</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td>Date</td>
+<td>2026-03-04</td>
+</tr>
+<tr class="even">
+<td>Classification</td>
+<td>INVESTIGATION — INTERNAL</td>
+</tr>
+<tr class="odd">
+<td>Authors</td>
+<td>Autonomous Test Strategy Agent</td>
+</tr>
+<tr class="even">
+<td>Status</td>
+<td>FINAL</td>
+</tr>
+<tr class="odd">
+<td>Constitution Reference</td>
+<td>§1.1 (mutation-paired), §7.1 (quality), §11.4 (anti-bluff), CLAUDE-1
+(end-user usability)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#executive-summary">Executive Summary</a></li>
+<li><a href="#chapter-1-test-type-definitions-and-requirements">Chapter
+1: Test Type Definitions and Requirements</a></li>
+<li><a href="#chapter-2-coverage-matrix">Chapter 2: Coverage
+Matrix</a></li>
+<li><a href="#chapter-3-missing-test-implementations">Chapter 3: Missing
+Test Implementations</a></li>
+<li><a href="#chapter-4-test-infrastructure-requirements">Chapter 4:
+Test Infrastructure Requirements</a></li>
+<li><a href="#chapter-5-helixqa-integration">Chapter 5: HelixQA
+Integration</a></li>
+<li><a href="#chapter-6-implementation-plan">Chapter 6: Implementation
+Plan</a></li>
+</ol>
+<hr />
+<h1 id="executive-summary">Executive Summary</h1>
+<h2 id="current-test-inventory">Current Test Inventory</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Total test files</td>
+<td>~620</td>
+</tr>
+<tr class="even">
+<td>Total test functions</td>
+<td>~4,907</td>
+</tr>
+<tr class="odd">
+<td>Test types currently implemented</td>
+<td>9 of 20</td>
+</tr>
+<tr class="even">
+<td>Packages with tests</td>
+<td>~200 of 255</td>
+</tr>
+<tr class="odd">
+<td>Main module coverage</td>
+<td>82.4%</td>
+</tr>
+<tr class="even">
+<td>Security module coverage</td>
+<td>87.8%</td>
+</tr>
+<tr class="odd">
+<td>Anti-bluff pass rate</td>
+<td>33% (10/30 packages)</td>
+</tr>
+<tr class="even">
+<td>Mutation test coverage</td>
+<td>~5 cases + 1 script</td>
+</tr>
+</tbody>
+</table>
+<h2 id="current-test-type-distribution">Current Test Type
+Distribution</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Test Type</th>
+<th>Count</th>
+<th>Files</th>
+<th>Constitution Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Unit</td>
+<td>~530</td>
+<td>~400</td>
+<td>§1.1 — paired with mutation</td>
+</tr>
+<tr class="even">
+<td>Integration</td>
+<td>~64</td>
+<td>~40</td>
+<td>CLAUDE-1 — against REAL services</td>
+</tr>
+<tr class="odd">
+<td>E2E</td>
+<td>~7</td>
+<td>~4</td>
+<td>CLAUDE-1 — end-user-visible behavior</td>
+</tr>
+<tr class="even">
+<td>Benchmark</td>
+<td>~10</td>
+<td>~5</td>
+<td>Phase 4 — hot paths</td>
+</tr>
+<tr class="odd">
+<td>Chaos</td>
+<td>~13</td>
+<td>~4</td>
+<td>Phase 4 — 25+ fault types</td>
+</tr>
+<tr class="even">
+<td>Fuzz</td>
+<td>~8</td>
+<td>~4</td>
+<td>§11.4 — crypto + parsing</td>
+</tr>
+<tr class="odd">
+<td>Hardening</td>
+<td>~3</td>
+<td>~2</td>
+<td>§11.4 — security + boundary</td>
+</tr>
+<tr class="even">
+<td>Behavior</td>
+<td>~3</td>
+<td>~2</td>
+<td>CLAUDE-1 — end-user scenarios</td>
+</tr>
+<tr class="odd">
+<td>Mutation</td>
+<td>1 script</td>
+<td>1</td>
+<td>§1.1 — anti-bluff</td>
+</tr>
+</tbody>
+</table>
+<h2 id="missing-test-types-11-of-20">Missing Test Types (11 of 20)</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Test Type</th>
+<th>Current</th>
+<th>Target</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Stress</td>
+<td>0</td>
+<td>All hot paths</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>Soak</td>
+<td>0</td>
+<td>7-day sustained</td>
+<td>ALL missing</td>
+</tr>
+<tr class="odd">
+<td>Load</td>
+<td>0</td>
+<td>50K writes/sec</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>GameDay</td>
+<td>0</td>
+<td>Manual fault injection</td>
+<td>ALL missing</td>
+</tr>
+<tr class="odd">
+<td>DST</td>
+<td>~2</td>
+<td>All consensus subsystems</td>
+<td>Partial</td>
+</tr>
+<tr class="even">
+<td>Compliance</td>
+<td>~1</td>
+<td>Constitution inheritance</td>
+<td>Partial</td>
+</tr>
+<tr class="odd">
+<td>Cross-Platform</td>
+<td>~5</td>
+<td>Linux + macOS + Win/WSL2</td>
+<td>Partial</td>
+</tr>
+<tr class="even">
+<td>GPU Backend</td>
+<td>~3</td>
+<td>4 vendor backends</td>
+<td>Partial</td>
+</tr>
+<tr class="odd">
+<td>HelixQA</td>
+<td>0</td>
+<td>Challenge execution</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>Regression</td>
+<td>~1</td>
+<td>Welch’s t-test</td>
+<td>Partial</td>
+</tr>
+<tr class="odd">
+<td>Security Scan</td>
+<td>1</td>
+<td>govulncheck+gosec+trivy</td>
+<td>Partial</td>
+</tr>
+</tbody>
+</table>
+<h2 id="target">Target</h2>
+<p><strong>100% coverage per test type for ALL packages.</strong> This
+means every package must have at least one test of each applicable test
+type, with evidence collected per the Constitution’s anti-bluff
+requirements.</p>
+<hr />
+<h1 id="chapter-1-test-type-definitions-and-requirements">Chapter 1:
+Test Type Definitions and Requirements</h1>
+<h2 id="unit-tests-with-paired-mutation-per-constitution-1.1">1.1 Unit
+Tests (with Paired Mutation per Constitution §1.1)</h2>
+<h3 id="definition">Definition</h3>
+<p>Unit tests verify individual functions and methods in isolation. Per
+Constitution §1.1, every unit test MUST have a paired mutation test that
+verifies the test would fail if the implementation were intentionally
+broken.</p>
+<h3 id="when-to-use">When to Use</h3>
+<ul>
+<li>Every exported function and method</li>
+<li>Every critical internal function</li>
+<li>Every error path</li>
+<li>Every edge case and boundary condition</li>
+</ul>
+<h3 id="frameworktool-requirements">Framework/Tool Requirements</h3>
+<ul>
+<li>Go standard <code>testing</code> package</li>
+<li><code>testify/assert</code> and <code>testify/require</code> for
+assertions</li>
+<li><code>go test -race</code> for race detection</li>
+<li><code>go test -cover</code> for coverage measurement</li>
+</ul>
+<h3 id="coverage-targets">Coverage Targets</h3>
+<ul>
+<li><strong>Line coverage:</strong> ≥80% per package (enforced by
+<code>pkg/covgate</code>)</li>
+<li><strong>Function coverage:</strong> 100% of exported functions</li>
+<li><strong>Mutation coverage:</strong> Every unit test must have a
+paired <code>_Mutation</code> test</li>
+</ul>
+<h3 id="evidence-requirements-per-constitution">Evidence Requirements
+(per Constitution)</h3>
+<ul>
+<li>Test output showing PASS</li>
+<li>Coverage report per package</li>
+<li>Mutation test showing the test catches the mutation</li>
+<li><code>go test -race</code> showing no data races</li>
+</ul>
+<h3 id="mutation-test-specification">Mutation Test Specification</h3>
+<p>Per §1.1, for each unit test <code>TestX</code>, there must be a
+corresponding <code>TestX_Mutation</code> that:</p>
+<ol type="1">
+<li><strong>Intentionally breaks the implementation</strong> (e.g.,
+removes a cap, changes a formula, inverts a condition)</li>
+<li><strong>Runs the original test</strong></li>
+<li><strong>Asserts the test FAILS</strong> on the broken
+implementation</li>
+<li><strong>Restores the original implementation</strong></li>
+</ol>
+<p>Example:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> TestDuration<span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    cfg <span class="op">:=</span> backoff<span class="op">.</span>Default<span class="op">()</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    got <span class="op">:=</span> cfg<span class="op">.</span>Duration<span class="op">(</span><span class="dv">5</span><span class="op">)</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>True<span class="op">(</span>t<span class="op">,</span> got <span class="op">&lt;=</span> cfg<span class="op">.</span>MaxBackoff<span class="op">)</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> TestDuration_Mutation<span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Mutation: remove the cap</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    original <span class="op">:=</span> backoff<span class="op">.</span>Default<span class="op">().</span>MaxBackoff</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    backoff<span class="op">.</span>Default<span class="op">().</span>MaxBackoff <span class="op">=</span> <span class="dv">0</span> <span class="co">// remove cap</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    got <span class="op">:=</span> backoff<span class="op">.</span>Default<span class="op">().</span>Duration<span class="op">(</span><span class="dv">5</span><span class="op">)</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Original test would now fail — cap not enforced</span></span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>True<span class="op">(</span>t<span class="op">,</span> got <span class="op">&gt;</span> original<span class="op">,</span> <span class="st">&quot;mutation: cap removed but test still passes&quot;</span><span class="op">)</span></span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>    backoff<span class="op">.</span>Default<span class="op">().</span>MaxBackoff <span class="op">=</span> original <span class="co">// restore</span></span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="integration-tests-against-real-services-per-claude-1">1.2
+Integration Tests (Against REAL Services per CLAUDE-1)</h2>
+<h3 id="definition-1">Definition</h3>
+<p>Integration tests verify that components work correctly together
+against real services (not mocks). Per CLAUDE-1, mocks are permitted
+ONLY in unit tests per §11.4.27.</p>
+<h3 id="when-to-use-1">When to Use</h3>
+<ul>
+<li>Service-to-service communication</li>
+<li>Database operations (PostgreSQL, etcd, Redis)</li>
+<li>External API calls (when possible)</li>
+<li>File system operations</li>
+<li>Network operations</li>
+</ul>
+<h3 id="frameworktool-requirements-1">Framework/Tool Requirements</h3>
+<ul>
+<li>Build tag: <code>//go:build integration</code></li>
+<li>Docker/Podman Compose for test dependencies</li>
+<li><code>testcontainers-go</code> for ephemeral containers</li>
+<li>Real database connections (not mocks)</li>
+</ul>
+<h3 id="coverage-targets-1">Coverage Targets</h3>
+<ul>
+<li>Every <code>internal/</code> package must have ≥1 integration
+test</li>
+<li>Every database migration must have an integration test</li>
+<li>Every gRPC service must have an integration test against a real
+server</li>
+<li>Every external dependency must be tested with a real instance</li>
+</ul>
+<h3 id="evidence-requirements">Evidence Requirements</h3>
+<ul>
+<li>Test output showing PASS against real service</li>
+<li>Service logs captured as evidence</li>
+<li>Database state verified before and after</li>
+<li>Network traces for communication verification</li>
+</ul>
+<h3 id="integration-test-specification">Integration Test
+Specification</h3>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co">//go:build integration</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> TestSchedulerNodeIntegration<span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Start real etcd</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    ctx <span class="op">:=</span> context<span class="op">.</span>Background<span class="op">()</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    etcdClient <span class="op">:=</span> setupEtcd<span class="op">(</span>t<span class="op">)</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> etcdClient<span class="op">.</span>Close<span class="op">()</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Start real scheduler</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a>    sched <span class="op">:=</span> scheduler<span class="op">.</span>NewServer<span class="op">(</span>etcdClient<span class="op">)</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a>    <span class="cf">go</span> sched<span class="op">.</span>Start<span class="op">()</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> sched<span class="op">.</span>Stop<span class="op">()</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Start real node</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a>    node <span class="op">:=</span> node<span class="op">.</span>NewServer<span class="op">(</span>etcdClient<span class="op">)</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>    <span class="cf">go</span> node<span class="op">.</span>Start<span class="op">()</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> node<span class="op">.</span>Stop<span class="op">()</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Test real communication</span></span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    conn<span class="op">,</span> err <span class="op">:=</span> grpc<span class="op">.</span>Dial<span class="op">(</span><span class="st">&quot;localhost:50052&quot;</span><span class="op">,</span> grpc<span class="op">.</span>WithInsecure<span class="op">())</span></span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    require<span class="op">.</span>NoError<span class="op">(</span>t<span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> conn<span class="op">.</span>Close<span class="op">()</span></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>    client <span class="op">:=</span> pb<span class="op">.</span>NewSchedulerServiceClient<span class="op">(</span>conn<span class="op">)</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    resp<span class="op">,</span> err <span class="op">:=</span> client<span class="op">.</span>Schedule<span class="op">(</span>ctx<span class="op">,</span> <span class="op">&amp;</span>pb<span class="op">.</span>ScheduleRequest<span class="op">{...})</span></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    require<span class="op">.</span>NoError<span class="op">(</span>t<span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>NotEmpty<span class="op">(</span>t<span class="op">,</span> resp<span class="op">.</span>JobId<span class="op">)</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h2 id="e2e-tests-end-user-visible-behavior-per-claude-1">1.3 E2E Tests
+(End-User-Visible Behavior per CLAUDE-1)</h2>
+<h3 id="definition-2">Definition</h3>
+<p>End-to-end tests verify that complete user workflows work as an end
+user would experience them. Per CLAUDE-1, these tests MUST prove the
+feature works for end users, not just that code executes without
+panic.</p>
+<h3 id="when-to-use-2">When to Use</h3>
+<ul>
+<li>Complete user workflows (submit job → get results)</li>
+<li>API endpoint chains (auth → submit → monitor → retrieve)</li>
+<li>Cross-service workflows (schedule → assign → execute →
+complete)</li>
+<li>Terminal session workflows (create → attach → resize → detach)</li>
+</ul>
+<h3 id="frameworktool-requirements-2">Framework/Tool Requirements</h3>
+<ul>
+<li>Build tag: <code>//go:build e2e</code></li>
+<li>Running cluster (Docker Compose)</li>
+<li>HTTP/gRPC client for API calls</li>
+<li>WebSocket client for streaming</li>
+<li>Terminal emulator for session tests</li>
+</ul>
+<h3 id="coverage-targets-2">Coverage Targets</h3>
+<ul>
+<li>Every REST endpoint must have an E2E test</li>
+<li>Every gRPC service must have an E2E test</li>
+<li>Every WebSocket stream must have an E2E test</li>
+<li>Every complete user workflow must have an E2E test</li>
+</ul>
+<h3 id="evidence-requirements-1">Evidence Requirements</h3>
+<ul>
+<li>Full HTTP request/response captured</li>
+<li>gRPC request/response captured</li>
+<li>WebSocket message log</li>
+<li>Screenshot or terminal recording for UI</li>
+<li>Metrics showing operation succeeded</li>
+</ul>
+<h2 id="chaos-tests-25-fault-types-per-phase-4">1.4 Chaos Tests (25+
+Fault Types per Phase 4)</h2>
+<h3 id="definition-3">Definition</h3>
+<p>Chaos tests inject failures into running systems and verify correct
+behavior under fault conditions. Phase 4 requires 25+ fault types.</p>
+<h3 id="fault-type-catalog">Fault Type Catalog</h3>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Fault Type</th>
+<th>Target Package</th>
+<th>Injection Method</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>Network partition</td>
+<td><code>pkg/swim</code>, <code>pkg/leader</code></td>
+<td>iptables / netem</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>Node crash</td>
+<td><code>pkg/swim</code>, <code>internal/node</code></td>
+<td>Process kill</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>Node slow</td>
+<td><code>pkg/scheduler</code></td>
+<td>CPU throttle</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>Disk full</td>
+<td><code>internal/build</code></td>
+<td>dd fill</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>Memory pressure</td>
+<td>All services</td>
+<td>cgroup limit</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>CPU starvation</td>
+<td>All services</td>
+<td>cgroup limit</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>Network latency</td>
+<td><code>pkg/swim</code></td>
+<td>tc netem delay</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>Network packet loss</td>
+<td><code>pkg/swim</code></td>
+<td>tc netem loss</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td>Network reorder</td>
+<td><code>pkg/swim</code></td>
+<td>tc netem reorder</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td>Network duplicate</td>
+<td><code>pkg/swim</code></td>
+<td>tc netem duplicate</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td>etcd leader election</td>
+<td><code>pkg/leader</code></td>
+<td>Kill etcd leader</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td>etcd cluster shrink</td>
+<td><code>pkg/leader</code></td>
+<td>Remove etcd member</td>
+</tr>
+<tr class="odd">
+<td>13</td>
+<td>Redis connection loss</td>
+<td><code>pkg/tieredcache</code></td>
+<td>Kill Redis</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td>PostgreSQL failover</td>
+<td><code>internal/schema</code></td>
+<td>Primary switch</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td>gRPC connection drop</td>
+<td>All services</td>
+<td>Kill service mid-request</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td>gRPC timeout</td>
+<td>All services</td>
+<td>Add latency</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td>Certificate expiration</td>
+<td><code>pkg/security</code></td>
+<td>Expire cert</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td>Clock skew</td>
+<td><code>pkg/swim</code>, <code>pkg/crdt</code></td>
+<td>Modify system clock</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td>Process OOM</td>
+<td>All services</td>
+<td>cgroup oom</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td>Disk I/O error</td>
+<td><code>internal/build</code></td>
+<td>Device error injection</td>
+</tr>
+<tr class="odd">
+<td>21</td>
+<td>DNS failure</td>
+<td>Service discovery</td>
+<td>DNS blackout</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td>Concurrent leader election</td>
+<td><code>pkg/leader</code></td>
+<td>Multiple candidates</td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td>Split brain</td>
+<td><code>pkg/splitbrain</code></td>
+<td>Network partition</td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td>Hot loop / CPU spin</td>
+<td>All services</td>
+<td>Infinite loop injection</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td>Memory leak simulation</td>
+<td>All services</td>
+<td>Gradual memory growth</td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td>Goroutine leak</td>
+<td>All services</td>
+<td>Blocked goroutine injection</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td>Channel deadlock</td>
+<td>All services</td>
+<td>Channel fill</td>
+</tr>
+<tr class="even">
+<td>28</td>
+<td>Unbounded queue</td>
+<td><code>pkg/scheduler</code></td>
+<td>Queue overflow</td>
+</tr>
+</tbody>
+</table>
+<h3 id="coverage-targets-3">Coverage Targets</h3>
+<ul>
+<li>At least 25 fault types tested</li>
+<li>Every consensus subsystem tested under partition</li>
+<li>Every stateful service tested under crash</li>
+<li>Every network operation tested under latency/loss</li>
+</ul>
+<h3 id="evidence-requirements-2">Evidence Requirements</h3>
+<ul>
+<li>Fault injection log</li>
+<li>System behavior during fault</li>
+<li>Recovery verification after fault</li>
+<li>Metrics showing graceful degradation</li>
+</ul>
+<h2 id="fuzz-tests-crypto-parsing-serialization">1.5 Fuzz Tests (Crypto,
+Parsing, Serialization)</h2>
+<h3 id="definition-4">Definition</h3>
+<p>Fuzz tests provide random/mutated inputs to functions and verify they
+don’t crash, hang, or produce incorrect results.</p>
+<h3 id="when-to-use-3">When to Use</h3>
+<ul>
+<li>All crypto operations (hashing, signing, key exchange)</li>
+<li>All parsing operations (configuration, protocol, wire format)</li>
+<li>All serialization operations (JSON, protobuf, Avro,
+FlatBuffers)</li>
+<li>All network input handling</li>
+</ul>
+<h3 id="frameworktool-requirements-3">Framework/Tool Requirements</h3>
+<ul>
+<li>Go native fuzzing (<code>go test -fuzz</code>)</li>
+<li><code>go-fuzz</code> for more sophisticated fuzzing</li>
+<li>OSS-Fuzz integration for continuous fuzzing</li>
+</ul>
+<h3 id="coverage-targets-4">Coverage Targets</h3>
+<ul>
+<li>All crypto packages must have fuzz tests</li>
+<li>All parsing/serialization must have fuzz tests</li>
+<li>All protocol message handling must have fuzz tests</li>
+</ul>
+<h3 id="current-fuzz-test-inventory">Current Fuzz Test Inventory</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Function</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/hybridkex</code></td>
+<td><code>FuzzHybridKEX</code></td>
+<td>✅ Active</td>
+</tr>
+<tr class="even">
+<td><code>pkg/x25519session</code></td>
+<td><code>FuzzX25519Session</code></td>
+<td>✅ Active</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/doublecrypt</code></td>
+<td><code>FuzzDoubleCrypt</code></td>
+<td>✅ Active</td>
+</tr>
+<tr class="even">
+<td><code>pkg/tracing</code></td>
+<td><code>FuzzW3CTraceContext</code></td>
+<td>✅ Active</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/covgate</code></td>
+<td><code>FuzzParse</code></td>
+<td>✅ Active</td>
+</tr>
+<tr class="even">
+<td><code>pkg/session</code></td>
+<td><code>FuzzCRDTCheckpoint</code></td>
+<td>✅ Active</td>
+</tr>
+</tbody>
+</table>
+<h3 id="missing-fuzz-targets-30">Missing Fuzz Targets (30+)</h3>
+<ol type="1">
+<li><code>pkg/crypto</code> — Hash and key generation</li>
+<li><code>pkg/jwt</code> — Token parsing</li>
+<li><code>pkg/security/tls.go</code> — TLS configuration</li>
+<li><code>pkg/security/vault.go</code> — Vault secret handling</li>
+<li><code>pkg/events/avro.go</code> — Avro wire format</li>
+<li><code>pkg/events/avro_wire.go</code> — Avro wire
+deserialization</li>
+<li><code>pkg/computeproto</code> — FlatBuffers roundtrip</li>
+<li><code>pkg/classads/parser.go</code> — ClassAd expression
+parsing</li>
+<li><code>pkg/config/config.go</code> — Configuration parsing</li>
+<li><code>pkg/netutil/cidr.go</code> — CIDR parsing</li>
+<li><code>pkg/openapivalidate</code> — OpenAPI validation</li>
+<li><code>internal/gateway/auth.go</code> — Auth token parsing</li>
+<li><code>internal/security/spiffe_ca.go</code> — SPIFFE CA</li>
+<li><code>pkg/wireguard/config.go</code> — WireGuard config</li>
+<li><code>pkg/swim/protocol.go</code> — SWIM message parsing</li>
+<li><code>pkg/resources/cgroup_v2.go</code> — cgroup parsing</li>
+<li><code>pkg/session/crdt.go</code> — CRDT merge</li>
+<li><code>pkg/etcd/keys.go</code> — etcd key parsing</li>
+<li><code>internal/gpu/nvidia_parser.go</code> — NVIDIA SMI output
+parsing</li>
+<li><code>pkg/storage/redis_client.go</code> — Redis response
+parsing</li>
+</ol>
+<h2 id="benchmarkperformance-tests">1.6 Benchmark/Performance Tests</h2>
+<h3 id="definition-5">Definition</h3>
+<p>Benchmarks measure the performance of critical code paths and track
+performance over time.</p>
+<h3 id="when-to-use-4">When to Use</h3>
+<ul>
+<li>All hot paths (scheduling, session management, event
+processing)</li>
+<li>All serialization paths</li>
+<li>All crypto operations</li>
+<li>All network operations</li>
+</ul>
+<h3 id="frameworktool-requirements-4">Framework/Tool Requirements</h3>
+<ul>
+<li>Go standard <code>testing.Benchmark</code></li>
+<li><code>benchstat</code> for comparison</li>
+<li><code>pprof</code> for profiling</li>
+</ul>
+<h3 id="coverage-targets-5">Coverage Targets</h3>
+<ul>
+<li>Every <code>internal/</code> package must have ≥1 benchmark</li>
+<li>Every hot-path function must have a benchmark</li>
+<li>Every serialization function must have a benchmark</li>
+</ul>
+<h3 id="current-benchmarks">Current Benchmarks</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Benchmark</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/scheduler</code></td>
+<td>Various</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>pkg/session</code></td>
+<td>Various</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/events</code></td>
+<td>Various</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>pkg/discovery</code></td>
+<td>Various</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/crdt</code></td>
+<td>Various</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>test/benchmark/gpu_bench_test.go</code></td>
+<td>GPU</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><code>test/benchmark/scheduler_bench_test.go</code></td>
+<td>Scheduler</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>test/benchmark/messaging_bench_test.go</code></td>
+<td>Messaging</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><code>test/benchmark/session_bench_test.go</code></td>
+<td>Session</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>test/benchmark/discovery_bench_test.go</code></td>
+<td>Discovery</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="stress-tests-sustained-load-48-hour-soak">1.7 Stress Tests
+(Sustained Load, 48-Hour Soak)</h2>
+<h3 id="definition-6">Definition</h3>
+<p>Stress tests apply sustained load to the system and verify it remains
+stable and responsive.</p>
+<h3 id="when-to-use-5">When to Use</h3>
+<ul>
+<li>All services under peak load</li>
+<li>All concurrent operations at maximum capacity</li>
+<li>All resource limits at boundary conditions</li>
+</ul>
+<h3 id="coverage-targets-6">Coverage Targets</h3>
+<ul>
+<li>48-hour continuous operation without degradation</li>
+<li>Memory stability (no leaks)</li>
+<li>Goroutine stability (no leaks)</li>
+<li>Latency within SLO bounds</li>
+</ul>
+<h3 id="missing-implementation">Missing Implementation</h3>
+<ul>
+<li>No stress test framework exists</li>
+<li>No sustained load generator</li>
+<li>No memory/goroutine leak detection harness</li>
+</ul>
+<h2 id="mutation-tests-anti-bluff-per-1.1">1.8 Mutation Tests
+(Anti-Bluff per §1.1)</h2>
+<h3 id="definition-7">Definition</h3>
+<p>Mutation tests verify that unit tests actually catch bugs by
+intentionally breaking the implementation and checking that tests
+fail.</p>
+<h3 id="constitution-requirement">Constitution Requirement</h3>
+<p>Per §1.1, every unit test must have a paired mutation test. A test
+that passes on broken code is a PASS-bluff.</p>
+<h3 id="coverage-targets-7">Coverage Targets</h3>
+<ul>
+<li>100% of unit tests must have paired mutation tests</li>
+<li>Every behavioral invariant must be verified by mutation</li>
+</ul>
+<h3 id="current-state">Current State</h3>
+<ul>
+<li>Only ~5 explicit <code>_Mutation</code> test cases exist</li>
+<li><code>test/mutation/run_mutations.sh</code> exists but is
+limited</li>
+<li>Most packages have zero mutation coverage</li>
+</ul>
+<h3 id="required-mutation-tests-by-package">Required Mutation Tests by
+Package</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Unit Tests</th>
+<th>Mutation Tests</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/backoff</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/classads</code></td>
+<td>3</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/config</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/context</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/crypto</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/events</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/grpcutil</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/health</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/infra</code></td>
+<td>5</td>
+<td>0</td>
+<td>5</td>
+</tr>
+<tr class="even">
+<td><code>pkg/jwt</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/leader</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td><code>pkg/log</code></td>
+<td>21</td>
+<td>8</td>
+<td>13</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/lru</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td><code>pkg/metrics</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/middleware</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td><code>pkg/netutil</code></td>
+<td>3</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/pubsub</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td><code>pkg/ratelimit</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/retry</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/semaphore</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/serde</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="even">
+<td><code>pkg/validator</code></td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/websocket</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td><code>pkg/workerpool</code></td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td><strong>Total</strong></td>
+<td><strong>~67</strong></td>
+<td><strong>~8</strong></td>
+<td><strong>~59</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="hardening-tests-security-boundary-conditions">1.9 Hardening
+Tests (Security, Boundary Conditions)</h2>
+<h3 id="definition-8">Definition</h3>
+<p>Hardening tests verify that the system behaves correctly under
+adversarial or boundary conditions.</p>
+<h3 id="when-to-use-6">When to Use</h3>
+<ul>
+<li>All security-sensitive operations</li>
+<li>All input validation</li>
+<li>All resource limits</li>
+<li>All error handling paths</li>
+</ul>
+<h3 id="coverage-targets-8">Coverage Targets</h3>
+<ul>
+<li>All authentication/authorization paths</li>
+<li>All input validation paths</li>
+<li>All resource exhaustion scenarios</li>
+<li>All error recovery paths</li>
+</ul>
+<h3 id="current-hardening-tests">Current Hardening Tests</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Test</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>internal/wireguard</code></td>
+<td><code>hardening_test.go</code></td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>internal/wireguard</code></td>
+<td><code>monitor_hardening_test.go</code></td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td><code>internal/build</code></td>
+<td><code>build_hardening_test.go</code></td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td><code>internal/security</code></td>
+<td><code>security_hardening_test.go</code></td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h2 id="behavior-tests-end-user-scenarios">1.10 Behavior Tests (End-User
+Scenarios)</h2>
+<h3 id="definition-9">Definition</h3>
+<p>Behavior tests verify that complete user-facing features work as
+expected from the end user’s perspective.</p>
+<h3 id="when-to-use-7">When to Use</h3>
+<ul>
+<li>Every feature claimed to be user-visible</li>
+<li>Every CLI command</li>
+<li>Every API workflow</li>
+<li>Every dashboard interaction</li>
+</ul>
+<h3 id="coverage-targets-9">Coverage Targets</h3>
+<ul>
+<li>Every feature in the MVP scope must have ≥1 behavior test</li>
+<li>Every CLI command must have a behavior test</li>
+<li>Every REST endpoint must have a behavior test</li>
+</ul>
+<h2 id="dst-deterministic-simulation-testing">1.11 DST (Deterministic
+Simulation Testing)</h2>
+<h3 id="definition-10">Definition</h3>
+<p>DST uses deterministic simulation to test distributed system behavior
+under controlled fault injection. Inspired by FoundationDB’s
+approach.</p>
+<h3 id="when-to-use-8">When to Use</h3>
+<ul>
+<li>All consensus algorithms</li>
+<li>All distributed state management</li>
+<li>All leader election</li>
+<li>All session replication</li>
+</ul>
+<h3 id="framework">Framework</h3>
+<ul>
+<li><code>pkg/testing/dst/engine.go</code> — DST engine</li>
+<li><code>pkg/testing/dst/buggify.go</code> — Fault injection</li>
+<li><code>pkg/testing/dstscale/scale.go</code> — Scale testing</li>
+<li><code>pkg/testing/dstcompress/compress.go</code> — Timeline
+compression</li>
+</ul>
+<h3 id="coverage-targets-10">Coverage Targets</h3>
+<ul>
+<li>SWIM gossip convergence under churn</li>
+<li>Leader election under network partition</li>
+<li>CRDT convergence under concurrent updates</li>
+<li>Session state consistency under failure</li>
+</ul>
+<h2 id="compliance-tests-constitution-inheritance">1.12 Compliance Tests
+(Constitution Inheritance)</h2>
+<h3 id="definition-11">Definition</h3>
+<p>Compliance tests verify that the project adheres to all
+constitutional rules.</p>
+<h3 id="when-to-use-9">When to Use</h3>
+<ul>
+<li>Every constitutional rule must be verified by a compliance test</li>
+<li>Every CLAUDE/AGENTS/QWEN rule must be verified</li>
+<li>Every anti-bluff rule must be verified</li>
+</ul>
+<h3 id="coverage-targets-11">Coverage Targets</h3>
+<ul>
+<li>All PCS rules (cross-platform parity)</li>
+<li>All §1.1 rules (mutation-paired tests)</li>
+<li>All §7.1 rules (end-user usability)</li>
+<li>All §11.4 rules (anti-bluff, no-hardcoding, no-sudo)</li>
+</ul>
+<h2 id="cross-platform-tests-linux-macos-windowswsl2">1.13
+Cross-Platform Tests (Linux, macOS, Windows/WSL2)</h2>
+<h3 id="definition-12">Definition</h3>
+<p>Tests that verify features work on all supported platforms.</p>
+<h3 id="constitution-requirement-1">Constitution Requirement</h3>
+<p>Per PCS-1 (CLAUDE-2), every feature needs Linux, macOS, and
+Windows/WSL2 implementations.</p>
+<h3 id="coverage-targets-12">Coverage Targets</h3>
+<ul>
+<li>Every platform-specific file must be tested on its target
+platform</li>
+<li>Every build tag must have tests on the appropriate platform</li>
+<li>No blanket non-Linux skips</li>
+</ul>
+<h3 id="current-cross-platform-tests">Current Cross-Platform Tests</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Linux</th>
+<th>macOS</th>
+<th>Windows</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/resources</code></td>
+<td>✅ <code>proc_linux.go</code></td>
+<td>✅ <code>proc_darwin.go</code></td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/wireguard</code></td>
+<td>✅ kernel WG</td>
+<td>✅ wireguard-go</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/powergater</code></td>
+<td>✅ <code>reader_linux.go</code></td>
+<td>✅ <code>reader_darwin.go</code></td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/edgeheartbeat</code></td>
+<td>✅ <code>reader_linux.go</code></td>
+<td>✅ <code>reader_darwin.go</code></td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>internal/health</code></td>
+<td>✅ <code>syscall_unix.go</code></td>
+<td>✅ <code>syscall_unix.go</code></td>
+<td>✅ <code>syscall_windows.go</code></td>
+</tr>
+<tr class="even">
+<td><code>internal/gpu</code></td>
+<td>✅ <code>detect_linux.go</code></td>
+<td>✅ <code>detect_darwin.go</code></td>
+<td>❌ <code>detect_other.go</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="gpu-backend-tests-4-vendor-backends-per-pcs-2">1.14 GPU Backend
+Tests (4 Vendor Backends per PCS-2)</h2>
+<h3 id="definition-13">Definition</h3>
+<p>Tests that verify GPU operations work across all 4 vendor backends:
+NVIDIA, AMD, Apple, Intel.</p>
+<h3 id="coverage-targets-13">Coverage Targets</h3>
+<ul>
+<li>NVIDIA: CUDA/PTX operations</li>
+<li>AMD: ROCm operations</li>
+<li>Apple: Metal operations</li>
+<li>Intel: oneAPI/SYCL operations</li>
+</ul>
+<h3 id="current-gpu-tests">Current GPU Tests</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Backend</th>
+<th>Unit Tests</th>
+<th>Integration Tests</th>
+<th>Real Hardware</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>NVIDIA</td>
+<td>✅</td>
+<td>✅</td>
+<td>Required</td>
+</tr>
+<tr class="even">
+<td>AMD</td>
+<td>❌</td>
+<td>❌</td>
+<td>Required</td>
+</tr>
+<tr class="odd">
+<td>Apple</td>
+<td>✅</td>
+<td>✅ (darwin)</td>
+<td>Required</td>
+</tr>
+<tr class="even">
+<td>Intel</td>
+<td>❌</td>
+<td>❌</td>
+<td>Required</td>
+</tr>
+</tbody>
+</table>
+<h2 id="helixqa-challenges-per-constitution">1.15 HelixQA Challenges
+(per Constitution)</h2>
+<h3 id="definition-14">Definition</h3>
+<p>Challenges are executable verifications that prove a feature works
+for end users. They are the ultimate anti-bluff mechanism.</p>
+<h3 id="constitution-requirement-2">Constitution Requirement</h3>
+<p>Per CLAUDE-1, Challenges are bound equally to tests — a Challenge
+PASS on a broken feature is the same class of defect as a unit test PASS
+on broken code.</p>
+<h3 id="coverage-targets-14">Coverage Targets</h3>
+<ul>
+<li>Every user-facing feature must have ≥1 Challenge</li>
+<li>Every Challenge must capture sink-side evidence</li>
+<li>Every Challenge must prove end-user-visible operation</li>
+</ul>
+<h2 id="regression-tests-welchs-t-test-per-phase-4">1.16 Regression
+Tests (Welch’s t-test per Phase 4)</h2>
+<h3 id="definition-15">Definition</h3>
+<p>Regression tests detect performance degradation using statistical
+methods.</p>
+<h3 id="framework-1">Framework</h3>
+<ul>
+<li><code>pkg/stats/welch.go</code> — Welch’s t-test implementation</li>
+<li><code>pkg/testing/regression/regression.go</code> — Regression
+framework</li>
+</ul>
+<h3 id="coverage-targets-15">Coverage Targets</h3>
+<ul>
+<li>All benchmarks must have regression tests</li>
+<li>All SLOs must have regression tests</li>
+<li>Performance changes must be detected with 95% confidence</li>
+</ul>
+<h2 id="load-tests-50k-writessec-per-phase-7-slo">1.17 Load Tests (50K
+Writes/sec per Phase 7 SLO)</h2>
+<h3 id="definition-16">Definition</h3>
+<p>Load tests verify that the system meets its performance SLOs under
+expected load.</p>
+<h3 id="slos">SLOs</h3>
+<ul>
+<li><strong>Write throughput:</strong> ≥50,000 writes/sec</li>
+<li><strong>Read latency:</strong> p99 ≤ 10ms</li>
+<li><strong>Schedule latency:</strong> p99 ≤ 100ms</li>
+<li><strong>Session attach:</strong> p99 ≤ 50ms</li>
+</ul>
+<h3 id="missing-implementation-1">Missing Implementation</h3>
+<ul>
+<li>No load testing framework</li>
+<li>No load generation tooling</li>
+<li>No SLO verification infrastructure</li>
+</ul>
+<h2 id="soak-tests-7-day-sustained-per-phase-8">1.18 Soak Tests (7-Day
+Sustained per Phase 8)</h2>
+<h3 id="definition-17">Definition</h3>
+<p>Soak tests run the system under sustained load for extended periods
+(7 days) and verify stability.</p>
+<h3 id="coverage-targets-16">Coverage Targets</h3>
+<ul>
+<li>No memory leaks over 7 days</li>
+<li>No goroutine leaks over 7 days</li>
+<li>No performance degradation over 7 days</li>
+<li>No data corruption over 7 days</li>
+</ul>
+<h2 id="gameday-tests-manual-fault-injection">1.19 GameDay Tests (Manual
+Fault Injection)</h2>
+<h3 id="definition-18">Definition</h3>
+<p>GameDay tests are manual exercises where operators inject faults and
+verify the system’s response.</p>
+<h3 id="coverage-targets-17">Coverage Targets</h3>
+<ul>
+<li>Run quarterly with full team</li>
+<li>Cover all 25+ chaos fault types</li>
+<li>Capture lessons learned</li>
+<li>Update runbooks based on findings</li>
+</ul>
+<h2 id="security-scanning-govulncheck-gosec-trivy">1.20 Security
+Scanning (govulncheck, gosec, trivy)</h2>
+<h3 id="definition-19">Definition</h3>
+<p>Automated security scanning of the codebase and dependencies.</p>
+<h3 id="tools">Tools</h3>
+<ul>
+<li><code>govulncheck</code> — Go vulnerability checking</li>
+<li><code>gosec</code> — Go security analysis</li>
+<li><code>trivy</code> — Container image scanning</li>
+<li><code>cyclonedx-gomod</code> — SBOM generation</li>
+</ul>
+<h3 id="coverage-targets-18">Coverage Targets</h3>
+<ul>
+<li>Zero known vulnerabilities in dependencies</li>
+<li>Zero HIGH severity gosec findings</li>
+<li>All container images scanned</li>
+<li>SBOM generated for all releases</li>
+</ul>
+<hr />
+<h1 id="chapter-2-coverage-matrix">Chapter 2: Coverage Matrix</h1>
+<h2 id="package-test-type-matrix">Package × Test Type Matrix</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+<col style="width: 6%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Unit</th>
+<th>Mut</th>
+<th>Int</th>
+<th>E2E</th>
+<th>Chaos</th>
+<th>Fuzz</th>
+<th>Bench</th>
+<th>Stress</th>
+<th>Soak</th>
+<th>Hard</th>
+<th>Beh</th>
+<th>DST</th>
+<th>Xplat</th>
+<th>GPU</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/backoff</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/classads</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/config</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/context</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/crypto</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/discovery</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/errors</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/events</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/grpcutil</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/health</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/hybridkex</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/infra</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/jwt</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/leader</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/log</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/lru</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/metrics</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/ratelimit</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/resources</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/scheduler</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/security</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/session</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/swim</code></td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>pkg/tracing</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/wireguard</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>internal/gateway</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>internal/session</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>internal/scheduler</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>internal/node</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>internal/security</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>internal/health</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>internal/build</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td><code>internal/policy</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td><code>internal/gpu</code></td>
+<td>✅</td>
+<td>❌</td>
+<td>✅</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>❌</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Legend:</strong> ✅ = Has tests, ❌ = Missing, 🟡 =
+Partial</p>
+<hr />
+<h1 id="chapter-3-missing-test-implementations">Chapter 3: Missing Test
+Implementations</h1>
+<h2 id="missing-test-implementations-by-type">3.1 Missing Test
+Implementations by Type</h2>
+<h3 id="unit-tests-missing-50-packages">Unit Tests (Missing: ~50
+packages)</h3>
+<ol type="1">
+<li><code>pkg/anticheat</code> — Token verification unit tests</li>
+<li><code>pkg/attestadmit</code> — Admission control unit tests</li>
+<li><code>pkg/auditproof</code> — Audit proof unit tests</li>
+<li><code>pkg/billingfsm</code> — FSM state transition tests</li>
+<li><code>pkg/burstcapacity</code> — Capacity calculation tests</li>
+<li><code>pkg/bursthysteresis</code> — Hysteresis logic tests</li>
+<li><code>pkg/capability</code> — Capability check tests</li>
+<li><code>pkg/cellmesh</code> — Mesh routing tests</li>
+<li><code>pkg/chaosexp</code> — Experiment definition tests</li>
+<li><code>pkg/cloudspot</code> — IMDS parsing tests</li>
+<li><code>pkg/costrouter</code> — Cost routing tests</li>
+<li><code>pkg/costsched</code> — Cost scheduling tests</li>
+<li><code>pkg/costtracker</code> — Cost tracking tests</li>
+<li><code>pkg/databrowser</code> — Data browsing tests</li>
+<li><code>pkg/devicecatalog</code> — Catalog management tests</li>
+<li><code>pkg/deviceplugin</code> — Plugin framework tests</li>
+<li><code>pkg/deviceprofile</code> — Profile management tests</li>
+<li><code>pkg/edgefusion</code> — Data fusion tests</li>
+<li><code>pkg/edgeverify</code> — Edge verification tests</li>
+<li><code>pkg/epochresolve</code> — Epoch resolution tests</li>
+<li><code>pkg/ewmarank</code> — EWM ranking tests</li>
+<li><code>pkg/exportcontrol</code> — Export control tests</li>
+<li><code>pkg/failconfirm</code> — Failure confirmation tests</li>
+<li><code>pkg/fallbackchain</code> — Fallback chain tests</li>
+<li><code>pkg/fedtrust</code> — Federation trust tests</li>
+<li><code>pkg/fiber</code> — Fiber admission tests</li>
+<li><code>pkg/flowcontrol</code> — Flow control tests</li>
+<li><code>pkg/forecast</code> — Resource forecasting tests</li>
+<li><code>pkg/gpuattest</code> — GPU attestation tests</li>
+<li><code>pkg/gpucatalog</code> — GPU catalog tests</li>
+<li><code>pkg/gpupool</code> — GPU pooling tests</li>
+<li><code>pkg/gputopo</code> — GPU topology tests</li>
+<li><code>pkg/grafanadash</code> — Dashboard generation tests</li>
+<li><code>pkg/gravaladmit</code> — GraVal admission tests</li>
+<li><code>pkg/gravalverify</code> — GraVal verification tests</li>
+<li><code>pkg/helixnet</code> — Network simulation tests</li>
+<li><code>pkg/helixtask</code> — Task management tests</li>
+<li><code>pkg/hybridtco</code> — TCO calculation tests</li>
+<li><code>pkg/idempotent</code> — Idempotency tests</li>
+<li><code>pkg/imagepolicy</code> — Image policy tests</li>
+<li><code>pkg/inferenceproxy</code> — Inference proxy tests</li>
+<li><code>pkg/jobadmit</code> — Job admission tests</li>
+<li><code>pkg/kraft</code> — Unikraft integration tests</li>
+<li><code>pkg/latencysched</code> — Latency scheduling tests</li>
+<li><code>pkg/llmfailover</code> — LLM failover tests</li>
+<li><code>pkg/local</code> — Local execution tests</li>
+<li><code>pkg/marketplaceadapter</code> — Marketplace adapter tests</li>
+<li><code>pkg/metering</code> — Metering tests</li>
+<li><code>pkg/modelintegrity</code> — Model integrity tests</li>
+<li><code>pkg/modelretry</code> — Model retry tests</li>
+</ol>
+<h3 id="mutation-tests-missing-200-packages">Mutation Tests (Missing:
+~200 packages)</h3>
+<p>Every package with unit tests needs paired mutation tests. The
+current deficit is approximately 200 packages.</p>
+<h3 id="integration-tests-missing-100-packages">Integration Tests
+(Missing: ~100 packages)</h3>
+<p>All <code>internal/</code> packages and critical <code>pkg/</code>
+packages need integration tests against real services.</p>
+<h3 id="e2e-tests-missing-30-features">E2E Tests (Missing: ~30
+features)</h3>
+<p>Every user-facing feature needs an end-to-end test.</p>
+<hr />
+<h1 id="chapter-4-test-infrastructure-requirements">Chapter 4: Test
+Infrastructure Requirements</h1>
+<h2 id="test-runners-and-frameworks">4.1 Test Runners and
+Frameworks</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Framework</th>
+<th>Purpose</th>
+<th>Current Status</th>
+<th>Required</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Go <code>testing</code></td>
+<td>Unit/integration tests</td>
+<td>✅ Active</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>testify</code></td>
+<td>Assertions</td>
+<td>✅ Active</td>
+<td>—</td>
+</tr>
+<tr class="odd">
+<td><code>testcontainers-go</code></td>
+<td>Ephemeral containers</td>
+<td>❌ Absent</td>
+<td>Required</td>
+</tr>
+<tr class="even">
+<td><code>go test -fuzz</code></td>
+<td>Fuzz testing</td>
+<td>✅ Active</td>
+<td>Expand</td>
+</tr>
+<tr class="odd">
+<td><code>go test -race</code></td>
+<td>Race detection</td>
+<td>✅ Active</td>
+<td>—</td>
+</tr>
+<tr class="even">
+<td><code>go test -bench</code></td>
+<td>Benchmarking</td>
+<td>✅ Active</td>
+<td>Expand</td>
+</tr>
+<tr class="odd">
+<td><code>helixqa</code></td>
+<td>Challenge runner</td>
+<td>⚠️ Partial</td>
+<td>Full integration</td>
+</tr>
+<tr class="even">
+<td><code>pkg/testing/dst</code></td>
+<td>DST engine</td>
+<td>⚠️ Partial</td>
+<td>Expand scenarios</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/testing/chaos</code></td>
+<td>Chaos framework</td>
+<td>⚠️ Partial</td>
+<td>Expand faults</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cicd-integration-plan">4.2 CI/CD Integration Plan</h2>
+<p><strong>Current:</strong> No CI (all workflows disabled).</p>
+<p><strong>Target:</strong> Full CI pipeline with all test types.</p>
+<p><strong>Phased approach:</strong> 1. Enable <code>go-build.yml</code>
+and <code>go-test.yml</code> first 2. Add integration test stage 3. Add
+chaos test stage 4. Add security scan stage 5. Add E2E test stage 6. Add
+benchmark comparison stage 7. Add coverage gate enforcement</p>
+<h2 id="test-environment-requirements">4.3 Test Environment
+Requirements</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Environment</th>
+<th>Purpose</th>
+<th>Resources</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Local dev</td>
+<td>Unit tests</td>
+<td>Developer machine</td>
+</tr>
+<tr class="even">
+<td>Docker Compose</td>
+<td>Integration tests</td>
+<td>16GB RAM, 4 CPU</td>
+</tr>
+<tr class="odd">
+<td>Kind/K3s</td>
+<td>E2E tests</td>
+<td>32GB RAM, 8 CPU</td>
+</tr>
+<tr class="even">
+<td>Linux CI runner</td>
+<td>WireGuard + cgroup tests</td>
+<td>Root access, 16GB RAM</td>
+</tr>
+<tr class="odd">
+<td>macOS CI runner</td>
+<td>Darwin-specific tests</td>
+<td>Apple hardware</td>
+</tr>
+<tr class="even">
+<td>GPU CI runner</td>
+<td>GPU backend tests</td>
+<td>NVIDIA + AMD GPUs</td>
+</tr>
+<tr class="odd">
+<td>Multi-host</td>
+<td>Network chaos tests</td>
+<td>3+ nodes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="test-data-management">4.4 Test Data Management</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Data Type</th>
+<th>Source</th>
+<th>Storage</th>
+<th>Rotation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Fixtures</td>
+<td><code>testdata/</code> directories</td>
+<td>Git</td>
+<td>Per release</td>
+</tr>
+<tr class="even">
+<td>Seed data</td>
+<td><code>scripts/seed-data.sql</code></td>
+<td>Git</td>
+<td>Per release</td>
+</tr>
+<tr class="odd">
+<td>Generated</td>
+<td>Test factories</td>
+<td>Ephemeral</td>
+<td>Per test run</td>
+</tr>
+<tr class="even">
+<td>Captured</td>
+<td>Evidence collection</td>
+<td><code>qa-results/</code></td>
+<td>Per wave</td>
+</tr>
+</tbody>
+</table>
+<h2 id="evidence-collection-and-storage">4.5 Evidence Collection and
+Storage</h2>
+<p>Per Constitution §11.4, all test evidence must be captured and
+stored:</p>
+<pre><code>qa-results/
+├── docs_chain/&lt;run-id&gt;/          # Documentation sync evidence
+├── security/&lt;run-id&gt;/            # Security scan results
+├── challenges/&lt;run-id&gt;/          # Challenge execution evidence
+├── coverage/&lt;run-id&gt;/            # Coverage reports
+├── benchmarks/&lt;run-id&gt;/          # Benchmark results
+├── chaos/&lt;run-id&gt;/               # Chaos test results
+├── soak/&lt;run-id&gt;/                # Soak test results
+├── regression/&lt;run-id&gt;/          # Regression test results
+└── compliance/&lt;run-id&gt;/          # Compliance test results</code></pre>
+<hr />
+<h1 id="chapter-5-helixqa-integration">Chapter 5: HelixQA
+Integration</h1>
+<h2 id="challenge-runner-integration">5.1 Challenge Runner
+Integration</h2>
+<p>The HelixQA framework (<code>cmd/helix-test</code>) provides
+challenge execution. Integration requires:</p>
+<ol type="1">
+<li>Challenge bank population for all helix_cluster features</li>
+<li>Evidence collection pipeline</li>
+<li>Anti-bluff enforcement per §11.4</li>
+<li>Sink-side evidence capture</li>
+</ol>
+<h2 id="bank-creation-for-helix_cluster-features">5.2 Bank Creation for
+helix_cluster Features</h2>
+<h3 id="node-orchestration-challenges">Node Orchestration
+Challenges</h3>
+<ul>
+<li><code>challenge-node-register</code> — Register a node and verify it
+appears in discovery</li>
+<li><code>challenge-node-heartbeat</code> — Send heartbeats and verify
+health updates</li>
+<li><code>challenge-node-gpu-report</code> — Report GPU devices and
+verify inventory</li>
+</ul>
+<h3 id="service-deployment-challenges">Service Deployment
+Challenges</h3>
+<ul>
+<li><code>challenge-build-submit</code> — Submit a build and verify
+completion</li>
+<li><code>challenge-build-stream</code> — Stream build logs and verify
+output</li>
+<li><code>challenge-build-cancel</code> — Cancel a build and verify
+cleanup</li>
+</ul>
+<h3 id="health-monitoring-challenges">Health Monitoring Challenges</h3>
+<ul>
+<li><code>challenge-health-check</code> — Check health and verify
+response</li>
+<li><code>challenge-health-watch</code> — Watch health stream and verify
+updates</li>
+<li><code>challenge-health-aggregate</code> — Verify aggregate health
+rollup</li>
+</ul>
+<h3 id="security-challenges">Security Challenges</h3>
+<ul>
+<li><code>challenge-security-auth</code> — Authenticate and verify
+token</li>
+<li><code>challenge-security-rbac</code> — Verify role-based access
+control</li>
+<li><code>challenge-security-mtls</code> — Verify mutual TLS between
+services</li>
+</ul>
+<h2 id="anti-bluff-enforcement">5.3 Anti-Bluff Enforcement</h2>
+<p>Per CLAUDE-1, a Challenge PASS on a broken feature is the same class
+of defect as a unit test PASS on broken code. The HelixQA framework
+must:</p>
+<ol type="1">
+<li>Verify the feature actually works (not just that the API returns
+200)</li>
+<li>Capture sink-side evidence (actual data, not just status codes)</li>
+<li>Run discrimination tests (slightly wrong input should fail)</li>
+<li>Require mutation-paired tests for the feature</li>
+</ol>
+<h2 id="evidence-taxonomy">5.4 Evidence Taxonomy</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Evidence Type</th>
+<th>Format</th>
+<th>Storage</th>
+<th>Retention</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Test output</td>
+<td>Text</td>
+<td><code>qa-results/</code></td>
+<td>90 days</td>
+</tr>
+<tr class="even">
+<td>Coverage report</td>
+<td>HTML + JSON</td>
+<td><code>qa-results/coverage/</code></td>
+<td>90 days</td>
+</tr>
+<tr class="odd">
+<td>Benchmark results</td>
+<td>JSON</td>
+<td><code>qa-results/benchmarks/</code></td>
+<td>Indefinite</td>
+</tr>
+<tr class="even">
+<td>Security scan</td>
+<td>JSON + SARIF</td>
+<td><code>qa-results/security/</code></td>
+<td>365 days</td>
+</tr>
+<tr class="odd">
+<td>Challenge evidence</td>
+<td>Markdown + screenshots</td>
+<td><code>qa-results/challenges/</code></td>
+<td>Indefinite</td>
+</tr>
+<tr class="even">
+<td>Chaos results</td>
+<td>JSON + logs</td>
+<td><code>qa-results/chaos/</code></td>
+<td>90 days</td>
+</tr>
+<tr class="odd">
+<td>Soak metrics</td>
+<td>Prometheus format</td>
+<td><code>qa-results/soak/</code></td>
+<td>365 days</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="chapter-6-implementation-plan">Chapter 6: Implementation
+Plan</h1>
+<h2 id="prioritized-task-list">6.1 Prioritized Task List</h2>
+<h3 id="phase-0-foundation-this-wave">Phase 0: Foundation (This
+Wave)</h3>
+<ol type="1">
+<li>✅ Fix Makefile build target (HXC-1637)</li>
+<li>✅ Implement real <code>helixctl</code> CLI (HXC-1638)</li>
+<li>⏳ Fix SQL schema drift (HXC-1639)</li>
+<li>⏳ Fix concurrency hazards F1–F7</li>
+</ol>
+<h3 id="phase-1-dead-code-resolution-owner-gated">Phase 1: Dead-Code
+Resolution (Owner-Gated)</h3>
+<ol type="1">
+<li>Triage 178 orphaned packages into Wire-in / Prune / Document</li>
+<li>Wire the control-plane spine (leader → etcd → CRDT → STONITH)</li>
+<li>Wire scheduler helpers (backfill → priorityqueue →
+nodeselector)</li>
+<li>Wire security extensions (attestadmit → gravaladmit →
+gpuattest)</li>
+</ol>
+<h3 id="phase-2-test-coverage-to-maximum">Phase 2: Test Coverage to
+Maximum</h3>
+<ol type="1">
+<li>Add mutation tests for all packages with unit tests (~200
+packages)</li>
+<li>Add integration tests for all <code>internal/</code> packages (~14
+packages)</li>
+<li>Add fuzz tests for crypto and parsing (~30 targets)</li>
+<li>Add stress/chaos tests for consensus subsystems</li>
+<li>Wire coverage gate (<code>pkg/covgate</code>)</li>
+</ol>
+<h3 id="phase-3-challenges-helixqa">Phase 3: Challenges (HelixQA)</h3>
+<ol type="1">
+<li>Author Challenges for each wired feature</li>
+<li>Execute Challenges with sink-side evidence</li>
+<li>Verify anti-bluff enforcement</li>
+<li>Store evidence in <code>qa-results/</code></li>
+</ol>
+<h3 id="phase-4-responsiveness">Phase 4: Responsiveness</h3>
+<ol type="1">
+<li>Fix remaining concurrency hazards (F8–F10)</li>
+<li>Add bounded worker pools</li>
+<li>Add lazy initialization</li>
+<li>Add monitoring/metrics-driven optimization tests</li>
+</ol>
+<h3 id="phase-5-security-scanning">Phase 5: Security Scanning</h3>
+<ol type="1">
+<li>Promote gosec to build gate</li>
+<li>Add trivy container scanning</li>
+<li>Add Snyk/SonarQube when tokens available</li>
+<li>Wire SBOM into release artifacts</li>
+</ol>
+<h3 id="phase-6-autonomously-actionable-backlog">Phase 6:
+Autonomously-Actionable Backlog</h3>
+<ol type="1">
+<li>Work ~78 Bucket-A items in dependency order</li>
+<li>Each closes with real tests + Challenge</li>
+</ol>
+<h3 id="phase-7-documentation">Phase 7: Documentation</h3>
+<ol type="1">
+<li>Update all docs per CLAUDE-3</li>
+<li>Run docs_chain sync and verify</li>
+<li>Generate all exports (md → html/pdf/docx)</li>
+</ol>
+<h2 id="per-package-test-requirements">6.2 Per-Package Test
+Requirements</h2>
+<h3 id="template-for-new-tests">Template for New Tests</h3>
+<p>For each package <code>pkg/X</code>:</p>
+<pre><code>pkg/X/
+├── X.go              # Implementation
+├── X_test.go         # Unit tests (with _Mutation variants)
+├── X_integration_test.go  # Integration tests (build tag: integration)
+├── X_fuzz_test.go    # Fuzz tests (if parsing/crypto)
+├── X_hardening_test.go    # Hardening tests (if security)
+├── X_behavior_test.go     # Behavior tests (if user-facing)
+├── X_chaos_test.go        # Chaos tests (if distributed)
+└── testdata/              # Test fixtures</code></pre>
+<h3 id="priority-order-for-test-implementation">Priority Order for Test
+Implementation</h3>
+<ol type="1">
+<li><strong>P0 — Security packages:</strong> <code>pkg/jwt</code>,
+<code>pkg/crypto</code>, <code>pkg/security</code>,
+<code>pkg/hybridkex</code></li>
+<li><strong>P0 — Concurrency packages:</strong> <code>pkg/swim</code>,
+<code>pkg/session</code>, <code>pkg/scheduler</code>,
+<code>EventBus</code></li>
+<li><strong>P1 — Core packages:</strong> <code>pkg/discovery</code>,
+<code>pkg/leader</code>, <code>pkg/etcd</code>,
+<code>pkg/events</code></li>
+<li><strong>P1 — Scheduling packages:</strong>
+<code>pkg/scheduler</code>, <code>pkg/backfill</code>,
+<code>pkg/priorityqueue</code></li>
+<li><strong>P2 — Infrastructure packages:</strong>
+<code>pkg/resources</code>, <code>pkg/wireguard</code>,
+<code>pkg/infra</code></li>
+<li><strong>P2 — Utility packages:</strong> <code>pkg/config</code>,
+<code>pkg/log</code>, <code>pkg/errors</code>,
+<code>pkg/middleware</code></li>
+<li><strong>P3 — All remaining packages</strong></li>
+</ol>
+<h2 id="code-level-specifications-for-new-tests">6.3 Code-Level
+Specifications for New Tests</h2>
+<h3 id="specification-pkgjwt-mutation-test">Specification:
+<code>pkg/jwt</code> Mutation Test</h3>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pkg/jwt/package_test.go</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> TestParse_Mutation<span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Create a real signed token</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>    token <span class="op">:=</span> createSignedToken<span class="op">(</span>t<span class="op">,</span> <span class="st">&quot;user123&quot;</span><span class="op">,</span> <span class="st">&quot;admin&quot;</span><span class="op">)</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verify Parse succeeds on valid token</span></span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    parsed<span class="op">,</span> err <span class="op">:=</span> jwt<span class="op">.</span>Parse<span class="op">(</span>token<span class="op">)</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>    require<span class="op">.</span>NoError<span class="op">(</span>t<span class="op">,</span> err<span class="op">)</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>Equal<span class="op">(</span>t<span class="op">,</span> <span class="st">&quot;user123&quot;</span><span class="op">,</span> parsed<span class="op">.</span>Claims<span class="op">.</span>Subject<span class="op">)</span></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Mutation: tamper with signature</span></span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a>    parts <span class="op">:=</span> strings<span class="op">.</span>Split<span class="op">(</span>token<span class="op">,</span> <span class="st">&quot;.&quot;</span><span class="op">)</span></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a>    tampered <span class="op">:=</span> parts<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">+</span> <span class="st">&quot;.&quot;</span> <span class="op">+</span> parts<span class="op">[</span><span class="dv">1</span><span class="op">]</span> <span class="op">+</span> <span class="st">&quot;.&quot;</span> <span class="op">+</span> base64<span class="op">.</span>RawURLEncoding<span class="op">.</span>EncodeToString<span class="op">([]</span><span class="dt">byte</span><span class="op">(</span><span class="st">&quot;tampered&quot;</span><span class="op">))</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a>    _<span class="op">,</span> err <span class="op">=</span> jwt<span class="op">.</span>Parse<span class="op">(</span>tampered<span class="op">)</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>Error<span class="op">(</span>t<span class="op">,</span> err<span class="op">,</span> <span class="st">&quot;mutation: tampered token should fail verification&quot;</span><span class="op">)</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Mutation: expired token</span></span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>    expired <span class="op">:=</span> createExpiredToken<span class="op">(</span>t<span class="op">,</span> <span class="st">&quot;user123&quot;</span><span class="op">)</span></span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>    _<span class="op">,</span> err <span class="op">=</span> jwt<span class="op">.</span>Parse<span class="op">(</span>expired<span class="op">)</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>Error<span class="op">(</span>t<span class="op">,</span> err<span class="op">,</span> <span class="st">&quot;mutation: expired token should fail verification&quot;</span><span class="op">)</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="specification-pkgcrypto-fuzz-test">Specification:
+<code>pkg/crypto</code> Fuzz Test</h3>
+<div class="sourceCode" id="cb6"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">// pkg/crypto/package_test.go</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> FuzzHash<span class="op">(</span>f <span class="op">*</span>testing<span class="op">.</span>F<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    f<span class="op">.</span>Add<span class="op">([]</span><span class="dt">byte</span><span class="op">(</span><span class="st">&quot;&quot;</span><span class="op">))</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    f<span class="op">.</span>Add<span class="op">([]</span><span class="dt">byte</span><span class="op">(</span><span class="st">&quot;hello&quot;</span><span class="op">))</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    f<span class="op">.</span>Add<span class="op">([]</span><span class="dt">byte</span><span class="op">{</span><span class="bn">0x00</span><span class="op">})</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb6-7"><a href="#cb6-7" aria-hidden="true" tabindex="-1"></a>    f<span class="op">.</span>Fuzz<span class="op">(</span><span class="kw">func</span><span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">,</span> data <span class="op">[]</span><span class="dt">byte</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-8"><a href="#cb6-8" aria-hidden="true" tabindex="-1"></a>        hash <span class="op">:=</span> crypto<span class="op">.</span>Hash<span class="op">(</span>data<span class="op">)</span></span>
+<span id="cb6-9"><a href="#cb6-9" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span><span class="op">(</span>hash<span class="op">)</span> <span class="op">!=</span> <span class="dv">32</span> <span class="op">{</span></span>
+<span id="cb6-10"><a href="#cb6-10" aria-hidden="true" tabindex="-1"></a>            t<span class="op">.</span>Fatalf<span class="op">(</span><span class="st">&quot;hash length = %d, want 32&quot;</span><span class="op">,</span> <span class="bu">len</span><span class="op">(</span>hash<span class="op">))</span></span>
+<span id="cb6-11"><a href="#cb6-11" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb6-12"><a href="#cb6-12" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Verify determinism</span></span>
+<span id="cb6-13"><a href="#cb6-13" aria-hidden="true" tabindex="-1"></a>        hash2 <span class="op">:=</span> crypto<span class="op">.</span>Hash<span class="op">(</span>data<span class="op">)</span></span>
+<span id="cb6-14"><a href="#cb6-14" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="op">!</span>bytes<span class="op">.</span>Equal<span class="op">(</span>hash<span class="op">,</span> hash2<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-15"><a href="#cb6-15" aria-hidden="true" tabindex="-1"></a>            t<span class="op">.</span>Fatal<span class="op">(</span><span class="st">&quot;hash is not deterministic&quot;</span><span class="op">)</span></span>
+<span id="cb6-16"><a href="#cb6-16" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb6-17"><a href="#cb6-17" aria-hidden="true" tabindex="-1"></a>        <span class="co">// Verify different inputs produce different hashes</span></span>
+<span id="cb6-18"><a href="#cb6-18" aria-hidden="true" tabindex="-1"></a>        <span class="cf">if</span> <span class="bu">len</span><span class="op">(</span>data<span class="op">)</span> <span class="op">&gt;</span> <span class="dv">0</span> <span class="op">{</span></span>
+<span id="cb6-19"><a href="#cb6-19" aria-hidden="true" tabindex="-1"></a>            modified <span class="op">:=</span> <span class="bu">make</span><span class="op">([]</span><span class="dt">byte</span><span class="op">,</span> <span class="bu">len</span><span class="op">(</span>data<span class="op">))</span></span>
+<span id="cb6-20"><a href="#cb6-20" aria-hidden="true" tabindex="-1"></a>            <span class="bu">copy</span><span class="op">(</span>modified<span class="op">,</span> data<span class="op">)</span></span>
+<span id="cb6-21"><a href="#cb6-21" aria-hidden="true" tabindex="-1"></a>            modified<span class="op">[</span><span class="dv">0</span><span class="op">]</span> <span class="op">^=</span> <span class="bn">0x01</span></span>
+<span id="cb6-22"><a href="#cb6-22" aria-hidden="true" tabindex="-1"></a>            hash3 <span class="op">:=</span> crypto<span class="op">.</span>Hash<span class="op">(</span>modified<span class="op">)</span></span>
+<span id="cb6-23"><a href="#cb6-23" aria-hidden="true" tabindex="-1"></a>            <span class="cf">if</span> bytes<span class="op">.</span>Equal<span class="op">(</span>hash<span class="op">,</span> hash3<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-24"><a href="#cb6-24" aria-hidden="true" tabindex="-1"></a>                t<span class="op">.</span>Fatal<span class="op">(</span><span class="st">&quot;different inputs produced same hash&quot;</span><span class="op">)</span></span>
+<span id="cb6-25"><a href="#cb6-25" aria-hidden="true" tabindex="-1"></a>            <span class="op">}</span></span>
+<span id="cb6-26"><a href="#cb6-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
+<span id="cb6-27"><a href="#cb6-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">})</span></span>
+<span id="cb6-28"><a href="#cb6-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="specification-pkgswim-chaos-test">Specification:
+<code>pkg/swim</code> Chaos Test</h3>
+<div class="sourceCode" id="cb7"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">//go:build chaos</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> TestSWIMPartitionRecovery<span class="op">(</span>t <span class="op">*</span>testing<span class="op">.</span>T<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Create 5-node cluster</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>    nodes <span class="op">:=</span> makeCluster<span class="op">(</span>t<span class="op">,</span> <span class="dv">5</span><span class="op">)</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>    <span class="cf">defer</span> nodes<span class="op">.</span>Stop<span class="op">()</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verify all nodes see each other</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a>    require<span class="op">.</span>Equal<span class="op">(</span>t<span class="op">,</span> <span class="dv">5</span><span class="op">,</span> <span class="bu">len</span><span class="op">(</span>nodes<span class="op">[</span><span class="dv">0</span><span class="op">].</span>HealthyMembers<span class="op">()))</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Partition: isolate nodes 3 and 4</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a>    nodes<span class="op">.</span>Partition<span class="op">([]</span><span class="dt">int</span><span class="op">{</span><span class="dv">0</span><span class="op">,</span> <span class="dv">1</span><span class="op">,</span> <span class="dv">2</span><span class="op">},</span> <span class="op">[]</span><span class="dt">int</span><span class="op">{</span><span class="dv">3</span><span class="op">,</span> <span class="dv">4</span><span class="op">})</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Wait for suspicion timeout</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    time<span class="op">.</span>Sleep<span class="op">(</span><span class="dv">5</span> <span class="op">*</span> time<span class="op">.</span>Second<span class="op">)</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verify majority partition continues</span></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>Equal<span class="op">(</span>t<span class="op">,</span> <span class="dv">3</span><span class="op">,</span> <span class="bu">len</span><span class="op">(</span>nodes<span class="op">[</span><span class="dv">0</span><span class="op">].</span>HealthyMembers<span class="op">()))</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Heal partition</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a>    nodes<span class="op">.</span>Heal<span class="op">()</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Wait for convergence</span></span>
+<span id="cb7-24"><a href="#cb7-24" aria-hidden="true" tabindex="-1"></a>    time<span class="op">.</span>Sleep<span class="op">(</span><span class="dv">10</span> <span class="op">*</span> time<span class="op">.</span>Second<span class="op">)</span></span>
+<span id="cb7-25"><a href="#cb7-25" aria-hidden="true" tabindex="-1"></a>    </span>
+<span id="cb7-26"><a href="#cb7-26" aria-hidden="true" tabindex="-1"></a>    <span class="co">// Verify full membership restored</span></span>
+<span id="cb7-27"><a href="#cb7-27" aria-hidden="true" tabindex="-1"></a>    assert<span class="op">.</span>Equal<span class="op">(</span>t<span class="op">,</span> <span class="dv">5</span><span class="op">,</span> <span class="bu">len</span><span class="op">(</span>nodes<span class="op">[</span><span class="dv">0</span><span class="op">].</span>HealthyMembers<span class="op">()))</span></span>
+<span id="cb7-28"><a href="#cb7-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<hr />
+<p><em>End of Test Strategy Document</em></p>
+<p><strong>Document Statistics:</strong> - Total test types defined: 20
+- Total test type requirements: 20 × 4 attributes each = 80 requirements
+- Total missing test implementations enumerated: 300+ - Total packages
+in coverage matrix: 35 - Total prioritized tasks: 7 phases - Total
+code-level specifications: 3</p>
+</body>
+</html>

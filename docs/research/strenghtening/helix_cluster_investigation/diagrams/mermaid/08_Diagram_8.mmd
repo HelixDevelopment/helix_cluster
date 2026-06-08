@@ -1,0 +1,94 @@
+graph TD
+    subgraph Identity["Identity Layer (SPIFFE/SPIRE)"]
+        SPIRE_SRV["SPIRE Server<br/>(cluster root CA)"]
+        SPIRE_AG1["SPIRE Agent<br/>(Node A)"]
+        SPIRE_AG2["SPIRE Agent<br/>(Node B)"]
+        SPIFFE_ID["SPIFFE ID<br/>spiffe://helix.cluster/<br/>ns/{namespace}/sa/{service}"]
+        SVID["X.509 SVID<br/>(short-lived, 1h TTL)"]
+        JWT_SVID["JWT SVID<br/>(for non-mTLS)"]
+        BUNDLE["Trust Bundle<br/>(root CA + intermediates)"]
+    end
+
+    subgraph AuthN["Authentication Layer"]
+        JWT_VAL["JWT Validator<br/>(jose library)"]
+        JWKS["JWKS Endpoint<br/>(rotating keys)"]
+        OIDC["OIDC Provider<br/>(Keycloak)"]
+        MESH_TLS["mTLS Mesh<br/>(Envoy + SPIRE)"]
+        API_KEY["API Key Store<br/>(etcd: /auth/apikeys)"]
+    end
+
+    subgraph AuthZ["Authorization Layer (RBAC)"]
+        RBAC_ENG["RBAC Engine<br/>(policy evaluation)"]
+        POLICY_STORE["Policy Store<br/>(etcd: /auth/policies)"]
+        ROLE_DEF["Role Definitions<br/>admin, operator,<br/>developer, viewer"]
+        BINDING["Role Bindings<br/>(user/group → role)"]
+        ABAC_EXT["ABAC Extension<br/>(attribute-based override)"]
+    end
+
+    subgraph Network["Network Security"]
+        WG_MESH["WireGuard Mesh<br/>(encrypted overlay)"]
+        NET_POLICY["Network Policies<br/>(Cilium eBPF)"]
+        FIREWALL["Service Firewall<br/>(per-port ACLs)"]
+        DDOS["DDoS Mitigation<br/>(rate limiting)"]
+    end
+
+    subgraph Audit["Audit & Compliance"]
+        AUDIT_LOG["Audit Logger<br/>(structured events)"]
+        AUDIT_STORE["Audit Store<br/>(PostgreSQL + S3)"]
+        COMPLIANCE["Compliance Engine<br/>(SOC2, HIPAA)"]
+        SECRET_MGR["Secret Manager<br/>(Vault integration)"]
+    end
+
+    subgraph Runtime["Runtime Security"]
+        SECCOMP["Seccomp Profiles<br/>(syscall filtering)"]
+        APPARMOR["AppArmor Profiles<br/>(file/ capability)"]
+        EBPF_MON["eBPF Monitor<br/>(runtime anomaly)"]
+        SCAN_IMG["Image Scanner<br/>(Trivy + custom)"]
+    end
+
+    %% Identity flows
+    SPIRE_SRV --> SPIRE_AG1
+    SPIRE_SRV --> SPIRE_AG2
+    SPIRE_AG1 --> SVID
+    SPIRE_AG1 --> JWT_SVID
+    SPIRE_SRV --> BUNDLE
+
+    %% Authentication flows
+    JWT_VAL --> JWKS
+    OIDC --> JWKS
+    SVID --> MESH_TLS
+    BUNDLE --> MESH_TLS
+    JWT_SVID --> JWT_VAL
+
+    %% Authorization flows
+    JWT_VAL --> RBAC_ENG
+    API_KEY --> RBAC_ENG
+    RBAC_ENG --> POLICY_STORE
+    RBAC_ENG --> ROLE_DEF
+    RBAC_ENG --> BINDING
+    RBAC_ENG --> ABAC_EXT
+
+    %% Network flows
+    MESH_TLS --> WG_MESH
+    WG_MESH --> NET_POLICY
+    NET_POLICY --> FIREWALL
+    FIREWALL --> DDOS
+
+    %% Audit flows
+    RBAC_ENG --> AUDIT_LOG
+    MESH_TLS --> AUDIT_LOG
+    AUDIT_LOG --> AUDIT_STORE
+    AUDIT_STORE --> COMPLIANCE
+    SECRET_MGR --> AUDIT_LOG
+
+    %% Runtime security
+    SCAN_IMG --> SECCOMP
+    SCAN_IMG --> APPARMOR
+    EBPF_MON --> AUDIT_LOG
+
+    style Identity fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style AuthN fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style AuthZ fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Network fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Audit fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Runtime fill:#e0f2f1,stroke:#00695c,stroke-width:2px

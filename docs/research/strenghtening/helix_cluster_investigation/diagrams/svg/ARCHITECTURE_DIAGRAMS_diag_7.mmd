@@ -1,0 +1,82 @@
+graph TD
+    subgraph API["GPU API Layer"]
+        GPU_REST["REST API<br/>/v1/gpus<br/>(CRUD operations)"]
+        GPU_GRPC["gRPC API<br/>/gpu.v1.GPUService<br/>(Stream + Unary)"]
+    end
+
+    subgraph Reserve["GPU Reservation Engine"]
+        RES_MGR["Reservation Manager<br/>(transactional alloc)"]
+        RES_POOL["GPU Pool<br/>(per-node inventory)"]
+        RES_FRAC["Fractional GPU<br/>(time-slicing)"]
+        RES_EXCL["Exclusive GPU<br/>(whole-device)"]
+        RES_MIG["MIG Partition<br/>(A100/H100)"]
+    end
+
+    subgraph MIG["MIG Management"]
+        MIG_CTRL["MIG Controller<br/>(nvidia-mig-parted)"]
+        MIG_PROF["Profile Selector<br/>(1g.5gb, 2g.10gb, ...)<br/>3g.20gb, 4g.20gb, 7g.40gb"]
+        MIG_CFG["MIG Config Store<br/>(etcd: /gpu/mig/configs)"]
+        MIG_RECON["MIG Reconciler<br/>(config → actual state)"]
+    end
+
+    subgraph Backend["GPU Backend Abstraction"]
+        BE_NVIDIA["NVIDIA Backend<br/>(NVML + nvidia-smi)"]
+        BE_AMD["AMD Backend<br/>(ROCm / rocm-smi)"]
+        BE_INTEL["Intel Backend<br/>(Level Zero / oneAPI)"]
+        BE_VIRT["Virtual GPU Backend<br/>(NVIDIA vGPU / MDEV)"]
+        BE_MOCK["Mock Backend<br/>(testing)"]
+    end
+
+    subgraph Monitor["GPU Monitoring"]
+        MON_COLLECT["Metrics Collector<br/>(DCGM exporter)"]
+        MON_METRICS["Metrics:<br/>GPU Util, Memory Used,<br/>Temperature, Power,<br/>SM Clock, ECC Errors"]
+        MON_ALERT["Alert Rules<br/>(Prometheus)"]
+        MON_ECC["ECC Error Handler<br/>(auto-retire on DBE)"]
+    end
+
+    subgraph Schedule["GPU Scheduling Integration"]
+        SCH_PLUGIN["Scheduler Plugin<br/>(Omega extension)"]
+        SCH_TOPO["Topology Aware<br/>(NVLink/NVSwitch)"]
+        SCH_AFFINITY["GPU Affinity<br/>(co-locate multi-GPU)"]
+        SCH_ANTI["GPU Anti-Affinity<br/>(spread across GPUs)"]
+    end
+
+    GPU_REST --> RES_MGR
+    GPU_GRPC --> RES_MGR
+
+    RES_MGR --> RES_POOL
+    RES_MGR --> RES_FRAC
+    RES_MGR --> RES_EXCL
+    RES_MGR --> RES_MIG
+
+    RES_MIG --> MIG_CTRL
+    MIG_CTRL --> MIG_PROF
+    MIG_CTRL --> MIG_CFG
+    MIG_CTRL --> MIG_RECON
+    MIG_RECON --> MIG_CFG
+
+    RES_POOL --> BE_NVIDIA
+    RES_POOL --> BE_AMD
+    RES_POOL --> BE_INTEL
+    RES_POOL --> BE_VIRT
+    RES_POOL --> BE_MOCK
+
+    BE_NVIDIA --> MON_COLLECT
+    BE_AMD --> MON_COLLECT
+    BE_INTEL --> MON_COLLECT
+
+    MON_COLLECT --> MON_METRICS
+    MON_METRICS --> MON_ALERT
+    MON_METRICS --> MON_ECC
+
+    SCH_PLUGIN --> RES_MGR
+    SCH_TOPO --> BE_NVIDIA
+    SCH_AFFINITY --> RES_POOL
+    SCH_ANTI --> RES_POOL
+
+    style API fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Reserve fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style MIG fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Backend fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Monitor fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Schedule fill:#e0f2f1,stroke:#00695c,stroke-width:2px

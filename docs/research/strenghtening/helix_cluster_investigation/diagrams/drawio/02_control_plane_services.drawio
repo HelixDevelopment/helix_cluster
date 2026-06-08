@@ -1,0 +1,49 @@
+<mxfile host="app.diagrams.net" modified="2026-06-08" agent="Helix" version="21.0.0">
+  <diagram name="Control-Plane Services" id="cp">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1800" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="gw" value="Gateway&lt;br&gt;:8080 (HTTP/WS)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2c3e50;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="40" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sess" value="Session&lt;br&gt;:50053 (gRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="200" y="180" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sched" value="Scheduler&lt;br&gt;:50052 (gRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="180" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="node" value="Node&lt;br&gt;:50054 (gRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="180" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="sec" value="Security&lt;br&gt;:50056 (gRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="200" y="340" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="health" value="Health&lt;br&gt;:50055 (gRPC+HTTP)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e67e22;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="340" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="build" value="Build&lt;br&gt;:50051 (gRPC)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1200" y="340" width="200" height="60" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#888888;" edge="1" source="gw" target="sched" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#888888;" edge="1" source="gw" target="sess" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e3" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#888888;" edge="1" source="gw" target="node" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e4" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#888888;" edge="1" source="sched" target="node" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <mxCell id="e5" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeColor=#888888;" edge="1" source="sess" target="sec" parent="1"><mxGeometry relative="1" as="geometry"/></mxCell>
+        <!-- Data stores -->
+        <mxCell id="etcd" value="etcd" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#8e44ad;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="540" width="120" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="pg" value="PostgreSQL" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#2c3e50;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="400" y="540" width="120" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="redis" value="Redis" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#c0392b;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="700" y="540" width="120" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="nats" value="NATS" style="shape=cylinder3;whiteSpace=wrap;html=1;fillColor=#16a085;fontColor=#FFFFFF;fontSize=12;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="1000" y="540" width="120" height="80" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

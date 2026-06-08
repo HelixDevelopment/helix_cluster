@@ -1,0 +1,170 @@
+erDiagram
+    PostgreSQL {
+        WORKLOADS workloads {
+            uuid id PK
+            string name
+            uuid namespace_id FK
+            string image
+            jsonb resource_requests
+            jsonb resource_limits
+            jsonb gpu_requests
+            string status
+            uuid node_id FK
+            uuid scheduled_gpu_id FK
+            timestamptz created_at
+            timestamptz updated_at
+            timestamptz terminated_at
+            jsonb labels
+            jsonb annotations
+        }
+        NAMESPACES namespaces {
+            uuid id PK
+            string name UK
+            uuid owner_id FK
+            jsonb resource_quota
+            jsonb labels
+            timestamptz created_at
+        }
+        NODES nodes {
+            uuid id PK
+            string hostname UK
+            string region
+            string zone
+            string instance_type
+            inet ip_address
+            jsonb capacity
+            jsonb allocatable
+            string status
+            jsonb labels
+            jsonb taints
+            timestamptz joined_at
+            timestamptz last_heartbeat
+        }
+        GPU_DEVICES gpu_devices {
+            uuid id PK
+            uuid node_id FK
+            string pci_address
+            string model
+            int memory_mb
+            string mig_profile
+            string status
+            int ecc_errors
+            timestamptz last_checked
+        }
+        GPU_RESERVATIONS gpu_reservations {
+            uuid id PK
+            uuid gpu_id FK
+            uuid workload_id FK
+            string mode
+            jsonb mig_config
+            timestamptz starts_at
+            timestamptz ends_at
+        }
+        USERS users {
+            uuid id PK
+            string email UK
+            string display_name
+            string oidc_subject
+            timestamptz created_at
+            timestamptz last_login
+        }
+        ROLES roles {
+            uuid id PK
+            string name UK
+            jsonb permissions
+            string description
+        }
+        ROLE_BINDINGS role_bindings {
+            uuid id PK
+            uuid user_id FK
+            uuid role_id FK
+            uuid namespace_id FK
+            timestamptz created_at
+        }
+        AUDIT_EVENTS audit_events {
+            uuid id PK
+            string event_type
+            uuid actor_id FK
+            string resource_type
+            uuid resource_id
+            jsonb details
+            inet source_ip
+            timestamptz occurred_at
+        }
+        SESSIONS sessions {
+            uuid id PK
+            uuid user_id FK
+            jsonb crdt_state
+            string backend
+            timestamptz expires_at
+            timestamptz created_at
+        }
+        BUILD_JOBS build_jobs {
+            uuid id PK
+            uuid namespace_id FK
+            string repository
+            string commit_sha
+            string branch
+            string status
+            string platform
+            jsonb config
+            timestamptz started_at
+            timestamptz completed_at
+            int duration_ms
+        }
+        FEDERATED_CLUSTERS federated_clusters {
+            uuid id PK
+            string name UK
+            string region
+            string endpoint
+            string api_key_hash
+            string status
+            timestamptz last_sync
+        }
+    }
+
+    etcd {
+        ETCD_KEYS key_prefix_layout {
+            string prefix_/helix/schedule "schedule bindings"
+            string prefix_/helix/gpu "gpu allocations"
+            string prefix_/helix/mesh "mesh config xDS"
+            string prefix_/helix/membership "swim membership"
+            string prefix_/helix/config "dynamic config"
+            string prefix_/helix/leader "leader elections"
+            string prefix_/helix/leases "ephemeral node leases"
+        }
+    }
+
+    Redis {
+        REDIS_STRUCTURES data_structures {
+            string key_session_current "hash: session state cache"
+            string key_schedule_cache "hash: schedule result cache"
+            string key_build_queue "sorted_set: priority queue"
+            string key_health_state "hash: current health FSM"
+            string key_rate_limit "counter: API rate limiting"
+            string key_ddos_tokens "token_bucket: DDoS mitigation"
+        }
+    }
+
+    SQLite {
+        SQLITE_TABLES local_tables {
+            string table_local_sessions "offline session store"
+            string table_local_config "cached configuration"
+            string table_local_events "event buffer for replay"
+            string table_local_health "local health history"
+        }
+    }
+
+    workloads ||--o{ gpu_reservations : "reserves"
+    workloads }o--|| namespaces : "belongs to"
+    workloads }o--o| nodes : "scheduled on"
+    gpu_devices ||--o{ gpu_reservations : "allocated by"
+    gpu_devices }o--|| nodes : "installed in"
+    nodes ||--o{ workloads : "hosts"
+    users ||--o{ role_bindings : "has"
+    users ||--o{ sessions : "owns"
+    users ||--o{ audit_events : "triggers"
+    roles ||--o{ role_bindings : "assigned via"
+    role_bindings }o--o| namespaces : "scoped to"
+    namespaces ||--o{ build_jobs : "contains"
+    build_jobs }o--|| namespaces : "belongs to"

@@ -1,0 +1,67 @@
+graph TD
+    subgraph CP["Control Plane"]
+        API["API Gateway<br/>:8000<br/>Envoy"]
+        AUTH["Auth Service<br/>:8001<br/>Rust/Tokio"]
+        SCHED["Scheduler Service<br/>:8002<br/>Omega Core"]
+        WORKER["Worker Manager<br/>:8003<br/>Go"]
+        HEALTH["Health Service<br/>:8004<br/>Rust"]
+        BUILDER["Build Service<br/>:8005<br/>Go"]
+        SESSION["Session Service<br/>:8006<br/>Rust/CRDT"]
+        GPU["GPU Service<br/>:8007<br/>Go/CUDA"]
+        EVENT["Event Bus<br/>:8008<br/>NATS"]
+        FED["Federation Service<br/>:8009<br/>Rust"]
+        CONSENSUS["Consensus Service<br/>:8010<br/>Raft/etcd"]
+        AUDIT["Audit Service<br/>:8011<br/>Rust"]
+        MESH["Mesh Controller<br/>:8012<br/>Go/Envoy xDS"]
+        REGISTRY["Registry Service<br/>:8013<br/>Go/Distribution"]
+    end
+
+    API -->|"gRPC :8001"| AUTH
+    API -->|"gRPC :8002"| SCHED
+    API -->|"gRPC :8003"| WORKER
+    API -->|"gRPC :8006"| SESSION
+    API -->|"gRPC :8007"| GPU
+    API -->|"gRPC :8009"| FED
+
+    AUTH -->|"JWT verify :8011"| AUDIT
+    AUTH -->|"mTLS :8010"| CONSENSUS
+
+    SCHED -->|"gRPC :8003"| WORKER
+    SCHED -->|"gRPC :8007"| GPU
+    SCHED -->|"gRPC :8008"| EVENT
+    SCHED -->|"Raft :8010"| CONSENSUS
+
+    WORKER -->|"gRPC :8004"| HEALTH
+    WORKER -->|"gRPC :8005"| BUILDER
+    WORKER -->|"NATS pub :8008"| EVENT
+    WORKER -->|"gRPC :8013"| REGISTRY
+
+    HEALTH -->|"Rollup :8008"| EVENT
+    HEALTH -->|"mTLS :8010"| CONSENSUS
+
+    BUILDER -->|"Podman exec :8003"| WORKER
+    BUILDER -->|"Push :8013"| REGISTRY
+    BUILDER -->|"NATS pub :8008"| EVENT
+
+    SESSION -->|"CRDT sync :8006"| SESSION
+    SESSION -->|"NATS pub :8008"| EVENT
+
+    GPU -->|"NVML :8010"| CONSENSUS
+    GPU -->|"NATS pub :8008"| EVENT
+
+    FED -->|"mTLS :8010"| CONSENSUS
+    FED -->|"NATS pub :8008"| EVENT
+
+    CONSENSUS -->|"Snapshot :8011"| AUDIT
+    CONSENSUS -->|"xDS :8012"| MESH
+
+    MESH -->|"xDS push :8000"| API
+    MESH -->|"NATS pub :8008"| EVENT
+
+    REGISTRY -->|"NATS pub :8008"| EVENT
+
+    AUDIT -->|"Persist :8010"| CONSENSUS
+
+    style API fill:#bbdefb,stroke:#1565c0,stroke-width:3px
+    style EVENT fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+    style CONSENSUS fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px

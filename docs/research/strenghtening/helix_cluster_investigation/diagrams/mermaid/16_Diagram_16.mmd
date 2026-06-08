@@ -1,0 +1,101 @@
+graph TD
+    subgraph K8s["Kubernetes Deployment (Production)"]
+        subgraph NS_CTRL["Namespace: helix-control"]
+            DEP_API["Deployment: api-gateway<br/>replicas: 3<br/>strategy: RollingUpdate<br/>maxSurge: 1, maxUnavailable: 0"]
+            DEP_AUTH["Deployment: auth-service<br/>replicas: 3"]
+            DEP_SCHED["Deployment: scheduler<br/>replicas: 2 (leader + standby)"]
+            DEP_WORK["Deployment: worker-mgr<br/>replicas: 3"]
+            DEP_GPU["Deployment: gpu-service<br/>replicas: 2"]
+            DEP_SESS["Deployment: session-svc<br/>replicas: 3"]
+            DEP_BUILD["Deployment: build-svc<br/>replicas: 2"]
+            DEP_HEALTH["Deployment: health-svc<br/>replicas: 3"]
+            DEP_EVENT["StatefulSet: nats<br/>replicas: 3"]
+            DEP_ETCD["StatefulSet: etcd<br/>replicas: 3"]
+        end
+
+        subgraph NS_DATA["Namespace: helix-data"]
+            STS_PG["StatefulSet: postgresql<br/>replicas: 3 (primary + replicas)<br/>PVC: 100Gi SSD"]
+            STS_REDIS["StatefulSet: redis<br/>replicas: 6 (3 master + 3 replica)"]
+            STS_MINIO["StatefulSet: minio<br/>replicas: 4 (erasure coding)"]
+        end
+
+        subgraph NS_WORK["Namespace: helix-workload"]
+            DS_NODE["DaemonSet: node-agent<br/>runs on every node"]
+            DS_WG["DaemonSet: wg-mesh<br/>runs on every node"]
+            DS_SPIRE["DaemonSet: spire-agent<br/>runs on every node"]
+            DS_DCGM["DaemonSet: dcgm-exporter<br/>runs on GPU nodes"]
+        end
+
+        subgraph NS_SYS["Namespace: helix-system"]
+            DEP_PROM["Deployment: prometheus<br/>replicas: 1 + Thanos sidecar"]
+            DEP_GRAF["Deployment: grafana<br/>replicas: 2"]
+            DEP_LOKI["Deployment: loki<br/>replicas: 3"]
+            DEP_JAEGER["Deployment: jaeger<br/>replicas: 1"]
+        end
+    end
+
+    subgraph Helm["Helm Chart Structure"]
+        H_CHART["Chart: helix-platform<br/>version: 2.4.0<br/>appVersion: 2.4.0"]
+        H_VAL["values.yaml<br/>(global overrides)"]
+        H_VAL_PROD["values-prod.yaml<br/>(production overrides)"]
+        H_VAL_STG["values-staging.yaml<br/>(staging overrides)"]
+        H_SUB1["Subchart: helix-control"]
+        H_SUB2["Subchart: helix-data"]
+        H_SUB3["Subchart: helix-workload"]
+        H_SUB4["Subchart: helix-system"]
+        H_HOOK["Hooks:<br/>pre-install (seeds)<br/>post-install (smoke test)<br/>pre-upgrade (backup)"]
+    end
+
+    subgraph Docker["Docker Compose (Development)"]
+        DC_API["api-gateway:8000"]
+        DC_AUTH["auth-service:8001"]
+        DC_SCHED["scheduler:8002"]
+        DC_WORK["worker-mgr:8003"]
+        DC_NATS["nats:4222/8222"]
+        DC_ETCD["etcd:2379"]
+        DC_PG["postgresql:5432"]
+        DC_REDIS["redis:6379"]
+        DC_MINIO["minio:9000"]
+    end
+
+    H_CHART --> H_VAL
+    H_VAL --> H_VAL_PROD
+    H_VAL --> H_VAL_STG
+    H_CHART --> H_SUB1
+    H_CHART --> H_SUB2
+    H_CHART --> H_SUB3
+    H_CHART --> H_SUB4
+    H_CHART --> H_HOOK
+
+    H_SUB1 --> DEP_API
+    H_SUB1 --> DEP_AUTH
+    H_SUB1 --> DEP_SCHED
+    H_SUB1 --> DEP_WORK
+    H_SUB1 --> DEP_GPU
+    H_SUB1 --> DEP_SESS
+    H_SUB1 --> DEP_BUILD
+    H_SUB1 --> DEP_HEALTH
+    H_SUB1 --> DEP_EVENT
+    H_SUB1 --> DEP_ETCD
+
+    H_SUB2 --> STS_PG
+    H_SUB2 --> STS_REDIS
+    H_SUB2 --> STS_MINIO
+
+    H_SUB3 --> DS_NODE
+    H_SUB3 --> DS_WG
+    H_SUB3 --> DS_SPIRE
+    H_SUB3 --> DS_DCGM
+
+    DC_API --> DC_AUTH
+    DC_API --> DC_SCHED
+    DC_SCHED --> DC_WORK
+    DC_SCHED --> DC_NATS
+    DC_SCHED --> DC_ETCD
+    DC_WORK --> DC_PG
+    DC_WORK --> DC_REDIS
+    DC_WORK --> DC_MINIO
+
+    style K8s fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Helm fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Docker fill:#fff3e0,stroke:#e65100,stroke-width:2px

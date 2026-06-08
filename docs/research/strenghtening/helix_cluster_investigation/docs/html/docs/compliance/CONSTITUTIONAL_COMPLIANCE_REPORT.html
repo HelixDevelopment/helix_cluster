@@ -1,0 +1,1876 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>CONSTITUTIONAL_COMPLIANCE_REPORT</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:900px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;overflow-x:auto}code{background:#f4f4f4;padding:2px 5px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f0f0f0}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">CONSTITUTIONAL_COMPLIANCE_REPORT</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#helix-cluster-os-constitutional-compliance-report"
+id="toc-helix-cluster-os-constitutional-compliance-report">Helix Cluster
+OS — Constitutional Compliance Report</a>
+<ul>
+<li><a href="#table-of-contents" id="toc-table-of-contents">Table of
+Contents</a></li>
+</ul></li>
+<li><a href="#chapter-1-constitution-rules-extraction"
+id="toc-chapter-1-constitution-rules-extraction">Chapter 1: Constitution
+Rules Extraction</a>
+<ul>
+<li><a href="#constitution.md-rules-pcs-1-through-pcs-6.6"
+id="toc-constitution.md-rules-pcs-1-through-pcs-6.6">1.1 Constitution.md
+Rules (PCS-1 through PCS-6.6)</a>
+<ul>
+<li><a href="#pcs-1-cross-platform-parity"
+id="toc-pcs-1-cross-platform-parity">PCS-1: Cross-Platform
+Parity</a></li>
+<li><a href="#pcs-2-gpu-backend-coverage"
+id="toc-pcs-2-gpu-backend-coverage">PCS-2: GPU Backend Coverage</a></li>
+<li><a href="#pcs-3-no-hardcoded-secrets"
+id="toc-pcs-3-no-hardcoded-secrets">PCS-3: No Hardcoded Secrets</a></li>
+<li><a href="#pcs-4-container-mandate"
+id="toc-pcs-4-container-mandate">PCS-4: Container Mandate</a></li>
+<li><a href="#pcs-5-subagent-driven-development"
+id="toc-pcs-5-subagent-driven-development">PCS-5: Subagent-Driven
+Development</a></li>
+<li><a href="#pcs-6-fetch-before-edit"
+id="toc-pcs-6-fetch-before-edit">PCS-6: Fetch-Before-Edit</a></li>
+<li><a href="#pcs-6.1-no-orphaned-code"
+id="toc-pcs-6.1-no-orphaned-code">PCS-6.1: No Orphaned Code</a></li>
+<li><a href="#pcs-6.2-coverage-gate"
+id="toc-pcs-6.2-coverage-gate">PCS-6.2: Coverage Gate</a></li>
+<li><a href="#pcs-6.3-quality-gate"
+id="toc-pcs-6.3-quality-gate">PCS-6.3: Quality Gate</a></li>
+<li><a href="#pcs-6.4-phase-gate" id="toc-pcs-6.4-phase-gate">PCS-6.4:
+Phase Gate</a></li>
+<li><a href="#pcs-6.5-architecture-lint"
+id="toc-pcs-6.5-architecture-lint">PCS-6.5: Architecture Lint</a></li>
+<li><a href="#pcs-6.6-etcd-lint" id="toc-pcs-6.6-etcd-lint">PCS-6.6:
+etcd Lint</a></li>
+</ul></li>
+<li><a href="#claude.md-rules" id="toc-claude.md-rules">1.2 CLAUDE.md
+Rules</a>
+<ul>
+<li><a href="#claude-1-end-user-usability-guarantee"
+id="toc-claude-1-end-user-usability-guarantee">CLAUDE-1: End-User
+Usability Guarantee</a></li>
+<li><a href="#claude-2-cross-platform-parity-guarantee"
+id="toc-claude-2-cross-platform-parity-guarantee">CLAUDE-2:
+Cross-Platform Parity Guarantee</a></li>
+<li><a
+href="#claude-3-documentation-materials-continuous-sync-guarantee"
+id="toc-claude-3-documentation-materials-continuous-sync-guarantee">CLAUDE-3:
+Documentation &amp; Materials Continuous-Sync Guarantee</a></li>
+</ul></li>
+<li><a href="#agents.md-rules" id="toc-agents.md-rules">1.3 AGENTS.md
+Rules</a>
+<ul>
+<li><a href="#agent-1-end-user-usability-guarantee"
+id="toc-agent-1-end-user-usability-guarantee">AGENT-1: End-User
+Usability Guarantee</a></li>
+<li><a href="#agent-2-documentation-materials-continuous-sync-guarantee"
+id="toc-agent-2-documentation-materials-continuous-sync-guarantee">AGENT-2:
+Documentation &amp; Materials Continuous-Sync Guarantee</a></li>
+</ul></li>
+<li><a href="#qwen.md-rules" id="toc-qwen.md-rules">1.4 QWEN.md
+Rules</a>
+<ul>
+<li><a href="#qwen-1-end-user-usability-guarantee"
+id="toc-qwen-1-end-user-usability-guarantee">QWEN-1: End-User Usability
+Guarantee</a></li>
+<li><a href="#qwen-2-documentation-materials-continuous-sync-guarantee"
+id="toc-qwen-2-documentation-materials-continuous-sync-guarantee">QWEN-2:
+Documentation &amp; Materials Continuous-Sync Guarantee</a></li>
+</ul></li>
+<li><a href="#challenges-constitution.md-rules"
+id="toc-challenges-constitution.md-rules">1.5 Challenges CONSTITUTION.md
+Rules</a>
+<ul>
+<li><a href="#const-033-host-power-management-forbidden"
+id="toc-const-033-host-power-management-forbidden">CONST-033: Host Power
+Management Forbidden</a></li>
+<li><a href="#const-035-anti-bluff-covenant"
+id="toc-const-035-anti-bluff-covenant">CONST-035: Anti-Bluff
+Covenant</a></li>
+<li><a
+href="#const-050-no-fakes-beyond-unit-tests-100-test-type-coverage"
+id="toc-const-050-no-fakes-beyond-unit-tests-100-test-type-coverage">CONST-050:
+No-Fakes-Beyond-Unit-Tests + 100%-Test-Type-Coverage</a></li>
+<li><a href="#const-051-evidence-taxonomy"
+id="toc-const-051-evidence-taxonomy">CONST-051: Evidence
+Taxonomy</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#chapter-2-compliance-assessment"
+id="toc-chapter-2-compliance-assessment">Chapter 2: Compliance
+Assessment</a>
+<ul>
+<li><a href="#pcs-1-cross-platform-parity-1"
+id="toc-pcs-1-cross-platform-parity-1">2.1 PCS-1: Cross-Platform
+Parity</a></li>
+<li><a href="#pcs-2-gpu-backend-coverage-1"
+id="toc-pcs-2-gpu-backend-coverage-1">2.2 PCS-2: GPU Backend
+Coverage</a></li>
+<li><a href="#pcs-3-no-hardcoded-secrets-1"
+id="toc-pcs-3-no-hardcoded-secrets-1">2.3 PCS-3: No Hardcoded
+Secrets</a></li>
+<li><a href="#pcs-4-container-mandate-1"
+id="toc-pcs-4-container-mandate-1">2.4 PCS-4: Container Mandate</a></li>
+<li><a href="#claude-1-end-user-usability-guarantee-1"
+id="toc-claude-1-end-user-usability-guarantee-1">2.5 CLAUDE-1: End-User
+Usability Guarantee</a></li>
+<li><a href="#claude-2-cross-platform-parity-guarantee-1"
+id="toc-claude-2-cross-platform-parity-guarantee-1">2.6 CLAUDE-2:
+Cross-Platform Parity Guarantee</a></li>
+<li><a
+href="#claude-3-documentation-materials-continuous-sync-guarantee-1"
+id="toc-claude-3-documentation-materials-continuous-sync-guarantee-1">2.7
+CLAUDE-3: Documentation &amp; Materials Continuous-Sync
+Guarantee</a></li>
+<li><a href="#mutation-paired-tests" id="toc-mutation-paired-tests">2.8
+§1.1: Mutation-Paired Tests</a></li>
+<li><a href="#quality-guarantee" id="toc-quality-guarantee">2.9 §7.1:
+Quality Guarantee</a></li>
+<li><a href="#anti-bluff-covenant" id="toc-anti-bluff-covenant">2.10
+§11.4: Anti-Bluff Covenant</a></li>
+</ul></li>
+<li><a href="#chapter-3-anti-bluff-covenant-compliance"
+id="toc-chapter-3-anti-bluff-covenant-compliance">Chapter 3: Anti-Bluff
+Covenant Compliance</a>
+<ul>
+<li><a href="#anti-bluff-audit-results-per-package"
+id="toc-anti-bluff-audit-results-per-package">3.1 §11.4 Anti-Bluff Audit
+Results Per Package</a></li>
+<li><a href="#pass-bluff-detection-findings"
+id="toc-pass-bluff-detection-findings">3.2 PASS-Bluff Detection
+Findings</a>
+<ul>
+<li><a href="#finding-1-pkgconfig-pass-bluff"
+id="toc-finding-1-pkgconfig-pass-bluff">Finding 1: pkg/config
+PASS-bluff</a></li>
+<li><a href="#finding-2-pkgjwt-pass-bluff"
+id="toc-finding-2-pkgjwt-pass-bluff">Finding 2: pkg/jwt
+PASS-bluff</a></li>
+<li><a href="#finding-3-pkginfra-pass-bluff"
+id="toc-finding-3-pkginfra-pass-bluff">Finding 3: pkg/infra
+PASS-bluff</a></li>
+<li><a href="#finding-4-pkgleader-pass-bluff"
+id="toc-finding-4-pkgleader-pass-bluff">Finding 4: pkg/leader
+PASS-bluff</a></li>
+</ul></li>
+<li><a href="#mutation-testing-compliance"
+id="toc-mutation-testing-compliance">3.3 Mutation Testing
+Compliance</a></li>
+<li><a href="#evidence-taxonomy-compliance"
+id="toc-evidence-taxonomy-compliance">3.4 Evidence Taxonomy
+Compliance</a></li>
+</ul></li>
+<li><a href="#chapter-4-cross-platform-parity-compliance"
+id="toc-chapter-4-cross-platform-parity-compliance">Chapter 4:
+Cross-Platform Parity Compliance</a>
+<ul>
+<li><a href="#pcs-1-status-per-feature"
+id="toc-pcs-1-status-per-feature">4.1 PCS-1 Status Per Feature</a></li>
+<li><a href="#linux-macos-windowswsl2-coverage"
+id="toc-linux-macos-windowswsl2-coverage">4.2 Linux, macOS, Windows/WSL2
+Coverage</a>
+<ul>
+<li><a href="#linux-coverage-85" id="toc-linux-coverage-85">Linux
+Coverage: ~85%</a></li>
+<li><a href="#macos-coverage-45" id="toc-macos-coverage-45">macOS
+Coverage: ~45%</a></li>
+<li><a href="#windowswsl2-coverage-5"
+id="toc-windowswsl2-coverage-5">Windows/WSL2 Coverage: ~5%</a></li>
+</ul></li>
+<li><a href="#claude-2-retroactive-stub-tracking"
+id="toc-claude-2-retroactive-stub-tracking">4.3 CLAUDE-2 Retroactive
+Stub Tracking</a></li>
+</ul></li>
+<li><a href="#chapter-5-end-user-usability-compliance"
+id="toc-chapter-5-end-user-usability-compliance">Chapter 5: End-User
+Usability Compliance</a>
+<ul>
+<li><a href="#claude-1-agent-1-qwen-1-compliance"
+id="toc-claude-1-agent-1-qwen-1-compliance">5.1 CLAUDE-1 / AGENT-1 /
+QWEN-1 Compliance</a>
+<ul>
+<li><a href="#feature-by-feature-assessment"
+id="toc-feature-by-feature-assessment">Feature-by-Feature
+Assessment</a></li>
+<li><a href="#summary" id="toc-summary">Summary</a></li>
+</ul></li>
+<li><a href="#sink-side-evidence-for-each-feature"
+id="toc-sink-side-evidence-for-each-feature">5.2 Sink-Side Evidence for
+Each Feature</a></li>
+<li><a href="#mock-only-validation-audit"
+id="toc-mock-only-validation-audit">5.3 Mock-Only Validation
+Audit</a></li>
+</ul></li>
+<li><a href="#chapter-6-documentation-sync-compliance"
+id="toc-chapter-6-documentation-sync-compliance">Chapter 6:
+Documentation Sync Compliance</a>
+<ul>
+<li><a href="#claude-3-agent-2-qwen-2-compliance"
+id="toc-claude-3-agent-2-qwen-2-compliance">6.1 CLAUDE-3 / AGENT-2 /
+QWEN-2 Compliance</a>
+<ul>
+<li><a href="#docs_chain-integration-status"
+id="toc-docs_chain-integration-status">docs_chain Integration
+Status</a></li>
+<li><a href="#documentation-coverage-assessment"
+id="toc-documentation-coverage-assessment">Documentation Coverage
+Assessment</a></li>
+<li><a href="#remediation-plan" id="toc-remediation-plan">Remediation
+Plan</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#compliance-summary" id="toc-compliance-summary">Compliance
+Summary</a>
+<ul>
+<li><a href="#overall-compliance-score"
+id="toc-overall-compliance-score">Overall Compliance Score</a></li>
+<li><a href="#critical-non-compliance-items"
+id="toc-critical-non-compliance-items">Critical Non-Compliance
+Items</a></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="helix-cluster-os-constitutional-compliance-report">Helix Cluster
+OS — Constitutional Compliance Report</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Document ID</td>
+<td>CCR-001</td>
+</tr>
+<tr class="even">
+<td>Revision</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td>Date</td>
+<td>2026-03-04</td>
+</tr>
+<tr class="even">
+<td>Classification</td>
+<td>INVESTIGATION — INTERNAL</td>
+</tr>
+<tr class="odd">
+<td>Authors</td>
+<td>Autonomous Compliance Agent</td>
+</tr>
+<tr class="even">
+<td>Status</td>
+<td>FINAL</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>All constitutional rules from Constitution.md, CLAUDE.md, AGENTS.md,
+and Challenges CONSTITUTION.md</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#chapter-1-constitution-rules-extraction">Chapter 1:
+Constitution Rules Extraction</a></li>
+<li><a href="#chapter-2-compliance-assessment">Chapter 2: Compliance
+Assessment</a></li>
+<li><a href="#chapter-3-anti-bluff-covenant-compliance">Chapter 3:
+Anti-Bluff Covenant Compliance</a></li>
+<li><a href="#chapter-4-cross-platform-parity-compliance">Chapter 4:
+Cross-Platform Parity Compliance</a></li>
+<li><a href="#chapter-5-end-user-usability-compliance">Chapter 5:
+End-User Usability Compliance</a></li>
+<li><a href="#chapter-6-documentation-sync-compliance">Chapter 6:
+Documentation Sync Compliance</a></li>
+</ol>
+<hr />
+<h1 id="chapter-1-constitution-rules-extraction">Chapter 1: Constitution
+Rules Extraction</h1>
+<h2 id="constitution.md-rules-pcs-1-through-pcs-6.6">1.1 Constitution.md
+Rules (PCS-1 through PCS-6.6)</h2>
+<h3 id="pcs-1-cross-platform-parity">PCS-1: Cross-Platform Parity</h3>
+<p><strong>Rule:</strong> Every feature must have implementations for
+Linux, macOS, and Windows/WSL2. No OS may run on a mock/stub for a
+feature that claims real operation.</p>
+<h3 id="pcs-2-gpu-backend-coverage">PCS-2: GPU Backend Coverage</h3>
+<p><strong>Rule:</strong> All 4 vendor backends (NVIDIA, AMD, Apple,
+Intel) must have real-hardware testing.</p>
+<h3 id="pcs-3-no-hardcoded-secrets">PCS-3: No Hardcoded Secrets</h3>
+<p><strong>Rule:</strong> Credentials must never be tracked in source
+control. Pre-store leak audit per §11.4.10.A.</p>
+<h3 id="pcs-4-container-mandate">PCS-4: Container Mandate</h3>
+<p><strong>Rule:</strong> All services must be containerizable. No
+sudo/interactive/root-prompting processes.</p>
+<h3 id="pcs-5-subagent-driven-development">PCS-5: Subagent-Driven
+Development</h3>
+<p><strong>Rule:</strong> Development is subagent-driven by default per
+§11.4.20.</p>
+<h3 id="pcs-6-fetch-before-edit">PCS-6: Fetch-Before-Edit</h3>
+<p><strong>Rule:</strong> Always fetch latest state before editing per
+§11.4.37.</p>
+<h3 id="pcs-6.1-no-orphaned-code">PCS-6.1: No Orphaned Code</h3>
+<p><strong>Rule:</strong> All code must be reachable from at least one
+binary. Orphaned code must be triaged.</p>
+<h3 id="pcs-6.2-coverage-gate">PCS-6.2: Coverage Gate</h3>
+<p><strong>Rule:</strong> 80% line coverage must be enforced via
+<code>pkg/covgate</code>.</p>
+<h3 id="pcs-6.3-quality-gate">PCS-6.3: Quality Gate</h3>
+<p><strong>Rule:</strong> Quality metrics must meet baseline thresholds
+per <code>test/qualitygate/baseline_metrics.json</code>.</p>
+<h3 id="pcs-6.4-phase-gate">PCS-6.4: Phase Gate</h3>
+<p><strong>Rule:</strong> Each phase must pass all gate criteria before
+proceeding.</p>
+<h3 id="pcs-6.5-architecture-lint">PCS-6.5: Architecture Lint</h3>
+<p><strong>Rule:</strong> Layer violations must be detected and
+prevented by <code>pkg/archlint</code>.</p>
+<h3 id="pcs-6.6-etcd-lint">PCS-6.6: etcd Lint</h3>
+<p><strong>Rule:</strong> etcd key patterns must be validated by
+<code>pkg/etcdlint</code>.</p>
+<h2 id="claude.md-rules">1.2 CLAUDE.md Rules</h2>
+<h3 id="claude-1-end-user-usability-guarantee">CLAUDE-1: End-User
+Usability Guarantee</h3>
+<p><strong>Rule Text (verbatim):</strong> &gt; “We had been in position
+that all tests do execute with success and all Challenges as well, but
+in reality the most of the features does not work and can’t be used!
+This MUST NOT be the case and execution of tests and Challenges MUST
+guarantee the quality, the completition and full usability by end users
+of the product!”</p>
+<p><strong>Operative Rules:</strong> 1. Tests are necessary but NOT
+sufficient — must verify unit + integration + E2E + Challenge 2. A test
+that passes on a non-functional feature is a PASS-bluff (§7.1 violation)
+3. Every test MUST prove the feature works for end users 4. Challenges
+are bound equally — Challenge PASS on broken feature = defect 5. No
+mock-only validation for real-world features 6. Sink-side evidence
+required before declaring feature complete</p>
+<h3 id="claude-2-cross-platform-parity-guarantee">CLAUDE-2:
+Cross-Platform Parity Guarantee</h3>
+<p><strong>Rule Text (verbatim):</strong> &gt; “For any Linux specific
+technology we MUST implement for other platforms (macOS) proper
+equivalents so on every OS we use proper system equivalents!”</p>
+<p><strong>Operative Rules:</strong> 1. No OS may run on a mock/stub for
+a feature that claims real operation 2. Platform code split by build
+tags behind ONE shared interface 3. Tests prove the feature on the HOST
+OS — never blanket-skip non-Linux 4. Known Linux-specific hotspots
+requiring macOS equivalents documented 5. Applies retroactively and
+going forward</p>
+<h3
+id="claude-3-documentation-materials-continuous-sync-guarantee">CLAUDE-3:
+Documentation &amp; Materials Continuous-Sync Guarantee</h3>
+<p><strong>Rule Text (verbatim):</strong> &gt; “while we continuously
+change the project, by extending it, implementing new features, applying
+fixes and changes, whatever we do on project or any of its services,
+components, architecture or anything else MUST trigger proper updateing
+of main README document, all project documentation, user guides,
+manuals, webiste(s) (if any), diagrams, graphs, schemes, SQL defintions
+and all other related materials!”</p>
+<p><strong>Operative Rules:</strong> 1. Every change triggers a
+documentation pass — no exceptions 2. docs_chain is the mechanical
+enforcer — out of the box, never skipped 3. No escape hatch — no
+<code>--skip-docs-chain</code> 4. Coverage is complete and current 5.
+Runs regularly, not just at release 6. Standing parallel work stream</p>
+<h2 id="agents.md-rules">1.3 AGENTS.md Rules</h2>
+<h3 id="agent-1-end-user-usability-guarantee">AGENT-1: End-User
+Usability Guarantee</h3>
+<p><strong>Rule:</strong> Same as CLAUDE-1 but binding on coding agents
+specifically.</p>
+<h3
+id="agent-2-documentation-materials-continuous-sync-guarantee">AGENT-2:
+Documentation &amp; Materials Continuous-Sync Guarantee</h3>
+<p><strong>Rule:</strong> Same as CLAUDE-3 but binding on coding agents
+specifically.</p>
+<h2 id="qwen.md-rules">1.4 QWEN.md Rules</h2>
+<h3 id="qwen-1-end-user-usability-guarantee">QWEN-1: End-User Usability
+Guarantee</h3>
+<p><strong>Rule:</strong> Same as CLAUDE-1 but binding on Qwen-specific
+agents.</p>
+<h3
+id="qwen-2-documentation-materials-continuous-sync-guarantee">QWEN-2:
+Documentation &amp; Materials Continuous-Sync Guarantee</h3>
+<p><strong>Rule:</strong> Same as CLAUDE-3 but binding on Qwen-specific
+agents.</p>
+<h2 id="challenges-constitution.md-rules">1.5 Challenges CONSTITUTION.md
+Rules</h2>
+<h3 id="const-033-host-power-management-forbidden">CONST-033: Host Power
+Management Forbidden</h3>
+<p><strong>Rule:</strong> No Challenge, test, or implementation may use
+host power management as a test mechanism.</p>
+<h3 id="const-035-anti-bluff-covenant">CONST-035: Anti-Bluff
+Covenant</h3>
+<p><strong>Rule:</strong> No test or Challenge may be designed to pass
+on non-functional code.</p>
+<h3
+id="const-050-no-fakes-beyond-unit-tests-100-test-type-coverage">CONST-050:
+No-Fakes-Beyond-Unit-Tests + 100%-Test-Type-Coverage</h3>
+<p><strong>Rule:</strong> No fake or mock implementations beyond unit
+tests. 100% test type coverage required.</p>
+<h3 id="const-051-evidence-taxonomy">CONST-051: Evidence Taxonomy</h3>
+<p><strong>Rule:</strong> All test and challenge evidence must follow a
+defined taxonomy.</p>
+<hr />
+<h1 id="chapter-2-compliance-assessment">Chapter 2: Compliance
+Assessment</h1>
+<h2 id="pcs-1-cross-platform-parity-1">2.1 PCS-1: Cross-Platform
+Parity</h2>
+<p><strong>Status:</strong> ⚠️ PARTIAL</p>
+<p><strong>Evidence of compliance:</strong> -
+<code>pkg/resources/proc_linux.go</code> +
+<code>pkg/resources/proc_darwin.go</code> — Real platform-specific
+readers - <code>pkg/resources/cgroup_v2.go</code> — Linux cgroup support
+- <code>pkg/wireguard/netstack_darwin.go</code> — macOS WireGuard
+userspace - <code>internal/gpu/detect_linux.go</code> +
+<code>internal/gpu/detect_darwin.go</code> — GPU detection -
+<code>internal/health/syscall_unix.go</code> +
+<code>internal/health/syscall_windows.go</code> — Health syscalls -
+<code>pkg/powergater/reader_linux.go</code> +
+<code>pkg/powergater/reader_darwin.go</code> — Power management -
+<code>pkg/edgeheartbeat/reader_linux.go</code> +
+<code>pkg/edgeheartbeat/reader_darwin.go</code> — Edge heartbeat</p>
+<p><strong>Evidence of violation:</strong> -
+<code>pkg/resources/drm_other.go</code> — Stub for non-Linux DRM/GPU -
+<code>pkg/resources/accel_other.go</code> — Stub for non-Linux
+accelerators - <code>pkg/resources/proc_mock.go</code> — Mock for
+non-Linux /proc - No Windows/WSL2 implementations for any package -
+<code>internal/console/linux_boot.go</code> — Linux-specific boot, no
+macOS equivalent - <code>pkg/edgeheartbeat/e2e_test.go</code> — E2E test
+only on Linux</p>
+<p><strong>Specific files:</strong></p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>File</th>
+<th>Issue</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/resources/drm_other.go</code></td>
+<td>Returns empty GPU info on non-Linux</td>
+<td>HIGH</td>
+</tr>
+<tr class="even">
+<td><code>pkg/resources/accel_other.go</code></td>
+<td>No accelerator monitoring on non-Linux</td>
+<td>MEDIUM</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/resources/proc_mock.go</code></td>
+<td>Mock implementation for /proc</td>
+<td>HIGH</td>
+</tr>
+<tr class="even">
+<td><code>pkg/gpu/detect_other.go</code></td>
+<td>No GPU detection on non-Linux/macOS</td>
+<td>HIGH</td>
+</tr>
+<tr class="odd">
+<td><code>cmd/helix-setup/mem_other.go</code></td>
+<td>Generic memory detection placeholder</td>
+<td>LOW</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remediation plan:</strong> 1. Replace
+<code>drm_other.go</code> with real macOS GPU detection via IOKit 2.
+Replace <code>accel_other.go</code> with real macOS accelerator
+detection 3. Remove <code>proc_mock.go</code> — use real
+<code>proc_darwin.go</code> (already exists) 4. Add Windows/WSL2
+implementations for key packages 5. Document Linux-only features with
+CLAUDE-2 justification</p>
+<h2 id="pcs-2-gpu-backend-coverage-1">2.2 PCS-2: GPU Backend
+Coverage</h2>
+<p><strong>Status:</strong> ❌ NON-COMPLIANT</p>
+<p><strong>Evidence of compliance:</strong> -
+<code>internal/gpu/backend.go</code> — Backend interface with 4 vendors
+defined - <code>internal/gpu/backend_darwin_apple.go</code> — Apple
+Metal backend - <code>internal/gpu/nvidia_parser.go</code> — NVIDIA SMI
+parser - <code>internal/gpu/nvidia_reader_linux.go</code> — NVIDIA
+reader</p>
+<p><strong>Evidence of violation:</strong> - No AMD ROCm backend
+implementation - No Intel oneAPI/SYCL backend implementation - Apple
+backend only tested on macOS - No real hardware testing for any backend
+except NVIDIA (partial)</p>
+<p><strong>Remediation plan:</strong> 1. Implement AMD ROCm backend
+(requires AMD GPU hardware) 2. Implement Intel oneAPI backend (requires
+Intel GPU hardware) 3. Add integration tests for all 4 backends 4. Add
+GPU backend to CI pipeline (requires GPU runners)</p>
+<h2 id="pcs-3-no-hardcoded-secrets-1">2.3 PCS-3: No Hardcoded
+Secrets</h2>
+<p><strong>Status:</strong> ✅ COMPLIANT</p>
+<p><strong>Evidence of compliance:</strong> - <code>DATABASE_URL</code>
+in Makefile uses variable with default (not a secret — dev DSN) -
+<code>SONAR_TOKEN</code> and <code>SNYK_TOKEN</code> referenced by name
+only, never stored - <code>.gitignore</code> includes common secret
+patterns - <code>scripts/run-migrations.sh</code> reads from
+environment, not hardcoded</p>
+<p><strong>Verification method:</strong></p>
+<div class="sourceCode" id="cb1"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Scan for potential secrets</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="ex">rg</span> <span class="at">-i</span> <span class="st">&quot;password|secret|api_key|token.*=&quot;</span> <span class="at">--type</span> go <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-v</span> <span class="st">&quot;_test.go&quot;</span> <span class="kw">|</span> <span class="fu">grep</span> <span class="at">-v</span> <span class="st">&quot;vendor/&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Result: No hardcoded secrets found in source</span></span></code></pre></div>
+<h2 id="pcs-4-container-mandate-1">2.4 PCS-4: Container Mandate</h2>
+<p><strong>Status:</strong> ⚠️ PARTIAL</p>
+<p><strong>Evidence of compliance:</strong> -
+<code>deploy/docker/helix_gateway.dockerfile</code> — Gateway container
+- <code>deploy/docker/helixd.dockerfile</code> — Main daemon container -
+<code>deploy/docker/helix_agent.dockerfile</code> — Agent container -
+<code>deploy/compose/helix_core.yml</code> — Core services compose -
+<code>deploy/compose/helix_infra.yml</code> — Infrastructure compose -
+<code>deploy/k8s/</code> — Kubernetes deployment manifests</p>
+<p><strong>Evidence of violation:</strong> - No Dockerfile for security,
+scheduler, session, build, health, policy, llm, advisory services -
+<code>docker_compose.yml</code> at root doesn’t include all services -
+No container scanning (trivy) in build pipeline</p>
+<p><strong>Remediation plan:</strong> 1. Create Dockerfiles for all 14
+services 2. Update docker_compose.yml with all services 3. Add container
+scanning to build pipeline 4. Ensure no sudo/interactive processes in
+containers</p>
+<h2 id="claude-1-end-user-usability-guarantee-1">2.5 CLAUDE-1: End-User
+Usability Guarantee</h2>
+<p><strong>Status:</strong> ❌ NON-COMPLIANT</p>
+<p><strong>Evidence of violation:</strong> - 178/212 pkg/ packages are
+orphaned — features exist but can’t be used by end users - CRIT-1: JWT
+tokens not verified — authentication doesn’t work - CRIT-2: Health
+service HTTP-only — gRPC health checking doesn’t work - CRIT-3: Build
+service uses wrong imports — build orchestration bypassed -
+<code>cmd/helixd</code> is a hollow shell — core daemon does nothing -
+Gateway routing incomplete — not all services accessible - 8 stub bluff
+packages — code claims to implement features but doesn’t</p>
+<p><strong>Specific violations:</strong></p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Violation</th>
+<th>Feature</th>
+<th>Impact</th>
+<th>Severity</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>178 orphaned packages</td>
+<td>Multiple subsystems</td>
+<td>Features can’t be used</td>
+<td>CRITICAL</td>
+</tr>
+<tr class="even">
+<td>CRIT-1: JWT stubs</td>
+<td>Authentication</td>
+<td>Security bypass</td>
+<td>CRITICAL</td>
+</tr>
+<tr class="odd">
+<td>CRIT-2: Health HTTP-only</td>
+<td>Health monitoring</td>
+<td>Gateway can’t use gRPC health</td>
+<td>HIGH</td>
+</tr>
+<tr class="even">
+<td>CRIT-3: Build wrong imports</td>
+<td>Build service</td>
+<td>Orchestration bypassed</td>
+<td>HIGH</td>
+</tr>
+<tr class="odd">
+<td>Hollow helixd</td>
+<td>Core daemon</td>
+<td>No service orchestration</td>
+<td>CRITICAL</td>
+</tr>
+<tr class="even">
+<td>Gateway incomplete</td>
+<td>API access</td>
+<td>Services unreachable</td>
+<td>HIGH</td>
+</tr>
+<tr class="odd">
+<td>8 stub bluffs</td>
+<td>Multiple</td>
+<td>Features non-functional</td>
+<td>HIGH</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remediation plan:</strong> 1. Wire orphaned packages into
+binaries (Phase 1 of UNFINISHED_WORK_REPORT) 2. Fix JWT token
+verification (CRIT-1) 3. Add gRPC health service (CRIT-2) 4. Fix build
+imports (CRIT-3) 5. Implement helixd service orchestration 6. Complete
+gateway routing for all services 7. Replace stub bluff packages with
+real implementations</p>
+<h2 id="claude-2-cross-platform-parity-guarantee-1">2.6 CLAUDE-2:
+Cross-Platform Parity Guarantee</h2>
+<p><strong>Status:</strong> ⚠️ PARTIAL</p>
+<p><strong>Evidence of compliance:</strong> - Platform-specific files
+use build tags correctly (<code>_linux.go</code>,
+<code>_darwin.go</code>, <code>_other.go</code>) -
+<code>pkg/resources</code> has real implementations for both Linux and
+macOS - <code>pkg/wireguard</code> has <code>netstack_darwin.go</code>
+for macOS userspace WireGuard - <code>internal/gpu</code> has
+<code>detect_linux.go</code> and <code>detect_darwin.go</code> - No
+blanket non-Linux skips found</p>
+<p><strong>Evidence of violation:</strong> -
+<code>pkg/resources/proc_mock.go</code> exists — mock for non-Linux
+(should be removed) - <code>pkg/resources/drm_other.go</code> — stub for
+non-Linux DRM - No Windows/WSL2 implementations - 7/13 WireGuard tests
+skipped on macOS/non-root</p>
+<p><strong>Remediation plan:</strong> 1. Remove
+<code>proc_mock.go</code> (real <code>proc_darwin.go</code> exists) 2.
+Implement real DRM/GPU detection for macOS 3. Add Windows/WSL2
+implementations for key packages 4. Fix WireGuard test skips with mock
+wgctrl client</p>
+<h2
+id="claude-3-documentation-materials-continuous-sync-guarantee-1">2.7
+CLAUDE-3: Documentation &amp; Materials Continuous-Sync Guarantee</h2>
+<p><strong>Status:</strong> ⚠️ PARTIAL</p>
+<p><strong>Evidence of compliance:</strong> -
+<code>.docs_chain/contexts/tracked_docs.yaml</code> — Registered doc
+contexts - <code>.docs_chain/contexts/gap_audits.yaml</code> — Gap audit
+context - <code>scripts/docs/generate.sh</code> — Documentation
+generation script - <code>scripts/docs/verify.sh</code> — Documentation
+verification script - <code>scripts/docs/run_docs_chain.sh</code> —
+docs_chain execution - <code>scripts/docs/update_continuation.sh</code>
+— Continuation update - <code>scripts/docs/db_to_md.py</code> — Database
+to Markdown conversion</p>
+<p><strong>Evidence of violation:</strong> - Some documentation may be
+stale (not verified every wave) - Not all materials registered in
+<code>.docs_chain/contexts/</code> - Export formats (md → html/pdf/docx)
+not verified - <code>docs_chain verify</code> not enforced as pre-build
+gate</p>
+<p><strong>Remediation plan:</strong> 1. Register all materials in
+<code>.docs_chain/contexts/</code> 2. Add <code>docs_chain verify</code>
+to pre-build gate 3. Ensure all exports are generated and verified 4.
+Run docs_chain sync every wave</p>
+<h2 id="mutation-paired-tests">2.8 §1.1: Mutation-Paired Tests</h2>
+<p><strong>Status:</strong> ❌ NON-COMPLIANT</p>
+<p><strong>Evidence of violation:</strong> - Only ~5 explicit
+<code>_Mutation</code> test cases exist out of ~4,907 test functions -
+<code>test/mutation/run_mutations.sh</code> exists but is limited - Most
+packages have zero mutation coverage - Anti-bluff audit found 20/30
+packages fail due to missing mutation tests</p>
+<p><strong>Remediation plan:</strong> 1. Add <code>_Mutation</code>
+tests for all 20 failing packages 2. Establish mutation test template 3.
+Enforce mutation test presence in gate-check 4. Target: 100% of unit
+tests have paired mutation tests</p>
+<h2 id="quality-guarantee">2.9 §7.1: Quality Guarantee</h2>
+<p><strong>Status:</strong> ❌ NON-COMPLIANT</p>
+<p><strong>Evidence of violation:</strong> - PRR at 82.5% (target: 95%)
+- 178 orphaned packages can’t deliver quality to users - PASS-bluffs
+exist in 8 packages - Features pass tests but don’t work for end
+users</p>
+<p><strong>Remediation plan:</strong> 1. Resolve orphaned packages
+(wire-in/prune/document) 2. Fix all PASS-bluffs 3. Achieve PRR ≥ 95% 4.
+Ensure every feature works for end users</p>
+<h2 id="anti-bluff-covenant">2.10 §11.4: Anti-Bluff Covenant</h2>
+<p><strong>Status:</strong> ❌ NON-COMPLIANT</p>
+<p><strong>Evidence of violation:</strong> - 8 stub bluff packages
+identified - 20/30 packages fail anti-bluff audit - PASS-bluffs where
+tests pass on non-functional code - No mutation testing enforcement</p>
+<p><strong>Remediation plan:</strong> 1. Fix all 8 stub bluff packages
+2. Add mutation tests for all failing packages 3. Enforce anti-bluff in
+gate-check 4. Add bluff scanner to Challenges framework</p>
+<hr />
+<h1 id="chapter-3-anti-bluff-covenant-compliance">Chapter 3: Anti-Bluff
+Covenant Compliance</h1>
+<h2 id="anti-bluff-audit-results-per-package">3.1 §11.4 Anti-Bluff Audit
+Results Per Package</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>§11.4.1 FAIL-bluff</th>
+<th>§11.4.2 Evidence</th>
+<th>§11.4.3 Per-device</th>
+<th>§11.4.4 Sink-side</th>
+<th>§11.4.5 No-hardcode</th>
+<th>Overall</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/config</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ Returns hardcoded</td>
+<td>❌ Hardcoded</td>
+<td>FAIL</td>
+</tr>
+<tr class="even">
+<td><code>pkg/grpcutil</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ No-op</td>
+<td>❌ N/A</td>
+<td>FAIL</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/infra</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ Simulation only</td>
+<td>❌ Fake data</td>
+<td>FAIL</td>
+</tr>
+<tr class="even">
+<td><code>pkg/jwt</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ No verification</td>
+<td>❌ N/A</td>
+<td>FAIL</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/leader</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ Not distributed</td>
+<td>❌ N/A</td>
+<td>FAIL</td>
+</tr>
+<tr class="even">
+<td><code>pkg/middleware</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ No-op</td>
+<td>❌ N/A</td>
+<td>FAIL</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/tracing</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ Hardcoded IDs</td>
+<td>❌ “trace-1”</td>
+<td>FAIL</td>
+</tr>
+<tr class="even">
+<td><code>pkg/websocket</code></td>
+<td>❌ PASS-bluff</td>
+<td>❌ No evidence</td>
+<td>⚠️ N/A</td>
+<td>❌ Returns nil</td>
+<td>❌ N/A</td>
+<td>FAIL</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/discovery</code></td>
+<td>✅ Real</td>
+<td>✅ Evidence</td>
+<td>✅ Per-platform</td>
+<td>✅ Sink-side</td>
+<td>✅</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>pkg/errors</code></td>
+<td>✅ Real</td>
+<td>✅ Evidence</td>
+<td>✅ Per-platform</td>
+<td>✅ Sink-side</td>
+<td>✅</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/log</code></td>
+<td>✅ Real</td>
+<td>✅ Evidence</td>
+<td>✅ Per-platform</td>
+<td>✅ Sink-side</td>
+<td>✅</td>
+<td>PASS</td>
+</tr>
+<tr class="even">
+<td><code>pkg/session</code></td>
+<td>✅ Real</td>
+<td>✅ Evidence</td>
+<td>✅ Per-platform</td>
+<td>✅ Sink-side</td>
+<td>✅</td>
+<td>PASS</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/swim</code></td>
+<td>✅ Real</td>
+<td>✅ Evidence</td>
+<td>✅ Per-platform</td>
+<td>✅ Sink-side</td>
+<td>✅</td>
+<td>PASS</td>
+</tr>
+</tbody>
+</table>
+<h2 id="pass-bluff-detection-findings">3.2 PASS-Bluff Detection
+Findings</h2>
+<h3 id="finding-1-pkgconfig-pass-bluff">Finding 1: pkg/config
+PASS-bluff</h3>
+<p><strong>Description:</strong> <code>TestDefault</code> passes because
+it checks default values match hardcoded struct. If the struct changes,
+the test still passes with wrong values. <strong>Detection:</strong>
+Mutation test would catch: remove a default → test still passes.
+<strong>Remediation:</strong> Add <code>TestDefault_Mutation</code>
+verifying defaults are non-zero.</p>
+<h3 id="finding-2-pkgjwt-pass-bluff">Finding 2: pkg/jwt PASS-bluff</h3>
+<p><strong>Description:</strong> <code>TestParse</code> passes because
+it only verifies string splitting. Even a completely invalid JWT (with
+no real signature) passes. <strong>Detection:</strong> Mutation test
+would catch: remove signature verification (which doesn’t exist) → test
+still passes. <strong>Remediation:</strong> Add real JWT verification
+and test with tampered tokens.</p>
+<h3 id="finding-3-pkginfra-pass-bluff">Finding 3: pkg/infra
+PASS-bluff</h3>
+<p><strong>Description:</strong> All tests pass because they test the
+simulation, not real infrastructure. <strong>Detection:</strong>
+Mutation test would catch: make Boot always succeed → tests pass even if
+Docker is down. <strong>Remediation:</strong> Add integration tests
+against real Docker/Podman.</p>
+<h3 id="finding-4-pkgleader-pass-bluff">Finding 4: pkg/leader
+PASS-bluff</h3>
+<p><strong>Description:</strong> <code>TestElection</code> passes
+because it only verifies an atomic flag toggles.
+<strong>Detection:</strong> Mutation test would catch: replace etcd
+election with atomic flag → test still passes.
+<strong>Remediation:</strong> Add integration test with real etcd
+election.</p>
+<h2 id="mutation-testing-compliance">3.3 Mutation Testing
+Compliance</h2>
+<table>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Has _Mutation Tests</th>
+<th>Constitution §1.1 Compliant</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/discovery</code></td>
+<td>✅ 9 mutation tests</td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="even">
+<td><code>pkg/errors</code></td>
+<td>✅ 8 mutation tests</td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/log</code></td>
+<td>✅ 8 mutation tests</td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="even">
+<td><code>pkg/session</code></td>
+<td>✅ Many mutation tests</td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/swim</code></td>
+<td>✅ 22 mutation tests</td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="even">
+<td>All other packages</td>
+<td>❌ 0 mutation tests</td>
+<td>❌ NON-COMPLIANT</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Mutation testing compliance rate:</strong> 5/255 packages
+(2%) — far below 100% requirement.</p>
+<h2 id="evidence-taxonomy-compliance">3.4 Evidence Taxonomy
+Compliance</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Evidence Type</th>
+<th>Format Defined</th>
+<th>Storage Defined</th>
+<th>Retention Defined</th>
+<th>Enforced</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Test output</td>
+<td>✅ Text</td>
+<td>✅ qa-results/</td>
+<td>❌ Not defined</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Coverage report</td>
+<td>✅ HTML+JSON</td>
+<td>✅ qa-results/coverage/</td>
+<td>❌ Not defined</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>Benchmark results</td>
+<td>✅ JSON</td>
+<td>✅ qa-results/benchmarks/</td>
+<td>❌ Not defined</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Security scan</td>
+<td>✅ JSON+SARIF</td>
+<td>✅ qa-results/security/</td>
+<td>❌ Not defined</td>
+<td>⚠️ Partial</td>
+</tr>
+<tr class="odd">
+<td>Challenge evidence</td>
+<td>✅ Markdown+screenshots</td>
+<td>✅ qa-results/challenges/</td>
+<td>❌ Not defined</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Chaos results</td>
+<td>✅ JSON+logs</td>
+<td>✅ qa-results/chaos/</td>
+<td>❌ Not defined</td>
+<td>❌</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Remediation plan:</strong> 1. Define retention policies for
+all evidence types 2. Enforce evidence collection in gate-check 3. Add
+evidence verification to CI pipeline 4. Implement automated evidence
+archival</p>
+<hr />
+<h1 id="chapter-4-cross-platform-parity-compliance">Chapter 4:
+Cross-Platform Parity Compliance</h1>
+<h2 id="pcs-1-status-per-feature">4.1 PCS-1 Status Per Feature</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Linux</th>
+<th>macOS</th>
+<th>Windows/WSL2</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>CPU monitoring</td>
+<td>✅ <code>/proc/stat</code></td>
+<td>✅ <code>sysctl</code></td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="even">
+<td>Memory monitoring</td>
+<td>✅ <code>/proc/meminfo</code></td>
+<td>✅ <code>vm_stat</code></td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="odd">
+<td>GPU detection</td>
+<td>✅ NVIDIA SMI</td>
+<td>✅ Apple Metal</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="even">
+<td>GPU monitoring</td>
+<td>✅ DRM/sysfs</td>
+<td>⚠️ system_profiler</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="odd">
+<td>cgroup resources</td>
+<td>✅ cgroup v2</td>
+<td>❌ N/A (no cgroups)</td>
+<td>❌ N/A</td>
+<td>✅ Linux-only (justified)</td>
+</tr>
+<tr class="even">
+<td>WireGuard mesh</td>
+<td>✅ kernel WG</td>
+<td>✅ wireguard-go</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="odd">
+<td>Power management</td>
+<td>✅ /sys/class</td>
+<td>✅ IOKit</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="even">
+<td>Health syscalls</td>
+<td>✅ <code>syscall_unix</code></td>
+<td>✅ <code>syscall_unix</code></td>
+<td>✅ <code>syscall_windows</code></td>
+<td>✅ COMPLIANT</td>
+</tr>
+<tr class="odd">
+<td>Boot coordination</td>
+<td>✅ <code>linux_boot.go</code></td>
+<td>❌</td>
+<td>❌</td>
+<td>❌ NON-COMPLIANT</td>
+</tr>
+<tr class="even">
+<td>Node registration</td>
+<td>✅ etcd</td>
+<td>✅ etcd</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="odd">
+<td>Session management</td>
+<td>✅ PTY</td>
+<td>✅ PTY</td>
+<td>⚠️ ConPTY</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+<tr class="even">
+<td>Container builds</td>
+<td>✅ Podman</td>
+<td>✅ Podman</td>
+<td>❌</td>
+<td>⚠️ PARTIAL</td>
+</tr>
+</tbody>
+</table>
+<h2 id="linux-macos-windowswsl2-coverage">4.2 Linux, macOS, Windows/WSL2
+Coverage</h2>
+<h3 id="linux-coverage-85">Linux Coverage: ~85%</h3>
+<p>Most features work on Linux. Missing: multi-host networking, real GPU
+hardware testing.</p>
+<h3 id="macos-coverage-45">macOS Coverage: ~45%</h3>
+<p>Key gaps: - No cgroup equivalent (justified — macOS has no cgroups) -
+DRM/GPU monitoring incomplete - WireGuard tests skipped on non-root -
+Boot coordination not implemented - No session testing on macOS</p>
+<h3 id="windowswsl2-coverage-5">Windows/WSL2 Coverage: ~5%</h3>
+<p>Key gaps: - Almost no Windows-specific implementations - Only
+<code>syscall_windows.go</code> for health -
+<code>detect_other.go</code> stubs for GPU detection - No Windows
+session backend (ConPTY) - No Windows WireGuard support</p>
+<h2 id="claude-2-retroactive-stub-tracking">4.3 CLAUDE-2 Retroactive
+Stub Tracking</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Stub File</th>
+<th>Feature</th>
+<th>Tracking Status</th>
+<th>Remediation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/resources/drm_other.go</code></td>
+<td>GPU monitoring</td>
+<td>Tracked</td>
+<td>Implement real macOS GPU probe</td>
+</tr>
+<tr class="even">
+<td><code>pkg/resources/accel_other.go</code></td>
+<td>Accelerator monitoring</td>
+<td>Tracked</td>
+<td>Implement real macOS accel probe</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/resources/proc_mock.go</code></td>
+<td>/proc reader</td>
+<td>Tracked</td>
+<td>Remove — <code>proc_darwin.go</code> exists</td>
+</tr>
+<tr class="even">
+<td><code>pkg/gpu/detect_other.go</code></td>
+<td>GPU detection</td>
+<td>Tracked</td>
+<td>Implement Windows detection</td>
+</tr>
+<tr class="odd">
+<td><code>internal/gpu/detect_other.go</code></td>
+<td>GPU detection</td>
+<td>Tracked</td>
+<td>Implement Windows detection</td>
+</tr>
+<tr class="even">
+<td><code>cmd/helix-setup/mem_other.go</code></td>
+<td>Memory detection</td>
+<td>Tracked</td>
+<td>Implement generic fallback</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="chapter-5-end-user-usability-compliance">Chapter 5: End-User
+Usability Compliance</h1>
+<h2 id="claude-1-agent-1-qwen-1-compliance">5.1 CLAUDE-1 / AGENT-1 /
+QWEN-1 Compliance</h2>
+<p><strong>Overall Status:</strong> ❌ NON-COMPLIANT</p>
+<h3 id="feature-by-feature-assessment">Feature-by-Feature
+Assessment</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Tests Pass?</th>
+<th>Works for End User?</th>
+<th>Sink-side Evidence?</th>
+<th>CLAUDE-1 Compliant?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Node registration</td>
+<td>✅</td>
+<td>⚠️ Partial — etcd registration works, but not accessible via
+gateway</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Session management</td>
+<td>✅</td>
+<td>⚠️ Partial — gRPC works, but WebSocket attach incomplete</td>
+<td>⚠️ Partial</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>Job scheduling</td>
+<td>✅</td>
+<td>❌ — Scheduler helpers not wired, no backfill</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Build service</td>
+<td>✅</td>
+<td>❌ — Wrong imports bypass orchestration</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>Health checking</td>
+<td>✅</td>
+<td>⚠️ Partial — HTTP works, gRPC doesn’t</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Authentication</td>
+<td>✅</td>
+<td>❌ — JWT stub tokens, no verification</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>RBAC</td>
+<td>✅</td>
+<td>❌ — Scopes defined but not enforced</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>mTLS</td>
+<td>⚠️ Partial</td>
+<td>❌ — SPIFFE CA works, but not wired to services</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>WireGuard mesh</td>
+<td>✅</td>
+<td>⚠️ Partial — Works on Linux+root only</td>
+<td>⚠️ Partial</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>LLM inference</td>
+<td>✅</td>
+<td>❌ — No actual LLM backend connected</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>Federation</td>
+<td>✅</td>
+<td>❌ — Not wired into any binary</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Marketplace</td>
+<td>✅</td>
+<td>❌ — Not wired into any binary</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>GPU management</td>
+<td>✅</td>
+<td>⚠️ Partial — NVIDIA works, others missing</td>
+<td>⚠️ Partial</td>
+<td>❌</td>
+</tr>
+<tr class="even">
+<td>Console hardware</td>
+<td>✅</td>
+<td>❌ — Detection works but not integrated</td>
+<td>❌</td>
+<td>❌</td>
+</tr>
+<tr class="odd">
+<td>CRDT sessions</td>
+<td>✅</td>
+<td>✅ — Real CRDT with LWW</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr class="even">
+<td>SWIM gossip</td>
+<td>✅</td>
+<td>✅ — Real SWIM protocol</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr class="odd">
+<td>Policy engine</td>
+<td>✅</td>
+<td>✅ — Real OPA engine</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+</tbody>
+</table>
+<h3 id="summary">Summary</h3>
+<ul>
+<li><strong>CLAUDE-1 Compliant features:</strong> 3/17 (CRDT sessions,
+SWIM gossip, Policy engine)</li>
+<li><strong>CLAUDE-1 Non-compliant features:</strong> 14/17</li>
+<li><strong>Primary causes:</strong> Orphaned code, stub bluffs,
+incomplete wiring</li>
+</ul>
+<h2 id="sink-side-evidence-for-each-feature">5.2 Sink-Side Evidence for
+Each Feature</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Sink-Side Evidence Available?</th>
+<th>What’s Missing</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Node registration</td>
+<td>❌</td>
+<td>No verification that node appears in gateway API</td>
+</tr>
+<tr class="even">
+<td>Session management</td>
+<td>⚠️</td>
+<td>CRDT state verified, but WebSocket attach not verified</td>
+</tr>
+<tr class="odd">
+<td>Job scheduling</td>
+<td>❌</td>
+<td>No verification that scheduled job actually runs</td>
+</tr>
+<tr class="even">
+<td>Build service</td>
+<td>❌</td>
+<td>No verification that built artifact is valid</td>
+</tr>
+<tr class="odd">
+<td>Health checking</td>
+<td>❌</td>
+<td>No verification that health updates propagate to gateway</td>
+</tr>
+<tr class="even">
+<td>Authentication</td>
+<td>❌</td>
+<td>No verification that auth tokens are actually validated</td>
+</tr>
+<tr class="odd">
+<td>RBAC</td>
+<td>❌</td>
+<td>No verification that unauthorized access is denied</td>
+</tr>
+<tr class="even">
+<td>mTLS</td>
+<td>❌</td>
+<td>No verification that traffic is actually encrypted</td>
+</tr>
+<tr class="odd">
+<td>WireGuard</td>
+<td>⚠️</td>
+<td>Connectivity verified on Linux, not on macOS</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mock-only-validation-audit">5.3 Mock-Only Validation Audit</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Package</th>
+<th>Uses Mocks?</th>
+<th>Mock Justified? (§11.4.27)</th>
+<th>Alternative</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>pkg/infra</code></td>
+<td>✅ Entire package is simulation</td>
+<td>❌ — Claims orchestration</td>
+<td>Real Docker/Podman backend</td>
+</tr>
+<tr class="even">
+<td><code>pkg/leader</code></td>
+<td>✅ In-memory only</td>
+<td>❌ — Claims distributed election</td>
+<td>etcd election backend</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/jwt</code></td>
+<td>✅ No real JWT verification</td>
+<td>❌ — Claims JWT parsing</td>
+<td>golang-jwt/jwt/v5 library</td>
+</tr>
+<tr class="even">
+<td><code>pkg/tracing</code></td>
+<td>✅ Hardcoded IDs</td>
+<td>❌ — Claims distributed tracing</td>
+<td>OpenTelemetry integration</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/grpcutil</code></td>
+<td>✅ No-op interceptors</td>
+<td>❌ — Claims interceptor functionality</td>
+<td>Real logging/metrics/auth</td>
+</tr>
+<tr class="even">
+<td><code>pkg/middleware</code></td>
+<td>✅ No-op middleware</td>
+<td>❌ — Claims logging middleware</td>
+<td>Real request logging</td>
+</tr>
+<tr class="odd">
+<td><code>pkg/config</code></td>
+<td>✅ Hardcoded config</td>
+<td>❌ — Claims env/file loading</td>
+<td>Real env/file config</td>
+</tr>
+<tr class="even">
+<td><code>pkg/websocket</code></td>
+<td>✅ Nil upgrade</td>
+<td>❌ — Claims WebSocket support</td>
+<td>gorilla/websocket library</td>
+</tr>
+</tbody>
+</table>
+<p>All 8 stub bluff packages use mock-only validation that violates
+§11.4.27 (mocks permitted ONLY in unit tests).</p>
+<hr />
+<h1 id="chapter-6-documentation-sync-compliance">Chapter 6:
+Documentation Sync Compliance</h1>
+<h2 id="claude-3-agent-2-qwen-2-compliance">6.1 CLAUDE-3 / AGENT-2 /
+QWEN-2 Compliance</h2>
+<p><strong>Overall Status:</strong> ⚠️ PARTIAL</p>
+<h3 id="docs_chain-integration-status">docs_chain Integration
+Status</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Status</th>
+<th>Details</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>.docs_chain/contexts/tracked_docs.yaml</code></td>
+<td>✅ Exists</td>
+<td>Tracked documentation contexts</td>
+</tr>
+<tr class="even">
+<td><code>.docs_chain/contexts/gap_audits.yaml</code></td>
+<td>✅ Exists</td>
+<td>Gap audit contexts</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/docs/generate.sh</code></td>
+<td>✅ Exists</td>
+<td>Documentation generation</td>
+</tr>
+<tr class="even">
+<td><code>scripts/docs/verify.sh</code></td>
+<td>✅ Exists</td>
+<td>Documentation verification</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/docs/run_docs_chain.sh</code></td>
+<td>✅ Exists</td>
+<td>docs_chain execution</td>
+</tr>
+<tr class="even">
+<td><code>scripts/docs/update_continuation.sh</code></td>
+<td>✅ Exists</td>
+<td>Continuation updates</td>
+</tr>
+<tr class="odd">
+<td><code>scripts/docs/db_to_md.py</code></td>
+<td>✅ Exists</td>
+<td>DB to Markdown conversion</td>
+</tr>
+<tr class="even">
+<td><code>scripts/docs/update_continuation.py</code></td>
+<td>✅ Exists</td>
+<td>Continuation Python script</td>
+</tr>
+<tr class="odd">
+<td>docs_chain sync enforced per wave</td>
+<td>⚠️ Partial</td>
+<td>Not always run with every change</td>
+</tr>
+<tr class="even">
+<td>All materials registered</td>
+<td>❌</td>
+<td>Not all docs registered</td>
+</tr>
+<tr class="odd">
+<td>Export formats generated</td>
+<td>❌</td>
+<td>md → html/pdf/docx not verified</td>
+</tr>
+<tr class="even">
+<td>Pre-build gate</td>
+<td>❌</td>
+<td>docs_chain verify not enforced</td>
+</tr>
+</tbody>
+</table>
+<h3 id="documentation-coverage-assessment">Documentation Coverage
+Assessment</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Material</th>
+<th>In Sync?</th>
+<th>Registered in docs_chain?</th>
+<th>Export Formats?</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Main README</td>
+<td>⚠️ May be stale</td>
+<td>✅</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="even">
+<td>CLAUDE.md</td>
+<td>✅ Current</td>
+<td>✅</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="odd">
+<td>AGENTS.md</td>
+<td>✅ Current</td>
+<td>✅</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="even">
+<td>Architecture docs</td>
+<td>⚠️ May be stale</td>
+<td>⚠️ Partial</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="odd">
+<td>User guide</td>
+<td>⚠️ May be stale</td>
+<td>❌ Not registered</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="even">
+<td>SQL schema docs</td>
+<td>⚠️ Drift issue (HXC-1639)</td>
+<td>❌ Not registered</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="odd">
+<td>API documentation</td>
+<td>⚠️ OpenAPI incomplete</td>
+<td>❌ Not registered</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="even">
+<td>Changelog</td>
+<td>⚠️ May be stale</td>
+<td>✅</td>
+<td>❌ Not verified</td>
+</tr>
+<tr class="odd">
+<td>ADRs</td>
+<td>✅ Current</td>
+<td>❌ Not registered</td>
+<td>❌ Not verified</td>
+</tr>
+</tbody>
+</table>
+<h3 id="remediation-plan">Remediation Plan</h3>
+<ol type="1">
+<li>Register all materials in <code>.docs_chain/contexts/</code></li>
+<li>Add <code>docs_chain verify</code> to pre-build gate</li>
+<li>Ensure all export formats are generated</li>
+<li>Run docs_chain sync with every change</li>
+<li>Fix SQL schema documentation drift (HXC-1639)</li>
+<li>Complete OpenAPI specification</li>
+<li>Generate and verify all exports (md → html/pdf/docx)</li>
+</ol>
+<hr />
+<h1 id="compliance-summary">Compliance Summary</h1>
+<h2 id="overall-compliance-score">Overall Compliance Score</h2>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+<col style="width: 16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Rule Category</th>
+<th>Total Rules</th>
+<th>Compliant</th>
+<th>Partial</th>
+<th>Non-Compliant</th>
+<th>Score</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>PCS Rules</td>
+<td>12</td>
+<td>2</td>
+<td>5</td>
+<td>5</td>
+<td>37.5%</td>
+</tr>
+<tr class="even">
+<td>CLAUDE Rules</td>
+<td>3</td>
+<td>0</td>
+<td>2</td>
+<td>1</td>
+<td>33.3%</td>
+</tr>
+<tr class="odd">
+<td>AGENT Rules</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>25.0%</td>
+</tr>
+<tr class="even">
+<td>QWEN Rules</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>25.0%</td>
+</tr>
+<tr class="odd">
+<td>§1.1 (Mutation)</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0.0%</td>
+</tr>
+<tr class="even">
+<td>§7.1 (Quality)</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0.0%</td>
+</tr>
+<tr class="odd">
+<td>§11.4 (Anti-bluff)</td>
+<td>5</td>
+<td>0</td>
+<td>1</td>
+<td>4</td>
+<td>10.0%</td>
+</tr>
+<tr class="even">
+<td><strong>Overall</strong></td>
+<td><strong>26</strong></td>
+<td><strong>2</strong></td>
+<td><strong>10</strong></td>
+<td><strong>14</strong></td>
+<td><strong>19.2%</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="critical-non-compliance-items">Critical Non-Compliance
+Items</h2>
+<table>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Rule</th>
+<th>Violation</th>
+<th>Impact</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>CLAUDE-1</td>
+<td>178 orphaned packages</td>
+<td>Features can’t be used</td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>§11.4</td>
+<td>8 stub bluff packages</td>
+<td>Non-functional features</td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>CLAUDE-1</td>
+<td>CRIT-1: JWT stubs</td>
+<td>Security bypass</td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>§1.1</td>
+<td>No mutation tests</td>
+<td>PASS-bluffs undetected</td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>PCS-1</td>
+<td>No Windows support</td>
+<td>Cross-platform gap</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>PCS-2</td>
+<td>Missing AMD/Intel GPU</td>
+<td>GPU backend gap</td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>CLAUDE-3</td>
+<td>Docs not fully synced</td>
+<td>Documentation drift</td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td>§7.1</td>
+<td>PRR at 82.5%</td>
+<td>Below 95% bar</td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>End of Constitutional Compliance Report</em></p>
+<p><strong>Document Statistics:</strong> - Total rules extracted: 26 -
+Total compliance assessments: 26 - Total anti-bluff audits per package:
+13 - Total cross-platform assessments: 12 features - Total end-user
+usability assessments: 17 features - Total documentation coverage
+assessments: 9 materials</p>
+</body>
+</html>

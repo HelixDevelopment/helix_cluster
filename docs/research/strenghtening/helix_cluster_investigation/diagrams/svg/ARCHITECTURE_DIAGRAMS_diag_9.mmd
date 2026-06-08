@@ -1,0 +1,83 @@
+graph TD
+    subgraph Client["Client Layer"]
+        WS_CLIENT["WebSocket Client<br/>(browser/app)"]
+        GRPC_CLIENT["gRPC Client<br/>(SDK/CLI)"]
+        REST_CLIENT["REST Client<br/>(3rd party)"]
+    end
+
+    subgraph Session["Session Service"]
+        SESS_API["Session API<br/>:8006"]
+        SESS_MGR["Session Manager<br/>(lifecycle)"]
+        SESS_CRDT["CRDT Engine<br/>(Automerge-RS)"]
+        SESS_MIGRATE["Migration Manager<br/>(live migration)"]
+        SESS_TTL["TTL Manager<br/>(expiry + renewal)"]
+    end
+
+    subgraph CRDT["CRDT State"]
+        CRDT_MAP["G-Map<br/>(session attributes)"]
+        CRDT_COUNTER["PN-Counter<br/>(metrics/counters)"]
+        CRDT_SET["OR-Set<br/>(subscriptions)"]
+        CRDT_REG["LWW-Register<br/>(last-write-wins fields)"]
+        CRDT_DOC["Automerge Doc<br/>(nested state)"]
+    end
+
+    subgraph Migrate["Migration Protocol"]
+        MIG_PRE["Pre-Migration<br/>(freeze + snapshot)"]
+        MIG_TRANSFER["State Transfer<br/>(delta sync)"]
+        MIG_HANDOFF["Handoff<br/>(redirect + unfreeze)"]
+        MIG_CLEANUP["Cleanup<br/>(old session GC)"]
+    end
+
+    subgraph Backend["Session Backends"]
+        PG["PostgreSQL<br/>(persistent sessions)"]
+        REDIS["Redis Cluster<br/>(hot sessions, TTL)"]
+        SQLITE["SQLite (local)<br/>(offline/fallback)"]
+        MEMCACHED["Memcached<br/>(cache layer)"]
+    end
+
+    subgraph Events["Session Events"]
+        EVT_CREATE["SessionCreated"]
+        EVT_UPDATE["SessionUpdated<br/>(delta CRDT patch)"]
+        EVT_MIGRATE["SessionMigrated"]
+        EVT_EXPIRE["SessionExpired"]
+        EVT_DESTROY["SessionDestroyed"]
+    end
+
+    WS_CLIENT --> SESS_API
+    GRPC_CLIENT --> SESS_API
+    REST_CLIENT --> SESS_API
+
+    SESS_API --> SESS_MGR
+    SESS_MGR --> SESS_CRDT
+    SESS_MGR --> SESS_MIGRATE
+    SESS_MGR --> SESS_TTL
+
+    SESS_CRDT --> CRDT_MAP
+    SESS_CRDT --> CRDT_COUNTER
+    SESS_CRDT --> CRDT_SET
+    SESS_CRDT --> CRDT_REG
+    SESS_CRDT --> CRDT_DOC
+
+    SESS_MIGRATE --> MIG_PRE
+    MIG_PRE --> MIG_TRANSFER
+    MIG_TRANSFER --> MIG_HANDOFF
+    MIG_HANDOFF --> MIG_CLEANUP
+
+    SESS_MGR --> PG
+    SESS_MGR --> REDIS
+    SESS_MGR --> SQLITE
+    SESS_MGR --> MEMCACHED
+
+    SESS_MGR --> EVT_CREATE
+    SESS_CRDT --> EVT_UPDATE
+    SESS_MIGRATE --> EVT_MIGRATE
+    SESS_TTL --> EVT_EXPIRE
+    SESS_MGR --> EVT_DESTROY
+
+    SESS_API -.->|"CRDT sync"| SESS_API
+
+    style Client fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Session fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style CRDT fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Migrate fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Backend fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px

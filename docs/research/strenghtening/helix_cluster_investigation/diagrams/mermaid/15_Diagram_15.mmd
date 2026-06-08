@@ -1,0 +1,100 @@
+graph TD
+    subgraph Unit["Unit Testing"]
+        UT_RUST["Rust Tests<br/>(cargo test + nextest)"]
+        UT_GO["Go Tests<br/>(go test -race)"]
+        UT_TS["TypeScript Tests<br/>(vitest + coverage)"]
+        UT_MOCK["Mock Framework<br/>(mockall + testify)"]
+    end
+
+    subgraph Integration["Integration Testing"]
+        IT_DOCKER["Docker Compose<br/>(service mesh stack)"]
+        IT_HONEY["Honey Cell<br/>(ephemeral cluster)"]
+        IT_API["API Contract Tests<br/>(Pact)"]
+        IT_E2E["E2E Tests<br/>(Playwright + custom)"]
+    end
+
+    subgraph Chaos["Chaos Engineering"]
+        CHAOS_LIT["Litmus Chaos<br/>(pod kill, network delay)"]
+        CHAOS_NET["Network Chaos<br/>(tc + iptables)"]
+        CHAOS_NODE["Node Failure<br/>(EC2 terminate)"]
+        CHAOS_DISK["Disk Failure<br/>(IO error injection)"]
+        CHAOS_TIME["Time Skew<br/>(chrony offset)"]
+        CHAOS_STEADY["Steady State<br/>(verify invariants)"]
+    end
+
+    subgraph DST["Deterministic Simulation Testing"]
+        DST_ENGINE["Sim Engine<br/>(clock + network + disk)"]
+        DST_SCHED["Schedule Explorer<br/>(all interleavings)"]
+       _DST_SEED["Seed Corpus<br/>(failing scenarios)"]
+        DST_ASSERT["Invariant Checker<br/>(safety + liveness)"]
+        DST_REPLAY["Replay Debugger<br/>(step-through)"]
+    end
+
+    subgraph Fuzz["Fuzz Testing"]
+        FUZZ_LIB["libFuzzer<br/>(Rust + Go)"]
+        FUZZ_CORPUS["Seed Corpus<br/>(hand-crafted inputs)"]
+        FUZZ_DICT["Fuzz Dictionary<br/>(protocol keywords)"]
+        FUZZ_CRASH["Crash Triage<br/>(ASAN + minimization)"]
+        FUZZ_REG["Regression Suite<br/>(fixed bugs → test)"]
+    end
+
+    subgraph Mutation["Mutation Testing"]
+        MUT_ENGINE["Mutation Engine<br/>(mutagen + custom)"]
+        MUT_OPS["Mutation Operators:<br/>statement deletion,<br/>operator substitution,<br/>boundary change,<br/>negate condition"]
+        MUT_SCORE["Mutation Score<br/>(% killed / total)"]
+        MUT_EQ["Equivalent Mutants<br/>(manually excluded)"]
+    end
+
+    subgraph Property["Property-Based Testing"]
+        PROP_STRAT["Strategy Generator<br/>(Arbitrary impls)"]
+        PROP_SHRINK["Shrinker<br/>(minimal failing case)"]
+        PROP_STATE["Stateful Properties<br/>(model-based testing)"]
+        PROP_LAW["Law Tests<br/>(monoid, functor laws)"]
+    end
+
+    UT_RUST --> IT_DOCKER
+    UT_GO --> IT_DOCKER
+    UT_TS --> IT_DOCKER
+    UT_MOCK --> UT_RUST
+
+    IT_DOCKER --> IT_HONEY
+    IT_HONEY --> IT_API
+    IT_API --> IT_E2E
+
+    IT_E2E --> CHAOS_LIT
+    CHAOS_LIT --> CHAOS_NET
+    CHAOS_LIT --> CHAOS_NODE
+    CHAOS_LIT --> CHAOS_DISK
+    CHAOS_LIT --> CHAOS_TIME
+    CHAOS_LIT --> CHAOS_STEADY
+
+    CHAOS_STEADY --> DST_ENGINE
+    DST_ENGINE --> DST_SCHED
+    DST_ENGINE -->_DST_SEED
+    DST_SCHED --> DST_ASSERT
+    DST_ASSERT --> DST_REPLAY
+
+    IT_DOCKER --> FUZZ_LIB
+    FUZZ_LIB --> FUZZ_CORPUS
+    FUZZ_LIB --> FUZZ_DICT
+    FUZZ_LIB --> FUZZ_CRASH
+    FUZZ_CRASH --> FUZZ_REG
+
+    UT_RUST --> MUT_ENGINE
+    UT_GO --> MUT_ENGINE
+    MUT_ENGINE --> MUT_OPS
+    MUT_OPS --> MUT_SCORE
+    MUT_SCORE --> MUT_EQ
+
+    UT_RUST --> PROP_STRAT
+    PROP_STRAT --> PROP_SHRINK
+    PROP_STRAT --> PROP_STATE
+    PROP_STRAT --> PROP_LAW
+
+    style Unit fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Integration fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Chaos fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style DST fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Fuzz fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Mutation fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style Property fill:#fff9c4,stroke:#f9a825,stroke-width:2px

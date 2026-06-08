@@ -1,0 +1,92 @@
+graph TD
+    subgraph Checkers["Health Checkers"]
+        HTTP_CHK["HTTP Checker<br/>(GET/HEAD, 2xx=healthy)"]
+        TCP_CHK["TCP Checker<br/>(connection success)"]
+        EXEC_CHK["Exec Checker<br/>(exit code 0=healthy)"]
+        GRPC_CHK["gRPC Checker<br/>(grpc.health.v1)"]
+        CUSTOM_CHK["Custom Checker<br/>(WASM plugin)"]
+    end
+
+    subgraph Probe["Probe Configuration"]
+        PROBE_CFG["Probe Config<br/>(per-workload YAML)"]
+        PROBE_INIT["Initial Delay<br/>(startup probe)"]
+        PROBE_INT["Probe Interval<br/>(adaptive: 1s–30s)"]
+        PROBE_THRESH["Failure Threshold<br/>(consecutive failures)"]
+        PROBE_SUCCESS["Success Threshold<br/>(consecutive successes)"]
+    end
+
+    subgraph Aggregator["Health Aggregator"]
+        AGG_RECV["Result Receiver<br/>(check results in)"]
+        AGG_STATE["State Tracker<br/>(per-workload FSM)"]
+        AGG_WINDOW["Sliding Window<br/>(last N results)"]
+        AGG_ADAPT["Adaptive Controller<br/>(adjust intervals)"]
+        AGG_ROLLUP["Health Rollup<br/>(node → zone → cluster)"]
+    end
+
+    subgraph FSM["Health State Machine"]
+        H_UNKNOWN["Unknown<br/>(initial)"]
+        H_STARTING["Starting<br/>(startup probe phase)"]
+        H_HEALTHY["Healthy<br/>(passing checks)"]
+        H_DEGRADED["Degraded<br/>(partial failures)"]
+        H_UNHEALTHY["Unhealthy<br/>(threshold exceeded)"]
+        H_DRAINING["Draining<br/>(graceful removal)"]
+    end
+
+    subgraph Actions["Health Actions"]
+        ACT_RESTART["Auto-Restart<br/>(restartPolicy: Always)"]
+        ACT_DRAIN["Drain Node<br/>(evict workloads)"]
+        ACT_NOTIFY["Notify Event Bus<br/>(NATS publish)"]
+        ACT_SCALE["Trigger Autoscale<br/>(HPA-like)"]
+        ACT_CIRCUIT["Circuit Breaker<br/>(stop sending traffic)"]
+    end
+
+    subgraph Store["Health Data Store"]
+        H_PG["PostgreSQL<br/>(historical metrics)"]
+        H_REDIS["Redis<br/>(current state cache)"]
+        H_PROM["Prometheus<br/>(metrics + alerting)"]
+        H_ETCD["etcd<br/>(authoritative state)"]
+    end
+
+    HTTP_CHK --> AGG_RECV
+    TCP_CHK --> AGG_RECV
+    EXEC_CHK --> AGG_RECV
+    GRPC_CHK --> AGG_RECV
+    CUSTOM_CHK --> AGG_RECV
+
+    PROBE_CFG --> PROBE_INIT
+    PROBE_CFG --> PROBE_INT
+    PROBE_CFG --> PROBE_THRESH
+    PROBE_CFG --> PROBE_SUCCESS
+
+    AGG_RECV --> AGG_STATE
+    AGG_STATE --> AGG_WINDOW
+    AGG_WINDOW --> AGG_ADAPT
+    AGG_ADAPT --> PROBE_INT
+    AGG_STATE --> AGG_ROLLUP
+
+    AGG_STATE --> H_UNKNOWN
+    H_UNKNOWN --> H_STARTING
+    H_STARTING --> H_HEALTHY
+    H_STARTING --> H_UNHEALTHY
+    H_HEALTHY --> H_DEGRADED
+    H_DEGRADED --> H_HEALTHY
+    H_DEGRADED --> H_UNHEALTHY
+    H_UNHEALTHY --> H_STARTING
+    H_HEALTHY --> H_DRAINING
+    H_DRAINING --> ACT_DRAIN
+
+    AGG_STATE --> ACT_RESTART
+    AGG_STATE --> ACT_NOTIFY
+    AGG_STATE --> ACT_SCALE
+    AGG_STATE --> ACT_CIRCUIT
+
+    AGG_ROLLUP --> H_PG
+    AGG_STATE --> H_REDIS
+    AGG_ROLLUP --> H_PROM
+    AGG_STATE --> H_ETCD
+
+    style Checkers fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Aggregator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style FSM fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Actions fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Store fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px

@@ -1,0 +1,105 @@
+graph TD
+    subgraph Trigger["Pipeline Triggers"]
+        T_PUSH["Git Push<br/>(feature branch)"]
+        T_MERGE["PR Merge<br/>(main branch)"]
+        T_TAG["Git Tag<br/>(v*.*.*)"]
+        T_MANUAL["Manual Trigger<br/>(operator)"]
+        T_SCHEDULE["Scheduled<br/>(nightly)"]
+    end
+
+    subgraph Build["Build Stage"]
+        B_COMPILE["Compile<br/>(Rust: cargo build<br/>Go: go build<br/>TS: tsc + esbuild)"]
+        B_LINT["Lint<br/>(Rust: clippy<br/>Go: golangci-lint<br/>TS: eslint)"]
+        B_FMT["Format Check<br/>(Rust: rustfmt<br/>Go: gofmt<br/>TS: prettier)"]
+        B_DOC["Doc Generation<br/>(Rust: cargo doc<br/>Go: godoc<br/>TS: typedoc)"]
+        B_IMG["Container Build<br/>(Dockerfile → OCI image<br/>BuildKit cache)"]
+        B_WASM["WASM Build<br/>(wasm-pack build<br/>for scheduler plugins)"]
+    end
+
+    subgraph Test["Test Stage"]
+        T_UNIT["Unit Tests<br/>(nextest -j4 --timeout 60s)"]
+        T_INTEG["Integration Tests<br/>(Docker Compose stack)"]
+        T_E2E["E2E Tests<br/>(Playwright, 15m timeout)"]
+        T_DST["DST Suite<br/>(deterministic sim,<br/>2h timeout)"]
+        T_FUZZ["Fuzz Tests<br/>(30min per target,<br/>ASAN enabled)"]
+        T_MUT["Mutation Tests<br/>(Rust + Go, 1h)"]
+        T_PROP["Property Tests<br/>(1000 cases per prop)"]
+    end
+
+    subgraph Scan["Security Scan Stage"]
+        S_SAST["SAST<br/>(Semgrep + CodeQL)"]
+        S_DAST["DAST<br/>(OWASP ZAP,<br/>API fuzzing)"]
+        S_DEP["Dependency Scan<br/>(Trivy + Snyk)"]
+        S_IMG_S["Image Scan<br/>(Trivy --severity HIGH,CRITICAL)"]
+        S_SECR["Secret Scan<br/>(gitleaks)"]
+        S_LIC["License Scan<br/>(FOSSA)"]
+        S_IAC["IaC Scan<br/>(Checkov + tfsec)"]
+    end
+
+    subgraph Publish["Publish Stage"]
+        P_REG["Push to Registry<br/>(OCI image → Registry :8013)"]
+        P_CHART["Publish Helm Chart<br/>(Chart Museum)"]
+        P_BIN["Publish Binaries<br/>(GitHub Releases + S3)"]
+        P_WASM_P["Publish WASM<br/>(plugin registry)"]
+        P_SBOM["SBOM Generation<br/>(Syft + attestation)"]
+        P_SIGN["Sign Artifacts<br/>(Cosign + Rekor)"]
+    end
+
+    subgraph Deploy["Deploy Stage"]
+        D_STG["Staging Deploy<br/>(Helm upgrade --install<br/>values-staging.yaml)"]
+        D_SMOKE["Smoke Tests<br/>(health + critical paths)"]
+        D_CANARY["Canary Deploy<br/>(10% traffic, 5min observe)"]
+        D_PROMOTE["Promote<br/>(increase to 100%)"]
+        D_ROLLBACK["Auto-Rollback<br/>(error rate > 1%)"]
+        D_PROD["Production Deploy<br/>(Helm upgrade --install<br/>values-prod.yaml)"]
+    end
+
+    subgraph Notify["Notifications"]
+        N_SLACK["Slack<br/>(#helix-ci)"]
+        N_GH["GitHub Status Check<br/>(commit status)"]
+        N_PAGER["PagerDuty<br/>(prod failures only)"]
+        N_METRIC["Metrics<br/>(Pipeline Prometheus)"]
+    end
+
+    T_PUSH --> B_COMPILE
+    T_MERGE --> B_COMPILE
+    T_TAG --> B_COMPILE
+    T_MANUAL --> B_COMPILE
+    T_SCHEDULE --> B_COMPILE
+
+    B_COMPILE --> B_LINT --> B_FMT --> B_DOC --> B_IMG --> B_WASM
+
+    B_WASM --> T_UNIT
+    T_UNIT --> T_INTEG --> T_E2E --> T_DST
+    T_E2E --> T_FUZZ
+    T_E2E --> T_MUT
+    T_UNIT --> T_PROP
+
+    T_DST --> S_SAST
+    T_FUZZ --> S_SAST
+    T_PROP --> S_SAST
+    S_SAST --> S_DAST --> S_DEP --> S_IMG_S --> S_SECR --> S_LIC --> S_IAC
+
+    S_IAC --> P_REG
+    S_IAC --> P_CHART
+    S_IAC --> P_BIN
+    S_IAC --> P_WASM_P
+    P_REG --> P_SBOM --> P_SIGN
+
+    P_SIGN --> D_STG --> D_SMOKE
+    D_SMOKE --> D_CANARY --> D_PROMOTE
+    D_PROMOTE --> D_PROD
+    D_CANARY --> D_ROLLBACK
+
+    D_STG --> N_SLACK
+    D_PROD --> N_SLACK
+    D_PROD --> N_GH
+    D_ROLLBACK --> N_PAGER
+    D_PROD --> N_METRIC
+
+    style Trigger fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Build fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Test fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Scan fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Publish fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Deploy fill:#e0f2f1,stroke:#00695c,stroke-width:2px

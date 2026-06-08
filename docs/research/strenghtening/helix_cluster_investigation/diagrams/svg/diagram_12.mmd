@@ -1,0 +1,77 @@
+graph TD
+    subgraph Producers["Event Producers"]
+        P_SCHED["Scheduler Service<br/>WorkloadScheduled<br/>WorkloadEvicted"]
+        P_WORKER["Worker Manager<br/>WorkloadRunning<br/>WorkloadFailed"]
+        P_HEALTH["Health Service<br/>HealthChanged<br/>NodeDegraded"]
+        P_GPU["GPU Service<br/>GPUAllocated<br/>GPURetired"]
+        P_SESS["Session Service<br/>SessionCreated<br/>SessionMigrated"]
+        P_AUTH["Auth Service<br/>AuthSucceeded<br/>AuthFailed"]
+    end
+
+    subgraph NATS["NATS JetStream"]
+        JS_STREAM["Streams<br/>helix.events<br/>helix.commands<br/>helix.audit"]
+        JS_CONSUMER["Consumers<br/>Push + Pull<br/>Durable + Ephemeral"]
+        JS_KV["Key-Value Store<br/>helix.config<br/>helix.leader"]
+        JS_OBJ["Object Store<br/>helix.artifacts<br/>helix.backups"]
+        JS_MIRROR["Stream Mirrors<br/>(cross-cluster)"]
+        JS_CLUSTER["NATS Cluster<br/>(3-node Raft)"]
+    end
+
+    subgraph Schema["Schema Registry"]
+        SR_AVR["Avro Schema Registry<br/>(Confluent-compatible)"]
+        SR_COMPAT["Compatibility Rules<br/>(BACKWARD by default)"]
+        SR_EVOLVE["Schema Evolution<br/>(add fields, never remove)"]
+        SR_CACHE["Local Schema Cache<br/>(per-service)"]
+    end
+
+    subgraph Bus["Event Bus Layer"]
+        BUS_ENVELOPE["Event Envelope<br/>{id, type, source,<br/>ts, schema_version,<br/>correlation_id}"]
+        BUS_FILTER["Content-Based Filter<br/>(NATS subject wildcard)"]
+        BUS_TRANSFORM["Event Transformer<br/>(version adaptation)"]
+        BUS_DLQ["Dead Letter Queue<br/>(failed processing)"]
+        BUS_REPLAY["Event Replay<br/>(from stream offset)"]
+    end
+
+    subgraph Consumers["Event Consumers"]
+        C_AUDIT["Audit Service<br/>(all events)"]
+        C_NOTIF["Notification Service<br/>(health, auth)"]
+        C_METRICS["Metrics Pipeline<br/>(structured events → Prometheus)"]
+        C_SYNC["State Sync<br/>(federation, CRDT)"]
+        C_WORKER["Worker Manager<br/>(scheduling events)"]
+    end
+
+    P_SCHED --> BUS_ENVELOPE
+    P_WORKER --> BUS_ENVELOPE
+    P_HEALTH --> BUS_ENVELOPE
+    P_GPU --> BUS_ENVELOPE
+    P_SESS --> BUS_ENVELOPE
+    P_AUTH --> BUS_ENVELOPE
+
+    BUS_ENVELOPE --> SR_AVR
+    SR_AVR --> SR_COMPAT
+    SR_AVR --> SR_EVOLVE
+    SR_AVR --> SR_CACHE
+    SR_CACHE --> BUS_ENVELOPE
+
+    BUS_ENVELOPE --> JS_STREAM
+    BUS_FILTER --> JS_STREAM
+    BUS_TRANSFORM --> JS_STREAM
+    JS_STREAM --> JS_CONSUMER
+    JS_STREAM --> JS_MIRROR
+    JS_KV --> JS_CLUSTER
+    JS_OBJ --> JS_CLUSTER
+
+    BUS_DLQ --> JS_STREAM
+    BUS_REPLAY --> JS_STREAM
+
+    JS_CONSUMER --> C_AUDIT
+    JS_CONSUMER --> C_NOTIF
+    JS_CONSUMER --> C_METRICS
+    JS_CONSUMER --> C_SYNC
+    JS_CONSUMER --> C_WORKER
+
+    style Producers fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style NATS fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Schema fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Bus fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Consumers fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px

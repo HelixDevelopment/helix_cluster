@@ -1,0 +1,107 @@
+graph TD
+    subgraph Hub["Federation Hub"]
+        FED_CTRL["Federation Controller<br/>(hub mode)"]
+        FED_POLICY["Policy Distributor<br/>(RBAC + network policies)"]
+        FED_SCHED["Federated Scheduler<br/>(cross-cluster placement)"]
+        FED_DNS["Federated DNS<br/>(multi-cluster service discovery)"]
+        FED_MIRROR["Event Mirror<br/>(NATS cross-cluster)"]
+        FED_STATUS["Status Aggregator<br/>(cluster health rollup)"]
+    end
+
+    subgraph SpokeA["Spoke Cluster A — US-East"]
+        SA_CTRL["Federation Agent<br/>(spoke mode)"]
+        SA_SCHED["Local Scheduler<br/>(Omega)"]
+        SA_WORK["Worker Manager"]
+        SA_REGISTRY["Local Registry"]
+        SA_NODE["Nodes n1..n20"]
+    end
+
+    subgraph SpokeB["Spoke Cluster B — EU-West"]
+        SB_CTRL["Federation Agent<br/>(spoke mode)"]
+        SB_SCHED["Local Scheduler<br/>(Omega)"]
+        SB_WORK["Worker Manager"]
+        SB_REGISTRY["Local Registry"]
+        SB_NODE["Nodes n1..n15"]
+    end
+
+    subgraph SpokeC["Spoke Cluster C — AP-South"]
+        SC_CTRL["Federation Agent<br/>(spoke mode)"]
+        SC_SCHED["Local Scheduler<br/>(Omega)"]
+        SC_WORK["Worker Manager"]
+        SC_REGISTRY["Local Registry"]
+        SC_NODE["Nodes n1..n8"]
+    end
+
+    subgraph Selector["Workload Selector"]
+        SEL_LABEL["Label Selector<br/>(region, tier, gpu)"]
+        SEL_AFFINITY["Cluster Affinity<br/>(topology key matching)"]
+        SEL_SPREAD["Spread Constraints<br/>(max-skew, min-domains)"]
+        SEL_POLICY["Placement Policy<br/>(cost, latency, compliance)"]
+    end
+
+    subgraph Sync["Federation Sync"]
+        SYNC_STATE["State Sync<br/>(CRDT merge)"]
+        SYNC_EVENT["Event Sync<br/>(NATS mirror)"]
+        SYNC_RES["Resource Sync<br/>(inventory aggregation)"]
+        SYNC_HB["Heartbeat<br/>(per-cluster, 5s interval)"]
+    end
+
+    FED_CTRL --> SA_CTRL
+    FED_CTRL --> SB_CTRL
+    FED_CTRL --> SC_CTRL
+
+    FED_POLICY --> SA_CTRL
+    FED_POLICY --> SB_CTRL
+    FED_POLICY --> SC_CTRL
+
+    FED_SCHED --> SEL_LABEL
+    FED_SCHED --> SEL_AFFINITY
+    FED_SCHED --> SEL_SPREAD
+    FED_SCHED --> SEL_POLICY
+
+    FED_DNS --> SA_CTRL
+    FED_DNS --> SB_CTRL
+    FED_DNS --> SC_CTRL
+
+    FED_MIRROR --> SA_CTRL
+    FED_MIRROR --> SB_CTRL
+    FED_MIRROR --> SC_CTRL
+
+    FED_STATUS --> SA_CTRL
+    FED_STATUS --> SB_CTRL
+    FED_STATUS --> SC_CTRL
+
+    SA_CTRL --> SA_SCHED
+    SA_SCHED --> SA_WORK
+    SA_WORK --> SA_NODE
+    SA_WORK --> SA_REGISTRY
+
+    SB_CTRL --> SB_SCHED
+    SB_SCHED --> SB_WORK
+    SB_WORK --> SB_NODE
+    SB_WORK --> SB_REGISTRY
+
+    SC_CTRL --> SC_SCHED
+    SC_SCHED --> SC_WORK
+    SC_WORK --> SC_NODE
+    SC_WORK --> SC_REGISTRY
+
+    SA_CTRL --> SYNC_STATE
+    SB_CTRL --> SYNC_STATE
+    SC_CTRL --> SYNC_STATE
+    SA_CTRL --> SYNC_EVENT
+    SB_CTRL --> SYNC_EVENT
+    SC_CTRL --> SYNC_EVENT
+    SA_CTRL --> SYNC_RES
+    SB_CTRL --> SYNC_RES
+    SC_CTRL --> SYNC_RES
+    SA_CTRL --> SYNC_HB
+    SB_CTRL --> SYNC_HB
+    SC_CTRL --> SYNC_HB
+
+    style Hub fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style SpokeA fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style SpokeB fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style SpokeC fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Selector fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Sync fill:#e0f2f1,stroke:#00695c,stroke-width:2px

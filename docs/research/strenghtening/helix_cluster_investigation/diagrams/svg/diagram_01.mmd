@@ -1,0 +1,111 @@
+graph TD
+    subgraph L7["L7 — Application Layer"]
+        APP_CLI["helix-cli<br/>(Rust Binary)"]
+        APP_SDK["helix-sdk<br/>(TypeScript/Python SDKs)"]
+        APP_DASH["Dashboard<br/>(React SPA)"]
+        APP_APIGW["API Gateway<br/>(Envoy 1.28)"]
+    end
+
+    subgraph L6["L6 — Orchestration Layer"]
+        ORCH_SCHED["Omega Scheduler<br/>(scheduler-core)"]
+        ORCH_WORKLOAD["Workload Controller<br/>(workload-ctrl)"]
+        ORCH_SCALE["Autoscaler<br/>(autoscaler-engine)"]
+        ORCH_ROLL["Rollout Manager<br/>(rollout-mgr)"]
+        ORCH_FED["Federation Controller<br/>(fed-ctrl)"]
+    end
+
+    subgraph L5["L5 — Service Mesh Layer"]
+        MESH_PROXY["Sidecar Proxy<br/>(Envoy Sidecar)"]
+        MESH_CFG["Mesh Config<br/>(mesh-config-server)"]
+        MESH_OBS["Mesh Observability<br/>(mesh-obs-collector)"]
+        MESH_POLICY["Mesh Policy<br/>(policy-engine)"]
+    end
+
+    subgraph L4["L4 — Transport & Security Layer"]
+        SEC_WG["WireGuard Mesh<br/>(wg-mesh-daemon)"]
+        SEC_SPIFFE["SPIFFE Workload API<br/>(spire-agent)"]
+        SEC_JWT["JWT Validation<br/>(jwt-validator)"]
+        SEC_RBAC["RBAC Engine<br/>(rbac-engine)"]
+        SEC_AUDIT["Audit Logger<br/>(audit-sink)"]
+    end
+
+    subgraph L3["L3 — Cluster Membership Layer"]
+        MEM_SWIM["SWIM Gossip<br/>(swim-gossip-daemon)"]
+        MEM_DISC["Service Discovery<br/>(disc-server)"]
+        MEM_TOPO["Topology Manager<br/>(topo-mgr)"]
+        MEM_PART["Partition Detector<br/>(partition-detector)"]
+        MEM_ZONE["Zone Awareness<br/>(zone-awareness)"]
+    end
+
+    subgraph L2["L2 — Resource Management Layer"]
+        RES_NODE["Node Agent<br/>(node-agent)"]
+        RES_GPU["GPU Manager<br/>(gpu-mgr)"]
+        RES_STORAGE["Storage Provider<br/>(storage-provisioner)"]
+        RES_NET["Network CNI<br/>(helix-cni)"]
+        RES_MEM["Memory Balloon<br/>(mem-balloon)"]
+    end
+
+    subgraph L1["L1 — Kernel & Runtime Layer"]
+        KRN_LINUX["Linux Kernel 6.1+<br/>(cgroups v2, eBPF)"]
+        KRN_CRI["Container Runtime<br/>(containerd 2.0 / CRI-O)"]
+        KRN_HYPER["Hypervisor<br/>(Firecracker / Cloud-Hypervisor)"]
+        KRN_NVML["NVIDIA Driver<br/>(v535+, NVML)"]
+        KRN_DPDK["DPDK / SR-IOV<br/>(userspace networking)"]
+    end
+
+    subgraph L0["L0 — Hardware Layer"]
+        HW_CPU["x86_64 / ARM64 CPUs"]
+        HW_GPU["NVIDIA A100/H100 GPUs"]
+        HW_NVME["NVMe SSD Arrays"]
+        HW_NIC["100G+ NICs<br/>(Mellanox / Broadcom)"]
+        HW_TPM["TPM 2.0 Modules"]
+    end
+
+    %% Cross-layer relationships
+    APP_CLI --> ORCH_SCHED
+    APP_SDK --> ORCH_WORKLOAD
+    APP_DASH --> APP_APIGW
+    APP_APIGW --> MESH_PROXY
+
+    ORCH_SCHED --> MESH_POLICY
+    ORCH_WORKLOAD --> RES_NODE
+    ORCH_SCALE --> RES_GPU
+    ORCH_ROLL --> MEM_SWIM
+    ORCH_FED --> MEM_TOPO
+
+    MESH_PROXY --> SEC_WG
+    MESH_CFG --> SEC_SPIFFE
+    MESH_OBS --> SEC_AUDIT
+    MESH_POLICY --> SEC_RBAC
+
+    SEC_WG --> MEM_SWIM
+    SEC_SPIFFE --> MEM_DISC
+    SEC_JWT --> MESH_PROXY
+
+    MEM_SWIM --> RES_NODE
+    MEM_DISC --> RES_NET
+    MEM_TOPO --> RES_STORAGE
+    MEM_ZONE --> RES_GPU
+
+    RES_NODE --> KRN_LINUX
+    RES_GPU --> KRN_NVML
+    RES_STORAGE --> KRN_LINUX
+    RES_NET --> KRN_DPDK
+    RES_MEM --> KRN_HYPER
+
+    KRN_LINUX --> HW_CPU
+    KRN_CRI --> HW_CPU
+    KRN_HYPER --> HW_CPU
+    KRN_NVML --> HW_GPU
+    KRN_DPDK --> HW_NIC
+
+    HW_TPM --> SEC_SPIFFE
+
+    style L7 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style L6 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style L5 fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style L4 fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style L3 fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style L2 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style L1 fill:#fff9c4,stroke:#f9a825,stroke-width:2px
+    style L0 fill:#efebe9,stroke:#4e342e,stroke-width:2px

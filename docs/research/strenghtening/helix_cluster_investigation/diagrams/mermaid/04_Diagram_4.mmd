@@ -1,0 +1,87 @@
+stateDiagram-v2
+    [*] --> Joining : Node starts
+
+    state Joining {
+        [*] --> ContactSeed : DNS lookup seed nodes
+        ContactSeed --> AwaitAck : Send SWIM ping to seed
+        AwaitAck --> Joined : Receive ack + membership list
+        AwaitAck --> JoinFailed : Timeout after 3 retries
+        JoinFailed --> [*]
+    }
+
+    Joined --> Alive : Gossip round confirms liveness
+
+    state Alive {
+        [*] --> PingPhase : Protocol period begins
+        PingPhase --> ProbeTarget : Select random member k
+        ProbeTarget --> AwaitProbeAck : Send ping to k
+        AwaitProbeAck --> ProbeSuccess : Ack received within probe_interval
+        AwaitProbeAck --> IndirectProbe : No ack → request indirect ping
+        IndirectProbe --> ProbeSuccess : k confirms via proxy
+        IndirectProbe --> SuspectTransition : No indirect ack within probe_interval × 2
+        ProbeSuccess --> Disseminate : Broadcast alive status
+        Disseminate --> PingPhase : Next protocol period
+    }
+
+    SuspectTransition --> Suspect
+
+    state Suspect {
+        [*] --> IncriminatingPhase : Suspect timer starts
+        IncriminatingPhase --> RefuteCheck : Did suspect node refute?
+        RefuteCheck --> Alive : Refutation received<br/>(ping from suspect)
+        RefuteCheck --> ConfirmTimeout : No refutation within<br/>suspect_timeout
+        ConfirmTimeout --> Dead : Incarnation not incremented
+    }
+
+    Suspect --> Alive : Refutation from suspected node<br/>(higher incarnation)
+
+    Dead --> Leaving
+
+    state Leaving {
+        [*] --> GracefulShutdown : Node receives SIGTERM
+        GracefulShutdown --> DrainWorkloads : Evict running workloads
+        DrainWorkloads --> BroadcastLeave : Publish Leave message
+        BroadcastLeave --> Left : Remove from membership
+    }
+
+    Dead --> Left
+
+    Left --> [*]
+
+    state Partitioned {
+        [*] --> MinorityPartition : Cannot reach quorum
+        MinorityPartition --> StepDown : Step down if leader
+        StepDown --> AwaitHeal : Wait for connectivity
+        AwaitHeal --> Rejoin : Connectivity restored
+        Rejoin --> Joining : Re-enter cluster
+        AwaitHeal --> SplitBrain : Conflict detected
+        SplitBrain --> Rejoin : Resolution via quorum compare
+    }
+
+    Alive --> Partitioned : Network partition detected<br/>by partition-detector
+    Suspect --> Partitioned : Persistent suspicion<br/>across protocol periods
+
+    note right of Alive
+        Protocol period = 1s (default)
+        Probe interval = 1 × period
+        Suspect timeout = 5 × period
+        Dissemination: piggyback on ping/ack
+        Incarnation: monotonically increasing counter
+    end note
+
+    note right of Partitioned
+        Partition detector uses
+        independent reachability
+        probes (TCP + ICMP) to
+        distinguish true failures
+        from network splits.
+    end note
+
+    note left of Suspect
+        A node suspects another
+        when indirect probes also
+        fail. The suspect can
+        refute by sending an
+        alive message with a
+        higher incarnation number.
+    end note

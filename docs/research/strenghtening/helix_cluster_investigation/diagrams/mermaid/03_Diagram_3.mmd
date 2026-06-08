@@ -1,0 +1,65 @@
+sequenceDiagram
+    autonumber
+    actor User
+    participant CLI as helix-cli
+    participant GW as API Gateway<br/>:8000
+    participant AUTH as Auth Service<br/>:8001
+    participant SCHED as Omega Scheduler<br/>:8002
+    participant CACHE as Schedule Cache<br/>(etcd watch)
+    participant CON as Consensus<br/>:8010
+    participant WORK as Worker Manager<br/>:8003
+    participant GPU as GPU Service<br/>:8007
+    participant NA as Node Agent<br/>(on target node)
+    participant CRI as containerd<br/>(CRI)
+    participant EVENT as Event Bus<br/>(NATS :8008)
+    participant HEALTH as Health Service<br/>:8004
+
+    User->>CLI: helix run --gpu=1 --mem=16Gi my-app:v2
+    CLI->>GW: POST /v1/workloads<br/>Authorization: Bearer jwt_token
+    GW->>AUTH: Validate JWT + RBAC check
+    AUTH-->>GW: {valid: true, role: "developer", perms: [...]}
+
+    GW->>SCHED: ScheduleWorkload(spec)
+    SCHED->>SCHED: Parse & validate spec<br/>Extract constraints:<br/>gpu=1, mem=16Gi, image=my-app:v2
+
+    Note over SCHED: Omega Pipeline Phase 1: Filter
+    SCHED->>CON: GetNodeStates() via etcd watch cache
+    CON-->>SCHED: NodeList[n1..n47]
+    SCHED->>SCHED: Filter phase:<br/>- Taint/Toleration match<br/>- GPU availability ≥ 1<br/>- Memory available ≥ 16Gi<br/>- Affinity/anti-affinity rules<br/>Result: 12 candidates
+
+    Note over SCHED: Omega Pipeline Phase 2: Score
+    SCHED->>GPU: QueryGPUAllocations(candidate_nodes)
+    GPU-->>SCHED: GPU topology + utilization
+    SCHED->>SCHED: Score phase:<br/>- Bin-packing score (0-100)<br/>- GPU locality score (0-100)<br/>- Spread score (0-100)<br/>- Custom plugin scores<br/>Weighted sum → rank candidates
+
+    Note over SCHED: Omega Pipeline Phase 3: Bind
+    SCHED->>CON: TransactionalBind(<br/>workload_id, node=n23<br/>gpu=pci:0000:3b:00.0<br/>mem=16Gi reserved)
+    CON-->>SCHED: Bind committed (Raft index 42817)
+
+    SCHED->>EVENT: Publish WorkloadScheduled<br/>{workload_id, node=n23, gpu, ts}
+    SCHED-->>GW: ScheduleResponse{workload_id, node, status: "scheduled"}
+    GW-->>CLI: 201 Created {workload_id, node, status}
+    CLI-->>User: Workload scheduled on node n23
+
+    Note over WORK: Worker Manager picks up scheduled event
+    EVENT->>WORK: NATS subscription<br/>WorkloadScheduled event
+    WORK->>NA: DeployWorkload(spec, gpu_id, mem_limit)<br/>gRPC over WireGuard mesh
+    NA->>CRI: CreateContainer + StartContainer<br/>CRI request with resource limits
+    CRI-->>NA: ContainerID=ctr-7f3a2b
+
+    NA->>EVENT: Publish WorkloadRunning<br/>{workload_id, container_id, pid, ts}
+    EVENT->>HEALTH: WorkloadRunning event<br/>→ register health checks
+    EVENT->>SCHED: WorkloadRunning event<br/>→ update schedule cache
+
+    HEALTH->>NA: Begin periodic health probes<br/>HTTP/TCP/Exec every 10s
+    NA-->>HEALTH: Probe responses
+
+    Note over User,CLI: User can query status
+    User->>CLI: helix status my-workload
+    CLI->>GW: GET /v1/workloads/{id}/status
+    GW->>SCHED: GetWorkloadStatus(id)
+    SCHED->>CACHE: Lookup schedule cache
+    CACHE-->>SCHED: {status: "running", node: n23, uptime: 42s}
+    SCHED-->>GW: StatusResponse
+    GW-->>CLI: 200 OK {running, node=n23}
+    CLI-->>User: ● Running on n23 (42s)

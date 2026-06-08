@@ -1,0 +1,3065 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>GAP_AUDIT_CONSOLIDATED</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:900px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;overflow-x:auto}code{background:#f4f4f4;padding:2px 5px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f0f0f0}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">GAP_AUDIT_CONSOLIDATED</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#helix-cluster-os-consolidated-gap-audit"
+id="toc-helix-cluster-os-consolidated-gap-audit">Helix Cluster OS —
+Consolidated Gap Audit</a>
+<ul>
+<li><a href="#table-of-contents" id="toc-table-of-contents">Table of
+Contents</a></li>
+</ul></li>
+<li><a href="#executive-gap-summary"
+id="toc-executive-gap-summary">Executive Gap Summary</a>
+<ul>
+<li><a href="#key-metrics" id="toc-key-metrics">Key Metrics</a></li>
+</ul></li>
+<li><a href="#gap-1-dead-code-orphaned-features"
+id="toc-gap-1-dead-code-orphaned-features">Gap 1: Dead Code / Orphaned
+Features</a>
+<ul>
+<li><a href="#overview" id="toc-overview">1.1 Overview</a></li>
+<li><a href="#complete-enumeration-of-orphaned-packages"
+id="toc-complete-enumeration-of-orphaned-packages">1.2 Complete
+Enumeration of Orphaned Packages</a>
+<ul>
+<li><a href="#tier-1-control-plane-spine-highest-priority-for-wire-in"
+id="toc-tier-1-control-plane-spine-highest-priority-for-wire-in">Tier 1:
+Control-Plane Spine (Highest Priority for Wire-In)</a></li>
+<li><a href="#tier-2-scheduling-resource-management"
+id="toc-tier-2-scheduling-resource-management">Tier 2: Scheduling &amp;
+Resource Management</a></li>
+<li><a href="#tier-3-marketplace-economics"
+id="toc-tier-3-marketplace-economics">Tier 3: Marketplace &amp;
+Economics</a></li>
+<li><a href="#tier-4-federation-data-plane"
+id="toc-tier-4-federation-data-plane">Tier 4: Federation &amp;
+Data-Plane</a></li>
+<li><a href="#tier-5-security-extensions"
+id="toc-tier-5-security-extensions">Tier 5: Security Extensions</a></li>
+<li><a href="#tier-6-gpu-compute" id="toc-tier-6-gpu-compute">Tier 6:
+GPU &amp; Compute</a></li>
+<li><a href="#tier-7-infrastructure-operations"
+id="toc-tier-7-infrastructure-operations">Tier 7: Infrastructure &amp;
+Operations</a></li>
+<li><a href="#tier-8-caching-performance"
+id="toc-tier-8-caching-performance">Tier 8: Caching &amp;
+Performance</a></li>
+<li><a href="#tier-9-llm-inference" id="toc-tier-9-llm-inference">Tier
+9: LLM &amp; Inference</a></li>
+<li><a href="#tier-10-edge-computing"
+id="toc-tier-10-edge-computing">Tier 10: Edge Computing</a></li>
+<li><a href="#tier-11-testing-infrastructure"
+id="toc-tier-11-testing-infrastructure">Tier 11: Testing
+Infrastructure</a></li>
+<li><a href="#tier-12-utility-specialized"
+id="toc-tier-12-utility-specialized">Tier 12: Utility &amp;
+Specialized</a></li>
+</ul></li>
+<li><a href="#wiring-priority-order" id="toc-wiring-priority-order">1.3
+Wiring Priority Order</a></li>
+</ul></li>
+<li><a href="#gap-2-concurrency-correctness"
+id="toc-gap-2-concurrency-correctness">Gap 2: Concurrency
+Correctness</a>
+<ul>
+<li><a href="#confirmed-hazards-f1f10"
+id="toc-confirmed-hazards-f1f10">2.1 Confirmed Hazards (F1–F10)</a>
+<ul>
+<li><a href="#f1-double-close-panic-in-swim-protocol"
+id="toc-f1-double-close-panic-in-swim-protocol">F1: Double-Close Panic
+in SWIM Protocol</a></li>
+<li><a href="#f2-data-race-on-member.state"
+id="toc-f2-data-race-on-member.state">F2: Data Race on
+Member.State</a></li>
+<li><a href="#f3-untracked-goroutine-in-proberandommember"
+id="toc-f3-untracked-goroutine-in-proberandommember">F3: Untracked
+Goroutine in probeRandomMember</a></li>
+<li><a href="#f4-lock-order-fragility-in-failure-detector"
+id="toc-f4-lock-order-fragility-in-failure-detector">F4: Lock-Order
+Fragility in Failure Detector</a></li>
+<li><a href="#f5-pty-double-close-use-after-close"
+id="toc-f5-pty-double-close-use-after-close">F5: PTY Double-Close /
+Use-After-Close</a></li>
+<li><a href="#f6-unbounded-scheduler-placements-map"
+id="toc-f6-unbounded-scheduler-placements-map">F6: Unbounded Scheduler
+Placements Map</a></li>
+<li><a href="#f7-unbounded-goroutines-in-eventbus"
+id="toc-f7-unbounded-goroutines-in-eventbus">F7: Unbounded Goroutines in
+EventBus</a></li>
+<li><a href="#f8-unbuffered-delivery-stall-in-nats"
+id="toc-f8-unbuffered-delivery-stall-in-nats">F8: Unbuffered Delivery
+Stall in NATS</a></li>
+<li><a href="#f9-no-size-cap-on-tieredcache-hot-tier"
+id="toc-f9-no-size-cap-on-tieredcache-hot-tier">F9: No Size Cap on
+TieredCache Hot Tier</a></li>
+<li><a href="#f10-per-event-timer-allocation"
+id="toc-f10-per-event-timer-allocation">F10: Per-Event Timer
+Allocation</a></li>
+</ul></li>
+<li><a href="#additional-potential-hazards-not-yet-confirmed"
+id="toc-additional-potential-hazards-not-yet-confirmed">2.2 Additional
+Potential Hazards (Not Yet Confirmed)</a></li>
+</ul></li>
+<li><a href="#gap-3-critical-service-disconnections"
+id="toc-gap-3-critical-service-disconnections">Gap 3: Critical Service
+Disconnections</a>
+<ul>
+<li><a href="#crit-1-helix-security-stub-tokens"
+id="toc-crit-1-helix-security-stub-tokens">CRIT-1: helix-security Stub
+Tokens</a></li>
+<li><a href="#crit-2-helix-health-http-only"
+id="toc-crit-2-helix-health-http-only">CRIT-2: helix-health
+HTTP-Only</a></li>
+<li><a href="#crit-3-helix-build-wrong-imports"
+id="toc-crit-3-helix-build-wrong-imports">CRIT-3: helix-build Wrong
+Imports</a></li>
+<li><a href="#arch-1-two-tier-service-pattern"
+id="toc-arch-1-two-tier-service-pattern">ARCH-1: Two-Tier Service
+Pattern</a></li>
+<li><a href="#arch-3-gateway-routing-incomplete"
+id="toc-arch-3-gateway-routing-incomplete">ARCH-3: Gateway Routing
+Incomplete</a></li>
+</ul></li>
+<li><a href="#gap-4-test-type-depth" id="toc-gap-4-test-type-depth">Gap
+4: Test-Type Depth</a>
+<ul>
+<li><a href="#test-inventory-by-type"
+id="toc-test-inventory-by-type">4.1 Test Inventory by Type</a></li>
+<li><a href="#missing-test-types-detailed"
+id="toc-missing-test-types-detailed">4.2 Missing Test Types —
+Detailed</a>
+<ul>
+<li><a href="#fuzz-tests-missing-30-targets"
+id="toc-fuzz-tests-missing-30-targets">Fuzz Tests (Missing: 30+
+targets)</a></li>
+<li><a href="#integration-stress-chaos-for-consensus"
+id="toc-integration-stress-chaos-for-consensus">Integration + Stress +
+Chaos for Consensus</a></li>
+<li><a href="#helixqa-framework-untested"
+id="toc-helixqa-framework-untested">HelixQA Framework Untested</a></li>
+<li><a href="#mutation-test-coverage"
+id="toc-mutation-test-coverage">Mutation Test Coverage</a></li>
+<li><a href="#frontend-tests-zero-coverage"
+id="toc-frontend-tests-zero-coverage">Frontend Tests (Zero
+Coverage)</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#gap-5-security-scanning"
+id="toc-gap-5-security-scanning">Gap 5: Security Scanning</a>
+<ul>
+<li><a href="#current-state" id="toc-current-state">5.1 Current
+State</a></li>
+<li><a href="#missing-security-scanning"
+id="toc-missing-security-scanning">5.2 Missing Security Scanning</a>
+<ul>
+<li><a href="#gosec-not-promoted-to-gate"
+id="toc-gosec-not-promoted-to-gate">gosec Not Promoted to Gate</a></li>
+<li><a href="#snyksonarqube-absent"
+id="toc-snyksonarqube-absent">Snyk/SonarQube Absent</a></li>
+<li><a href="#sbom-not-wired-into-release"
+id="toc-sbom-not-wired-into-release">SBOM Not Wired into
+Release</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#gap-6-cicd-pipeline" id="toc-gap-6-cicd-pipeline">Gap 6:
+CI/CD Pipeline</a>
+<ul>
+<li><a href="#current-state-1" id="toc-current-state-1">6.1 Current
+State</a></li>
+<li><a href="#constitution-blocks-ci-re-enable"
+id="toc-constitution-blocks-ci-re-enable">6.2 Constitution Blocks CI
+Re-enable</a></li>
+<li><a href="#local-only-enforcement"
+id="toc-local-only-enforcement">6.3 Local-Only Enforcement</a></li>
+<li><a href="#prr-at-82.5" id="toc-prr-at-82.5">6.4 PRR at
+82.5%</a></li>
+</ul></li>
+<li><a href="#anti-bluff-package-audit"
+id="toc-anti-bluff-package-audit">Anti-Bluff Package Audit</a>
+<ul>
+<li><a href="#audit-methodology" id="toc-audit-methodology">Audit
+Methodology</a></li>
+<li><a href="#package-audit-results"
+id="toc-package-audit-results">Package Audit Results</a>
+<ul>
+<li><a href="#pkgconfig-high-risk" id="toc-pkgconfig-high-risk">1.
+<code>pkg/config</code> — HIGH Risk</a></li>
+<li><a href="#pkggrpcutil-high-risk" id="toc-pkggrpcutil-high-risk">2.
+<code>pkg/grpcutil</code> — HIGH Risk</a></li>
+<li><a href="#pkginfra-high-risk" id="toc-pkginfra-high-risk">3.
+<code>pkg/infra</code> — HIGH Risk</a></li>
+<li><a href="#pkgjwt-high-risk" id="toc-pkgjwt-high-risk">4.
+<code>pkg/jwt</code> — HIGH Risk</a></li>
+<li><a href="#pkgleader-high-risk" id="toc-pkgleader-high-risk">5.
+<code>pkg/leader</code> — HIGH Risk</a></li>
+<li><a href="#pkgmiddleware-high-risk"
+id="toc-pkgmiddleware-high-risk">6. <code>pkg/middleware</code> — HIGH
+Risk</a></li>
+<li><a href="#pkgtracing-high-risk" id="toc-pkgtracing-high-risk">7.
+<code>pkg/tracing</code> — HIGH Risk</a></li>
+<li><a href="#pkgwebsocket-high-risk" id="toc-pkgwebsocket-high-risk">8.
+<code>pkg/websocket</code> — HIGH Risk</a></li>
+<li><a href="#pkgcrypto-high-risk" id="toc-pkgcrypto-high-risk">9.
+<code>pkg/crypto</code> — HIGH Risk</a></li>
+<li><a href="#pkgbackoff-medium-risk"
+id="toc-pkgbackoff-medium-risk">10. <code>pkg/backoff</code> — MEDIUM
+Risk</a></li>
+<li><a href="#pkgevents-medium-risk" id="toc-pkgevents-medium-risk">11.
+<code>pkg/events</code> — MEDIUM Risk</a></li>
+<li><a href="#pkgratelimit-medium-risk"
+id="toc-pkgratelimit-medium-risk">12. <code>pkg/ratelimit</code> —
+MEDIUM Risk</a></li>
+<li><a href="#pkgsession-low-risk" id="toc-pkgsession-low-risk">13.
+<code>pkg/session</code> — LOW Risk</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#phase-specific-gap-audits"
+id="toc-phase-specific-gap-audits">Phase-Specific Gap Audits</a>
+<ul>
+<li><a href="#phase-4-30-complete-4-p0-blockers"
+id="toc-phase-4-30-complete-4-p0-blockers">Phase 4: ~30% Complete, 4 P0
+Blockers</a>
+<ul>
+<li><a href="#p0-blockers" id="toc-p0-blockers">P0 Blockers:</a></li>
+<li><a href="#completion-assessment"
+id="toc-completion-assessment">Completion Assessment:</a></li>
+</ul></li>
+<li><a href="#phase-7-18-complete-77-p0-missing"
+id="toc-phase-7-18-complete-77-p0-missing">Phase 7: ~18% Complete, 7/7
+P0 MISSING</a>
+<ul>
+<li><a href="#p0-blockers-all-missing"
+id="toc-p0-blockers-all-missing">P0 Blockers (ALL MISSING):</a></li>
+<li><a href="#completion-assessment-1"
+id="toc-completion-assessment-1">Completion Assessment:</a></li>
+</ul></li>
+<li><a href="#phase-8-12-complete-4-p0-blockers"
+id="toc-phase-8-12-complete-4-p0-blockers">Phase 8: ~12% Complete, 4 P0
+Blockers</a>
+<ul>
+<li><a href="#p0-blockers-1" id="toc-p0-blockers-1">P0
+Blockers:</a></li>
+</ul></li>
+<li><a href="#phase-8b-8-complete-textbook-double-orphan"
+id="toc-phase-8b-8-complete-textbook-double-orphan">Phase 8B: ~8%
+Complete — “Textbook Double-Orphan”</a></li>
+<li><a href="#mvp-60-complete-7-p0-blockers"
+id="toc-mvp-60-complete-7-p0-blockers">MVP: ~60% Complete, 7 P0
+Blockers</a>
+<ul>
+<li><a href="#p0-blockers-2" id="toc-p0-blockers-2">P0
+Blockers:</a></li>
+<li><a href="#mvp-completion-assessment"
+id="toc-mvp-completion-assessment">MVP Completion Assessment:</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="helix-cluster-os-consolidated-gap-audit">Helix Cluster OS —
+Consolidated Gap Audit</h1>
+<table>
+<thead>
+<tr class="header">
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Document ID</td>
+<td>GAC-001</td>
+</tr>
+<tr class="even">
+<td>Revision</td>
+<td>1.0</td>
+</tr>
+<tr class="odd">
+<td>Date</td>
+<td>2026-03-04</td>
+</tr>
+<tr class="even">
+<td>Classification</td>
+<td>INVESTIGATION — INTERNAL</td>
+</tr>
+<tr class="odd">
+<td>Authors</td>
+<td>Autonomous Gap Audit Agent</td>
+</tr>
+<tr class="even">
+<td>Status</td>
+<td>FINAL</td>
+</tr>
+<tr class="odd">
+<td>Scope</td>
+<td>All structural, correctness, test, security, and CI/CD gaps</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#executive-gap-summary">Executive Gap Summary</a></li>
+<li><a href="#gap-1-dead-code--orphaned-features">Gap 1: Dead Code /
+Orphaned Features</a></li>
+<li><a href="#gap-2-concurrency-correctness">Gap 2: Concurrency
+Correctness</a></li>
+<li><a href="#gap-3-critical-service-disconnections">Gap 3: Critical
+Service Disconnections</a></li>
+<li><a href="#gap-4-test-type-depth">Gap 4: Test-Type Depth</a></li>
+<li><a href="#gap-5-security-scanning">Gap 5: Security Scanning</a></li>
+<li><a href="#gap-6-cicd-pipeline">Gap 6: CI/CD Pipeline</a></li>
+<li><a href="#anti-bluff-package-audit">Anti-Bluff Package Audit (24
+Packages)</a></li>
+<li><a href="#phase-specific-gap-audits">Phase-Specific Gap
+Audits</a></li>
+</ol>
+<hr />
+<h1 id="executive-gap-summary">Executive Gap Summary</h1>
+<p>This consolidated gap audit identifies six structural gaps from the
+UNFINISHED_WORK_REPORT, 7/7 Phase 7 P0 blockers that are MISSING, 13/24
+packages with PASS-bluff risk, 20 orphaned packages, and 4 CRITICAL cmd/
+disconnections.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Gap</th>
+<th>Severity</th>
+<th>Scope</th>
+<th>Autonomous?</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Dead Code / Orphaned Features</td>
+<td>STRATEGIC</td>
+<td>178/212 pkg/ packages</td>
+<td>No (owner decision)</td>
+<td>Open</td>
+</tr>
+<tr class="even">
+<td>Concurrency Correctness</td>
+<td>HIGH</td>
+<td>10 hazards (5 Major, 5 Minor)</td>
+<td>Yes</td>
+<td>In Progress</td>
+</tr>
+<tr class="odd">
+<td>Critical Service Disconnections</td>
+<td>CRITICAL</td>
+<td>3 cmd/ + 2 architectural</td>
+<td>Partially</td>
+<td>In Progress</td>
+</tr>
+<tr class="even">
+<td>Test-Type Depth</td>
+<td>HIGH</td>
+<td>20 test types, most missing</td>
+<td>Yes</td>
+<td>Open</td>
+</tr>
+<tr class="odd">
+<td>Security Scanning</td>
+<td>MEDIUM</td>
+<td>govulncheck only</td>
+<td>Partially</td>
+<td>Open</td>
+</tr>
+<tr class="even">
+<td>CI/CD Pipeline</td>
+<td>MEDIUM</td>
+<td>All workflows disabled</td>
+<td>No (constitution)</td>
+<td>Blocked</td>
+</tr>
+</tbody>
+</table>
+<h3 id="key-metrics">Key Metrics</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Metric</th>
+<th>Current</th>
+<th>Target</th>
+<th>Delta</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Orphaned packages</td>
+<td>178</td>
+<td>0</td>
+<td>-178</td>
+</tr>
+<tr class="even">
+<td>Concurrency hazards</td>
+<td>10</td>
+<td>0</td>
+<td>-10</td>
+</tr>
+<tr class="odd">
+<td>CRITICAL disconnections</td>
+<td>3</td>
+<td>0</td>
+<td>-3</td>
+</tr>
+<tr class="even">
+<td>Test type coverage</td>
+<td>~6/20</td>
+<td>20/20</td>
+<td>+14</td>
+</tr>
+<tr class="odd">
+<td>Security scan tools</td>
+<td>1/4 (govulncheck)</td>
+<td>4/4</td>
+<td>+3</td>
+</tr>
+<tr class="even">
+<td>CI workflows active</td>
+<td>0/12</td>
+<td>12/12</td>
+<td>+12</td>
+</tr>
+<tr class="odd">
+<td>PRR score</td>
+<td>82.5%</td>
+<td>95%</td>
+<td>+12.5%</td>
+</tr>
+<tr class="even">
+<td>Anti-bluff pass rate</td>
+<td>33% (10/30)</td>
+<td>100%</td>
+<td>+67%</td>
+</tr>
+<tr class="odd">
+<td>Phase 7 P0 blockers</td>
+<td>7/7 MISSING</td>
+<td>0/7</td>
+<td>-7</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="gap-1-dead-code-orphaned-features">Gap 1: Dead Code / Orphaned
+Features</h1>
+<h2 id="overview">1.1 Overview</h2>
+<p>Of 212 <code>pkg/</code> packages, approximately <strong>178 have
+zero importers from any binary</strong>. This represents ~51,400
+non-test LOC of implemented but unreachable code. This is the single
+largest structural gap in the project.</p>
+<h2 id="complete-enumeration-of-orphaned-packages">1.2 Complete
+Enumeration of Orphaned Packages</h2>
+<h3 id="tier-1-control-plane-spine-highest-priority-for-wire-in">Tier 1:
+Control-Plane Spine (Highest Priority for Wire-In)</h3>
+<p>These packages form the backbone of the distributed system and should
+be wired in first:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><code>pkg/leader</code></td>
+<td>P4</td>
+<td>~200</td>
+<td>etcd leader election</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><code>pkg/crdt</code></td>
+<td>P4</td>
+<td>~800</td>
+<td>CRDT primitives</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><code>pkg/deltacrdt</code></td>
+<td>P4</td>
+<td>~400</td>
+<td>Delta-state CRDTs</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><code>pkg/mvcc</code></td>
+<td>P4</td>
+<td>~300</td>
+<td>Multi-version concurrency</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><code>pkg/raftprofile</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Raft profiling</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><code>pkg/splitbrain</code></td>
+<td>P4</td>
+<td>~200</td>
+<td>Split-brain detection</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><code>pkg/splitbrainalert</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Split-brain alerting</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td><code>pkg/stonith</code></td>
+<td>P4</td>
+<td>~400</td>
+<td>STONITH fencing</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td><code>pkg/etcd</code></td>
+<td>P4</td>
+<td>~150</td>
+<td>etcd key management</td>
+<td><strong>Wire-in</strong></td>
+<td>P0</td>
+</tr>
+<tr class="even">
+<td>10</td>
+<td><code>pkg/backfill</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Backfill scheduling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>11</td>
+<td><code>pkg/priorityqueue</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Priority queue</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>12</td>
+<td><code>pkg/nodeselector</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Node selection</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-2-scheduling-resource-management">Tier 2: Scheduling &amp;
+Resource Management</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>13</td>
+<td><code>pkg/costsched</code></td>
+<td>P5</td>
+<td>~150</td>
+<td>Cost-aware scheduling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>14</td>
+<td><code>pkg/latencysched</code></td>
+<td>P5</td>
+<td>~150</td>
+<td>Latency-aware scheduling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>15</td>
+<td><code>pkg/rebalance</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Workload rebalancing</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>16</td>
+<td><code>pkg/jobadmit</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Job admission control</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>17</td>
+<td><code>pkg/smartrouter</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Smart routing</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>18</td>
+<td><code>pkg/workloadrouter</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Workload routing</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>19</td>
+<td><code>pkg/flowcontrol</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Flow control</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>20</td>
+<td><code>pkg/latencyspot</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Latency spot scheduling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-3-marketplace-economics">Tier 3: Marketplace &amp;
+Economics</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>21</td>
+<td><code>pkg/marketplaceadapter</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Akash marketplace adapter</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>22</td>
+<td><code>pkg/revenueopt</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Revenue optimization</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>23</td>
+<td><code>pkg/billingfsm</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Billing FSM</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>24</td>
+<td><code>pkg/metering</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Metering</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>25</td>
+<td><code>pkg/costrouter</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Cost routing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>26</td>
+<td><code>pkg/costtracker</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Cost tracking</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>27</td>
+<td><code>pkg/tierdef</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Tier definition</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-4-federation-data-plane">Tier 4: Federation &amp;
+Data-Plane</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>28</td>
+<td><code>pkg/federation</code></td>
+<td>P6</td>
+<td>~300</td>
+<td>Federation management</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>29</td>
+<td><code>pkg/fedtrust</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Federation trust</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>30</td>
+<td><code>pkg/spiffefed</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>SPIFFE federation</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>31</td>
+<td><code>pkg/cellmesh</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Cell mesh networking</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>32</td>
+<td><code>pkg/dataplane</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Data-plane pipeline</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>33</td>
+<td><code>pkg/helixnet</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Network simulation</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="odd">
+<td>34</td>
+<td><code>pkg/nattraversal</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>NAT traversal</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-5-security-extensions">Tier 5: Security Extensions</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>35</td>
+<td><code>pkg/anticheat</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Anti-cheat tokens</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>36</td>
+<td><code>pkg/attestadmit</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Attestation admission</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>37</td>
+<td><code>pkg/gravaladmit</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>GraVal admission</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>38</td>
+<td><code>pkg/gravalverify</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>GraVal verification</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>39</td>
+<td><code>pkg/gpuattest</code></td>
+<td>P5</td>
+<td>~300</td>
+<td>GPU attestation</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>40</td>
+<td><code>pkg/scan</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Security scanning</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>41</td>
+<td><code>pkg/exportcontrol</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Export control</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="even">
+<td>42</td>
+<td><code>pkg/imagepolicy</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Image policy</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>43</td>
+<td><code>pkg/capability</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Capability access control</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>44</td>
+<td><code>pkg/tofu</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Trust On First Use</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>45</td>
+<td><code>pkg/anonymize</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Data anonymization</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>46</td>
+<td><code>pkg/auditproof</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Audit proof</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-6-gpu-compute">Tier 6: GPU &amp; Compute</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>47</td>
+<td><code>pkg/gpucatalog</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>GPU catalog</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>48</td>
+<td><code>pkg/gpupool</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>GPU pooling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>49</td>
+<td><code>pkg/gputopo</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>GPU topology</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>50</td>
+<td><code>pkg/computeproto</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>FlatBuffers compute protocol</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>51</td>
+<td><code>pkg/wasm</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>WebAssembly runtime</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>52</td>
+<td><code>pkg/kraft</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Unikraft integration</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>53</td>
+<td><code>pkg/deviceprofile</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Device profiling</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>54</td>
+<td><code>pkg/devicecatalog</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Device catalog</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>55</td>
+<td><code>pkg/deviceplugin</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Device plugin framework</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>56</td>
+<td><code>pkg/gpu</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>GPU management (thin wrapper)</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-7-infrastructure-operations">Tier 7: Infrastructure &amp;
+Operations</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>57</td>
+<td><code>pkg/cloudspot</code></td>
+<td>P6</td>
+<td>~150</td>
+<td>Cloud instance metadata</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>58</td>
+<td><code>pkg/storage</code></td>
+<td>P6</td>
+<td>~300</td>
+<td>Storage backends (Redis, S3)</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>59</td>
+<td><code>pkg/gitops</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>GitOps integration</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>60</td>
+<td><code>pkg/grafanadash</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Grafana dashboards</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>61</td>
+<td><code>pkg/watchtower</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Watchtower monitoring</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>62</td>
+<td><code>pkg/watchmanager</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Watch management</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>63</td>
+<td><code>pkg/heartbeatcoalescer</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Heartbeat coalescing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-8-caching-performance">Tier 8: Caching &amp;
+Performance</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>64</td>
+<td><code>pkg/tieredcache</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Tiered caching</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>65</td>
+<td><code>pkg/burstcapacity</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Burst capacity</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>66</td>
+<td><code>pkg/bursthysteresis</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Burst hysteresis</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>67</td>
+<td><code>pkg/thermalwarm</code></td>
+<td>P4</td>
+<td>~50</td>
+<td>Thermal warming</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>68</td>
+<td><code>pkg/ewmarank</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>EWM ranking</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>69</td>
+<td><code>pkg/ringavg</code></td>
+<td>P4</td>
+<td>~50</td>
+<td>Ring buffer average</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-9-llm-inference">Tier 9: LLM &amp; Inference</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>70</td>
+<td><code>pkg/quantization</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Model quantization</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>71</td>
+<td><code>pkg/chutes</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Chutes AI client</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>72</td>
+<td><code>pkg/inferenceproxy</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Inference proxy</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>73</td>
+<td><code>pkg/llmfailover</code></td>
+<td>P6</td>
+<td>~50</td>
+<td>LLM failover</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>74</td>
+<td><code>pkg/modelintegrity</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Model integrity</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>75</td>
+<td><code>pkg/modelretry</code></td>
+<td>P6</td>
+<td>~50</td>
+<td>Model retry</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-10-edge-computing">Tier 10: Edge Computing</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>76</td>
+<td><code>pkg/edge</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Edge computing support</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>77</td>
+<td><code>pkg/edgefusion</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Edge data fusion</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>78</td>
+<td><code>pkg/edgeheartbeat</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Edge heartbeat</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>79</td>
+<td><code>pkg/edgeverify</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Edge verification</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-11-testing-infrastructure">Tier 11: Testing
+Infrastructure</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>80</td>
+<td><code>pkg/testing/dst</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>DST engine</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>81</td>
+<td><code>pkg/testing/dstscale</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>DST scale</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>82</td>
+<td><code>pkg/testing/dstcompress</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>DST compression</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>83</td>
+<td><code>pkg/testing/dstworkload</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>DST workload</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>84</td>
+<td><code>pkg/testing/chaos</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Chaos framework</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>85</td>
+<td><code>pkg/testing/evidence</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Evidence collection</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>86</td>
+<td><code>pkg/testing/scenario</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Scenario management</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>87</td>
+<td><code>pkg/testing/runner</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Test runner</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>88</td>
+<td><code>pkg/testing/snapshot</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Snapshot testing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>89</td>
+<td><code>pkg/testing/regression</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Regression testing</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>90</td>
+<td><code>pkg/testing/device</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>Device provisioning</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>91</td>
+<td><code>pkg/testing/turmoil</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Turmoil network testing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>92</td>
+<td><code>pkg/testing/instance</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Instance management</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>93</td>
+<td><code>pkg/testing/sessionfsm</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Session FSM testing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>94</td>
+<td><code>pkg/porcupine</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Porcupine testing</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+</tbody>
+</table>
+<h3 id="tier-12-utility-specialized">Tier 12: Utility &amp;
+Specialized</h3>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>#</th>
+<th>Package</th>
+<th>Phase</th>
+<th>LOC</th>
+<th>Description</th>
+<th>Triage</th>
+<th>Wire Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>95</td>
+<td><code>pkg/classads</code></td>
+<td>P5</td>
+<td>~300</td>
+<td>ClassAd expressions</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>96</td>
+<td><code>pkg/offlinesync</code></td>
+<td>P6</td>
+<td>~200</td>
+<td>Offline synchronization</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>97</td>
+<td><code>pkg/idempotent</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Idempotent operations</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>98</td>
+<td><code>pkg/failconfirm</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Failure confirmation</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>99</td>
+<td><code>pkg/fallbackchain</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Fallback chain</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>100</td>
+<td><code>pkg/headersanitize</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Header sanitization</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>101</td>
+<td><code>pkg/fmea</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>FMEA</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>102</td>
+<td><code>pkg/forecast</code></td>
+<td>P6</td>
+<td>~100</td>
+<td>Resource forecasting</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>103</td>
+<td><code>pkg/compliancedoc</code></td>
+<td>P6</td>
+<td>~50</td>
+<td>Compliance documentation</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="even">
+<td>104</td>
+<td><code>pkg/helixtask</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Task management</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>105</td>
+<td><code>pkg/local</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Local execution</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="even">
+<td>106</td>
+<td><code>pkg/passthrough</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Passthrough proxy</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="odd">
+<td>107</td>
+<td><code>pkg/phase7matrix</code></td>
+<td>P6</td>
+<td>~50</td>
+<td>Phase 7 matrix</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="even">
+<td>108</td>
+<td><code>pkg/pool</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Resource pooling</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>109</td>
+<td><code>pkg/hxcregistry</code></td>
+<td>P5</td>
+<td>~200</td>
+<td>HXC registry (SQLite)</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>110</td>
+<td><code>pkg/dst</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>DST framework (thin wrapper)</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>111</td>
+<td><code>pkg/burst</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Burst management</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>112</td>
+<td><code>pkg/fiber</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Fiber admission</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>113</td>
+<td><code>pkg/agentprovision</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Agent provisioning</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>114</td>
+<td><code>pkg/epochresolve</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Epoch resolution</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="odd">
+<td>115</td>
+<td><code>pkg/slotmigration</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Slot migration</td>
+<td><strong>Wire-in</strong></td>
+<td>P2</td>
+</tr>
+<tr class="even">
+<td>116</td>
+<td><code>pkg/hashslot</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Hash slot routing</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>117</td>
+<td><code>pkg/chaosexp</code></td>
+<td>P5</td>
+<td>~100</td>
+<td>Chaos experiments</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="even">
+<td>118</td>
+<td><code>pkg/stressmark</code></td>
+<td>P5</td>
+<td>~50</td>
+<td>Stress marking</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="odd">
+<td>119</td>
+<td><code>pkg/hybridtco</code></td>
+<td>P6</td>
+<td>~50</td>
+<td>Hybrid TCO calculation</td>
+<td><strong>Document</strong></td>
+<td>P3</td>
+</tr>
+<tr class="even">
+<td>120</td>
+<td><code>pkg/hlc</code></td>
+<td>P4</td>
+<td>~50</td>
+<td>Hybrid logical clocks</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+<tr class="odd">
+<td>121</td>
+<td><code>pkg/antientropy</code></td>
+<td>P4</td>
+<td>~100</td>
+<td>Anti-entropy sync</td>
+<td><strong>Wire-in</strong></td>
+<td>P1</td>
+</tr>
+</tbody>
+</table>
+<p><em>(Remaining 57 packages fall into similar categories — detailed
+triage available in the full package registry.)</em></p>
+<h2 id="wiring-priority-order">1.3 Wiring Priority Order</h2>
+<p><strong>Recommended wiring sequence:</strong></p>
+<ol type="1">
+<li><strong>HA Spine</strong> (P0): <code>pkg/leader</code> →
+<code>pkg/etcd</code> → <code>pkg/crdt</code> +
+<code>pkg/deltacrdt</code> → <code>pkg/mvcc</code> →
+<code>pkg/raftprofile</code> → <code>pkg/splitbrain</code> +
+<code>pkg/splitbrainalert</code> → <code>pkg/stonith</code></li>
+<li><strong>Scheduler Helpers</strong> (P1): <code>pkg/backfill</code> →
+<code>pkg/priorityqueue</code> → <code>pkg/nodeselector</code> →
+<code>pkg/jobadmit</code> → <code>pkg/costsched</code> →
+<code>pkg/latencysched</code></li>
+<li><strong>Security Extensions</strong> (P1):
+<code>pkg/anticheat</code> → <code>pkg/attestadmit</code> →
+<code>pkg/gravaladmit</code> → <code>pkg/gpuattest</code> →
+<code>pkg/scan</code></li>
+<li><strong>GPU &amp; Compute</strong> (P1): <code>pkg/gpucatalog</code>
+→ <code>pkg/gpupool</code> → <code>pkg/deviceprofile</code> →
+<code>pkg/computeproto</code></li>
+<li><strong>Edge Computing</strong> (P1): <code>pkg/edge</code> →
+<code>pkg/edgeheartbeat</code> → <code>pkg/edgefusion</code></li>
+<li><strong>Marketplace &amp; Economics</strong> (P2):
+<code>pkg/marketplaceadapter</code> → <code>pkg/revenueopt</code> →
+<code>pkg/billingfsm</code></li>
+<li><strong>Federation &amp; Data-Plane</strong> (P2):
+<code>pkg/federation</code> → <code>pkg/fedtrust</code> →
+<code>pkg/dataplane</code></li>
+<li><strong>LLM &amp; Inference</strong> (P2):
+<code>pkg/quantization</code> → <code>pkg/chutes</code> →
+<code>pkg/inferenceproxy</code></li>
+<li><strong>Testing Infrastructure</strong> (P1):
+<code>pkg/testing/dst</code> → <code>pkg/testing/chaos</code> →
+<code>pkg/testing/evidence</code></li>
+<li><strong>Utility</strong> (P2-P3): Document-as-library or prune
+remaining</li>
+</ol>
+<hr />
+<h1 id="gap-2-concurrency-correctness">Gap 2: Concurrency
+Correctness</h1>
+<h2 id="confirmed-hazards-f1f10">2.1 Confirmed Hazards (F1–F10)</h2>
+<h3 id="f1-double-close-panic-in-swim-protocol">F1: Double-Close Panic
+in SWIM Protocol</h3>
+<ul>
+<li><strong>Location:</strong> <code>pkg/swim/protocol.go</code> —
+Stop/Leave</li>
+<li><strong>Class:</strong> Channel double-close</li>
+<li><strong>Severity:</strong> Major / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Impact:</strong> Service crash on shutdown</li>
+<li><strong>Remediation:</strong> <code>sync.Once</code> for channel
+close, <code>WaitGroup</code> for goroutines</li>
+<li><strong>Code fix:</strong></li>
+</ul>
+<div class="sourceCode" id="cb1"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co">// Before (unsafe):</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>p <span class="op">*</span>Protocol<span class="op">)</span> Stop<span class="op">()</span> <span class="op">{</span> <span class="bu">close</span><span class="op">(</span>p<span class="op">.</span>done<span class="op">)</span> <span class="op">}</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="co">// After (safe):</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>p <span class="op">*</span>Protocol<span class="op">)</span> Stop<span class="op">()</span> <span class="op">{</span></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>    p<span class="op">.</span>closeOnce<span class="op">.</span>Do<span class="op">(</span><span class="kw">func</span><span class="op">()</span> <span class="op">{</span> <span class="bu">close</span><span class="op">(</span>p<span class="op">.</span>done<span class="op">)</span> <span class="op">})</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>    p<span class="op">.</span>cancel<span class="op">()</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    p<span class="op">.</span>wg<span class="op">.</span>Wait<span class="op">()</span></span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="f2-data-race-on-member.state">F2: Data Race on Member.State</h3>
+<ul>
+<li><strong>Location:</strong> <code>pkg/swim/protocol.go</code> —
+HealthyMembers/Members</li>
+<li><strong>Class:</strong> Read-write race on shared state</li>
+<li><strong>Severity:</strong> Major / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Impact:</strong> Inconsistent membership view, potential
+crash</li>
+<li><strong>Remediation:</strong> Protect State with mutex or use atomic
+operations</li>
+<li><strong>Code fix:</strong></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Member <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>    id    <span class="dt">string</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    state <span class="dt">int32</span> <span class="co">// atomic access</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>    <span class="co">// ...</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>m <span class="op">*</span>Member<span class="op">)</span> GetState<span class="op">()</span> MemberState <span class="op">{</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> MemberState<span class="op">(</span>atomic<span class="op">.</span>LoadInt32<span class="op">(&amp;</span>m<span class="op">.</span>state<span class="op">))</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>m <span class="op">*</span>Member<span class="op">)</span> SetState<span class="op">(</span>s MemberState<span class="op">)</span> <span class="op">{</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>    atomic<span class="op">.</span>StoreInt32<span class="op">(&amp;</span>m<span class="op">.</span>state<span class="op">,</span> <span class="dt">int32</span><span class="op">(</span>s<span class="op">))</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<h3 id="f3-untracked-goroutine-in-proberandommember">F3: Untracked
+Goroutine in probeRandomMember</h3>
+<ul>
+<li><strong>Location:</strong> <code>pkg/swim/protocol.go</code></li>
+<li><strong>Class:</strong> Goroutine leak</li>
+<li><strong>Severity:</strong> Minor / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Add to WaitGroup</li>
+</ul>
+<h3 id="f4-lock-order-fragility-in-failure-detector">F4: Lock-Order
+Fragility in Failure Detector</h3>
+<ul>
+<li><strong>Location:</strong> <code>pkg/swim/failure_detector.go</code>
+— Confirm()</li>
+<li><strong>Class:</strong> Potential deadlock</li>
+<li><strong>Severity:</strong> Major / Confidence: Medium</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Establish lock ordering, use
+<code>go test -race</code></li>
+</ul>
+<h3 id="f5-pty-double-close-use-after-close">F5: PTY Double-Close /
+Use-After-Close</h3>
+<ul>
+<li><strong>Location:</strong>
+<code>pkg/session/backends/native.go</code></li>
+<li><strong>Class:</strong> Resource double-close</li>
+<li><strong>Severity:</strong> Major / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> <code>sync.Once</code> for close,
+signal read goroutine</li>
+</ul>
+<h3 id="f6-unbounded-scheduler-placements-map">F6: Unbounded Scheduler
+Placements Map</h3>
+<ul>
+<li><strong>Location:</strong>
+<code>pkg/scheduler/scheduler.go</code></li>
+<li><strong>Class:</strong> Memory leak</li>
+<li><strong>Severity:</strong> Major / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Remove completed placements, add
+cleanup</li>
+</ul>
+<h3 id="f7-unbounded-goroutines-in-eventbus">F7: Unbounded Goroutines in
+EventBus</h3>
+<ul>
+<li><strong>Location:</strong> <code>EventBus/pkg/bus/bus.go</code> —
+PublishAsync()</li>
+<li><strong>Class:</strong> Goroutine explosion</li>
+<li><strong>Severity:</strong> Major / Confidence: High</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Bounded worker pool, backpressure</li>
+</ul>
+<h3 id="f8-unbuffered-delivery-stall-in-nats">F8: Unbuffered Delivery
+Stall in NATS</h3>
+<ul>
+<li><strong>Location:</strong>
+<code>EventBus/pkg/nats/nats.go</code></li>
+<li><strong>Class:</strong> Channel stall</li>
+<li><strong>Severity:</strong> Minor / Confidence: Medium</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Buffered channels, non-blocking
+send</li>
+</ul>
+<h3 id="f9-no-size-cap-on-tieredcache-hot-tier">F9: No Size Cap on
+TieredCache Hot Tier</h3>
+<ul>
+<li><strong>Location:</strong>
+<code>pkg/tieredcache/tieredcache.go</code></li>
+<li><strong>Class:</strong> Unbounded cache</li>
+<li><strong>Severity:</strong> Minor / Confidence: High</li>
+<li><strong>Status:</strong> QUEUED</li>
+<li><strong>Remediation:</strong> LRU eviction, configurable max
+size</li>
+</ul>
+<h3 id="f10-per-event-timer-allocation">F10: Per-Event Timer
+Allocation</h3>
+<ul>
+<li><strong>Location:</strong> <code>EventBus/pkg/bus/bus.go</code> —
+trySend()</li>
+<li><strong>Class:</strong> GC pressure</li>
+<li><strong>Severity:</strong> Minor / Confidence: Medium</li>
+<li><strong>Status:</strong> IN PROGRESS</li>
+<li><strong>Remediation:</strong> Non-blocking send, shared timer
+pool</li>
+</ul>
+<h2 id="additional-potential-hazards-not-yet-confirmed">2.2 Additional
+Potential Hazards (Not Yet Confirmed)</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>ID</th>
+<th>Location</th>
+<th>Suspected Issue</th>
+<th>Investigation Needed</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>F11</td>
+<td><code>pkg/discovery/tier_registry.go</code></td>
+<td>Concurrent map access without full lock coverage</td>
+<td><code>go test -race</code></td>
+</tr>
+<tr class="even">
+<td>F12</td>
+<td><code>pkg/events/nats_backend.go</code></td>
+<td>NATS connection state race</td>
+<td>Integration test with race detector</td>
+</tr>
+<tr class="odd">
+<td>F13</td>
+<td><code>internal/gpu/manager.go</code></td>
+<td>GPU state mutation during detection</td>
+<td>Race detector on GPU detection path</td>
+</tr>
+<tr class="even">
+<td>F14</td>
+<td><code>pkg/health/rollup.go</code></td>
+<td>Aggregation during concurrent health checks</td>
+<td>Stress test</td>
+</tr>
+<tr class="odd">
+<td>F15</td>
+<td><code>internal/messaging/bus.go</code></td>
+<td>Message delivery during bus shutdown</td>
+<td>Shutdown ordering test</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h1 id="gap-3-critical-service-disconnections">Gap 3: Critical Service
+Disconnections</h1>
+<h2 id="crit-1-helix-security-stub-tokens">CRIT-1: helix-security Stub
+Tokens</h2>
+<p><strong>Description:</strong> The security service
+(<code>cmd/helix-security</code>) issues JWT tokens without
+cryptographic verification. The <code>ValidateToken</code> RPC accepts
+any token format, making the entire authentication system
+ineffective.</p>
+<p><strong>Location:</strong> <code>internal/security/server.go</code>,
+<code>pkg/jwt/package.go</code></p>
+<p><strong>Evidence:</strong> - <code>pkg/jwt</code> only splits JWT
+strings on <code>.</code> — no signature verification -
+<code>ValidateToken</code> RPC returns success for any non-empty token -
+Gateway auth middleware (<code>internal/gateway/auth.go</code>) relies
+on this validation</p>
+<p><strong>Impact:</strong> Any client can authenticate as any user.
+This is a critical security vulnerability.</p>
+<p><strong>Remediation:</strong> 1. Implement real JWT verification
+using <code>github.com/golang-jwt/jwt/v5</code> 2. Add signing key
+management (from Vault or SPIFFE) 3. Enforce token expiration 4. Add
+claims validation (issuer, audience, subject) 5. Wire RBAC scopes into
+token claims</p>
+<p><strong>Estimated effort:</strong> 2-3 days</p>
+<h2 id="crit-2-helix-health-http-only">CRIT-2: helix-health
+HTTP-Only</h2>
+<p><strong>Description:</strong> The health service
+(<code>cmd/helix-health</code>) serves health checks only via HTTP,
+without gRPC integration to the gateway. This means the gateway cannot
+use gRPC-based health checking for backend services.</p>
+<p><strong>Location:</strong> <code>internal/health/server.go</code></p>
+<p><strong>Evidence:</strong> - Health server implements HTTP
+<code>/health</code> endpoint only - gRPC health service not connected
+to gateway routing - Aggregation collects from HTTP endpoints only</p>
+<p><strong>Impact:</strong> Gateway cannot make informed routing
+decisions based on gRPC health checks. Service mesh integration is
+impossible.</p>
+<p><strong>Remediation:</strong> 1. Implement gRPC HealthService server
+alongside HTTP 2. Register gRPC health service with gateway 3. Add Watch
+streaming for real-time health updates 4. Connect health event stream to
+event bus</p>
+<p><strong>Estimated effort:</strong> 1-2 days</p>
+<h2 id="crit-3-helix-build-wrong-imports">CRIT-3: helix-build Wrong
+Imports</h2>
+<p><strong>Description:</strong> The build service
+(<code>cmd/helix-build</code>) uses import paths that bypass the build
+orchestration layer in <code>internal/build/</code>, directly accessing
+lower-level functions instead of going through the orchestrator.</p>
+<p><strong>Location:</strong> <code>cmd/helix-build/main.go</code>,
+<code>internal/build/orchestrator.go</code></p>
+<p><strong>Evidence:</strong> - <code>main.go</code> imports build
+functions directly instead of through <code>Orchestrator</code> -
+<code>SimulatedBuilder</code> registered in production path - Build
+status tracking bypasses orchestrator’s state machine</p>
+<p><strong>Impact:</strong> Builds may not be properly tracked,
+monitored, or cleaned up. The orchestration layer’s guarantees (retry,
+timeout, cancellation) are bypassed.</p>
+<p><strong>Remediation:</strong> 1. Fix import paths to use
+<code>Orchestrator</code> 2. Remove <code>SimulatedBuilder</code> from
+production path 3. Ensure all build operations go through orchestrator
+4. Add integration test verifying orchestrator is used</p>
+<p><strong>Estimated effort:</strong> 1 day</p>
+<h2 id="arch-1-two-tier-service-pattern">ARCH-1: Two-Tier Service
+Pattern</h2>
+<p><strong>Description:</strong> The codebase has a two-tier service
+pattern where some services have full <code>internal/</code> packages
+(gateway, session, scheduler, etc.) while others (agent, infra,
+e2ee-proxy, htmux) are implemented directly in <code>cmd/</code> with no
+<code>internal/</code> package. This creates inconsistency in service
+architecture.</p>
+<p><strong>Impact:</strong> Services without <code>internal/</code>
+packages lack proper separation of concerns and are harder to test.</p>
+<p><strong>Remediation:</strong> Create <code>internal/agent</code>,
+<code>internal/infra</code>, <code>internal/e2ee</code>,
+<code>internal/htmux</code> packages and extract business logic.</p>
+<h2 id="arch-3-gateway-routing-incomplete">ARCH-3: Gateway Routing
+Incomplete</h2>
+<p><strong>Description:</strong> The gateway does not route to all 14
+services. Several services (advisory, build, health, policy, LLM, agent,
+e2ee-proxy, htmux) are not accessible through the gateway.</p>
+<p><strong>Impact:</strong> End users cannot access these services
+through the unified API. Direct service access is required, violating
+the gateway pattern.</p>
+<p><strong>Remediation:</strong> Add routing for all 14 services to the
+gateway, with appropriate authentication and rate limiting.</p>
+<hr />
+<h1 id="gap-4-test-type-depth">Gap 4: Test-Type Depth</h1>
+<h2 id="test-inventory-by-type">4.1 Test Inventory by Type</h2>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Test Type</th>
+<th>Count</th>
+<th>Files</th>
+<th>Target</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Unit</td>
+<td>~530</td>
+<td>~400</td>
+<td>100% packages</td>
+<td>~50 packages missing</td>
+</tr>
+<tr class="even">
+<td>Integration</td>
+<td>~64</td>
+<td>~40</td>
+<td>All internal/ + critical pkg/</td>
+<td>~100 packages missing</td>
+</tr>
+<tr class="odd">
+<td>E2E</td>
+<td>~7</td>
+<td>~4</td>
+<td>All user-facing features</td>
+<td>~30 features missing</td>
+</tr>
+<tr class="even">
+<td>Benchmark</td>
+<td>~10</td>
+<td>~5</td>
+<td>All hot paths</td>
+<td>~100 paths missing</td>
+</tr>
+<tr class="odd">
+<td>Chaos</td>
+<td>~13</td>
+<td>~4</td>
+<td>Consensus + scheduler</td>
+<td>~20 subsystems missing</td>
+</tr>
+<tr class="even">
+<td>Fuzz</td>
+<td>~8</td>
+<td>~4</td>
+<td>Crypto + parsing</td>
+<td>~30 targets missing</td>
+</tr>
+<tr class="odd">
+<td>Hardening</td>
+<td>~3</td>
+<td>~2</td>
+<td>Security + boundary</td>
+<td>~20 packages missing</td>
+</tr>
+<tr class="even">
+<td>Behavior</td>
+<td>~3</td>
+<td>~2</td>
+<td>All user scenarios</td>
+<td>~50 scenarios missing</td>
+</tr>
+<tr class="odd">
+<td>Mutation</td>
+<td>1 script</td>
+<td>1</td>
+<td>All packages (per §1.1)</td>
+<td>~200 packages missing</td>
+</tr>
+<tr class="even">
+<td>Stress</td>
+<td>0</td>
+<td>0</td>
+<td>Sustained load</td>
+<td>ALL missing</td>
+</tr>
+<tr class="odd">
+<td>Soak</td>
+<td>0</td>
+<td>0</td>
+<td>7-day sustained</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>Load</td>
+<td>0</td>
+<td>0</td>
+<td>50K writes/sec</td>
+<td>ALL missing</td>
+</tr>
+<tr class="odd">
+<td>GameDay</td>
+<td>0</td>
+<td>0</td>
+<td>Manual fault injection</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>DST</td>
+<td>~2</td>
+<td>~2</td>
+<td>Consensus + scheduler</td>
+<td>~10 subsystems missing</td>
+</tr>
+<tr class="odd">
+<td>Compliance</td>
+<td>~1</td>
+<td>~1</td>
+<td>Constitution inheritance</td>
+<td>ALL missing</td>
+</tr>
+<tr class="even">
+<td>Cross-Platform</td>
+<td>~5</td>
+<td>~3</td>
+<td>Linux + macOS + Win/WSL2</td>
+<td>~50 features missing</td>
+</tr>
+<tr class="odd">
+<td>GPU Backend</td>
+<td>~3</td>
+<td>~2</td>
+<td>4 vendor backends</td>
+<td>3 backends missing</td>
+</tr>
+<tr class="even">
+<td>HelixQA</td>
+<td>0</td>
+<td>0</td>
+<td>Challenge execution</td>
+<td>ALL missing</td>
+</tr>
+<tr class="odd">
+<td>Regression</td>
+<td>~1</td>
+<td>~1</td>
+<td>Welch’s t-test</td>
+<td>~50 packages missing</td>
+</tr>
+<tr class="even">
+<td>Security Scan</td>
+<td>1 script</td>
+<td>1</td>
+<td>govulncheck+gosec+trivy</td>
+<td>2 tools missing</td>
+</tr>
+</tbody>
+</table>
+<h2 id="missing-test-types-detailed">4.2 Missing Test Types —
+Detailed</h2>
+<h3 id="fuzz-tests-missing-30-targets">Fuzz Tests (Missing: 30+
+targets)</h3>
+<p><strong>Currently covered:</strong> -
+<code>pkg/hybridkex/fuzz_test.go</code> — ML-KEM-768 key exchange -
+<code>pkg/x25519session/fuzz_test.go</code> — X25519 session -
+<code>pkg/doublecrypt/fuzz_test.go</code> — Double encryption -
+<code>pkg/tracing/w3c_fuzz_test.go</code> — W3C trace context -
+<code>pkg/covgate/parse_fuzz_test.go</code> — Coverage profile parsing -
+<code>pkg/session/crdt_checkpoint_fuzz_test.go</code> — CRDT checkpoint
+- <code>pkg/computeproto</code> — FlatBuffers roundtrip</p>
+<p><strong>Missing fuzz targets (CRITICAL for crypto and
+parsing):</strong> 1. <code>pkg/crypto</code> — Hash and key generation
+2. <code>pkg/jwt</code> — Token parsing and validation 3.
+<code>pkg/security/tls.go</code> — TLS configuration parsing 4.
+<code>pkg/security/vault.go</code> — Vault secret handling 5.
+<code>pkg/events/avro.go</code> — Avro wire format parsing 6.
+<code>pkg/events/avro_wire.go</code> — Avro wire deserialization 7.
+<code>pkg/events/avro_event_wire.go</code> — Event Avro wire 8.
+<code>pkg/computeproto/computeproto.go</code> — FlatBuffers parsing 9.
+<code>pkg/classads/parser.go</code> — ClassAd expression parsing 10.
+<code>pkg/config/config.go</code> — Configuration parsing 11.
+<code>pkg/netutil/cidr.go</code> — CIDR parsing 12.
+<code>pkg/openapivalidate/openapivalidate.go</code> — OpenAPI validation
+13. <code>internal/gateway/auth.go</code> — Auth token parsing 14.
+<code>internal/security/spiffe_ca.go</code> — SPIFFE CA operations 15.
+<code>pkg/hybridkex</code> — Additional key exchange fuzzing 16.
+<code>pkg/session/crdt.go</code> — CRDT merge fuzzing 17.
+<code>pkg/session/migration.go</code> — Migration strategy fuzzing 18.
+<code>pkg/wireguard/config.go</code> — WireGuard config parsing 19.
+<code>pkg/swim/protocol.go</code> — SWIM message parsing 20.
+<code>pkg/resources/cgroup_v2.go</code> — cgroup parsing</p>
+<h3 id="integration-stress-chaos-for-consensus">Integration + Stress +
+Chaos for Consensus</h3>
+<p><strong>Missing:</strong> 1. <code>pkg/multiraft</code> — No
+integration test with real etcd 2. <code>pkg/kraft</code> — No
+integration test with Unikraft 3. <code>pkg/raftprofile</code> — No
+integration test with Raft consensus 4. <code>pkg/swim</code> —
+Integration test exists but no stress/chaos 5. <code>pkg/leader</code> —
+etcd election integration exists but no stress 6.
+<code>pkg/splitbrain</code> — No integration test with real cluster 7.
+<code>pkg/stonith</code> — No integration test with real fencing</p>
+<h3 id="helixqa-framework-untested">HelixQA Framework Untested</h3>
+<p><strong>Description:</strong> The HelixQA framework’s own validators
+and vision logic are untested. Per CLAUDE-1, an untested gate cannot
+certify usability.</p>
+<p><strong>Missing tests:</strong> 1.
+<code>helixqa/pkg/validators</code> — Image/text/video/manager/types 2.
+<code>helixqa/pkg/vision/core</code> — Core vision logic 3.
+<code>helixqa/pkg/vision/detection</code> — ORB detector 4.
+<code>helixqa/cmd/helixqa-concrete-runner</code> — Challenge runner 5.
+<code>challenges/runner</code> scaffolds across modules</p>
+<h3 id="mutation-test-coverage">Mutation Test Coverage</h3>
+<p><strong>Currently:</strong> Only 1 script
+(<code>test/mutation/run_mutations.sh</code>) and ~5 mutation test
+cases.</p>
+<p><strong>Required per Constitution §1.1:</strong> Every test must have
+a paired mutation test.</p>
+<p><strong>Missing:</strong> ~200 packages need mutation tests.</p>
+<h3 id="frontend-tests-zero-coverage">Frontend Tests (Zero
+Coverage)</h3>
+<p><strong>Description:</strong> The web frontend (<code>web/</code>)
+has zero test coverage.</p>
+<p><strong>Files without tests:</strong> - <code>web/src/App.tsx</code>
+- <code>web/src/pages/*.tsx</code> (7 pages) -
+<code>web/src/components/*.tsx</code> (4 components) -
+<code>web/src/layout/*.tsx</code> (3 layout components) -
+<code>web/src/api/client.ts</code> -
+<code>web/src/api/types.ts</code></p>
+<hr />
+<h1 id="gap-5-security-scanning">Gap 5: Security Scanning</h1>
+<h2 id="current-state">5.1 Current State</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Tool</th>
+<th>Status</th>
+<th>Integration</th>
+<th>Evidence</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>govulncheck</code></td>
+<td>✅ Active</td>
+<td><code>scripts/security/security-scan.sh</code></td>
+<td>0 reachable vulns</td>
+</tr>
+<tr class="even">
+<td><code>cyclonedx-gomod</code></td>
+<td>✅ Active</td>
+<td><code>scripts/gen-sbom.sh</code></td>
+<td>SBOMs generated</td>
+</tr>
+<tr class="odd">
+<td><code>gosec</code></td>
+<td>⚠️ Available</td>
+<td>Not promoted to gate</td>
+<td>Findings not blocking</td>
+</tr>
+<tr class="even">
+<td><code>trivy</code></td>
+<td>⚠️ Available</td>
+<td><code>.trivyignore.yaml</code> exists</td>
+<td>Container scanning partial</td>
+</tr>
+<tr class="odd">
+<td><code>Snyk</code></td>
+<td>❌ Absent</td>
+<td>No integration</td>
+<td>Requires SNYK_TOKEN</td>
+</tr>
+<tr class="even">
+<td><code>SonarQube</code></td>
+<td>❌ Absent</td>
+<td>Compose file exists</td>
+<td>Requires SONAR_TOKEN</td>
+</tr>
+</tbody>
+</table>
+<h2 id="missing-security-scanning">5.2 Missing Security Scanning</h2>
+<h3 id="gosec-not-promoted-to-gate">gosec Not Promoted to Gate</h3>
+<ul>
+<li><strong>Current:</strong> <code>gosec</code> is available but
+findings don’t block the build</li>
+<li><strong>Required:</strong> Promote to
+<code>make security-scan</code> gate</li>
+<li><strong>Remediation:</strong> Add <code>gosec</code> to
+<code>scripts/security/security-scan.sh</code>, fail build on HIGH
+severity</li>
+</ul>
+<h3 id="snyksonarqube-absent">Snyk/SonarQube Absent</h3>
+<ul>
+<li><strong>Current:</strong> No Snyk or SonarQube integration</li>
+<li><strong>SonarQube:</strong>
+<code>deploy/compose/security_sonarqube.yml</code> exists but requires
+<code>SONAR_TOKEN</code></li>
+<li><strong>Snyk:</strong> No integration at all</li>
+<li><strong>Remediation:</strong> Add when owner provides tokens</li>
+</ul>
+<h3 id="sbom-not-wired-into-release">SBOM Not Wired into Release</h3>
+<ul>
+<li><strong>Current:</strong> SBOMs are generated but not included in
+release artifacts</li>
+<li><strong>Remediation:</strong> Add SBOM files to release tarball</li>
+</ul>
+<hr />
+<h1 id="gap-6-cicd-pipeline">Gap 6: CI/CD Pipeline</h1>
+<h2 id="current-state-1">6.1 Current State</h2>
+<p>All GitHub Actions workflows are <strong>disabled</strong> — stored
+under <code>.github/workflows/disabled/</code>:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Workflow</th>
+<th>File</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>race.yml</code></td>
+<td>Go race detector</td>
+<td>Disabled</td>
+</tr>
+<tr class="even">
+<td><code>format.yml</code></td>
+<td>Code formatting</td>
+<td>Disabled</td>
+</tr>
+<tr class="odd">
+<td><code>release.yml</code></td>
+<td>Release pipeline</td>
+<td>Disabled</td>
+</tr>
+<tr class="even">
+<td><code>lint.yml</code></td>
+<td>Linting</td>
+<td>Disabled</td>
+</tr>
+<tr class="odd">
+<td><code>zig-build.yml</code></td>
+<td>Zig compilation</td>
+<td>Disabled</td>
+</tr>
+<tr class="even">
+<td><code>vm_integration.yml</code></td>
+<td>VM integration tests</td>
+<td>Disabled</td>
+</tr>
+<tr class="odd">
+<td><code>cc-build.yml</code></td>
+<td>C/C++ build</td>
+<td>Disabled</td>
+</tr>
+<tr class="even">
+<td><code>go-build.yml</code></td>
+<td>Go build</td>
+<td>Disabled</td>
+</tr>
+<tr class="odd">
+<td><code>docker-build.yml</code></td>
+<td>Docker image build</td>
+<td>Disabled</td>
+</tr>
+<tr class="even">
+<td><code>docs.yml</code></td>
+<td>Documentation generation</td>
+<td>Disabled</td>
+</tr>
+<tr class="odd">
+<td><code>dst-sim.yml</code></td>
+<td>DST simulation</td>
+<td>Disabled</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constitution-blocks-ci-re-enable">6.2 Constitution Blocks CI
+Re-enable</h2>
+<p>The project’s constitution mandates a no-CI rule. This is tracked as
+HXC-105/HXC-1262. CI re-enablement requires explicit owner ruling
+(Decision D2 in the UNFINISHED_WORK_REPORT).</p>
+<h2 id="local-only-enforcement">6.3 Local-Only Enforcement</h2>
+<p>In the absence of CI, quality gates are enforced via local
+<code>make</code> targets: - <code>make test</code> — Run all tests with
+race detector - <code>make lint</code> — Run linters -
+<code>make gate-check</code> — Run orphan-prevention gates -
+<code>make security-scan</code> — Run security scanning -
+<code>make docs-verify</code> — Verify documentation sync</p>
+<p><strong>Gap:</strong> These are not enforced automatically.
+Developers can skip them.</p>
+<h2 id="prr-at-82.5">6.4 PRR at 82.5%</h2>
+<p>The Production Readiness Review scores 66/80 = 82.5%, below the
+constitutional 95% bar.</p>
+<p><strong>CI-related gaps (items 8/9/10/16/60):</strong> - Item 8: CI
+build/test not active - Item 9: Release pipeline not active - Item 10:
+Coverage gate not enforced - Item 16: Dependency scanning not continuous
+- Item 60: Integration test gate not enforced</p>
+<p><strong>Locally closeable gaps:</strong> - Item 7: Coverage gate not
+enforced (<code>pkg/covgate</code> exists, unwired) - Item 21: HelixQA
+challenges not executed with sink-side evidence - Item 33: mTLS e2e
+incomplete - Item 34: Dep-scan continuous gate / SBOM-renovate</p>
+<hr />
+<h1 id="anti-bluff-package-audit">Anti-Bluff Package Audit</h1>
+<h2 id="audit-methodology">Audit Methodology</h2>
+<p>For each package, the following criteria are evaluated: 1.
+<strong>Real functionality</strong> — Does the code do real work or
+return hardcoded values? 2. <strong>Mutation test coverage</strong> —
+Are there paired mutation tests per Constitution §1.1? 3.
+<strong>PASS-bluff risk</strong> — Can tests pass on non-functional
+code? 4. <strong>Integration potential</strong> — Can another package
+actually use this?</p>
+<h2 id="package-audit-results">Package Audit Results</h2>
+<h3 id="pkgconfig-high-risk">1. <code>pkg/config</code> — HIGH Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>Load()</code> claims to
+“load configuration from environment or defaults” but only returns
+hardcoded defaults. No env parsing, no file reading.<br />
+<strong>Evidence of bluff:</strong> Function docstring says “Load
+configuration from environment variables or sensible defaults” but
+implementation is:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> Load<span class="op">()</span> <span class="op">*</span>Config <span class="op">{</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">&amp;</span>Config<span class="op">{</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>        AppName<span class="op">:</span>  <span class="st">&quot;helix-cluster&quot;</span><span class="op">,</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>        LogLevel<span class="op">:</span> <span class="st">&quot;info&quot;</span><span class="op">,</span></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>        <span class="co">// ... all hardcoded</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Remediation:</strong> Implement actual env/file loading OR
+rename to <code>Default()</code>.</p>
+<h3 id="pkggrpcutil-high-risk">2. <code>pkg/grpcutil</code> — HIGH
+Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> Both <code>UnaryInterceptor</code>
+and <code>StreamInterceptor</code> are no-ops that just call the
+handler.<br />
+<strong>Evidence of bluff:</strong></p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> UnaryInterceptor<span class="op">(</span>ctx context<span class="op">.</span>Context<span class="op">,</span> req <span class="kw">interface</span><span class="op">{},</span> info <span class="op">*</span>grpc<span class="op">.</span>UnaryServerInfo<span class="op">,</span> handler grpc<span class="op">.</span>UnaryHandler<span class="op">)</span> <span class="op">(</span><span class="kw">interface</span><span class="op">{},</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> handler<span class="op">(</span>ctx<span class="op">,</span> req<span class="op">)</span> <span class="co">// no logging, no metrics, no auth</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Remediation:</strong> Add real interceptor behavior or remove
+package.</p>
+<h3 id="pkginfra-high-risk">3. <code>pkg/infra</code> — HIGH Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> The entire package simulates
+infrastructure. <code>Boot</code> just sets
+<code>Status: "running"</code> in a map. <code>VMSpawn</code> generates
+fake IPs.<br />
+<strong>Evidence of bluff:</strong></p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>o <span class="op">*</span>Orchestrator<span class="op">)</span> Boot<span class="op">(</span>service <span class="dt">string</span><span class="op">)</span> <span class="dt">error</span> <span class="op">{</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    o<span class="op">.</span>services<span class="op">[</span>service<span class="op">]</span> <span class="op">=</span> ServiceStatus<span class="op">{</span>Status<span class="op">:</span> <span class="st">&quot;running&quot;</span><span class="op">}</span></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="ot">nil</span> <span class="co">// no Docker, no VMs, no cloud</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Remediation:</strong> Rename to <code>infrasim</code> or
+implement real backends.</p>
+<h3 id="pkgjwt-high-risk">4. <code>pkg/jwt</code> — HIGH Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>Parse</code> just splits on
+<code>.</code> — no signature verification, no algorithm check.<br />
+<strong>Evidence of bluff:</strong></p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> Parse<span class="op">(</span>tokenString <span class="dt">string</span><span class="op">)</span> <span class="op">(*</span>Token<span class="op">,</span> <span class="dt">error</span><span class="op">)</span> <span class="op">{</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>    parts <span class="op">:=</span> strings<span class="op">.</span>Split<span class="op">(</span>tokenString<span class="op">,</span> <span class="st">&quot;.&quot;</span><span class="op">)</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>    <span class="cf">if</span> <span class="bu">len</span><span class="op">(</span>parts<span class="op">)</span> <span class="op">!=</span> <span class="dv">3</span> <span class="op">{</span> <span class="cf">return</span> <span class="ot">nil</span><span class="op">,</span> ErrInvalidToken <span class="op">}</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="op">&amp;</span>Token<span class="op">{</span>Header<span class="op">:</span> parts<span class="op">[</span><span class="dv">0</span><span class="op">],</span> Payload<span class="op">:</span> parts<span class="op">[</span><span class="dv">1</span><span class="op">],</span> Signature<span class="op">:</span> parts<span class="op">[</span><span class="dv">2</span><span class="op">]},</span> <span class="ot">nil</span></span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>    <span class="co">// No verification at all!</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p><strong>Remediation:</strong> Use
+<code>github.com/golang-jwt/jwt/v5</code> for real verification.</p>
+<h3 id="pkgleader-high-risk">5. <code>pkg/leader</code> — HIGH Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>Election</code> is just an
+<code>int32</code> atomic flag. Not distributed.<br />
+<strong>Evidence of bluff:</strong></p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Election <span class="kw">struct</span> <span class="op">{</span> state <span class="dt">int32</span> <span class="op">}</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="kw">func</span> <span class="op">(</span>e <span class="op">*</span>Election<span class="op">)</span> IsLeader<span class="op">()</span> <span class="dt">bool</span> <span class="op">{</span> <span class="cf">return</span> atomic<span class="op">.</span>LoadInt32<span class="op">(&amp;</span>e<span class="op">.</span>state<span class="op">)</span> <span class="op">==</span> <span class="dv">1</span> <span class="op">}</span></span></code></pre></div>
+<p><strong>Remediation:</strong> Implement etcd-based election or rename
+to <code>localleader</code>. Note: <code>etcd_election.go</code> exists
+with real implementation but is not the default.</p>
+<h3 id="pkgmiddleware-high-risk">6. <code>pkg/middleware</code> — HIGH
+Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>LoggingMiddleware</code> is
+a no-op that calls <code>next.ServeHTTP(w, r)</code> with no
+logging.<br />
+<strong>Remediation:</strong> Implement real request logging or
+remove.</p>
+<h3 id="pkgtracing-high-risk">7. <code>pkg/tracing</code> — HIGH
+Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>StartSpan</code> returns
+hardcoded <code>TraceID: "trace-1"</code>,
+<code>SpanID: "span-1"</code>.<br />
+<strong>Note:</strong> The package has been improved with real W3C trace
+context (<code>w3c.go</code>), gRPC tracing (<code>grpc.go</code>), and
+OTel exporter (<code>exporter.go</code>). The original stub
+<code>package.go</code> may be a legacy issue.<br />
+<strong>Remediation:</strong> Remove hardcoded IDs, ensure W3C/OTel path
+is used.</p>
+<h3 id="pkgwebsocket-high-risk">8. <code>pkg/websocket</code> — HIGH
+Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> <code>Upgrade</code> returns nil —
+no actual WebSocket handshake.<br />
+<strong>Remediation:</strong> Use
+<code>github.com/gorilla/websocket</code> (already in go.mod!).</p>
+<h3 id="pkgcrypto-high-risk">9. <code>pkg/crypto</code> — HIGH Risk</h3>
+<p><strong>Risk Level:</strong> HIGH<br />
+<strong>PASS-bluff findings:</strong> No mutation tests.
+<code>TestHash</code> only checks length, not actual hash value.<br />
+<strong>Remediation:</strong> Add SHA-256 test vectors, add fuzz
+testing.</p>
+<h3 id="pkgbackoff-medium-risk">10. <code>pkg/backoff</code> — MEDIUM
+Risk</h3>
+<p><strong>Risk Level:</strong> MEDIUM<br />
+<strong>PASS-bluff findings:</strong> No mutation tests. Cap logic could
+be removed without detection.<br />
+<strong>Remediation:</strong> Add <code>TestDuration_Mutation</code>
+verifying cap enforcement.</p>
+<h3 id="pkgevents-medium-risk">11. <code>pkg/events</code> — MEDIUM
+Risk</h3>
+<p><strong>Risk Level:</strong> MEDIUM<br />
+<strong>PASS-bluff findings:</strong> No mutation tests.
+<code>time.Sleep</code> in tests is flaky.<br />
+<strong>Remediation:</strong> Add mutation tests, use deterministic
+timing.</p>
+<h3 id="pkgratelimit-medium-risk">12. <code>pkg/ratelimit</code> —
+MEDIUM Risk</h3>
+<p><strong>Risk Level:</strong> MEDIUM<br />
+<strong>PASS-bluff findings:</strong> No mutation tests.
+<code>time.Sleep(2s)</code> in tests is slow and flaky.<br />
+<strong>Remediation:</strong> Inject clock for deterministic testing,
+add mutation tests.</p>
+<h3 id="pkgsession-low-risk">13. <code>pkg/session</code> — LOW
+Risk</h3>
+<p><strong>Risk Level:</strong> LOW<br />
+<strong>PASS-bluff findings:</strong> Migration strategies CRIU/DMTCP
+return “not implemented” — but planner correctly falls back to CRDT.
+This is acceptable because it’s explicitly documented.<br />
+<strong>Remediation:</strong> De-register non-functional strategies from
+planner.</p>
+<hr />
+<h1 id="phase-specific-gap-audits">Phase-Specific Gap Audits</h1>
+<h2 id="phase-4-30-complete-4-p0-blockers">Phase 4: ~30% Complete, 4 P0
+Blockers</h2>
+<p><strong>Phase 4 covers:</strong> Console hardware, edge devices,
+testing strategy, and cross-platform protocols.</p>
+<h3 id="p0-blockers">P0 Blockers:</h3>
+<ol type="1">
+<li><strong>Consensus subsystem testing</strong> — No
+integration/stress/chaos tests for <code>pkg/multiraft</code>,
+<code>pkg/kraft</code>, <code>pkg/raftprofile</code></li>
+<li><strong>SWIM convergence under churn</strong> — No Jepsen-style
+linearizability testing (HXC-1276)</li>
+<li><strong>Console hardware integration</strong> — No real hardware
+testing for PS4/PS5/RPi</li>
+<li><strong>Cross-platform parity</strong> — macOS equivalents missing
+for Linux-specific features (CLAUDE-2)</li>
+</ol>
+<h3 id="completion-assessment">Completion Assessment:</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Sub-phase</th>
+<th>Target</th>
+<th>Current</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Console hardware</td>
+<td>100% detection coverage</td>
+<td>~40%</td>
+<td>Missing real hardware tests</td>
+</tr>
+<tr class="even">
+<td>Edge devices</td>
+<td>Full SBC/Android/iOS support</td>
+<td>~25%</td>
+<td>Missing mobile device support</td>
+</tr>
+<tr class="odd">
+<td>Testing strategy</td>
+<td>All 20 test types</td>
+<td>~6 types</td>
+<td>Missing 14 types</td>
+</tr>
+<tr class="even">
+<td>Cross-platform</td>
+<td>Linux + macOS + Win/WSL2</td>
+<td>Linux only</td>
+<td>macOS/Win stubs</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phase-7-18-complete-77-p0-missing">Phase 7: ~18% Complete, 7/7
+P0 MISSING</h2>
+<p><strong>Phase 7 covers:</strong> Production operations — monitoring,
+scaling, load testing, and SLO compliance.</p>
+<h3 id="p0-blockers-all-missing">P0 Blockers (ALL MISSING):</h3>
+<ol type="1">
+<li><strong>50K writes/sec SLO</strong> — No load testing
+infrastructure</li>
+<li><strong>Monitoring/metrics pipeline</strong> —
+<code>pkg/metrics</code> not fully wired</li>
+<li><strong>Auto-scaling</strong> — No scaling logic implemented</li>
+<li><strong>Alerting</strong> — No alert rules defined</li>
+<li><strong>SLO dashboards</strong> — Grafana dashboards not wired</li>
+<li><strong>Runbook automation</strong> — No runbooks exist</li>
+<li><strong>Incident management</strong> — No incident workflow</li>
+</ol>
+<h3 id="completion-assessment-1">Completion Assessment:</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Sub-phase</th>
+<th>Target</th>
+<th>Current</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Monitoring</td>
+<td>Full Prometheus + Grafana</td>
+<td>~20%</td>
+<td>Partial metrics, no dashboards</td>
+</tr>
+<tr class="even">
+<td>Scaling</td>
+<td>Auto-scale with policies</td>
+<td>~10%</td>
+<td>No auto-scaling</td>
+</tr>
+<tr class="odd">
+<td>Load testing</td>
+<td>50K writes/sec verified</td>
+<td>0%</td>
+<td>No load testing</td>
+</tr>
+<tr class="even">
+<td>SLO compliance</td>
+<td>All SLOs met</td>
+<td>~15%</td>
+<td>No SLO definitions</td>
+</tr>
+<tr class="odd">
+<td>Alerting</td>
+<td>Full alert pipeline</td>
+<td>0%</td>
+<td>No alerts</td>
+</tr>
+<tr class="even">
+<td>Runbooks</td>
+<td>All runbooks documented</td>
+<td>0%</td>
+<td>No runbooks</td>
+</tr>
+</tbody>
+</table>
+<h2 id="phase-8-12-complete-4-p0-blockers">Phase 8: ~12% Complete, 4 P0
+Blockers</h2>
+<p><strong>Phase 8 covers:</strong> Hardening — chaos engineering, fault
+injection, resilience testing.</p>
+<h3 id="p0-blockers-1">P0 Blockers:</h3>
+<ol type="1">
+<li><strong>Chaos testing framework</strong> —
+<code>pkg/testing/chaos</code> exists but not wired</li>
+<li><strong>7-day soak test</strong> — No infrastructure for sustained
+testing</li>
+<li><strong>Fault injection</strong> — <code>pkg/chaosexp</code> exists
+but not wired</li>
+<li><strong>Resilience testing</strong> — No automated resilience
+verification</li>
+</ol>
+<h2 id="phase-8b-8-complete-textbook-double-orphan">Phase 8B: ~8%
+Complete — “Textbook Double-Orphan”</h2>
+<p><strong>Description:</strong> Phase 8B packages are doubly orphaned —
+they are not only unwired from binaries, but they also depend on other
+orphaned packages. This creates chains of dead code.</p>
+<p><strong>Affected packages:</strong> -
+<code>pkg/marketplaceadapter</code> → depends on
+<code>pkg/federation</code> (orphaned) - <code>pkg/fedtrust</code> →
+depends on <code>pkg/spiffefed</code> (orphaned) -
+<code>pkg/edgefusion</code> → depends on <code>pkg/edge</code>
+(orphaned) - <code>pkg/chaosexp</code> → depends on
+<code>pkg/testing/chaos</code> (orphaned)</p>
+<p><strong>Remediation:</strong> Wire from the bottom up — resolve
+dependencies before dependents.</p>
+<h2 id="mvp-60-complete-7-p0-blockers">MVP: ~60% Complete, 7 P0
+Blockers</h2>
+<p><strong>MVP scope:</strong> Minimum viable product — cluster
+management, scheduling, sessions, builds, and basic security.</p>
+<h3 id="p0-blockers-2">P0 Blockers:</h3>
+<ol type="1">
+<li><strong>CRIT-1: JWT stub tokens</strong> — Authentication doesn’t
+work</li>
+<li><strong>CRIT-2: Health HTTP-only</strong> — No gRPC health
+checking</li>
+<li><strong>CRIT-3: Build wrong imports</strong> — Build orchestration
+bypassed</li>
+<li><strong>helixd is a hollow shell</strong> — Core daemon does
+nothing</li>
+<li><strong>Gateway routing incomplete</strong> — Not all services
+accessible</li>
+<li><strong>No real configuration management</strong> —
+<code>pkg/config</code> returns hardcoded values</li>
+<li><strong>No CI enforcement</strong> — Quality gates not enforced</li>
+</ol>
+<h3 id="mvp-completion-assessment">MVP Completion Assessment:</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Feature</th>
+<th>Target</th>
+<th>Current</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Cluster management</td>
+<td>Full node lifecycle</td>
+<td>~50%</td>
+<td>Missing health, scaling</td>
+</tr>
+<tr class="even">
+<td>Scheduling</td>
+<td>Omega-model with backfill</td>
+<td>~40%</td>
+<td>Missing helpers</td>
+</tr>
+<tr class="odd">
+<td>Sessions</td>
+<td>CRDT with migration</td>
+<td>~80%</td>
+<td>Missing CRIU migration</td>
+</tr>
+<tr class="even">
+<td>Builds</td>
+<td>Podman with streaming</td>
+<td>~60%</td>
+<td>Import fix needed</td>
+</tr>
+<tr class="odd">
+<td>Security</td>
+<td>mTLS + RBAC + JWT</td>
+<td>~30%</td>
+<td>JWT stub tokens</td>
+</tr>
+<tr class="even">
+<td>Gateway</td>
+<td>Full routing</td>
+<td>~50%</td>
+<td>Missing service routes</td>
+</tr>
+<tr class="odd">
+<td>Configuration</td>
+<td>Environment + file</td>
+<td>~10%</td>
+<td>Hardcoded defaults</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><em>End of Consolidated Gap Audit</em></p>
+<p><strong>Document Statistics:</strong> - Total gaps identified: 6
+major categories - Total orphaned packages enumerated: 121+ of 178 -
+Total concurrency hazards: 10 confirmed + 5 potential - Total CRITICAL
+disconnections: 3 + 2 architectural - Total missing test types: 14 of 20
+- Total phase-specific P0 blockers: 22 - Total anti-bluff package
+audits: 13 detailed</p>
+</body>
+</html>

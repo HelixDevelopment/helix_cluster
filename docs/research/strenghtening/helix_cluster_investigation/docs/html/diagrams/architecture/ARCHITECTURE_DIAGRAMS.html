@@ -1,0 +1,4025 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ARCHITECTURE_DIAGRAMS</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="data:text/css,body{font-family:sans-serif;max-width:900px;margin:auto;padding:20px}pre{background:#f4f4f4;padding:10px;overflow-x:auto}code{background:#f4f4f4;padding:2px 5px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #ddd;padding:8px;text-align:left}th{background:#f0f0f0}" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ARCHITECTURE_DIAGRAMS</h1>
+</header>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><a href="#helix-cluster-architecture-diagrams"
+id="toc-helix-cluster-architecture-diagrams">Helix Cluster Architecture
+Diagrams</a>
+<ul>
+<li><a href="#table-of-contents" id="toc-table-of-contents">Table of
+Contents</a></li>
+<li><a href="#introduction" id="toc-introduction">Introduction</a>
+<ul>
+<li><a href="#reading-conventions" id="toc-reading-conventions">Reading
+Conventions</a></li>
+<li><a href="#diagram-types-used" id="toc-diagram-types-used">Diagram
+Types Used</a></li>
+<li><a href="#how-to-navigate-this-document"
+id="toc-how-to-navigate-this-document">How to Navigate This
+Document</a></li>
+</ul></li>
+<li><a href="#system-architecture-l0-l7"
+id="toc-system-architecture-l0-l7">1. System Architecture L0-L7</a>
+<ul>
+<li><a href="#title" id="toc-title">Title</a></li>
+<li><a href="#mermaid-diagram" id="toc-mermaid-diagram">Mermaid
+Diagram</a></li>
+<li><a href="#description" id="toc-description">Description</a></li>
+<li><a href="#key-relationships-highlighted"
+id="toc-key-relationships-highlighted">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#control-plane-service-communication"
+id="toc-control-plane-service-communication">2. Control-Plane Service
+Communication</a>
+<ul>
+<li><a href="#title-1" id="toc-title-1">Title</a></li>
+<li><a href="#mermaid-diagram-1" id="toc-mermaid-diagram-1">Mermaid
+Diagram</a></li>
+<li><a href="#description-1" id="toc-description-1">Description</a></li>
+<li><a href="#key-relationships-highlighted-1"
+id="toc-key-relationships-highlighted-1">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#workload-placement-request-flow"
+id="toc-workload-placement-request-flow">3. Workload Placement Request
+Flow</a>
+<ul>
+<li><a href="#title-2" id="toc-title-2">Title</a></li>
+<li><a href="#mermaid-diagram-2" id="toc-mermaid-diagram-2">Mermaid
+Diagram</a></li>
+<li><a href="#description-2" id="toc-description-2">Description</a></li>
+<li><a href="#key-relationships-highlighted-2"
+id="toc-key-relationships-highlighted-2">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#swim-gossip-membership-lifecycle"
+id="toc-swim-gossip-membership-lifecycle">4. SWIM Gossip Membership
+Lifecycle</a>
+<ul>
+<li><a href="#title-3" id="toc-title-3">Title</a></li>
+<li><a href="#mermaid-diagram-3" id="toc-mermaid-diagram-3">Mermaid
+Diagram</a></li>
+<li><a href="#description-3" id="toc-description-3">Description</a></li>
+<li><a href="#key-relationships-highlighted-3"
+id="toc-key-relationships-highlighted-3">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#wireguard-mesh-topology"
+id="toc-wireguard-mesh-topology">5. WireGuard Mesh Topology</a>
+<ul>
+<li><a href="#title-4" id="toc-title-4">Title</a></li>
+<li><a href="#mermaid-diagram-4" id="toc-mermaid-diagram-4">Mermaid
+Diagram</a></li>
+<li><a href="#description-4" id="toc-description-4">Description</a></li>
+<li><a href="#key-relationships-highlighted-4"
+id="toc-key-relationships-highlighted-4">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#omega-scheduler-architecture"
+id="toc-omega-scheduler-architecture">6. Omega Scheduler
+Architecture</a>
+<ul>
+<li><a href="#title-5" id="toc-title-5">Title</a></li>
+<li><a href="#mermaid-diagram-5" id="toc-mermaid-diagram-5">Mermaid
+Diagram</a></li>
+<li><a href="#description-5" id="toc-description-5">Description</a></li>
+<li><a href="#key-relationships-highlighted-5"
+id="toc-key-relationships-highlighted-5">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#gpu-management-stack" id="toc-gpu-management-stack">7. GPU
+Management Stack</a>
+<ul>
+<li><a href="#title-6" id="toc-title-6">Title</a></li>
+<li><a href="#mermaid-diagram-6" id="toc-mermaid-diagram-6">Mermaid
+Diagram</a></li>
+<li><a href="#description-6" id="toc-description-6">Description</a></li>
+<li><a href="#key-relationships-highlighted-6"
+id="toc-key-relationships-highlighted-6">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#security-architecture" id="toc-security-architecture">8.
+Security Architecture</a>
+<ul>
+<li><a href="#title-7" id="toc-title-7">Title</a></li>
+<li><a href="#mermaid-diagram-7" id="toc-mermaid-diagram-7">Mermaid
+Diagram</a></li>
+<li><a href="#description-7" id="toc-description-7">Description</a></li>
+<li><a href="#key-relationships-highlighted-7"
+id="toc-key-relationships-highlighted-7">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#session-management" id="toc-session-management">9. Session
+Management</a>
+<ul>
+<li><a href="#title-8" id="toc-title-8">Title</a></li>
+<li><a href="#mermaid-diagram-8" id="toc-mermaid-diagram-8">Mermaid
+Diagram</a></li>
+<li><a href="#description-8" id="toc-description-8">Description</a></li>
+<li><a href="#key-relationships-highlighted-8"
+id="toc-key-relationships-highlighted-8">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#build-service-architecture"
+id="toc-build-service-architecture">10. Build Service Architecture</a>
+<ul>
+<li><a href="#title-9" id="toc-title-9">Title</a></li>
+<li><a href="#mermaid-diagram-9" id="toc-mermaid-diagram-9">Mermaid
+Diagram</a></li>
+<li><a href="#description-9" id="toc-description-9">Description</a></li>
+<li><a href="#key-relationships-highlighted-9"
+id="toc-key-relationships-highlighted-9">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#health-monitoring" id="toc-health-monitoring">11. Health
+Monitoring</a>
+<ul>
+<li><a href="#title-10" id="toc-title-10">Title</a></li>
+<li><a href="#mermaid-diagram-10" id="toc-mermaid-diagram-10">Mermaid
+Diagram</a></li>
+<li><a href="#description-10"
+id="toc-description-10">Description</a></li>
+<li><a href="#key-relationships-highlighted-10"
+id="toc-key-relationships-highlighted-10">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#eventmessaging-architecture"
+id="toc-eventmessaging-architecture">12. Event/Messaging
+Architecture</a>
+<ul>
+<li><a href="#title-11" id="toc-title-11">Title</a></li>
+<li><a href="#mermaid-diagram-11" id="toc-mermaid-diagram-11">Mermaid
+Diagram</a></li>
+<li><a href="#description-11"
+id="toc-description-11">Description</a></li>
+<li><a href="#key-relationships-highlighted-11"
+id="toc-key-relationships-highlighted-11">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#federation-architecture"
+id="toc-federation-architecture">13. Federation Architecture</a>
+<ul>
+<li><a href="#title-12" id="toc-title-12">Title</a></li>
+<li><a href="#mermaid-diagram-12" id="toc-mermaid-diagram-12">Mermaid
+Diagram</a></li>
+<li><a href="#description-12"
+id="toc-description-12">Description</a></li>
+<li><a href="#key-relationships-highlighted-12"
+id="toc-key-relationships-highlighted-12">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#consensus-architecture"
+id="toc-consensus-architecture">14. Consensus Architecture</a>
+<ul>
+<li><a href="#title-13" id="toc-title-13">Title</a></li>
+<li><a href="#mermaid-diagram-13" id="toc-mermaid-diagram-13">Mermaid
+Diagram</a></li>
+<li><a href="#description-13"
+id="toc-description-13">Description</a></li>
+<li><a href="#key-relationships-highlighted-13"
+id="toc-key-relationships-highlighted-13">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#testing-architecture" id="toc-testing-architecture">15.
+Testing Architecture</a>
+<ul>
+<li><a href="#title-14" id="toc-title-14">Title</a></li>
+<li><a href="#mermaid-diagram-14" id="toc-mermaid-diagram-14">Mermaid
+Diagram</a></li>
+<li><a href="#description-14"
+id="toc-description-14">Description</a></li>
+<li><a href="#key-relationships-highlighted-14"
+id="toc-key-relationships-highlighted-14">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#deployment-architecture"
+id="toc-deployment-architecture">16. Deployment Architecture</a>
+<ul>
+<li><a href="#title-15" id="toc-title-15">Title</a></li>
+<li><a href="#mermaid-diagram-15" id="toc-mermaid-diagram-15">Mermaid
+Diagram</a></li>
+<li><a href="#description-15"
+id="toc-description-15">Description</a></li>
+<li><a href="#key-relationships-highlighted-15"
+id="toc-key-relationships-highlighted-15">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#database-schema-er" id="toc-database-schema-er">17.
+Database Schema ER</a>
+<ul>
+<li><a href="#title-16" id="toc-title-16">Title</a></li>
+<li><a href="#mermaid-diagram-16" id="toc-mermaid-diagram-16">Mermaid
+Diagram</a></li>
+<li><a href="#description-16"
+id="toc-description-16">Description</a></li>
+<li><a href="#key-relationships-highlighted-16"
+id="toc-key-relationships-highlighted-16">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#challenges-integration-lifecycle"
+id="toc-challenges-integration-lifecycle">18. Challenges Integration
+Lifecycle</a>
+<ul>
+<li><a href="#title-17" id="toc-title-17">Title</a></li>
+<li><a href="#mermaid-diagram-17" id="toc-mermaid-diagram-17">Mermaid
+Diagram</a></li>
+<li><a href="#description-17"
+id="toc-description-17">Description</a></li>
+<li><a href="#key-relationships-highlighted-17"
+id="toc-key-relationships-highlighted-17">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#anti-bluff-pipeline" id="toc-anti-bluff-pipeline">19.
+Anti-Bluff Pipeline</a>
+<ul>
+<li><a href="#title-18" id="toc-title-18">Title</a></li>
+<li><a href="#mermaid-diagram-18" id="toc-mermaid-diagram-18">Mermaid
+Diagram</a></li>
+<li><a href="#description-18"
+id="toc-description-18">Description</a></li>
+<li><a href="#key-relationships-highlighted-18"
+id="toc-key-relationships-highlighted-18">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#cicd-pipeline" id="toc-cicd-pipeline">20. CI/CD
+Pipeline</a>
+<ul>
+<li><a href="#title-19" id="toc-title-19">Title</a></li>
+<li><a href="#mermaid-diagram-19" id="toc-mermaid-diagram-19">Mermaid
+Diagram</a></li>
+<li><a href="#description-19"
+id="toc-description-19">Description</a></li>
+<li><a href="#key-relationships-highlighted-19"
+id="toc-key-relationships-highlighted-19">Key Relationships
+Highlighted</a></li>
+</ul></li>
+<li><a href="#appendix-a-diagram-cross-reference"
+id="toc-appendix-a-diagram-cross-reference">Appendix A: Diagram
+Cross-Reference</a></li>
+<li><a href="#appendix-b-mermaid-rendering-notes"
+id="toc-appendix-b-mermaid-rendering-notes">Appendix B: Mermaid
+Rendering Notes</a></li>
+<li><a href="#appendix-c-revision-history"
+id="toc-appendix-c-revision-history">Appendix C: Revision
+History</a></li>
+<li><a href="#appendix-d-operational-runbooks-by-diagram"
+id="toc-appendix-d-operational-runbooks-by-diagram">Appendix D:
+Operational Runbooks by Diagram</a>
+<ul>
+<li><a href="#d.1-scheduling-failures"
+id="toc-d.1-scheduling-failures">D.1 Scheduling Failures</a></li>
+<li><a href="#d.2-node-membership-flaps"
+id="toc-d.2-node-membership-flaps">D.2 Node Membership Flaps</a></li>
+<li><a href="#d.3-session-data-loss" id="toc-d.3-session-data-loss">D.3
+Session Data Loss</a></li>
+<li><a href="#d.4-gpu-scheduling-conflicts"
+id="toc-d.4-gpu-scheduling-conflicts">D.4 GPU Scheduling
+Conflicts</a></li>
+<li><a href="#d.5-build-pipeline-failures"
+id="toc-d.5-build-pipeline-failures">D.5 Build Pipeline
+Failures</a></li>
+<li><a href="#d.6-federation-sync-delays"
+id="toc-d.6-federation-sync-delays">D.6 Federation Sync Delays</a></li>
+<li><a href="#d.7-security-incidents"
+id="toc-d.7-security-incidents">D.7 Security Incidents</a></li>
+</ul></li>
+<li><a href="#appendix-e-capacity-planning-reference"
+id="toc-appendix-e-capacity-planning-reference">Appendix E: Capacity
+Planning Reference</a>
+<ul>
+<li><a href="#e.1-control-plane-sizing"
+id="toc-e.1-control-plane-sizing">E.1 Control-Plane Sizing</a></li>
+<li><a href="#e.2-data-plane-sizing" id="toc-e.2-data-plane-sizing">E.2
+Data-Plane Sizing</a></li>
+<li><a href="#e.3-network-sizing" id="toc-e.3-network-sizing">E.3
+Network Sizing</a></li>
+<li><a href="#e.4-storage-sizing" id="toc-e.4-storage-sizing">E.4
+Storage Sizing</a></li>
+</ul></li>
+<li><a href="#appendix-f-glossary-of-helix-specific-terms"
+id="toc-appendix-f-glossary-of-helix-specific-terms">Appendix F:
+Glossary of Helix-Specific Terms</a></li>
+<li><a href="#appendix-g-diagram-maintenance-guide"
+id="toc-appendix-g-diagram-maintenance-guide">Appendix G: Diagram
+Maintenance Guide</a>
+<ul>
+<li><a href="#g.1-when-to-update-diagrams"
+id="toc-g.1-when-to-update-diagrams">G.1 When to Update
+Diagrams</a></li>
+<li><a href="#g.2-validation-checklist"
+id="toc-g.2-validation-checklist">G.2 Validation Checklist</a></li>
+</ul></li>
+</ul></li>
+</ul>
+</nav>
+<h1 id="helix-cluster-architecture-diagrams">Helix Cluster Architecture
+Diagrams</h1>
+<blockquote>
+<p><strong>Version:</strong> 2.4.0<br />
+<strong>Last Updated:</strong> 2026-03-04<br />
+<strong>Classification:</strong> Internal Engineering Reference<br />
+<strong>Audience:</strong> Platform Engineers, SRE, Security Architects,
+DevOps</p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol type="1">
+<li><a href="#1-system-architecture-l0-l7">System Architecture
+L0-L7</a></li>
+<li><a href="#2-control-plane-service-communication">Control-Plane
+Service Communication</a></li>
+<li><a href="#3-workload-placement-request-flow">Workload Placement
+Request Flow</a></li>
+<li><a href="#4-swim-gossip-membership-lifecycle">SWIM Gossip Membership
+Lifecycle</a></li>
+<li><a href="#5-wireguard-mesh-topology">WireGuard Mesh
+Topology</a></li>
+<li><a href="#6-omega-scheduler-architecture">Omega Scheduler
+Architecture</a></li>
+<li><a href="#7-gpu-management-stack">GPU Management Stack</a></li>
+<li><a href="#8-security-architecture">Security Architecture</a></li>
+<li><a href="#9-session-management">Session Management</a></li>
+<li><a href="#10-build-service-architecture">Build Service
+Architecture</a></li>
+<li><a href="#11-health-monitoring">Health Monitoring</a></li>
+<li><a href="#12-eventmessaging-architecture">Event/Messaging
+Architecture</a></li>
+<li><a href="#13-federation-architecture">Federation
+Architecture</a></li>
+<li><a href="#14-consensus-architecture">Consensus Architecture</a></li>
+<li><a href="#15-testing-architecture">Testing Architecture</a></li>
+<li><a href="#16-deployment-architecture">Deployment
+Architecture</a></li>
+<li><a href="#17-database-schema-er">Database Schema ER</a></li>
+<li><a href="#18-challenges-integration-lifecycle">Challenges
+Integration Lifecycle</a></li>
+<li><a href="#19-anti-bluff-pipeline">Anti-Bluff Pipeline</a></li>
+<li><a href="#20-cicd-pipeline">CI/CD Pipeline</a></li>
+</ol>
+<hr />
+<h2 id="introduction">Introduction</h2>
+<p>This document provides the definitive architectural reference for the
+Helix Cluster platform through twenty interconnected Mermaid diagrams.
+Each diagram captures a distinct architectural facet—from the
+seven-layer abstraction stack that governs how packages are organized,
+through the microservice communication mesh that defines runtime
+behavior, to the CI/CD pipeline that automates delivery. Together, they
+form a coherent and navigable map of the entire system.</p>
+<p>The Helix Cluster is a distributed compute platform designed for
+heterogeneous workloads spanning CPU-bound microservices,
+GPU-accelerated machine learning inference, and latency-sensitive
+interactive sessions. It is built on the principle that a
+production-grade cluster must provide first-class support for workload
+placement, identity-driven security, and failure-tolerant membership—all
+while maintaining sub-second scheduling latency and five-nines
+availability. The twenty diagrams in this document are not isolated
+artifacts; they are cross-referenced through Appendix A and designed to
+be read as a unified specification. Engineers should consult this
+document when onboarding onto the platform, designing new services,
+diagnosing production incidents, or planning capacity expansions.</p>
+<h3 id="reading-conventions">Reading Conventions</h3>
+<ul>
+<li><strong>Solid arrows</strong> (<code>--&gt;</code>) denote
+synchronous request/response paths or direct dependencies.</li>
+<li><strong>Dashed arrows</strong> (<code>-.-&gt;</code>) denote
+asynchronous events, eventual-consistency flows, or optional paths.</li>
+<li><strong>Bold labels</strong> on edges indicate the protocol, port,
+or data format in use.</li>
+<li><strong>Color-coded subgraphs</strong> group components by domain or
+failure boundary.</li>
+<li><strong>L0–L7</strong> refers to the seven abstraction layers of the
+Helix stack, not the OSI model.</li>
+<li><strong>Port numbers</strong> (e.g., <code>:8002</code>) indicate
+the default TCP port for the service. In production, these are
+internal-only and exposed through the API Gateway.</li>
+<li><strong>Parenthetical technology references</strong> (e.g.,
+<code>(Rust/Tokio)</code>) indicate the primary implementation language
+and runtime for the component.</li>
+</ul>
+<h3 id="diagram-types-used">Diagram Types Used</h3>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Diagram Type</th>
+<th>Mermaid Directive</th>
+<th>Purpose</th>
+<th>Count in This Document</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Architecture</td>
+<td><code>graph TD</code></td>
+<td>Component layout, dependencies, data flow</td>
+<td>14</td>
+</tr>
+<tr class="even">
+<td>Sequence</td>
+<td><code>sequenceDiagram</code></td>
+<td>Temporal message exchange, request tracing</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>State Machine</td>
+<td><code>stateDiagram-v2</code></td>
+<td>Lifecycle states, transitions, guard conditions</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>Entity-Relationship</td>
+<td><code>erDiagram</code></td>
+<td>Data model, foreign keys, cardinality</td>
+<td>1</td>
+</tr>
+<tr class="odd">
+<td>Class</td>
+<td><code>classDiagram</code></td>
+<td>Object hierarchies, interfaces, composition</td>
+<td>0 (future)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="how-to-navigate-this-document">How to Navigate This
+Document</h3>
+<p>Each of the twenty diagrams follows a consistent four-part structure:
+<strong>Title</strong> (a descriptive name), <strong>Mermaid
+Diagram</strong> (the renderable code), <strong>Description</strong>
+(prose explaining the architecture), and <strong>Key Relationships
+Highlighted</strong> (a bulleted list of the most important
+connections). The descriptions are written for an engineer who is
+familiar with distributed systems concepts but new to the Helix platform
+specifically. Where Helix deviates from industry-standard approaches
+(e.g., CRDT-based sessions instead of sticky-load-balancer sessions, or
+deterministic simulation testing instead of purely stochastic chaos
+engineering), the rationale is explained inline.</p>
+<p>For a quick overview, read the Title and Key Relationships of each
+diagram. For deep understanding, study the Mermaid code alongside the
+Description. For production operations, refer to Appendix D (Operational
+Runbooks) which links each runbook to the relevant diagrams.</p>
+<hr />
+<h2 id="system-architecture-l0-l7">1. System Architecture L0-L7</h2>
+<h3 id="title">Title</h3>
+<p><strong>Seven-Layer Abstraction Stack with Package
+Mapping</strong></p>
+<h3 id="mermaid-diagram">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph L7[&quot;L7 — Application Layer&quot;]
+        APP_CLI[&quot;helix-cli&lt;br/&gt;(Rust Binary)&quot;]
+        APP_SDK[&quot;helix-sdk&lt;br/&gt;(TypeScript/Python SDKs)&quot;]
+        APP_DASH[&quot;Dashboard&lt;br/&gt;(React SPA)&quot;]
+        APP_APIGW[&quot;API Gateway&lt;br/&gt;(Envoy 1.28)&quot;]
+    end
+
+    subgraph L6[&quot;L6 — Orchestration Layer&quot;]
+        ORCH_SCHED[&quot;Omega Scheduler&lt;br/&gt;(scheduler-core)&quot;]
+        ORCH_WORKLOAD[&quot;Workload Controller&lt;br/&gt;(workload-ctrl)&quot;]
+        ORCH_SCALE[&quot;Autoscaler&lt;br/&gt;(autoscaler-engine)&quot;]
+        ORCH_ROLL[&quot;Rollout Manager&lt;br/&gt;(rollout-mgr)&quot;]
+        ORCH_FED[&quot;Federation Controller&lt;br/&gt;(fed-ctrl)&quot;]
+    end
+
+    subgraph L5[&quot;L5 — Service Mesh Layer&quot;]
+        MESH_PROXY[&quot;Sidecar Proxy&lt;br/&gt;(Envoy Sidecar)&quot;]
+        MESH_CFG[&quot;Mesh Config&lt;br/&gt;(mesh-config-server)&quot;]
+        MESH_OBS[&quot;Mesh Observability&lt;br/&gt;(mesh-obs-collector)&quot;]
+        MESH_POLICY[&quot;Mesh Policy&lt;br/&gt;(policy-engine)&quot;]
+    end
+
+    subgraph L4[&quot;L4 — Transport &amp; Security Layer&quot;]
+        SEC_WG[&quot;WireGuard Mesh&lt;br/&gt;(wg-mesh-daemon)&quot;]
+        SEC_SPIFFE[&quot;SPIFFE Workload API&lt;br/&gt;(spire-agent)&quot;]
+        SEC_JWT[&quot;JWT Validation&lt;br/&gt;(jwt-validator)&quot;]
+        SEC_RBAC[&quot;RBAC Engine&lt;br/&gt;(rbac-engine)&quot;]
+        SEC_AUDIT[&quot;Audit Logger&lt;br/&gt;(audit-sink)&quot;]
+    end
+
+    subgraph L3[&quot;L3 — Cluster Membership Layer&quot;]
+        MEM_SWIM[&quot;SWIM Gossip&lt;br/&gt;(swim-gossip-daemon)&quot;]
+        MEM_DISC[&quot;Service Discovery&lt;br/&gt;(disc-server)&quot;]
+        MEM_TOPO[&quot;Topology Manager&lt;br/&gt;(topo-mgr)&quot;]
+        MEM_PART[&quot;Partition Detector&lt;br/&gt;(partition-detector)&quot;]
+        MEM_ZONE[&quot;Zone Awareness&lt;br/&gt;(zone-awareness)&quot;]
+    end
+
+    subgraph L2[&quot;L2 — Resource Management Layer&quot;]
+        RES_NODE[&quot;Node Agent&lt;br/&gt;(node-agent)&quot;]
+        RES_GPU[&quot;GPU Manager&lt;br/&gt;(gpu-mgr)&quot;]
+        RES_STORAGE[&quot;Storage Provider&lt;br/&gt;(storage-provisioner)&quot;]
+        RES_NET[&quot;Network CNI&lt;br/&gt;(helix-cni)&quot;]
+        RES_MEM[&quot;Memory Balloon&lt;br/&gt;(mem-balloon)&quot;]
+    end
+
+    subgraph L1[&quot;L1 — Kernel &amp; Runtime Layer&quot;]
+        KRN_LINUX[&quot;Linux Kernel 6.1+&lt;br/&gt;(cgroups v2, eBPF)&quot;]
+        KRN_CRI[&quot;Container Runtime&lt;br/&gt;(containerd 2.0 / CRI-O)&quot;]
+        KRN_HYPER[&quot;Hypervisor&lt;br/&gt;(Firecracker / Cloud-Hypervisor)&quot;]
+        KRN_NVML[&quot;NVIDIA Driver&lt;br/&gt;(v535+, NVML)&quot;]
+        KRN_DPDK[&quot;DPDK / SR-IOV&lt;br/&gt;(userspace networking)&quot;]
+    end
+
+    subgraph L0[&quot;L0 — Hardware Layer&quot;]
+        HW_CPU[&quot;x86_64 / ARM64 CPUs&quot;]
+        HW_GPU[&quot;NVIDIA A100/H100 GPUs&quot;]
+        HW_NVME[&quot;NVMe SSD Arrays&quot;]
+        HW_NIC[&quot;100G+ NICs&lt;br/&gt;(Mellanox / Broadcom)&quot;]
+        HW_TPM[&quot;TPM 2.0 Modules&quot;]
+    end
+
+    %% Cross-layer relationships
+    APP_CLI --&gt; ORCH_SCHED
+    APP_SDK --&gt; ORCH_WORKLOAD
+    APP_DASH --&gt; APP_APIGW
+    APP_APIGW --&gt; MESH_PROXY
+
+    ORCH_SCHED --&gt; MESH_POLICY
+    ORCH_WORKLOAD --&gt; RES_NODE
+    ORCH_SCALE --&gt; RES_GPU
+    ORCH_ROLL --&gt; MEM_SWIM
+    ORCH_FED --&gt; MEM_TOPO
+
+    MESH_PROXY --&gt; SEC_WG
+    MESH_CFG --&gt; SEC_SPIFFE
+    MESH_OBS --&gt; SEC_AUDIT
+    MESH_POLICY --&gt; SEC_RBAC
+
+    SEC_WG --&gt; MEM_SWIM
+    SEC_SPIFFE --&gt; MEM_DISC
+    SEC_JWT --&gt; MESH_PROXY
+
+    MEM_SWIM --&gt; RES_NODE
+    MEM_DISC --&gt; RES_NET
+    MEM_TOPO --&gt; RES_STORAGE
+    MEM_ZONE --&gt; RES_GPU
+
+    RES_NODE --&gt; KRN_LINUX
+    RES_GPU --&gt; KRN_NVML
+    RES_STORAGE --&gt; KRN_LINUX
+    RES_NET --&gt; KRN_DPDK
+    RES_MEM --&gt; KRN_HYPER
+
+    KRN_LINUX --&gt; HW_CPU
+    KRN_CRI --&gt; HW_CPU
+    KRN_HYPER --&gt; HW_CPU
+    KRN_NVML --&gt; HW_GPU
+    KRN_DPDK --&gt; HW_NIC
+
+    HW_TPM --&gt; SEC_SPIFFE
+
+    style L7 fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style L6 fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style L5 fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style L4 fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style L3 fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style L2 fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style L1 fill:#fff9c4,stroke:#f9a825,stroke-width:2px
+    style L0 fill:#efebe9,stroke:#4e342e,stroke-width:2px</code></pre>
+<h3 id="description">Description</h3>
+<p>This diagram presents the Helix Cluster’s seven-layer abstraction
+stack, mapping every package and daemon to its correct layer. The stack
+begins at L0 (bare hardware with CPUs, GPUs, NVMe, NICs, and TPM
+modules) and rises through L1 (kernel and runtime with eBPF, containerd,
+Firecracker, NVML, and DPDK), L2 (resource managers for nodes, GPUs,
+storage, network, and memory), L3 (cluster membership via SWIM gossip,
+service discovery, topology awareness, and partition detection), L4
+(transport and security encompassing WireGuard mesh, SPIFFE identity,
+JWT validation, RBAC, and audit), L5 (service mesh with Envoy sidecars,
+mesh config, observability, and policy), L6 (orchestration with the
+Omega Scheduler, workload controller, autoscaler, rollout manager, and
+federation controller), and finally L7 (application-facing components:
+CLI, SDKs, dashboard, and API gateway).</p>
+<h3 id="key-relationships-highlighted">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>L7 → L6</strong>: The API Gateway at L7 routes all inbound
+traffic to the orchestration layer, where the Omega Scheduler and
+Workload Controller handle placement and lifecycle.</li>
+<li><strong>L5 → L4</strong>: The service mesh proxy relies on WireGuard
+for encrypted transport and SPIFFE for workload identity; mesh policy
+enforces RBAC decisions.</li>
+<li><strong>L3 → L2</strong>: SWIM gossip membership directly drives
+node-agent awareness at L2; topology changes at L3 trigger storage and
+network reconfiguration at L2.</li>
+<li><strong>L0 → L4</strong>: The TPM 2.0 modules at L0 feed attestation
+evidence into the SPIFFE identity layer at L4, establishing
+hardware-rooted trust.</li>
+<li><strong>GPU path</strong>:
+<code>APP_SDK → ORCH_WORKLOAD → RES_GPU → KRN_NVML → HW_GPU</code>
+traces the full vertical path from a user’s SDK call to physical GPU
+hardware.</li>
+</ul>
+<hr />
+<h2 id="control-plane-service-communication">2. Control-Plane Service
+Communication</h2>
+<h3 id="title-1">Title</h3>
+<p><strong>Fourteen Microservices with Inter-Service Ports and
+Protocols</strong></p>
+<h3 id="mermaid-diagram-1">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph CP[&quot;Control Plane&quot;]
+        API[&quot;API Gateway&lt;br/&gt;:8000&lt;br/&gt;Envoy&quot;]
+        AUTH[&quot;Auth Service&lt;br/&gt;:8001&lt;br/&gt;Rust/Tokio&quot;]
+        SCHED[&quot;Scheduler Service&lt;br/&gt;:8002&lt;br/&gt;Omega Core&quot;]
+        WORKER[&quot;Worker Manager&lt;br/&gt;:8003&lt;br/&gt;Go&quot;]
+        HEALTH[&quot;Health Service&lt;br/&gt;:8004&lt;br/&gt;Rust&quot;]
+        BUILDER[&quot;Build Service&lt;br/&gt;:8005&lt;br/&gt;Go&quot;]
+        SESSION[&quot;Session Service&lt;br/&gt;:8006&lt;br/&gt;Rust/CRDT&quot;]
+        GPU[&quot;GPU Service&lt;br/&gt;:8007&lt;br/&gt;Go/CUDA&quot;]
+        EVENT[&quot;Event Bus&lt;br/&gt;:8008&lt;br/&gt;NATS&quot;]
+        FED[&quot;Federation Service&lt;br/&gt;:8009&lt;br/&gt;Rust&quot;]
+        CONSENSUS[&quot;Consensus Service&lt;br/&gt;:8010&lt;br/&gt;Raft/etcd&quot;]
+        AUDIT[&quot;Audit Service&lt;br/&gt;:8011&lt;br/&gt;Rust&quot;]
+        MESH[&quot;Mesh Controller&lt;br/&gt;:8012&lt;br/&gt;Go/Envoy xDS&quot;]
+        REGISTRY[&quot;Registry Service&lt;br/&gt;:8013&lt;br/&gt;Go/Distribution&quot;]
+    end
+
+    API --&gt;|&quot;gRPC :8001&quot;| AUTH
+    API --&gt;|&quot;gRPC :8002&quot;| SCHED
+    API --&gt;|&quot;gRPC :8003&quot;| WORKER
+    API --&gt;|&quot;gRPC :8006&quot;| SESSION
+    API --&gt;|&quot;gRPC :8007&quot;| GPU
+    API --&gt;|&quot;gRPC :8009&quot;| FED
+
+    AUTH --&gt;|&quot;JWT verify :8011&quot;| AUDIT
+    AUTH --&gt;|&quot;mTLS :8010&quot;| CONSENSUS
+
+    SCHED --&gt;|&quot;gRPC :8003&quot;| WORKER
+    SCHED --&gt;|&quot;gRPC :8007&quot;| GPU
+    SCHED --&gt;|&quot;gRPC :8008&quot;| EVENT
+    SCHED --&gt;|&quot;Raft :8010&quot;| CONSENSUS
+
+    WORKER --&gt;|&quot;gRPC :8004&quot;| HEALTH
+    WORKER --&gt;|&quot;gRPC :8005&quot;| BUILDER
+    WORKER --&gt;|&quot;NATS pub :8008&quot;| EVENT
+    WORKER --&gt;|&quot;gRPC :8013&quot;| REGISTRY
+
+    HEALTH --&gt;|&quot;Rollup :8008&quot;| EVENT
+    HEALTH --&gt;|&quot;mTLS :8010&quot;| CONSENSUS
+
+    BUILDER --&gt;|&quot;Podman exec :8003&quot;| WORKER
+    BUILDER --&gt;|&quot;Push :8013&quot;| REGISTRY
+    BUILDER --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    SESSION --&gt;|&quot;CRDT sync :8006&quot;| SESSION
+    SESSION --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    GPU --&gt;|&quot;NVML :8010&quot;| CONSENSUS
+    GPU --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    FED --&gt;|&quot;mTLS :8010&quot;| CONSENSUS
+    FED --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    CONSENSUS --&gt;|&quot;Snapshot :8011&quot;| AUDIT
+    CONSENSUS --&gt;|&quot;xDS :8012&quot;| MESH
+
+    MESH --&gt;|&quot;xDS push :8000&quot;| API
+    MESH --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    REGISTRY --&gt;|&quot;NATS pub :8008&quot;| EVENT
+
+    AUDIT --&gt;|&quot;Persist :8010&quot;| CONSENSUS
+
+    style API fill:#bbdefb,stroke:#1565c0,stroke-width:3px
+    style EVENT fill:#ffccbc,stroke:#bf360c,stroke-width:3px
+    style CONSENSUS fill:#c8e6c9,stroke:#2e7d32,stroke-width:3px</code></pre>
+<h3 id="description-1">Description</h3>
+<p>This diagram details the fourteen control-plane microservices and
+their communication paths, annotated with port numbers and protocols.
+The API Gateway (Envoy on port 8000) serves as the single ingress point,
+routing to Auth (8001), Scheduler (8002), Worker Manager (8003), Session
+(8006), GPU (8007), and Federation (8009) services over gRPC. The Event
+Bus (NATS on 8008) acts as the central nervous system—nearly every
+service publishes domain events to it, enabling loose coupling and
+eventual consistency. The Consensus Service (Raft/etcd on 8010) is the
+authoritative state store; Auth, Scheduler, Health, Federation, Audit,
+and GPU services all interact with it over mTLS-secured Raft channels.
+The Mesh Controller (8012) receives xDS snapshots from Consensus and
+pushes Envoy configuration to the API Gateway. The Registry Service
+(8013) stores container images pushed by the Build Service (8005) and
+pulled by the Worker Manager (8003).</p>
+<h3 id="key-relationships-highlighted-1">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Hub-and-spoke event pattern</strong>: The Event Bus (NATS
+:8008) is the hub; all services publish domain events, and interested
+services subscribe. This decouples producers from consumers.</li>
+<li><strong>Consensus as the source of truth</strong>: Six services
+write/read state through the Consensus Service via Raft, ensuring
+linearizable consistency for critical state (scheduling decisions, GPU
+reservations, auth tokens, federation membership).</li>
+<li><strong>Bidirectional Mesh ↔︎ Gateway</strong>: The Mesh Controller
+pushes xDS configuration to the API Gateway, while the Gateway reports
+runtime metrics back through the mesh observability pipeline.</li>
+<li><strong>CRDT peer sync</strong>: Session Service nodes communicate
+directly with each other on :8006 using CRDT-based state replication,
+bypassing both the Event Bus and Consensus for low-latency session
+migration.</li>
+</ul>
+<hr />
+<h2 id="workload-placement-request-flow">3. Workload Placement Request
+Flow</h2>
+<h3 id="title-2">Title</h3>
+<p><strong>End-to-End Sequence from API Request to Pod Running on
+Node</strong></p>
+<h3 id="mermaid-diagram-2">Mermaid Diagram</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    actor User
+    participant CLI as helix-cli
+    participant GW as API Gateway&lt;br/&gt;:8000
+    participant AUTH as Auth Service&lt;br/&gt;:8001
+    participant SCHED as Omega Scheduler&lt;br/&gt;:8002
+    participant CACHE as Schedule Cache&lt;br/&gt;(etcd watch)
+    participant CON as Consensus&lt;br/&gt;:8010
+    participant WORK as Worker Manager&lt;br/&gt;:8003
+    participant GPU as GPU Service&lt;br/&gt;:8007
+    participant NA as Node Agent&lt;br/&gt;(on target node)
+    participant CRI as containerd&lt;br/&gt;(CRI)
+    participant EVENT as Event Bus&lt;br/&gt;(NATS :8008)
+    participant HEALTH as Health Service&lt;br/&gt;:8004
+
+    User-&gt;&gt;CLI: helix run --gpu=1 --mem=16Gi my-app:v2
+    CLI-&gt;&gt;GW: POST /v1/workloads&lt;br/&gt;Authorization: Bearer jwt_token
+    GW-&gt;&gt;AUTH: Validate JWT + RBAC check
+    AUTH--&gt;&gt;GW: {valid: true, role: &quot;developer&quot;, perms: [...]}
+
+    GW-&gt;&gt;SCHED: ScheduleWorkload(spec)
+    SCHED-&gt;&gt;SCHED: Parse &amp; validate spec&lt;br/&gt;Extract constraints:&lt;br/&gt;gpu=1, mem=16Gi, image=my-app:v2
+
+    Note over SCHED: Omega Pipeline Phase 1: Filter
+    SCHED-&gt;&gt;CON: GetNodeStates() via etcd watch cache
+    CON--&gt;&gt;SCHED: NodeList[n1..n47]
+    SCHED-&gt;&gt;SCHED: Filter phase:&lt;br/&gt;- Taint/Toleration match&lt;br/&gt;- GPU availability ≥ 1&lt;br/&gt;- Memory available ≥ 16Gi&lt;br/&gt;- Affinity/anti-affinity rules&lt;br/&gt;Result: 12 candidates
+
+    Note over SCHED: Omega Pipeline Phase 2: Score
+    SCHED-&gt;&gt;GPU: QueryGPUAllocations(candidate_nodes)
+    GPU--&gt;&gt;SCHED: GPU topology + utilization
+    SCHED-&gt;&gt;SCHED: Score phase:&lt;br/&gt;- Bin-packing score (0-100)&lt;br/&gt;- GPU locality score (0-100)&lt;br/&gt;- Spread score (0-100)&lt;br/&gt;- Custom plugin scores&lt;br/&gt;Weighted sum → rank candidates
+
+    Note over SCHED: Omega Pipeline Phase 3: Bind
+    SCHED-&gt;&gt;CON: TransactionalBind(&lt;br/&gt;workload_id, node=n23&lt;br/&gt;gpu=pci:0000:3b:00.0&lt;br/&gt;mem=16Gi reserved)
+    CON--&gt;&gt;SCHED: Bind committed (Raft index 42817)
+
+    SCHED-&gt;&gt;EVENT: Publish WorkloadScheduled&lt;br/&gt;{workload_id, node=n23, gpu, ts}
+    SCHED--&gt;&gt;GW: ScheduleResponse{workload_id, node, status: &quot;scheduled&quot;}
+    GW--&gt;&gt;CLI: 201 Created {workload_id, node, status}
+    CLI--&gt;&gt;User: Workload scheduled on node n23
+
+    Note over WORK: Worker Manager picks up scheduled event
+    EVENT-&gt;&gt;WORK: NATS subscription&lt;br/&gt;WorkloadScheduled event
+    WORK-&gt;&gt;NA: DeployWorkload(spec, gpu_id, mem_limit)&lt;br/&gt;gRPC over WireGuard mesh
+    NA-&gt;&gt;CRI: CreateContainer + StartContainer&lt;br/&gt;CRI request with resource limits
+    CRI--&gt;&gt;NA: ContainerID=ctr-7f3a2b
+
+    NA-&gt;&gt;EVENT: Publish WorkloadRunning&lt;br/&gt;{workload_id, container_id, pid, ts}
+    EVENT-&gt;&gt;HEALTH: WorkloadRunning event&lt;br/&gt;→ register health checks
+    EVENT-&gt;&gt;SCHED: WorkloadRunning event&lt;br/&gt;→ update schedule cache
+
+    HEALTH-&gt;&gt;NA: Begin periodic health probes&lt;br/&gt;HTTP/TCP/Exec every 10s
+    NA--&gt;&gt;HEALTH: Probe responses
+
+    Note over User,CLI: User can query status
+    User-&gt;&gt;CLI: helix status my-workload
+    CLI-&gt;&gt;GW: GET /v1/workloads/{id}/status
+    GW-&gt;&gt;SCHED: GetWorkloadStatus(id)
+    SCHED-&gt;&gt;CACHE: Lookup schedule cache
+    CACHE--&gt;&gt;SCHED: {status: &quot;running&quot;, node: n23, uptime: 42s}
+    SCHED--&gt;&gt;GW: StatusResponse
+    GW--&gt;&gt;CLI: 200 OK {running, node=n23}
+    CLI--&gt;&gt;User: ● Running on n23 (42s)</code></pre>
+<h3 id="description-2">Description</h3>
+<p>This sequence diagram traces the complete lifecycle of a workload
+placement request from the user’s CLI command
+(<code>helix run --gpu=1 --mem=16Gi my-app:v2</code>) through
+scheduling, binding, deployment, and health-check registration. The flow
+proceeds in four major phases:</p>
+<ol type="1">
+<li><strong>Authentication &amp; Authorization</strong> (steps 1–4): The
+CLI sends the request to the API Gateway, which delegates JWT validation
+and RBAC checking to the Auth Service.</li>
+<li><strong>Scheduling Pipeline</strong> (steps 5–13): The Omega
+Scheduler executes its three-phase pipeline—Filter (eliminate unsuitable
+nodes), Score (rank remaining candidates using weighted multi-criteria
+scoring), and Bind (atomically commit the placement decision through the
+Consensus Service’s Raft log).</li>
+<li><strong>Deployment</strong> (steps 14–18): The Worker Manager
+consumes the <code>WorkloadScheduled</code> event from NATS, sends the
+deployment spec over the WireGuard mesh to the target Node Agent, which
+creates and starts the container via the CRI (container runtime
+interface).</li>
+<li><strong>Health Registration</strong> (steps 19–21): The
+<code>WorkloadRunning</code> event triggers the Health Service to begin
+periodic probes, and updates the Scheduler’s cache so subsequent status
+queries return accurate information.</li>
+</ol>
+<h3 id="key-relationships-highlighted-2">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Etcd watch cache as the scheduling data plane</strong>: The
+Scheduler reads node states from a local cache populated by etcd
+watches, avoiding direct Consensus reads during the hot path.</li>
+<li><strong>Transactional bind through Raft</strong>: The Bind phase
+writes to the Consensus Service atomically, preventing double-scheduling
+of the same GPU or memory slot even under concurrent schedulers.</li>
+<li><strong>Event-driven deployment handoff</strong>: The Scheduler does
+not directly invoke the Worker Manager; instead, it publishes to NATS,
+and the Worker Manager reacts asynchronously. This decouples scheduling
+latency from deployment latency.</li>
+<li><strong>Health probes begin only after
+<code>WorkloadRunning</code></strong>: The Health Service does not start
+probing until the container is confirmed running, avoiding
+false-negative health failures during startup.</li>
+</ul>
+<hr />
+<h2 id="swim-gossip-membership-lifecycle">4. SWIM Gossip Membership
+Lifecycle</h2>
+<h3 id="title-3">Title</h3>
+<p><strong>SWIM Gossip Protocol State Machine with Failure Detection and
+Dissemination</strong></p>
+<h3 id="mermaid-diagram-3">Mermaid Diagram</h3>
+<pre class="mermaid"><code>stateDiagram-v2
+    [*] --&gt; Joining : Node starts
+
+    state Joining {
+        [*] --&gt; ContactSeed : DNS lookup seed nodes
+        ContactSeed --&gt; AwaitAck : Send SWIM ping to seed
+        AwaitAck --&gt; Joined : Receive ack + membership list
+        AwaitAck --&gt; JoinFailed : Timeout after 3 retries
+        JoinFailed --&gt; [*]
+    }
+
+    Joined --&gt; Alive : Gossip round confirms liveness
+
+    state Alive {
+        [*] --&gt; PingPhase : Protocol period begins
+        PingPhase --&gt; ProbeTarget : Select random member k
+        ProbeTarget --&gt; AwaitProbeAck : Send ping to k
+        AwaitProbeAck --&gt; ProbeSuccess : Ack received within probe_interval
+        AwaitProbeAck --&gt; IndirectProbe : No ack → request indirect ping
+        IndirectProbe --&gt; ProbeSuccess : k confirms via proxy
+        IndirectProbe --&gt; SuspectTransition : No indirect ack within probe_interval × 2
+        ProbeSuccess --&gt; Disseminate : Broadcast alive status
+        Disseminate --&gt; PingPhase : Next protocol period
+    }
+
+    SuspectTransition --&gt; Suspect
+
+    state Suspect {
+        [*] --&gt; IncriminatingPhase : Suspect timer starts
+        IncriminatingPhase --&gt; RefuteCheck : Did suspect node refute?
+        RefuteCheck --&gt; Alive : Refutation received&lt;br/&gt;(ping from suspect)
+        RefuteCheck --&gt; ConfirmTimeout : No refutation within&lt;br/&gt;suspect_timeout
+        ConfirmTimeout --&gt; Dead : Incarnation not incremented
+    }
+
+    Suspect --&gt; Alive : Refutation from suspected node&lt;br/&gt;(higher incarnation)
+
+    Dead --&gt; Leaving
+
+    state Leaving {
+        [*] --&gt; GracefulShutdown : Node receives SIGTERM
+        GracefulShutdown --&gt; DrainWorkloads : Evict running workloads
+        DrainWorkloads --&gt; BroadcastLeave : Publish Leave message
+        BroadcastLeave --&gt; Left : Remove from membership
+    }
+
+    Dead --&gt; Left
+
+    Left --&gt; [*]
+
+    state Partitioned {
+        [*] --&gt; MinorityPartition : Cannot reach quorum
+        MinorityPartition --&gt; StepDown : Step down if leader
+        StepDown --&gt; AwaitHeal : Wait for connectivity
+        AwaitHeal --&gt; Rejoin : Connectivity restored
+        Rejoin --&gt; Joining : Re-enter cluster
+        AwaitHeal --&gt; SplitBrain : Conflict detected
+        SplitBrain --&gt; Rejoin : Resolution via quorum compare
+    }
+
+    Alive --&gt; Partitioned : Network partition detected&lt;br/&gt;by partition-detector
+    Suspect --&gt; Partitioned : Persistent suspicion&lt;br/&gt;across protocol periods
+
+    note right of Alive
+        Protocol period = 1s (default)
+        Probe interval = 1 × period
+        Suspect timeout = 5 × period
+        Dissemination: piggyback on ping/ack
+        Incarnation: monotonically increasing counter
+    end note
+
+    note right of Partitioned
+        Partition detector uses
+        independent reachability
+        probes (TCP + ICMP) to
+        distinguish true failures
+        from network splits.
+    end note
+
+    note left of Suspect
+        A node suspects another
+        when indirect probes also
+        fail. The suspect can
+        refute by sending an
+        alive message with a
+        higher incarnation number.
+    end note</code></pre>
+<h3 id="description-3">Description</h3>
+<p>This state machine diagram captures the full lifecycle of a node in
+the SWIM (Scalable Weakly-consistent Infection-style Process Group
+Membership) gossip protocol as implemented by the
+<code>swim-gossip-daemon</code>. The lifecycle begins with a Joining
+phase where the node contacts seed nodes and awaits membership-list
+download. Once joined, the node enters the Alive state and begins the
+ping-probe cycle: each protocol period (default 1 second), a random
+member is selected for direct ping; if no ack arrives, indirect probing
+through k other members is attempted. If indirect probing also fails,
+the target transitions to Suspect. A suspect node can refute the
+suspicion by broadcasting an alive message with a higher incarnation
+number. If no refutation arrives within the suspect timeout (5 ×
+protocol period), the node is declared Dead and removed from the
+membership list. The diagram also includes a Partitioned state for
+network partitions, where the partition-detector uses independent TCP
+and ICMP probes to distinguish true node failures from network
+splits.</p>
+<h3 id="key-relationships-highlighted-3">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Alive ↔︎ Suspect cycle</strong>: A node can oscillate between
+Alive and Suspect multiple times before being declared Dead; each
+refutation increments the incarnation counter, preventing stale
+suspicions.</li>
+<li><strong>Suspect → Dead → Left</strong>: Once a node is confirmed
+Dead, it enters the Leaving phase only if it was the local node
+(graceful shutdown path); remote dead nodes are simply marked Left.</li>
+<li><strong>Partitioned → Rejoin</strong>: After a network partition
+heals, nodes re-enter the Joining phase, ensuring membership state is
+reconciled through the full seed-contact protocol.</li>
+<li><strong>Piggyback dissemination</strong>: Status changes (alive,
+suspect, dead) are piggybacked on regular ping/ack messages rather than
+sent as separate broadcasts, reducing network overhead.</li>
+</ul>
+<hr />
+<h2 id="wireguard-mesh-topology">5. WireGuard Mesh Topology</h2>
+<h3 id="title-4">Title</h3>
+<p><strong>Encrypted Mesh Network with NAT Traversal and Relay
+Fallback</strong></p>
+<h3 id="mermaid-diagram-4">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph RegionA[&quot;Region A — US-East&quot;]
+        NA1[&quot;Node A1&lt;br/&gt;10.0.1.1/24&lt;br/&gt;WG: 172.16.0.1&lt;br/&gt;Public: 203.0.113.10&quot;]
+        NA2[&quot;Node A2&lt;br/&gt;10.0.1.2/24&lt;br/&gt;WG: 172.16.0.2&lt;br/&gt;NAT: Behind CGNAT&quot;]
+        NA3[&quot;Node A3&lt;br/&gt;10.0.1.3/24&lt;br/&gt;WG: 172.16.0.3&lt;br/&gt;Public: 203.0.113.11&quot;]
+        NA_RLY[&quot;Relay A&lt;br/&gt;STUN/TURN&lt;br/&gt;203.0.113.50:51820&quot;]
+    end
+
+    subgraph RegionB[&quot;Region B — EU-West&quot;]
+        NB1[&quot;Node B1&lt;br/&gt;10.0.2.1/24&lt;br/&gt;WG: 172.16.1.1&lt;br/&gt;Public: 198.51.100.10&quot;]
+        NB2[&quot;Node B2&lt;br/&gt;10.0.2.2/24&lt;br/&gt;WG: 172.16.1.2&lt;br/&gt;NAT: Symmetric NAT&quot;]
+        NB3[&quot;Node B3&lt;br/&gt;10.0.2.3/24&lt;br/&gt;WG: 172.16.1.3&lt;br/&gt;Public: 198.51.100.11&quot;]
+        NB_RLY[&quot;Relay B&lt;br/&gt;STUN/TURN&lt;br/&gt;198.51.100.50:51820&quot;]
+    end
+
+    subgraph RegionC[&quot;Region C — AP-South&quot;]
+        NC1[&quot;Node C1&lt;br/&gt;10.0.3.1/24&lt;br/&gt;WG: 172.16.2.1&lt;br/&gt;Public: 192.0.2.10&quot;]
+        NC2[&quot;Node C2&lt;br/&gt;10.0.3.2/24&lt;br/&gt;WG: 172.16.2.2&lt;br/&gt;NAT: Behind firewall&quot;]
+    end
+
+    subgraph WGCtrl[&quot;WireGuard Control Plane&quot;]
+        WG_MGR[&quot;wg-mesh-daemon&lt;br/&gt;(per node)&quot;]
+        WG_CFG[&quot;WireGuard Config&lt;br/&gt;Store (etcd)&quot;]
+        WG_KM[&quot;Key Manager&lt;br/&gt;(key-rotation daemon)&quot;]
+        WG_STUN[&quot;STUN Server&lt;br/&gt;:3478&quot;]
+    end
+
+    %% Direct mesh links (solid = established, dashed = on-demand)
+    NA1 --&gt;|&quot;WG Tunnel&lt;br/&gt;PSK +Curve25519&quot;| NA3
+    NA1 -.-&gt;|&quot;On-demand tunnel&quot;| NA2
+    NA3 --&gt;|&quot;WG Tunnel&quot;| NA2
+    NA1 --&gt;|&quot;Inter-region WG&quot;| NB1
+    NA3 --&gt;|&quot;Inter-region WG&quot;| NB3
+
+    NB1 --&gt;|&quot;WG Tunnel&quot;| NB3
+    NB1 -.-&gt;|&quot;On-demand tunnel&quot;| NB2
+    NB3 -.-&gt;|&quot;On-demand via relay&quot;| NB2
+
+    NA1 --&gt;|&quot;Cross-region WG&quot;| NC1
+    NB1 --&gt;|&quot;Cross-region WG&quot;| NC1
+
+    %% NAT traversal paths
+    NA2 --&gt;|&quot;Hole-punch via STUN&quot;| NA_RLY
+    NB2 --&gt;|&quot;TURN relay&quot;| NB_RLY
+    NC2 --&gt;|&quot;Hole-punch via STUN&quot;| NA_RLY
+
+    %% Control plane connections
+    WG_MGR --&gt; WG_CFG
+    WG_KM --&gt; WG_CFG
+    WG_STUN --&gt; NA2
+    WG_STUN --&gt; NB2
+    WG_STUN --&gt; NC2
+
+    NA_RLY -.-&gt;|&quot;Relay fallback&quot;| NB_RLY
+
+    style RegionA fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style RegionB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style RegionC fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style WGCtrl fill:#fce4ec,stroke:#c62828,stroke-width:2px</code></pre>
+<h3 id="description-4">Description</h3>
+<p>This network diagram illustrates the WireGuard mesh topology spanning
+three regions (US-East, EU-West, AP-South). Each node runs the
+<code>wg-mesh-daemon</code> which manages WireGuard interface
+configuration, peer management, and tunnel establishment. The mesh uses
+a hub-and-spoke-with-direct-links topology: nodes with public IP
+addresses establish direct WireGuard tunnels (using PSK + Curve25519 for
+post-quantum hybrid key exchange), while nodes behind NAT (CGNAT,
+symmetric NAT, or firewalls) use STUN-based hole punching or TURN relay
+fallback.</p>
+<p>The WireGuard Control Plane comprises three components: the
+<code>wg-mesh-daemon</code> on each node, the configuration store in
+etcd (which holds peer public keys, allowed-ips, and endpoint
+addresses), and the key-rotation daemon that periodically rotates
+pre-shared keys. The STUN server on port 3478 helps NAT-ed nodes
+discover their external address and establish direct tunnels when
+possible. When hole punching fails (e.g., symmetric NAT), traffic falls
+back to the regional TURN relay, which forwards encrypted WireGuard
+packets without decrypting them.</p>
+<p>Inter-region links are established between designated gateway nodes
+(those with public IPs and sufficient bandwidth). The
+<code>wg-mesh-daemon</code> monitors link quality using periodic latency
+probes and can dynamically reroute traffic through alternative paths
+when a direct link degrades.</p>
+<h3 id="key-relationships-highlighted-4">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Direct tunnels between public-IP nodes</strong>: NA1↔︎NA3,
+NB1↔︎NB3, and cross-region links NA1↔︎NB1, NA1↔︎NC1 carry the bulk of
+inter-node traffic with minimal latency.</li>
+<li><strong>NAT traversal for private-IP nodes</strong>: NA2 (CGNAT)
+uses STUN hole-punching via Relay A; NB2 (symmetric NAT) falls back to
+TURN relay B; NC2 (firewall) uses STUN via Relay A.</li>
+<li><strong>On-demand tunnel establishment</strong>: Dashed lines
+indicate tunnels that are not permanently established but created when
+traffic needs to flow, reducing idle connection overhead.</li>
+<li><strong>Key rotation through etcd</strong>: The key-rotation daemon
+writes new pre-shared keys to etcd; the <code>wg-mesh-daemon</code>
+watches for changes and applies them without disrupting existing tunnels
+(WireGuard supports seamless rekeying).</li>
+</ul>
+<hr />
+<h2 id="omega-scheduler-architecture">6. Omega Scheduler
+Architecture</h2>
+<h3 id="title-5">Title</h3>
+<p><strong>Filter / Score / Bind Pipeline with Plugin
+Extensions</strong></p>
+<h3 id="mermaid-diagram-5">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Input[&quot;Scheduler Input&quot;]
+        REQ[&quot;Workload Spec&lt;br/&gt;CPU/Mem/GPU/Affinity&quot;]
+        QUEUE[&quot;Priority Queue&lt;br/&gt;(FIFO + Priority)&quot;]
+        CACHE[&quot;Scheduler Cache&lt;br/&gt;(etcd watch)&quot;]
+    end
+
+    subgraph Filter[&quot;Phase 1 — Filter Pipeline&quot;]
+        F1[&quot;NodeResourceFit&lt;br/&gt;Filter&quot;]
+        F2[&quot;TaintToleration&lt;br/&gt;Filter&quot;]
+        F3[&quot;GPUAvailability&lt;br/&gt;Filter&quot;]
+        F4[&quot;AffinityAntiAffinity&lt;br/&gt;Filter&quot;]
+        F5[&quot;PortConflict&lt;br/&gt;Filter&quot;]
+        F6[&quot;PodTopologySpread&lt;br/&gt;Filter&quot;]
+        F7[&quot;CustomFilter&lt;br/&gt;Plugin Extension&quot;]
+        F_MERGE[&quot;Filter Result&lt;br/&gt;Feasible Nodes[]&quot;]
+    end
+
+    subgraph Score[&quot;Phase 2 — Score Pipeline&quot;]
+        S1[&quot;BinPacking&lt;br/&gt;Score (0-100)&quot;]
+        S2[&quot;GPULocality&lt;br/&gt;Score (0-100)&quot;]
+        S3[&quot;NodeAffinity&lt;br/&gt;Score (0-100)&quot;]
+        S4[&quot;PodSpread&lt;br/&gt;Score (0-100)&quot;]
+        S5[&quot;InterWorkloadAffinity&lt;br/&gt;Score (0-100)&quot;]
+        S6[&quot;CustomScore&lt;br/&gt;Plugin Extension&quot;]
+        S_WEIGHT[&quot;Weighted Sum&lt;br/&gt;Σ(wi × si)&quot;]
+        S_RANK[&quot;Ranked Node List&quot;]
+    end
+
+    subgraph Bind[&quot;Phase 3 — Bind Pipeline&quot;]
+        B1[&quot;PreBind Hook&lt;br/&gt;(volume attach, GPU claim)&quot;]
+        B2[&quot;Transactional Bind&lt;br/&gt;(etcd txn: reserve + assign)&quot;]
+        B3[&quot;PostBind Hook&lt;br/&gt;(notify worker-mgr)&quot;]
+        B_RESULT[&quot;Bind Result&quot;]
+    end
+
+    subgraph Plugins[&quot;Scheduler Plugins&quot;]
+        PG1[&quot;SchedulingProfile&lt;br/&gt;(YAML config)&quot;]
+        PG2[&quot;Extension Points:&lt;br/&gt;PreFilter, Filter,&lt;br/&gt;PreScore, Score,&lt;br/&gt;PreBind, Bind, PostBind&quot;]
+        PG3[&quot;Plugin Registry&lt;br/&gt;(WASM + Native)&quot;]
+    end
+
+    subgraph Backoff[&quot;Scheduling Backoff&quot;]
+        BO1[&quot;Retry Queue&lt;br/&gt;(exponential backoff)&quot;]
+        BO2[&quot;Unschedulable Cache&lt;br/&gt;(cluster change → flush)&quot;]
+    end
+
+    REQ --&gt; QUEUE
+    CACHE --&gt; F1
+
+    QUEUE --&gt; F1
+    F1 --&gt; F2 --&gt; F3 --&gt; F4 --&gt; F5 --&gt; F6 --&gt; F7 --&gt; F_MERGE
+
+    F_MERGE --&gt; S1
+    F_MERGE --&gt; S2
+    F_MERGE --&gt; S3
+    F_MERGE --&gt; S4
+    F_MERGE --&gt; S5
+    F_MERGE --&gt; S6
+    S1 --&gt; S_WEIGHT
+    S2 --&gt; S_WEIGHT
+    S3 --&gt; S_WEIGHT
+    S4 --&gt; S_WEIGHT
+    S5 --&gt; S_WEIGHT
+    S6 --&gt; S_WEIGHT
+    S_WEIGHT --&gt; S_RANK
+
+    S_RANK --&gt; B1 --&gt; B2 --&gt; B3 --&gt; B_RESULT
+
+    B_RESULT --&gt;|&quot;Success&quot;| BO2
+    B_RESULT --&gt;|&quot;Failure&quot;| BO1
+    BO1 --&gt;|&quot;Retry&quot;| QUEUE
+
+    PG1 --&gt; PG2
+    PG2 --&gt; PG3
+    PG3 -.-&gt;|&quot;Register&quot;| F7
+    PG3 -.-&gt;|&quot;Register&quot;| S6
+    PG3 -.-&gt;|&quot;Register&quot;| B1
+    PG3 -.-&gt;|&quot;Register&quot;| B3
+
+    style Filter fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Score fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Bind fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Plugins fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px</code></pre>
+<h3 id="description-5">Description</h3>
+<p>This diagram details the Omega Scheduler’s three-phase pipeline
+architecture, modeled after but extending the Kubernetes scheduling
+framework. The scheduler accepts workload specifications (with CPU,
+memory, GPU, and affinity constraints) from a priority queue and
+processes them through:</p>
+<p><strong>Phase 1 — Filter Pipeline</strong>: Seven serial filter
+plugins eliminate nodes that cannot satisfy the workload’s hard
+constraints. Each filter returns a binary yes/no decision; a node must
+pass all filters to be considered feasible. Custom filter plugins
+(registered via WASM or native extensions) can add domain-specific
+filtering logic.</p>
+<p><strong>Phase 2 — Score Pipeline</strong>: Six score plugins evaluate
+each feasible node on a 0–100 scale across multiple dimensions
+(bin-packing efficiency, GPU locality, node affinity, pod spread,
+inter-workload affinity, custom). Scores are combined using a weighted
+sum defined in the SchedulingProfile YAML configuration. The result is a
+ranked list of nodes.</p>
+<p><strong>Phase 3 — Bind Pipeline</strong>: The top-ranked node
+proceeds through PreBind hooks (volume attachment, GPU claim
+reservation), a transactional bind that atomically reserves resources in
+etcd, and PostBind hooks (notifying the Worker Manager). If the bind
+fails (e.g., due to a race condition), the workload is placed in a Retry
+Queue with exponential backoff.</p>
+<h3 id="key-relationships-highlighted-5">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Filter → Score fan-out</strong>: All score plugins receive
+the same set of feasible nodes and compute scores independently,
+enabling parallel evaluation.</li>
+<li><strong>Weighted sum configuration</strong>: The SchedulingProfile
+YAML allows operators to adjust weights without code changes, enabling
+cluster-specific scheduling policies.</li>
+<li><strong>WASM plugin extensibility</strong>: Custom filters and
+scorers can be deployed as WASM modules, providing sandboxed
+extensibility without compromising scheduler stability.</li>
+<li><strong>Unschedulable cache flush</strong>: When cluster state
+changes (node added, workload deleted), the unschedulable cache is
+flushed, giving previously unschedulable workloads another chance.</li>
+</ul>
+<hr />
+<h2 id="gpu-management-stack">7. GPU Management Stack</h2>
+<h3 id="title-6">Title</h3>
+<p><strong>Reservation, MIG Partitioning, and Backend
+Abstraction</strong></p>
+<h3 id="mermaid-diagram-6">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph API[&quot;GPU API Layer&quot;]
+        GPU_REST[&quot;REST API&lt;br/&gt;/v1/gpus&lt;br/&gt;(CRUD operations)&quot;]
+        GPU_GRPC[&quot;gRPC API&lt;br/&gt;/gpu.v1.GPUService&lt;br/&gt;(Stream + Unary)&quot;]
+    end
+
+    subgraph Reserve[&quot;GPU Reservation Engine&quot;]
+        RES_MGR[&quot;Reservation Manager&lt;br/&gt;(transactional alloc)&quot;]
+        RES_POOL[&quot;GPU Pool&lt;br/&gt;(per-node inventory)&quot;]
+        RES_FRAC[&quot;Fractional GPU&lt;br/&gt;(time-slicing)&quot;]
+        RES_EXCL[&quot;Exclusive GPU&lt;br/&gt;(whole-device)&quot;]
+        RES_MIG[&quot;MIG Partition&lt;br/&gt;(A100/H100)&quot;]
+    end
+
+    subgraph MIG[&quot;MIG Management&quot;]
+        MIG_CTRL[&quot;MIG Controller&lt;br/&gt;(nvidia-mig-parted)&quot;]
+        MIG_PROF[&quot;Profile Selector&lt;br/&gt;(1g.5gb, 2g.10gb, ...)&lt;br/&gt;3g.20gb, 4g.20gb, 7g.40gb&quot;]
+        MIG_CFG[&quot;MIG Config Store&lt;br/&gt;(etcd: /gpu/mig/configs)&quot;]
+        MIG_RECON[&quot;MIG Reconciler&lt;br/&gt;(config → actual state)&quot;]
+    end
+
+    subgraph Backend[&quot;GPU Backend Abstraction&quot;]
+        BE_NVIDIA[&quot;NVIDIA Backend&lt;br/&gt;(NVML + nvidia-smi)&quot;]
+        BE_AMD[&quot;AMD Backend&lt;br/&gt;(ROCm / rocm-smi)&quot;]
+        BE_INTEL[&quot;Intel Backend&lt;br/&gt;(Level Zero / oneAPI)&quot;]
+        BE_VIRT[&quot;Virtual GPU Backend&lt;br/&gt;(NVIDIA vGPU / MDEV)&quot;]
+        BE_MOCK[&quot;Mock Backend&lt;br/&gt;(testing)&quot;]
+    end
+
+    subgraph Monitor[&quot;GPU Monitoring&quot;]
+        MON_COLLECT[&quot;Metrics Collector&lt;br/&gt;(DCGM exporter)&quot;]
+        MON_METRICS[&quot;Metrics:&lt;br/&gt;GPU Util, Memory Used,&lt;br/&gt;Temperature, Power,&lt;br/&gt;SM Clock, ECC Errors&quot;]
+        MON_ALERT[&quot;Alert Rules&lt;br/&gt;(Prometheus)&quot;]
+        MON_ECC[&quot;ECC Error Handler&lt;br/&gt;(auto-retire on DBE)&quot;]
+    end
+
+    subgraph Schedule[&quot;GPU Scheduling Integration&quot;]
+        SCH_PLUGIN[&quot;Scheduler Plugin&lt;br/&gt;(Omega extension)&quot;]
+        SCH_TOPO[&quot;Topology Aware&lt;br/&gt;(NVLink/NVSwitch)&quot;]
+        SCH_AFFINITY[&quot;GPU Affinity&lt;br/&gt;(co-locate multi-GPU)&quot;]
+        SCH_ANTI[&quot;GPU Anti-Affinity&lt;br/&gt;(spread across GPUs)&quot;]
+    end
+
+    GPU_REST --&gt; RES_MGR
+    GPU_GRPC --&gt; RES_MGR
+
+    RES_MGR --&gt; RES_POOL
+    RES_MGR --&gt; RES_FRAC
+    RES_MGR --&gt; RES_EXCL
+    RES_MGR --&gt; RES_MIG
+
+    RES_MIG --&gt; MIG_CTRL
+    MIG_CTRL --&gt; MIG_PROF
+    MIG_CTRL --&gt; MIG_CFG
+    MIG_CTRL --&gt; MIG_RECON
+    MIG_RECON --&gt; MIG_CFG
+
+    RES_POOL --&gt; BE_NVIDIA
+    RES_POOL --&gt; BE_AMD
+    RES_POOL --&gt; BE_INTEL
+    RES_POOL --&gt; BE_VIRT
+    RES_POOL --&gt; BE_MOCK
+
+    BE_NVIDIA --&gt; MON_COLLECT
+    BE_AMD --&gt; MON_COLLECT
+    BE_INTEL --&gt; MON_COLLECT
+
+    MON_COLLECT --&gt; MON_METRICS
+    MON_METRICS --&gt; MON_ALERT
+    MON_METRICS --&gt; MON_ECC
+
+    SCH_PLUGIN --&gt; RES_MGR
+    SCH_TOPO --&gt; BE_NVIDIA
+    SCH_AFFINITY --&gt; RES_POOL
+    SCH_ANTI --&gt; RES_POOL
+
+    style API fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Reserve fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style MIG fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Backend fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Monitor fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Schedule fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-6">Description</h3>
+<p>The GPU Management Stack is a multi-layered architecture that
+abstracts GPU hardware diversity, provides flexible reservation modes,
+and integrates deeply with the Omega Scheduler. The stack comprises five
+sub-components:</p>
+<p><strong>GPU API Layer</strong>: Exposes both REST and gRPC interfaces
+for GPU CRUD operations, including listing available GPUs, creating
+reservations, and querying utilization. The gRPC interface supports
+streaming for real-time metrics.</p>
+<p><strong>Reservation Engine</strong>: Manages three reservation
+modes—fractional GPU (time-slicing via NVIDIA MPS or AMD compute
+partitioning), exclusive GPU (whole-device allocation), and MIG
+partition (A100/H100 Multi-Instance GPU). All reservations are
+transactional, ensuring atomic allocation even under concurrent
+requests.</p>
+<p><strong>MIG Management</strong>: Uses <code>nvidia-mig-parted</code>
+to configure MIG profiles on A100/H100 GPUs. The Profile Selector maps
+workload GPU memory/compute requirements to the optimal MIG profile
+(1g.5gb through 7g.40gb). The MIG Reconciler continuously compares
+desired MIG configuration (stored in etcd) with actual GPU state and
+reconciles any drift.</p>
+<p><strong>Backend Abstraction</strong>: Provides a unified interface
+over vendor-specific GPU management libraries—NVML/nvidia-smi for
+NVIDIA, ROCm/rocm-smi for AMD, Level Zero/oneAPI for Intel, and
+vGPU/MDEV for virtualized environments. A mock backend enables testing
+without physical GPUs.</p>
+<p><strong>GPU Monitoring</strong>: Collects metrics via DCGM exporter,
+tracks GPU utilization, memory usage, temperature, power draw, SM clock
+speed, and ECC errors. The ECC Error Handler automatically retires GPUs
+that experience double-bit errors, draining workloads and marking the
+GPU as unschedulable.</p>
+<h3 id="key-relationships-highlighted-6">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Reservation Engine ↔︎ MIG Controller</strong>: When a MIG
+reservation is requested, the Reservation Engine delegates partition
+creation to the MIG Controller, which uses
+<code>nvidia-mig-parted</code> to reconfigure the GPU.</li>
+<li><strong>Backend Abstraction → Monitoring</strong>: All backends feed
+metrics into the same collector, enabling unified dashboards across
+heterogeneous GPU fleets.</li>
+<li><strong>Scheduler Plugin → Reservation Engine</strong>: The Omega
+Scheduler’s GPU plugin queries the Reservation Engine to check
+availability and claim GPUs during the Bind phase.</li>
+<li><strong>ECC Error Handler → Reservation Engine</strong>: When a
+double-bit ECC error is detected, the handler instructs the Reservation
+Engine to retire the GPU, triggering workload eviction.</li>
+</ul>
+<hr />
+<h2 id="security-architecture">8. Security Architecture</h2>
+<h3 id="title-7">Title</h3>
+<p><strong>SPIFFE Identity, JWT Validation, RBAC, and mTLS
+Mesh</strong></p>
+<h3 id="mermaid-diagram-7">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Identity[&quot;Identity Layer (SPIFFE/SPIRE)&quot;]
+        SPIRE_SRV[&quot;SPIRE Server&lt;br/&gt;(cluster root CA)&quot;]
+        SPIRE_AG1[&quot;SPIRE Agent&lt;br/&gt;(Node A)&quot;]
+        SPIRE_AG2[&quot;SPIRE Agent&lt;br/&gt;(Node B)&quot;]
+        SPIFFE_ID[&quot;SPIFFE ID&lt;br/&gt;spiffe://helix.cluster/&lt;br/&gt;ns/{namespace}/sa/{service}&quot;]
+        SVID[&quot;X.509 SVID&lt;br/&gt;(short-lived, 1h TTL)&quot;]
+        JWT_SVID[&quot;JWT SVID&lt;br/&gt;(for non-mTLS)&quot;]
+        BUNDLE[&quot;Trust Bundle&lt;br/&gt;(root CA + intermediates)&quot;]
+    end
+
+    subgraph AuthN[&quot;Authentication Layer&quot;]
+        JWT_VAL[&quot;JWT Validator&lt;br/&gt;(jose library)&quot;]
+        JWKS[&quot;JWKS Endpoint&lt;br/&gt;(rotating keys)&quot;]
+        OIDC[&quot;OIDC Provider&lt;br/&gt;(Keycloak)&quot;]
+        MESH_TLS[&quot;mTLS Mesh&lt;br/&gt;(Envoy + SPIRE)&quot;]
+        API_KEY[&quot;API Key Store&lt;br/&gt;(etcd: /auth/apikeys)&quot;]
+    end
+
+    subgraph AuthZ[&quot;Authorization Layer (RBAC)&quot;]
+        RBAC_ENG[&quot;RBAC Engine&lt;br/&gt;(policy evaluation)&quot;]
+        POLICY_STORE[&quot;Policy Store&lt;br/&gt;(etcd: /auth/policies)&quot;]
+        ROLE_DEF[&quot;Role Definitions&lt;br/&gt;admin, operator,&lt;br/&gt;developer, viewer&quot;]
+        BINDING[&quot;Role Bindings&lt;br/&gt;(user/group → role)&quot;]
+        ABAC_EXT[&quot;ABAC Extension&lt;br/&gt;(attribute-based override)&quot;]
+    end
+
+    subgraph Network[&quot;Network Security&quot;]
+        WG_MESH[&quot;WireGuard Mesh&lt;br/&gt;(encrypted overlay)&quot;]
+        NET_POLICY[&quot;Network Policies&lt;br/&gt;(Cilium eBPF)&quot;]
+        FIREWALL[&quot;Service Firewall&lt;br/&gt;(per-port ACLs)&quot;]
+        DDOS[&quot;DDoS Mitigation&lt;br/&gt;(rate limiting)&quot;]
+    end
+
+    subgraph Audit[&quot;Audit &amp; Compliance&quot;]
+        AUDIT_LOG[&quot;Audit Logger&lt;br/&gt;(structured events)&quot;]
+        AUDIT_STORE[&quot;Audit Store&lt;br/&gt;(PostgreSQL + S3)&quot;]
+        COMPLIANCE[&quot;Compliance Engine&lt;br/&gt;(SOC2, HIPAA)&quot;]
+        SECRET_MGR[&quot;Secret Manager&lt;br/&gt;(Vault integration)&quot;]
+    end
+
+    subgraph Runtime[&quot;Runtime Security&quot;]
+        SECCOMP[&quot;Seccomp Profiles&lt;br/&gt;(syscall filtering)&quot;]
+        APPARMOR[&quot;AppArmor Profiles&lt;br/&gt;(file/ capability)&quot;]
+        EBPF_MON[&quot;eBPF Monitor&lt;br/&gt;(runtime anomaly)&quot;]
+        SCAN_IMG[&quot;Image Scanner&lt;br/&gt;(Trivy + custom)&quot;]
+    end
+
+    %% Identity flows
+    SPIRE_SRV --&gt; SPIRE_AG1
+    SPIRE_SRV --&gt; SPIRE_AG2
+    SPIRE_AG1 --&gt; SVID
+    SPIRE_AG1 --&gt; JWT_SVID
+    SPIRE_SRV --&gt; BUNDLE
+
+    %% Authentication flows
+    JWT_VAL --&gt; JWKS
+    OIDC --&gt; JWKS
+    SVID --&gt; MESH_TLS
+    BUNDLE --&gt; MESH_TLS
+    JWT_SVID --&gt; JWT_VAL
+
+    %% Authorization flows
+    JWT_VAL --&gt; RBAC_ENG
+    API_KEY --&gt; RBAC_ENG
+    RBAC_ENG --&gt; POLICY_STORE
+    RBAC_ENG --&gt; ROLE_DEF
+    RBAC_ENG --&gt; BINDING
+    RBAC_ENG --&gt; ABAC_EXT
+
+    %% Network flows
+    MESH_TLS --&gt; WG_MESH
+    WG_MESH --&gt; NET_POLICY
+    NET_POLICY --&gt; FIREWALL
+    FIREWALL --&gt; DDOS
+
+    %% Audit flows
+    RBAC_ENG --&gt; AUDIT_LOG
+    MESH_TLS --&gt; AUDIT_LOG
+    AUDIT_LOG --&gt; AUDIT_STORE
+    AUDIT_STORE --&gt; COMPLIANCE
+    SECRET_MGR --&gt; AUDIT_LOG
+
+    %% Runtime security
+    SCAN_IMG --&gt; SECCOMP
+    SCAN_IMG --&gt; APPARMOR
+    EBPF_MON --&gt; AUDIT_LOG
+
+    style Identity fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style AuthN fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style AuthZ fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Network fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Audit fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Runtime fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-7">Description</h3>
+<p>The Security Architecture is organized into six layers that together
+provide defense in depth: Identity, Authentication, Authorization,
+Network, Audit, and Runtime. At the core is the SPIFFE/SPIRE identity
+framework—each workload receives a SPIFFE ID of the form
+<code>spiffe://helix.cluster/ns/{namespace}/sa/{service}</code>,
+materialized as either an X.509 SVID (for mTLS) or a JWT SVID (for
+non-mTLS contexts like API calls from external clients). The SPIRE
+Server acts as the cluster root CA, signing SVIDs with a 1-hour TTL and
+distributing trust bundles to SPIRE Agents on each node.</p>
+<p>Authentication operates in two modes: mTLS for service-to-service
+communication (Envoy sidecars present X.509 SVIDs verified against the
+trust bundle) and JWT for user-facing APIs (tokens validated against a
+JWKS endpoint served by an OIDC provider). API keys are stored in etcd
+for service account authentication.</p>
+<p>Authorization uses a hierarchical RBAC engine with four built-in
+roles (admin, operator, developer, viewer) and an ABAC extension for
+attribute-based overrides. All policy decisions are logged to the Audit
+Logger, which writes structured events to PostgreSQL and archives them
+to S3. The Compliance Engine runs continuous checks against SOC2 and
+HIPAA requirements.</p>
+<p>Network security layers WireGuard encryption (overlay), Cilium eBPF
+network policies (L3-L7 filtering), per-port ACLs (firewall), and rate
+limiting (DDoS mitigation). Runtime security includes seccomp and
+AppArmor profiles generated from image scans, plus an eBPF monitor that
+detects runtime anomalies (unexpected syscalls, file access
+patterns).</p>
+<h3 id="key-relationships-highlighted-7">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>SPIRE Server → SVID → mTLS</strong>: The identity chain
+starts at the SPIRE Server, which signs X.509 SVIDs that Envoy sidecars
+use for mTLS. This eliminates the need for manual certificate
+management.</li>
+<li><strong>JWT SVID → JWT Validator → RBAC Engine</strong>: User-facing
+requests carry JWT SVIDs; the JWT Validator verifies the signature
+against the JWKS endpoint, then the RBAC Engine evaluates the embedded
+claims against policy.</li>
+<li><strong>Image Scanner → Runtime Profiles</strong>: Trivy image scans
+generate seccomp and AppArmor profiles tailored to each workload’s
+required syscalls and file access patterns, applying least-privilege by
+default.</li>
+<li><strong>eBPF Monitor → Audit Logger</strong>: The eBPF runtime
+monitor feeds anomaly events into the audit pipeline, enabling
+post-incident forensics and real-time alerting.</li>
+</ul>
+<hr />
+<h2 id="session-management">9. Session Management</h2>
+<h3 id="title-8">Title</h3>
+<p><strong>CRDT-Based Session State with Migration and Multi-Backend
+Support</strong></p>
+<h3 id="mermaid-diagram-8">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Client[&quot;Client Layer&quot;]
+        WS_CLIENT[&quot;WebSocket Client&lt;br/&gt;(browser/app)&quot;]
+        GRPC_CLIENT[&quot;gRPC Client&lt;br/&gt;(SDK/CLI)&quot;]
+        REST_CLIENT[&quot;REST Client&lt;br/&gt;(3rd party)&quot;]
+    end
+
+    subgraph Session[&quot;Session Service&quot;]
+        SESS_API[&quot;Session API&lt;br/&gt;:8006&quot;]
+        SESS_MGR[&quot;Session Manager&lt;br/&gt;(lifecycle)&quot;]
+        SESS_CRDT[&quot;CRDT Engine&lt;br/&gt;(Automerge-RS)&quot;]
+        SESS_MIGRATE[&quot;Migration Manager&lt;br/&gt;(live migration)&quot;]
+        SESS_TTL[&quot;TTL Manager&lt;br/&gt;(expiry + renewal)&quot;]
+    end
+
+    subgraph CRDT[&quot;CRDT State&quot;]
+        CRDT_MAP[&quot;G-Map&lt;br/&gt;(session attributes)&quot;]
+        CRDT_COUNTER[&quot;PN-Counter&lt;br/&gt;(metrics/counters)&quot;]
+        CRDT_SET[&quot;OR-Set&lt;br/&gt;(subscriptions)&quot;]
+        CRDT_REG[&quot;LWW-Register&lt;br/&gt;(last-write-wins fields)&quot;]
+        CRDT_DOC[&quot;Automerge Doc&lt;br/&gt;(nested state)&quot;]
+    end
+
+    subgraph Migrate[&quot;Migration Protocol&quot;]
+        MIG_PRE[&quot;Pre-Migration&lt;br/&gt;(freeze + snapshot)&quot;]
+        MIG_TRANSFER[&quot;State Transfer&lt;br/&gt;(delta sync)&quot;]
+        MIG_HANDOFF[&quot;Handoff&lt;br/&gt;(redirect + unfreeze)&quot;]
+        MIG_CLEANUP[&quot;Cleanup&lt;br/&gt;(old session GC)&quot;]
+    end
+
+    subgraph Backend[&quot;Session Backends&quot;]
+        PG[&quot;PostgreSQL&lt;br/&gt;(persistent sessions)&quot;]
+        REDIS[&quot;Redis Cluster&lt;br/&gt;(hot sessions, TTL)&quot;]
+        SQLITE[&quot;SQLite (local)&lt;br/&gt;(offline/fallback)&quot;]
+        MEMCACHED[&quot;Memcached&lt;br/&gt;(cache layer)&quot;]
+    end
+
+    subgraph Events[&quot;Session Events&quot;]
+        EVT_CREATE[&quot;SessionCreated&quot;]
+        EVT_UPDATE[&quot;SessionUpdated&lt;br/&gt;(delta CRDT patch)&quot;]
+        EVT_MIGRATE[&quot;SessionMigrated&quot;]
+        EVT_EXPIRE[&quot;SessionExpired&quot;]
+        EVT_DESTROY[&quot;SessionDestroyed&quot;]
+    end
+
+    WS_CLIENT --&gt; SESS_API
+    GRPC_CLIENT --&gt; SESS_API
+    REST_CLIENT --&gt; SESS_API
+
+    SESS_API --&gt; SESS_MGR
+    SESS_MGR --&gt; SESS_CRDT
+    SESS_MGR --&gt; SESS_MIGRATE
+    SESS_MGR --&gt; SESS_TTL
+
+    SESS_CRDT --&gt; CRDT_MAP
+    SESS_CRDT --&gt; CRDT_COUNTER
+    SESS_CRDT --&gt; CRDT_SET
+    SESS_CRDT --&gt; CRDT_REG
+    SESS_CRDT --&gt; CRDT_DOC
+
+    SESS_MIGRATE --&gt; MIG_PRE
+    MIG_PRE --&gt; MIG_TRANSFER
+    MIG_TRANSFER --&gt; MIG_HANDOFF
+    MIG_HANDOFF --&gt; MIG_CLEANUP
+
+    SESS_MGR --&gt; PG
+    SESS_MGR --&gt; REDIS
+    SESS_MGR --&gt; SQLITE
+    SESS_MGR --&gt; MEMCACHED
+
+    SESS_MGR --&gt; EVT_CREATE
+    SESS_CRDT --&gt; EVT_UPDATE
+    SESS_MIGRATE --&gt; EVT_MIGRATE
+    SESS_TTL --&gt; EVT_EXPIRE
+    SESS_MGR --&gt; EVT_DESTROY
+
+    SESS_API -.-&gt;|&quot;CRDT sync&quot;| SESS_API
+
+    style Client fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Session fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style CRDT fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Migrate fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Backend fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px</code></pre>
+<h3 id="description-8">Description</h3>
+<p>The Session Management architecture uses Conflict-free Replicated
+Data Types (CRDTs) to achieve low-latency, partition-tolerant session
+state without requiring strong consistency during normal operation. The
+Session Service exposes a unified API over WebSocket, gRPC, and REST,
+delegating to a Session Manager that orchestrates lifecycle
+operations.</p>
+<p>The CRDT Engine (implemented with Automerge-RS) manages five CRDT
+types: G-Map for session attributes (add-only, mergeable), PN-Counter
+for metrics and counters (increment and decrement), OR-Set for
+subscriptions (observed-remove semantics), LWW-Register for
+last-write-wins fields (using hybrid logical clocks), and a nested
+Automerge Doc for complex session state. CRDTs enable any Session
+Service replica to accept writes independently; state is synchronized
+asynchronously via CRDT deltas published to the Event Bus.</p>
+<p>The Migration Manager handles live session migration between nodes
+(e.g., during scaling or maintenance) through a four-phase protocol:
+Pre-Migration (freeze the session and snapshot CRDT state), State
+Transfer (delta-sync the snapshot to the target node), Handoff (redirect
+the client and unfreeze), and Cleanup (garbage-collect the old session).
+The entire migration is designed to complete within 500ms for typical
+sessions.</p>
+<p>Session backends provide tiered storage: Redis for hot sessions with
+TTL-based expiry, PostgreSQL for persistent sessions that survive
+restarts, SQLite for offline/fallback mode when network connectivity is
+lost, and Memcached as a read-through cache layer.</p>
+<h3 id="key-relationships-highlighted-8">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>CRDT sync between replicas</strong>: Session Service
+instances synchronize CRDT state directly (bypassing NATS for latency),
+with delta patches exchanged over gRPC streams.</li>
+<li><strong>Migration protocol preserves consistency</strong>: The
+four-phase migration ensures no session state is lost or duplicated
+during handoff; the CRDT merge function resolves any concurrent writes
+that occur during the brief freeze window.</li>
+<li><strong>Tiered backend strategy</strong>: Hot sessions in Redis are
+tiered to PostgreSQL for durability; SQLite enables offline operation;
+Memcached accelerates read-heavy access patterns.</li>
+<li><strong>TTL Manager drives expiry</strong>: The TTL Manager
+independently tracks session expiry, publishing
+<code>SessionExpired</code> events that trigger cleanup across all
+backends and CRDT replicas.</li>
+</ul>
+<hr />
+<h2 id="build-service-architecture">10. Build Service Architecture</h2>
+<h3 id="title-9">Title</h3>
+<p><strong>Orchestrator, Worker Pool, and Dual Execution Backends
+(exec/podman)</strong></p>
+<h3 id="mermaid-diagram-9">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph API[&quot;Build API&quot;]
+        BUILD_REST[&quot;REST API&lt;br/&gt;/v1/builds&lt;br/&gt;(trigger, status, logs)&quot;]
+        BUILD_GRPC[&quot;gRPC API&lt;br/&gt;/build.v1.BuildService&lt;br/&gt;(streaming logs)&quot;]
+        BUILD_WEBHOOK[&quot;Webhook Receiver&lt;br/&gt;(GitHub/GitLab)&quot;]
+    end
+
+    subgraph Orchestrator[&quot;Build Orchestrator&quot;]
+        ORCH_RECV[&quot;Request Receiver&lt;br/&gt;(validate + enqueue)&quot;]
+        ORCH_QUEUE[&quot;Build Queue&lt;br/&gt;(Redis sorted set&lt;br/&gt;by priority + timestamp)&quot;]
+        ORCH_ASSIGN[&quot;Assignment Engine&lt;br/&gt;(match build → worker)&quot;]
+        ORCH_TRACK[&quot;Build Tracker&lt;br/&gt;(state machine)&quot;]
+        ORCH_ARTIFACT[&quot;Artifact Manager&lt;br/&gt;(output collection)&quot;]
+    end
+
+    subgraph WorkerPool[&quot;Worker Pool&quot;]
+        W1[&quot;Worker 1&lt;br/&gt;(Linux amd64)&quot;]
+        W2[&quot;Worker 2&lt;br/&gt;(Linux arm64)&quot;]
+        W3[&quot;Worker 3&lt;br/&gt;(Windows)&quot;]
+        W4[&quot;Worker 4&lt;br/&gt;(macOS)&quot;]
+    end
+
+    subgraph Execution[&quot;Execution Backends&quot;]
+        subgraph Exec[&quot;Native Exec Backend&quot;]
+            EXEC_NS[&quot;Namespace Isolation&lt;br/&gt;(clone CLONE_NEWNS&lt;br/&gt;CLONE_NEWPID, CLONE_NEWNET)&quot;]
+            EXEC_CGRP[&quot;Cgroup v2&lt;br/&gt;(cpu.max, memory.max,&lt;br/&gt;pids.max)&quot;]
+            EXEC_SECCOMP[&quot;Seccomp Filter&lt;br/&gt;(build-specific allowlist)&quot;]
+            EXEC_ROOT[&quot;Rootless execution&lt;br/&gt;(user namespaces)&quot;]
+        end
+        subgraph Podman[&quot;Podman Backend&quot;]
+            POD_CTR[&quot;Container Per Step&lt;br/&gt;(hermetic isolation)&quot;]
+            POD_NET[&quot;Podman Network&lt;br/&gt;(CNI, restricted)&quot;]
+            POD_VOL[&quot;Volume Mounts&lt;br/&gt;(cache, secrets, output)&quot;]
+            POD_ROOT[&quot;Rootless Podman&lt;br/&gt;(user namespaces)&quot;]
+        end
+    end
+
+    subgraph Cache[&quot;Build Cache&quot;]
+        CACHE_LOCAL[&quot;Local Cache&lt;br/&gt;(content-addressable&lt;br/&gt;zstd-compressed)&quot;]
+        CACHE_REMOTE[&quot;Remote Cache&lt;br/&gt;(S3 / GCS bucket)&quot;]
+        CACHE_DEPS[&quot;Dependency Cache&lt;br/&gt;(pip, npm, cargo, go)&quot;]
+    end
+
+    subgraph Output[&quot;Build Output&quot;]
+        OUT_IMG[&quot;Container Image&lt;br/&gt;(OCI + push to Registry)&quot;]
+        OUT_BIN[&quot;Binary Artifact&lt;br/&gt;(tar.gz + checksum)&quot;]
+        OUT_WASM[&quot;WASM Module&lt;br/&gt;(.wasm + wit)&quot;]
+        OUT_LOG[&quot;Build Log&lt;br/&gt;(structured JSON)&quot;]
+    end
+
+    BUILD_REST --&gt; ORCH_RECV
+    BUILD_GRPC --&gt; ORCH_RECV
+    BUILD_WEBHOOK --&gt; ORCH_RECV
+
+    ORCH_RECV --&gt; ORCH_QUEUE
+    ORCH_QUEUE --&gt; ORCH_ASSIGN
+    ORCH_ASSIGN --&gt; ORCH_TRACK
+    ORCH_TRACK --&gt; ORCH_ARTIFACT
+
+    ORCH_ASSIGN --&gt; W1
+    ORCH_ASSIGN --&gt; W2
+    ORCH_ASSIGN --&gt; W3
+    ORCH_ASSIGN --&gt; W4
+
+    W1 --&gt; EXEC_NS
+    W1 --&gt; POD_CTR
+    W2 --&gt; EXEC_NS
+    W2 --&gt; POD_CTR
+    W3 --&gt; POD_CTR
+    W4 --&gt; POD_CTR
+
+    EXEC_NS --&gt; CACHE_LOCAL
+    POD_CTR --&gt; CACHE_LOCAL
+    CACHE_LOCAL --&gt; CACHE_REMOTE
+    CACHE_LOCAL --&gt; CACHE_DEPS
+
+    ORCH_ARTIFACT --&gt; OUT_IMG
+    ORCH_ARTIFACT --&gt; OUT_BIN
+    ORCH_ARTIFACT --&gt; OUT_WASM
+    ORCH_TRACK --&gt; OUT_LOG
+
+    style API fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Orchestrator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style WorkerPool fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Execution fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Cache fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Output fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-9">Description</h3>
+<p>The Build Service is a distributed, multi-platform build system with
+dual execution backends for security and flexibility. The architecture
+has five major components:</p>
+<p><strong>Build API</strong>: Accepts build triggers via REST, gRPC
+(with streaming log output), and webhooks from GitHub/GitLab. Webhook
+payloads are validated (HMAC signature verification) before
+enqueuing.</p>
+<p><strong>Build Orchestrator</strong>: Manages the build lifecycle
+through a queue (Redis sorted set, prioritized by urgency and
+timestamp), an Assignment Engine that matches builds to workers based on
+platform requirements and resource availability, a Build Tracker that
+maintains a state machine per build (queued → running →
+success/failed/cancelled), and an Artifact Manager that collects
+outputs.</p>
+<p><strong>Worker Pool</strong>: Heterogeneous workers spanning Linux
+amd64, Linux arm64, Windows, and macOS. Workers register their
+capabilities and available capacity with the Orchestrator.</p>
+<p><strong>Execution Backends</strong>: Two mutually exclusive execution
+modes per build step. The Native Exec Backend uses Linux namespace
+isolation (mount, PID, network namespaces), cgroup v2 resource limits,
+and seccomp filters—all without a container runtime, offering the lowest
+overhead. The Podman Backend runs each step in a dedicated container,
+providing hermetic isolation with CNI networking, restricted volume
+mounts, and rootless execution. The backend is selected per build
+configuration; exec is preferred for trusted internal builds, while
+Podman is used for untrusted or third-party code.</p>
+<p><strong>Build Cache</strong>: A three-tier cache system—local
+content-addressable cache (zstd-compressed), remote cache in S3/GCS for
+cross-worker sharing, and dependency-specific caches (pip, npm, cargo,
+go) that prevent re-downloading packages.</p>
+<h3 id="key-relationships-highlighted-9">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Orchestrator → Worker assignment</strong>: The Assignment
+Engine considers platform requirements, resource availability, and cache
+locality (prefer workers with warm caches).</li>
+<li><strong>Dual execution backends</strong>: The same worker can use
+either backend depending on the build’s trust level; untrusted builds
+always use Podman for full container isolation.</li>
+<li><strong>Cache locality optimization</strong>: The Assignment Engine
+prefers workers that already have relevant cache entries, reducing build
+times by 40-60% for incremental builds.</li>
+<li><strong>Artifact → Registry pipeline</strong>: Container image
+outputs are pushed directly to the Registry Service (:8013), making them
+immediately available for deployment.</li>
+</ul>
+<hr />
+<h2 id="health-monitoring">11. Health Monitoring</h2>
+<h3 id="title-10">Title</h3>
+<p><strong>Health Checker, Aggregator, and Rollup with Adaptive
+Probing</strong></p>
+<h3 id="mermaid-diagram-10">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Checkers[&quot;Health Checkers&quot;]
+        HTTP_CHK[&quot;HTTP Checker&lt;br/&gt;(GET/HEAD, 2xx=healthy)&quot;]
+        TCP_CHK[&quot;TCP Checker&lt;br/&gt;(connection success)&quot;]
+        EXEC_CHK[&quot;Exec Checker&lt;br/&gt;(exit code 0=healthy)&quot;]
+        GRPC_CHK[&quot;gRPC Checker&lt;br/&gt;(grpc.health.v1)&quot;]
+        CUSTOM_CHK[&quot;Custom Checker&lt;br/&gt;(WASM plugin)&quot;]
+    end
+
+    subgraph Probe[&quot;Probe Configuration&quot;]
+        PROBE_CFG[&quot;Probe Config&lt;br/&gt;(per-workload YAML)&quot;]
+        PROBE_INIT[&quot;Initial Delay&lt;br/&gt;(startup probe)&quot;]
+        PROBE_INT[&quot;Probe Interval&lt;br/&gt;(adaptive: 1s–30s)&quot;]
+        PROBE_THRESH[&quot;Failure Threshold&lt;br/&gt;(consecutive failures)&quot;]
+        PROBE_SUCCESS[&quot;Success Threshold&lt;br/&gt;(consecutive successes)&quot;]
+    end
+
+    subgraph Aggregator[&quot;Health Aggregator&quot;]
+        AGG_RECV[&quot;Result Receiver&lt;br/&gt;(check results in)&quot;]
+        AGG_STATE[&quot;State Tracker&lt;br/&gt;(per-workload FSM)&quot;]
+        AGG_WINDOW[&quot;Sliding Window&lt;br/&gt;(last N results)&quot;]
+        AGG_ADAPT[&quot;Adaptive Controller&lt;br/&gt;(adjust intervals)&quot;]
+        AGG_ROLLUP[&quot;Health Rollup&lt;br/&gt;(node → zone → cluster)&quot;]
+    end
+
+    subgraph FSM[&quot;Health State Machine&quot;]
+        H_UNKNOWN[&quot;Unknown&lt;br/&gt;(initial)&quot;]
+        H_STARTING[&quot;Starting&lt;br/&gt;(startup probe phase)&quot;]
+        H_HEALTHY[&quot;Healthy&lt;br/&gt;(passing checks)&quot;]
+        H_DEGRADED[&quot;Degraded&lt;br/&gt;(partial failures)&quot;]
+        H_UNHEALTHY[&quot;Unhealthy&lt;br/&gt;(threshold exceeded)&quot;]
+        H_DRAINING[&quot;Draining&lt;br/&gt;(graceful removal)&quot;]
+    end
+
+    subgraph Actions[&quot;Health Actions&quot;]
+        ACT_RESTART[&quot;Auto-Restart&lt;br/&gt;(restartPolicy: Always)&quot;]
+        ACT_DRAIN[&quot;Drain Node&lt;br/&gt;(evict workloads)&quot;]
+        ACT_NOTIFY[&quot;Notify Event Bus&lt;br/&gt;(NATS publish)&quot;]
+        ACT_SCALE[&quot;Trigger Autoscale&lt;br/&gt;(HPA-like)&quot;]
+        ACT_CIRCUIT[&quot;Circuit Breaker&lt;br/&gt;(stop sending traffic)&quot;]
+    end
+
+    subgraph Store[&quot;Health Data Store&quot;]
+        H_PG[&quot;PostgreSQL&lt;br/&gt;(historical metrics)&quot;]
+        H_REDIS[&quot;Redis&lt;br/&gt;(current state cache)&quot;]
+        H_PROM[&quot;Prometheus&lt;br/&gt;(metrics + alerting)&quot;]
+        H_ETCD[&quot;etcd&lt;br/&gt;(authoritative state)&quot;]
+    end
+
+    HTTP_CHK --&gt; AGG_RECV
+    TCP_CHK --&gt; AGG_RECV
+    EXEC_CHK --&gt; AGG_RECV
+    GRPC_CHK --&gt; AGG_RECV
+    CUSTOM_CHK --&gt; AGG_RECV
+
+    PROBE_CFG --&gt; PROBE_INIT
+    PROBE_CFG --&gt; PROBE_INT
+    PROBE_CFG --&gt; PROBE_THRESH
+    PROBE_CFG --&gt; PROBE_SUCCESS
+
+    AGG_RECV --&gt; AGG_STATE
+    AGG_STATE --&gt; AGG_WINDOW
+    AGG_WINDOW --&gt; AGG_ADAPT
+    AGG_ADAPT --&gt; PROBE_INT
+    AGG_STATE --&gt; AGG_ROLLUP
+
+    AGG_STATE --&gt; H_UNKNOWN
+    H_UNKNOWN --&gt; H_STARTING
+    H_STARTING --&gt; H_HEALTHY
+    H_STARTING --&gt; H_UNHEALTHY
+    H_HEALTHY --&gt; H_DEGRADED
+    H_DEGRADED --&gt; H_HEALTHY
+    H_DEGRADED --&gt; H_UNHEALTHY
+    H_UNHEALTHY --&gt; H_STARTING
+    H_HEALTHY --&gt; H_DRAINING
+    H_DRAINING --&gt; ACT_DRAIN
+
+    AGG_STATE --&gt; ACT_RESTART
+    AGG_STATE --&gt; ACT_NOTIFY
+    AGG_STATE --&gt; ACT_SCALE
+    AGG_STATE --&gt; ACT_CIRCUIT
+
+    AGG_ROLLUP --&gt; H_PG
+    AGG_STATE --&gt; H_REDIS
+    AGG_ROLLUP --&gt; H_PROM
+    AGG_STATE --&gt; H_ETCD
+
+    style Checkers fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Aggregator fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style FSM fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Actions fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Store fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px</code></pre>
+<h3 id="description-10">Description</h3>
+<p>The Health Monitoring system provides multi-tier health checking with
+adaptive probing and hierarchical rollup. Five checker types evaluate
+workload health: HTTP (status code validation), TCP (connection
+success), Exec (command exit code), gRPC (standard health protocol), and
+Custom (WASM plugin for domain-specific checks).</p>
+<p>The Health Aggregator receives check results and feeds them into a
+per-workload finite state machine that transitions through six states:
+Unknown (initial), Starting (startup probe phase), Healthy (passing),
+Degraded (partial failures, e.g., 2 of 3 checks passing), Unhealthy
+(threshold exceeded), and Draining (graceful removal in progress). A
+sliding window of the last N results determines transitions, and an
+Adaptive Controller dynamically adjusts probe intervals—reducing
+intervals for unstable workloads (detecting failures faster) and
+increasing intervals for stable workloads (reducing overhead).</p>
+<p>The Health Rollup aggregates workload health into node-level,
+zone-level, and cluster-level health scores, stored in PostgreSQL for
+historical analysis and Prometheus for alerting. Current state is cached
+in Redis for low-latency queries, while authoritative state is persisted
+in etcd.</p>
+<p>Health Actions are triggered by state transitions: auto-restart for
+<code>Always</code> restart policies, node draining for hardware
+failures, Event Bus notifications, autoscale triggers, and
+circuit-breaker activation to stop routing traffic to unhealthy
+workloads.</p>
+<h3 id="key-relationships-highlighted-10">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Adaptive Controller ↔︎ Probe Interval</strong>: The feedback
+loop between the sliding window analysis and probe interval adjustment
+ensures that flapping services are probed more frequently while stable
+services are probed less often.</li>
+<li><strong>Health FSM → Actions</strong>: State transitions directly
+trigger actions—entering Unhealthy triggers auto-restart and
+circuit-breaker; entering Draining triggers workload eviction.</li>
+<li><strong>Rollup hierarchy</strong>: Workload health rolls up to node
+health, which rolls up to zone health, which rolls up to cluster health.
+This enables operators to quickly identify failure scopes.</li>
+<li><strong>Multi-store strategy</strong>: etcd holds authoritative
+state (for scheduler decisions), Redis caches current state (for
+dashboard queries), PostgreSQL stores history (for post-incident
+analysis), and Prometheus exposes metrics (for alerting).</li>
+</ul>
+<hr />
+<h2 id="eventmessaging-architecture">12. Event/Messaging
+Architecture</h2>
+<h3 id="title-11">Title</h3>
+<p><strong>NATS JetStream with Avro Schema Registry and Event
+Bus</strong></p>
+<h3 id="mermaid-diagram-11">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Producers[&quot;Event Producers&quot;]
+        P_SCHED[&quot;Scheduler Service&lt;br/&gt;WorkloadScheduled&lt;br/&gt;WorkloadEvicted&quot;]
+        P_WORKER[&quot;Worker Manager&lt;br/&gt;WorkloadRunning&lt;br/&gt;WorkloadFailed&quot;]
+        P_HEALTH[&quot;Health Service&lt;br/&gt;HealthChanged&lt;br/&gt;NodeDegraded&quot;]
+        P_GPU[&quot;GPU Service&lt;br/&gt;GPUAllocated&lt;br/&gt;GPURetired&quot;]
+        P_SESS[&quot;Session Service&lt;br/&gt;SessionCreated&lt;br/&gt;SessionMigrated&quot;]
+        P_AUTH[&quot;Auth Service&lt;br/&gt;AuthSucceeded&lt;br/&gt;AuthFailed&quot;]
+    end
+
+    subgraph NATS[&quot;NATS JetStream&quot;]
+        JS_STREAM[&quot;Streams&lt;br/&gt;helix.events&lt;br/&gt;helix.commands&lt;br/&gt;helix.audit&quot;]
+        JS_CONSUMER[&quot;Consumers&lt;br/&gt;Push + Pull&lt;br/&gt;Durable + Ephemeral&quot;]
+        JS_KV[&quot;Key-Value Store&lt;br/&gt;helix.config&lt;br/&gt;helix.leader&quot;]
+        JS_OBJ[&quot;Object Store&lt;br/&gt;helix.artifacts&lt;br/&gt;helix.backups&quot;]
+        JS_MIRROR[&quot;Stream Mirrors&lt;br/&gt;(cross-cluster)&quot;]
+        JS_CLUSTER[&quot;NATS Cluster&lt;br/&gt;(3-node Raft)&quot;]
+    end
+
+    subgraph Schema[&quot;Schema Registry&quot;]
+        SR_AVR[&quot;Avro Schema Registry&lt;br/&gt;(Confluent-compatible)&quot;]
+        SR_COMPAT[&quot;Compatibility Rules&lt;br/&gt;(BACKWARD by default)&quot;]
+        SR_EVOLVE[&quot;Schema Evolution&lt;br/&gt;(add fields, never remove)&quot;]
+        SR_CACHE[&quot;Local Schema Cache&lt;br/&gt;(per-service)&quot;]
+    end
+
+    subgraph Bus[&quot;Event Bus Layer&quot;]
+        BUS_ENVELOPE[&quot;Event Envelope&lt;br/&gt;{id, type, source,&lt;br/&gt;ts, schema_version,&lt;br/&gt;correlation_id}&quot;]
+        BUS_FILTER[&quot;Content-Based Filter&lt;br/&gt;(NATS subject wildcard)&quot;]
+        BUS_TRANSFORM[&quot;Event Transformer&lt;br/&gt;(version adaptation)&quot;]
+        BUS_DLQ[&quot;Dead Letter Queue&lt;br/&gt;(failed processing)&quot;]
+        BUS_REPLAY[&quot;Event Replay&lt;br/&gt;(from stream offset)&quot;]
+    end
+
+    subgraph Consumers[&quot;Event Consumers&quot;]
+        C_AUDIT[&quot;Audit Service&lt;br/&gt;(all events)&quot;]
+        C_NOTIF[&quot;Notification Service&lt;br/&gt;(health, auth)&quot;]
+        C_METRICS[&quot;Metrics Pipeline&lt;br/&gt;(structured events → Prometheus)&quot;]
+        C_SYNC[&quot;State Sync&lt;br/&gt;(federation, CRDT)&quot;]
+        C_WORKER[&quot;Worker Manager&lt;br/&gt;(scheduling events)&quot;]
+    end
+
+    P_SCHED --&gt; BUS_ENVELOPE
+    P_WORKER --&gt; BUS_ENVELOPE
+    P_HEALTH --&gt; BUS_ENVELOPE
+    P_GPU --&gt; BUS_ENVELOPE
+    P_SESS --&gt; BUS_ENVELOPE
+    P_AUTH --&gt; BUS_ENVELOPE
+
+    BUS_ENVELOPE --&gt; SR_AVR
+    SR_AVR --&gt; SR_COMPAT
+    SR_AVR --&gt; SR_EVOLVE
+    SR_AVR --&gt; SR_CACHE
+    SR_CACHE --&gt; BUS_ENVELOPE
+
+    BUS_ENVELOPE --&gt; JS_STREAM
+    BUS_FILTER --&gt; JS_STREAM
+    BUS_TRANSFORM --&gt; JS_STREAM
+    JS_STREAM --&gt; JS_CONSUMER
+    JS_STREAM --&gt; JS_MIRROR
+    JS_KV --&gt; JS_CLUSTER
+    JS_OBJ --&gt; JS_CLUSTER
+
+    BUS_DLQ --&gt; JS_STREAM
+    BUS_REPLAY --&gt; JS_STREAM
+
+    JS_CONSUMER --&gt; C_AUDIT
+    JS_CONSUMER --&gt; C_NOTIF
+    JS_CONSUMER --&gt; C_METRICS
+    JS_CONSUMER --&gt; C_SYNC
+    JS_CONSUMER --&gt; C_WORKER
+
+    style Producers fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style NATS fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Schema fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Bus fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Consumers fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px</code></pre>
+<h3 id="description-11">Description</h3>
+<p>The Event/Messaging Architecture is built on NATS JetStream with an
+Avro Schema Registry for type-safe event processing. The system is
+organized into five layers:</p>
+<p><strong>Event Producers</strong>: Six services publish domain events.
+Each event is wrapped in a standardized envelope containing an id
+(UUID), type (e.g., <code>WorkloadScheduled</code>), source service,
+timestamp, schema version, and correlation id for distributed
+tracing.</p>
+<p><strong>Schema Registry</strong>: An Avro Schema Registry enforces
+BACKWARD compatibility by default—new fields can be added but existing
+fields cannot be removed or renamed. Each service maintains a local
+schema cache to avoid round-trips during serialization. Schema evolution
+enables services to upgrade independently.</p>
+<p><strong>Event Bus Layer</strong>: Provides envelope formatting,
+content-based filtering (using NATS subject wildcards like
+<code>helix.events.workload.&gt;</code>), version adaptation
+(transforming events between schema versions), dead-letter queuing for
+failed processing (with automatic retry), and event replay from any
+stream offset for recovery scenarios.</p>
+<p><strong>NATS JetStream</strong>: The messaging backbone with three
+streams (events, commands, audit), push and pull consumers (durable for
+services, ephemeral for ad-hoc queries), a key-value store for
+configuration and leader election, an object store for large artifacts
+and backups, and stream mirroring for cross-cluster replication. The
+NATS cluster runs a 3-node Raft group for fault tolerance.</p>
+<p><strong>Event Consumers</strong>: Five consumer groups with different
+consumption patterns—Audit Service consumes all events, Notification
+Service filters for health and auth events, Metrics Pipeline converts
+structured events to Prometheus metrics, State Sync uses events for
+federation and CRDT synchronization, and Worker Manager reacts to
+scheduling events.</p>
+<h3 id="key-relationships-highlighted-11">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Schema Registry → Event Envelope</strong>: Every event is
+validated against its Avro schema before publishing; invalid events are
+rejected with a schema error.</li>
+<li><strong>NATS subject wildcards → Content filtering</strong>: The
+subject hierarchy (<code>helix.events.workload.scheduled</code>,
+<code>helix.events.health.changed</code>) enables efficient
+content-based routing without deserialization.</li>
+<li><strong>Stream mirrors → Federation</strong>: Cross-cluster stream
+mirroring replicates events between federated clusters, enabling global
+event visibility.</li>
+<li><strong>Dead Letter Queue → Replay</strong>: Events that fail
+processing are moved to the DLQ; after the consumer fixes the bug,
+events can be replayed from the DLQ or from the original stream
+offset.</li>
+</ul>
+<hr />
+<h2 id="federation-architecture">13. Federation Architecture</h2>
+<h3 id="title-12">Title</h3>
+<p><strong>Hub-Spoke Federation with Policy Distribution and
+Selector-Based Routing</strong></p>
+<h3 id="mermaid-diagram-12">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Hub[&quot;Federation Hub&quot;]
+        FED_CTRL[&quot;Federation Controller&lt;br/&gt;(hub mode)&quot;]
+        FED_POLICY[&quot;Policy Distributor&lt;br/&gt;(RBAC + network policies)&quot;]
+        FED_SCHED[&quot;Federated Scheduler&lt;br/&gt;(cross-cluster placement)&quot;]
+        FED_DNS[&quot;Federated DNS&lt;br/&gt;(multi-cluster service discovery)&quot;]
+        FED_MIRROR[&quot;Event Mirror&lt;br/&gt;(NATS cross-cluster)&quot;]
+        FED_STATUS[&quot;Status Aggregator&lt;br/&gt;(cluster health rollup)&quot;]
+    end
+
+    subgraph SpokeA[&quot;Spoke Cluster A — US-East&quot;]
+        SA_CTRL[&quot;Federation Agent&lt;br/&gt;(spoke mode)&quot;]
+        SA_SCHED[&quot;Local Scheduler&lt;br/&gt;(Omega)&quot;]
+        SA_WORK[&quot;Worker Manager&quot;]
+        SA_REGISTRY[&quot;Local Registry&quot;]
+        SA_NODE[&quot;Nodes n1..n20&quot;]
+    end
+
+    subgraph SpokeB[&quot;Spoke Cluster B — EU-West&quot;]
+        SB_CTRL[&quot;Federation Agent&lt;br/&gt;(spoke mode)&quot;]
+        SB_SCHED[&quot;Local Scheduler&lt;br/&gt;(Omega)&quot;]
+        SB_WORK[&quot;Worker Manager&quot;]
+        SB_REGISTRY[&quot;Local Registry&quot;]
+        SB_NODE[&quot;Nodes n1..n15&quot;]
+    end
+
+    subgraph SpokeC[&quot;Spoke Cluster C — AP-South&quot;]
+        SC_CTRL[&quot;Federation Agent&lt;br/&gt;(spoke mode)&quot;]
+        SC_SCHED[&quot;Local Scheduler&lt;br/&gt;(Omega)&quot;]
+        SC_WORK[&quot;Worker Manager&quot;]
+        SC_REGISTRY[&quot;Local Registry&quot;]
+        SC_NODE[&quot;Nodes n1..n8&quot;]
+    end
+
+    subgraph Selector[&quot;Workload Selector&quot;]
+        SEL_LABEL[&quot;Label Selector&lt;br/&gt;(region, tier, gpu)&quot;]
+        SEL_AFFINITY[&quot;Cluster Affinity&lt;br/&gt;(topology key matching)&quot;]
+        SEL_SPREAD[&quot;Spread Constraints&lt;br/&gt;(max-skew, min-domains)&quot;]
+        SEL_POLICY[&quot;Placement Policy&lt;br/&gt;(cost, latency, compliance)&quot;]
+    end
+
+    subgraph Sync[&quot;Federation Sync&quot;]
+        SYNC_STATE[&quot;State Sync&lt;br/&gt;(CRDT merge)&quot;]
+        SYNC_EVENT[&quot;Event Sync&lt;br/&gt;(NATS mirror)&quot;]
+        SYNC_RES[&quot;Resource Sync&lt;br/&gt;(inventory aggregation)&quot;]
+        SYNC_HB[&quot;Heartbeat&lt;br/&gt;(per-cluster, 5s interval)&quot;]
+    end
+
+    FED_CTRL --&gt; SA_CTRL
+    FED_CTRL --&gt; SB_CTRL
+    FED_CTRL --&gt; SC_CTRL
+
+    FED_POLICY --&gt; SA_CTRL
+    FED_POLICY --&gt; SB_CTRL
+    FED_POLICY --&gt; SC_CTRL
+
+    FED_SCHED --&gt; SEL_LABEL
+    FED_SCHED --&gt; SEL_AFFINITY
+    FED_SCHED --&gt; SEL_SPREAD
+    FED_SCHED --&gt; SEL_POLICY
+
+    FED_DNS --&gt; SA_CTRL
+    FED_DNS --&gt; SB_CTRL
+    FED_DNS --&gt; SC_CTRL
+
+    FED_MIRROR --&gt; SA_CTRL
+    FED_MIRROR --&gt; SB_CTRL
+    FED_MIRROR --&gt; SC_CTRL
+
+    FED_STATUS --&gt; SA_CTRL
+    FED_STATUS --&gt; SB_CTRL
+    FED_STATUS --&gt; SC_CTRL
+
+    SA_CTRL --&gt; SA_SCHED
+    SA_SCHED --&gt; SA_WORK
+    SA_WORK --&gt; SA_NODE
+    SA_WORK --&gt; SA_REGISTRY
+
+    SB_CTRL --&gt; SB_SCHED
+    SB_SCHED --&gt; SB_WORK
+    SB_WORK --&gt; SB_NODE
+    SB_WORK --&gt; SB_REGISTRY
+
+    SC_CTRL --&gt; SC_SCHED
+    SC_SCHED --&gt; SC_WORK
+    SC_WORK --&gt; SC_NODE
+    SC_WORK --&gt; SC_REGISTRY
+
+    SA_CTRL --&gt; SYNC_STATE
+    SB_CTRL --&gt; SYNC_STATE
+    SC_CTRL --&gt; SYNC_STATE
+    SA_CTRL --&gt; SYNC_EVENT
+    SB_CTRL --&gt; SYNC_EVENT
+    SC_CTRL --&gt; SYNC_EVENT
+    SA_CTRL --&gt; SYNC_RES
+    SB_CTRL --&gt; SYNC_RES
+    SC_CTRL --&gt; SYNC_RES
+    SA_CTRL --&gt; SYNC_HB
+    SB_CTRL --&gt; SYNC_HB
+    SC_CTRL --&gt; SYNC_HB
+
+    style Hub fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style SpokeA fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style SpokeB fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style SpokeC fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Selector fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Sync fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-12">Description</h3>
+<p>The Federation Architecture follows a hub-spoke model where a central
+Federation Hub coordinates three spoke clusters across regions (US-East,
+EU-West, AP-South). The hub does not run workloads itself; it provides
+coordination services:</p>
+<p><strong>Federation Controller</strong>: Operates in hub mode,
+maintaining persistent connections (gRPC over WireGuard) to Federation
+Agents on each spoke. The controller pushes configuration and pulls
+status.</p>
+<p><strong>Policy Distributor</strong>: Propagates RBAC policies and
+network policies from the hub to all spokes, ensuring consistent
+security posture across clusters. Policy changes are applied
+incrementally to avoid disrupting running workloads.</p>
+<p><strong>Federated Scheduler</strong>: Handles cross-cluster workload
+placement using a four-dimensional selector: Label Selector (match on
+region, tier, gpu labels), Cluster Affinity (topology key matching for
+data-locality requirements), Spread Constraints (max-skew and
+min-domains for availability), and Placement Policy (cost optimization,
+latency minimization, compliance requirements like GDPR data
+residency).</p>
+<p><strong>Federated DNS</strong>: Provides multi-cluster service
+discovery, mapping service names to endpoints across clusters with
+health-based routing (unhealthy endpoints are removed from DNS
+responses).</p>
+<p><strong>Event Mirror</strong>: Replicates NATS streams between
+clusters, enabling global event visibility. Events are tagged with their
+source cluster to prevent loops.</p>
+<p><strong>Status Aggregator</strong>: Rolls up cluster health from each
+spoke into a global dashboard, tracking node counts, workload
+distributions, resource utilization, and error rates.</p>
+<p>Federation Sync uses CRDT-based state merging (conflict-free), NATS
+stream mirroring (ordered), resource inventory aggregation (periodic),
+and per-cluster heartbeats (5-second intervals, 3 missed = suspect).</p>
+<h3 id="key-relationships-highlighted-12">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Hub → Spoke policy push</strong>: The Policy Distributor
+pushes RBAC and network policies unidirectionally from hub to spokes,
+ensuring a single source of truth.</li>
+<li><strong>Federated Scheduler → Local Schedulers</strong>: The
+Federated Scheduler decides which cluster receives a workload, then
+delegates to the local Omega Scheduler for node-level placement.</li>
+<li><strong>CRDT state sync</strong>: Spoke controllers merge state
+using CRDTs, enabling partition-tolerant operation—spokes can accept
+workloads even during temporary hub disconnection.</li>
+<li><strong>Heartbeat → Status</strong>: Cluster heartbeats feed into
+the Status Aggregator, which maintains a real-time global view of
+cluster availability.</li>
+</ul>
+<hr />
+<h2 id="consensus-architecture">14. Consensus Architecture</h2>
+<h3 id="title-13">Title</h3>
+<p><strong>Raft Consensus with etcd Backend and Leader
+Election</strong></p>
+<h3 id="mermaid-diagram-13">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Raft[&quot;Raft Consensus Layer&quot;]
+        RAFT_LEADER[&quot;Leader Node&lt;br/&gt;(process writes)&quot;]
+        RAFT_FOLLOW1[&quot;Follower Node 1&lt;br/&gt;(replicate + vote)&quot;]
+        RAFT_FOLLOW2[&quot;Follower Node 2&lt;br/&gt;(replicate + vote)&quot;]
+        RAFT_CANDIDATE[&quot;Candidate&lt;br/&gt;(election in progress)&quot;]
+        RAFT_LOG[&quot;Raft Log&lt;br/&gt;(append-only entries)&quot;]
+        RAFT_SNAP[&quot;Snapshot&lt;br/&gt;(compacted log)&quot;]
+        RAFT_WAL[&quot;WAL&lt;br/&gt;(write-ahead log)&quot;]
+    end
+
+    subgraph Etcd[&quot;etcd Data Layer&quot;]
+        ETCD_KV[&quot;Key-Value Store&lt;br/&gt;(revision-based MVCC)&quot;]
+        ETCD_LEASE[&quot;Lease Manager&lt;br/&gt;(TTL-based ephemeral keys)&quot;]
+        ETCD_WATCH[&quot;Watch Service&lt;br/&gt;(change notifications)&quot;]
+        ETCD_TXN[&quot;Transaction&lt;br/&gt;(compare + ops, atomic)&quot;]
+        ETCD_MAINT[&quot;Maintenance&lt;br/&gt;(compaction, defrag)&quot;]
+        ETCD_AUTH[&quot;Auth&lt;br/&gt;(role-based access)&quot;]
+    end
+
+    subgraph Election[&quot;Leader Election&quot;]
+        EL_VOTE[&quot;Vote Request&lt;br/&gt;(RequestVote RPC)&quot;]
+        EL_TERM[&quot;Term Counter&lt;br/&gt;(monotonically increasing)&quot;]
+        EL_TIMEOUT[&quot;Election Timeout&lt;br/&gt;(randomized 150–300ms)&quot;]
+        EL_QUORUM[&quot;Quorum&lt;br/&gt;(⌈N/2⌉ + 1 votes)&quot;]
+        EL_LEASE[&quot;Leader Lease&lt;br/&gt;(renewed via heartbeat)&quot;]
+    end
+
+    subgraph Clients[&quot;Consensus Clients&quot;]
+        CL_SCHED[&quot;Scheduler&lt;br/&gt;(transactional binds)&quot;]
+        CL_GPU[&quot;GPU Service&lt;br/&gt;(GPU reservations)&quot;]
+        CL_AUTH[&quot;Auth Service&lt;br/&gt;(token validation)&quot;]
+        CL_MESH[&quot;Mesh Controller&lt;br/&gt;(xDS snapshots)&quot;]
+        CL_FED[&quot;Federation&lt;br/&gt;(cluster state)&quot;]
+        CL_AUDIT[&quot;Audit Service&lt;br/&gt;(event persistence)&quot;]
+    end
+
+    subgraph Snap[&quot;Snapshot &amp; Recovery&quot;]
+        SN_AUTO[&quot;Auto-Snapshot&lt;br/&gt;(every 10,000 entries)&quot;]
+        SN_MANUAL[&quot;Manual Snapshot&lt;br/&gt;(operator trigger)&quot;]
+        SN_DEFRAG[&quot;Defragmentation&lt;br/&gt;(online, per-revision)&quot;]
+        SN_BACKUP[&quot;Backup&lt;br/&gt;(S3 / NFS)&quot;]
+        SN_RESTORE[&quot;Restore&lt;br/&gt;(from snapshot + WAL)&quot;]
+    end
+
+    RAFT_LEADER --&gt; RAFT_LOG
+    RAFT_FOLLOW1 --&gt; RAFT_LOG
+    RAFT_FOLLOW2 --&gt; RAFT_LOG
+    RAFT_LOG --&gt; RAFT_SNAP
+    RAFT_LOG --&gt; RAFT_WAL
+
+    RAFT_LEADER --&gt; ETCD_KV
+    RAFT_LEADER --&gt; ETCD_LEASE
+    RAFT_LEADER --&gt; ETCD_WATCH
+    RAFT_LEADER --&gt; ETCD_TXN
+    RAFT_LEADER --&gt; ETCD_MAINT
+    RAFT_LEADER --&gt; ETCD_AUTH
+
+    RAFT_CANDIDATE --&gt; EL_VOTE
+    EL_VOTE --&gt; EL_TERM
+    EL_VOTE --&gt; EL_TIMEOUT
+    EL_VOTE --&gt; EL_QUORUM
+    RAFT_LEADER --&gt; EL_LEASE
+
+    CL_SCHED --&gt; ETCD_TXN
+    CL_GPU --&gt; ETCD_TXN
+    CL_AUTH --&gt; ETCD_KV
+    CL_MESH --&gt; ETCD_WATCH
+    CL_FED --&gt; ETCD_KV
+    CL_AUDIT --&gt; ETCD_KV
+
+    ETCD_KV --&gt; SN_AUTO
+    ETCD_MAINT --&gt; SN_DEFRAG
+    SN_AUTO --&gt; SN_BACKUP
+    SN_MANUAL --&gt; SN_BACKUP
+    SN_BACKUP --&gt; SN_RESTORE
+    RAFT_SNAP --&gt; SN_AUTO
+
+    style Raft fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Etcd fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Election fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Clients fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Snap fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px</code></pre>
+<h3 id="description-13">Description</h3>
+<p>The Consensus Architecture provides the linearizable consistency
+guarantees that underpin the Helix Cluster’s critical operations. Built
+on the Raft consensus algorithm with etcd as the data layer, it ensures
+that all state changes are durably replicated and consistently
+ordered.</p>
+<p><strong>Raft Consensus Layer</strong>: A 3-node (or 5-node for
+production) Raft group with a single Leader that processes all writes
+and two (or four) Followers that replicate entries. The Raft Log stores
+all state changes as append-only entries, periodically compacted into
+Snapshots. A Write-Ahead Log (WAL) provides durability against crashes.
+If the Leader fails, a Candidate initiates an election.</p>
+<p><strong>Leader Election</strong>: When a Follower’s election timeout
+(randomized between 150–300ms to prevent split votes) expires without
+receiving a heartbeat from the Leader, it transitions to Candidate,
+increments the term counter, and sends RequestVote RPCs to all peers. A
+Candidate becomes Leader upon receiving quorum votes (⌈N/2⌉ + 1). The
+Leader maintains its authority through periodic heartbeats (leader
+lease).</p>
+<p><strong>etcd Data Layer</strong>: Provides revision-based MVCC
+key-value storage, lease-based ephemeral keys (for node registration and
+leader election), watch notifications (for reactive programming),
+compare-and-operations transactions (for atomic scheduling binds),
+maintenance operations (compaction and defragmentation), and role-based
+access control.</p>
+<p><strong>Consensus Clients</strong>: Six services interact with etcd.
+The Scheduler and GPU Service use transactions for atomic resource
+reservation. Auth, Federation, and Audit use simple key-value
+operations. The Mesh Controller uses watches to reactively update Envoy
+configuration.</p>
+<p><strong>Snapshot &amp; Recovery</strong>: Automatic snapshots are
+taken every 10,000 log entries; operators can trigger manual snapshots.
+Backups are stored in S3 or NFS. Recovery replays the latest snapshot
+followed by any WAL entries not yet snapshotted. Online defragmentation
+reclaims space without downtime.</p>
+<h3 id="key-relationships-highlighted-13">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Leader → etcd writes</strong>: All writes go through the
+Leader, ensuring linearizable ordering; Followers only serve reads (with
+optional consistency levels).</li>
+<li><strong>Scheduler/GPU → Transactions</strong>: Both the Scheduler
+and GPU Service use etcd transactions (<code>compare + ops</code>) to
+atomically reserve resources, preventing double-booking.</li>
+<li><strong>Watch → Mesh Controller</strong>: The Mesh Controller
+watches etcd for service discovery changes and immediately pushes
+updated xDS configuration to Envoy.</li>
+<li><strong>Snapshot → WAL → Recovery</strong>: The recovery process
+first restores the latest snapshot, then replays WAL entries, ensuring
+no committed state is lost.</li>
+</ul>
+<hr />
+<h2 id="testing-architecture">15. Testing Architecture</h2>
+<h3 id="title-14">Title</h3>
+<p><strong>DST, Chaos, Fuzz, Mutation, and Integration Testing
+Strategy</strong></p>
+<h3 id="mermaid-diagram-14">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Unit[&quot;Unit Testing&quot;]
+        UT_RUST[&quot;Rust Tests&lt;br/&gt;(cargo test + nextest)&quot;]
+        UT_GO[&quot;Go Tests&lt;br/&gt;(go test -race)&quot;]
+        UT_TS[&quot;TypeScript Tests&lt;br/&gt;(vitest + coverage)&quot;]
+        UT_MOCK[&quot;Mock Framework&lt;br/&gt;(mockall + testify)&quot;]
+    end
+
+    subgraph Integration[&quot;Integration Testing&quot;]
+        IT_DOCKER[&quot;Docker Compose&lt;br/&gt;(service mesh stack)&quot;]
+        IT_HONEY[&quot;Honey Cell&lt;br/&gt;(ephemeral cluster)&quot;]
+        IT_API[&quot;API Contract Tests&lt;br/&gt;(Pact)&quot;]
+        IT_E2E[&quot;E2E Tests&lt;br/&gt;(Playwright + custom)&quot;]
+    end
+
+    subgraph Chaos[&quot;Chaos Engineering&quot;]
+        CHAOS_LIT[&quot;Litmus Chaos&lt;br/&gt;(pod kill, network delay)&quot;]
+        CHAOS_NET[&quot;Network Chaos&lt;br/&gt;(tc + iptables)&quot;]
+        CHAOS_NODE[&quot;Node Failure&lt;br/&gt;(EC2 terminate)&quot;]
+        CHAOS_DISK[&quot;Disk Failure&lt;br/&gt;(IO error injection)&quot;]
+        CHAOS_TIME[&quot;Time Skew&lt;br/&gt;(chrony offset)&quot;]
+        CHAOS_STEADY[&quot;Steady State&lt;br/&gt;(verify invariants)&quot;]
+    end
+
+    subgraph DST[&quot;Deterministic Simulation Testing&quot;]
+        DST_ENGINE[&quot;Sim Engine&lt;br/&gt;(clock + network + disk)&quot;]
+        DST_SCHED[&quot;Schedule Explorer&lt;br/&gt;(all interleavings)&quot;]
+       _DST_SEED[&quot;Seed Corpus&lt;br/&gt;(failing scenarios)&quot;]
+        DST_ASSERT[&quot;Invariant Checker&lt;br/&gt;(safety + liveness)&quot;]
+        DST_REPLAY[&quot;Replay Debugger&lt;br/&gt;(step-through)&quot;]
+    end
+
+    subgraph Fuzz[&quot;Fuzz Testing&quot;]
+        FUZZ_LIB[&quot;libFuzzer&lt;br/&gt;(Rust + Go)&quot;]
+        FUZZ_CORPUS[&quot;Seed Corpus&lt;br/&gt;(hand-crafted inputs)&quot;]
+        FUZZ_DICT[&quot;Fuzz Dictionary&lt;br/&gt;(protocol keywords)&quot;]
+        FUZZ_CRASH[&quot;Crash Triage&lt;br/&gt;(ASAN + minimization)&quot;]
+        FUZZ_REG[&quot;Regression Suite&lt;br/&gt;(fixed bugs → test)&quot;]
+    end
+
+    subgraph Mutation[&quot;Mutation Testing&quot;]
+        MUT_ENGINE[&quot;Mutation Engine&lt;br/&gt;(mutagen + custom)&quot;]
+        MUT_OPS[&quot;Mutation Operators:&lt;br/&gt;statement deletion,&lt;br/&gt;operator substitution,&lt;br/&gt;boundary change,&lt;br/&gt;negate condition&quot;]
+        MUT_SCORE[&quot;Mutation Score&lt;br/&gt;(% killed / total)&quot;]
+        MUT_EQ[&quot;Equivalent Mutants&lt;br/&gt;(manually excluded)&quot;]
+    end
+
+    subgraph Property[&quot;Property-Based Testing&quot;]
+        PROP_STRAT[&quot;Strategy Generator&lt;br/&gt;(Arbitrary impls)&quot;]
+        PROP_SHRINK[&quot;Shrinker&lt;br/&gt;(minimal failing case)&quot;]
+        PROP_STATE[&quot;Stateful Properties&lt;br/&gt;(model-based testing)&quot;]
+        PROP_LAW[&quot;Law Tests&lt;br/&gt;(monoid, functor laws)&quot;]
+    end
+
+    UT_RUST --&gt; IT_DOCKER
+    UT_GO --&gt; IT_DOCKER
+    UT_TS --&gt; IT_DOCKER
+    UT_MOCK --&gt; UT_RUST
+
+    IT_DOCKER --&gt; IT_HONEY
+    IT_HONEY --&gt; IT_API
+    IT_API --&gt; IT_E2E
+
+    IT_E2E --&gt; CHAOS_LIT
+    CHAOS_LIT --&gt; CHAOS_NET
+    CHAOS_LIT --&gt; CHAOS_NODE
+    CHAOS_LIT --&gt; CHAOS_DISK
+    CHAOS_LIT --&gt; CHAOS_TIME
+    CHAOS_LIT --&gt; CHAOS_STEADY
+
+    CHAOS_STEADY --&gt; DST_ENGINE
+    DST_ENGINE --&gt; DST_SCHED
+    DST_ENGINE --&gt;_DST_SEED
+    DST_SCHED --&gt; DST_ASSERT
+    DST_ASSERT --&gt; DST_REPLAY
+
+    IT_DOCKER --&gt; FUZZ_LIB
+    FUZZ_LIB --&gt; FUZZ_CORPUS
+    FUZZ_LIB --&gt; FUZZ_DICT
+    FUZZ_LIB --&gt; FUZZ_CRASH
+    FUZZ_CRASH --&gt; FUZZ_REG
+
+    UT_RUST --&gt; MUT_ENGINE
+    UT_GO --&gt; MUT_ENGINE
+    MUT_ENGINE --&gt; MUT_OPS
+    MUT_OPS --&gt; MUT_SCORE
+    MUT_SCORE --&gt; MUT_EQ
+
+    UT_RUST --&gt; PROP_STRAT
+    PROP_STRAT --&gt; PROP_SHRINK
+    PROP_STRAT --&gt; PROP_STATE
+    PROP_STRAT --&gt; PROP_LAW
+
+    style Unit fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Integration fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Chaos fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style DST fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Fuzz fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Mutation fill:#e0f2f1,stroke:#00695c,stroke-width:2px
+    style Property fill:#fff9c4,stroke:#f9a825,stroke-width:2px</code></pre>
+<h3 id="description-14">Description</h3>
+<p>The Testing Architecture employs a seven-tier strategy that
+progresses from fast unit tests to deep deterministic simulation,
+ensuring both correctness and resilience:</p>
+<p><strong>Unit Testing</strong>: Per-language unit test suites with
+mock frameworks (mockall for Rust, testify for Go). Rust tests use
+nextest for parallel execution with per-test timeouts. Go tests run with
+the race detector enabled.</p>
+<p><strong>Integration Testing</strong>: Four levels—Docker Compose for
+local service-mesh stacks, Honey Cells (ephemeral single-node clusters)
+for realistic scheduling tests, Pact-based API contract tests for
+service boundaries, and Playwright-based E2E tests for the
+dashboard.</p>
+<p><strong>Chaos Engineering</strong>: Litmus Chaos experiments inject
+pod kills, network delays, node failures (via EC2 instance termination),
+disk IO errors, and time skew. Each experiment follows a steady-state
+methodology: verify invariants before and after injection.</p>
+<p><strong>Deterministic Simulation Testing (DST)</strong>: The crown
+jewel of the testing strategy. The Sim Engine provides a deterministic
+clock, network, and disk, enabling the Schedule Explorer to enumerate
+all possible interleavings of concurrent events. The Invariant Checker
+validates safety (no double-scheduling) and liveness (no deadlock)
+properties. When a violation is found, the Replay Debugger enables
+step-through analysis.</p>
+<p><strong>Fuzz Testing</strong>: libFuzzer-based fuzzing for Rust and
+Go code, with hand-crafted seed corpora, protocol-specific fuzz
+dictionaries, ASAN-based crash triage with minimization, and a
+regression suite that prevents re-introduction of previously fixed
+bugs.</p>
+<p><strong>Mutation Testing</strong>: The mutation engine applies
+operators (statement deletion, operator substitution, boundary change,
+condition negation) to source code and measures the mutation
+score—percentage of mutants killed by the test suite. Equivalent mutants
+(semantically identical) are manually excluded.</p>
+<p><strong>Property-Based Testing</strong>: QuickCheck-style generators
+with Arbitrary implementations, automatic shrinking to minimal failing
+cases, stateful model-based testing for stateful components, and law
+tests for algebraic properties (monoid associativity, functor
+identity).</p>
+<h3 id="key-relationships-highlighted-14">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Unit → Integration → E2E → Chaos</strong>: Tests progress
+from isolated unit tests to full-stack integration, then to chaos
+experiments that validate resilience under failure.</li>
+<li><strong>Chaos → DST</strong>: Chaos experiments identify failure
+modes that are then codified as DST scenarios for deterministic replay
+and root-cause analysis.</li>
+<li><strong>Fuzz → Crash Triage → Regression</strong>: Fuzzing discovers
+crashes; crash triage minimizes reproducing inputs; the regression suite
+ensures fixes are permanent.</li>
+<li><strong>Mutation → Test Quality</strong>: Mutation testing measures
+test suite effectiveness—a low mutation score indicates inadequate test
+coverage even if line coverage is high.</li>
+</ul>
+<hr />
+<h2 id="deployment-architecture">16. Deployment Architecture</h2>
+<h3 id="title-15">Title</h3>
+<p><strong>Kubernetes, Helm, and Docker Compose Deployment
+Topologies</strong></p>
+<h3 id="mermaid-diagram-15">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph K8s[&quot;Kubernetes Deployment (Production)&quot;]
+        subgraph NS_CTRL[&quot;Namespace: helix-control&quot;]
+            DEP_API[&quot;Deployment: api-gateway&lt;br/&gt;replicas: 3&lt;br/&gt;strategy: RollingUpdate&lt;br/&gt;maxSurge: 1, maxUnavailable: 0&quot;]
+            DEP_AUTH[&quot;Deployment: auth-service&lt;br/&gt;replicas: 3&quot;]
+            DEP_SCHED[&quot;Deployment: scheduler&lt;br/&gt;replicas: 2 (leader + standby)&quot;]
+            DEP_WORK[&quot;Deployment: worker-mgr&lt;br/&gt;replicas: 3&quot;]
+            DEP_GPU[&quot;Deployment: gpu-service&lt;br/&gt;replicas: 2&quot;]
+            DEP_SESS[&quot;Deployment: session-svc&lt;br/&gt;replicas: 3&quot;]
+            DEP_BUILD[&quot;Deployment: build-svc&lt;br/&gt;replicas: 2&quot;]
+            DEP_HEALTH[&quot;Deployment: health-svc&lt;br/&gt;replicas: 3&quot;]
+            DEP_EVENT[&quot;StatefulSet: nats&lt;br/&gt;replicas: 3&quot;]
+            DEP_ETCD[&quot;StatefulSet: etcd&lt;br/&gt;replicas: 3&quot;]
+        end
+
+        subgraph NS_DATA[&quot;Namespace: helix-data&quot;]
+            STS_PG[&quot;StatefulSet: postgresql&lt;br/&gt;replicas: 3 (primary + replicas)&lt;br/&gt;PVC: 100Gi SSD&quot;]
+            STS_REDIS[&quot;StatefulSet: redis&lt;br/&gt;replicas: 6 (3 master + 3 replica)&quot;]
+            STS_MINIO[&quot;StatefulSet: minio&lt;br/&gt;replicas: 4 (erasure coding)&quot;]
+        end
+
+        subgraph NS_WORK[&quot;Namespace: helix-workload&quot;]
+            DS_NODE[&quot;DaemonSet: node-agent&lt;br/&gt;runs on every node&quot;]
+            DS_WG[&quot;DaemonSet: wg-mesh&lt;br/&gt;runs on every node&quot;]
+            DS_SPIRE[&quot;DaemonSet: spire-agent&lt;br/&gt;runs on every node&quot;]
+            DS_DCGM[&quot;DaemonSet: dcgm-exporter&lt;br/&gt;runs on GPU nodes&quot;]
+        end
+
+        subgraph NS_SYS[&quot;Namespace: helix-system&quot;]
+            DEP_PROM[&quot;Deployment: prometheus&lt;br/&gt;replicas: 1 + Thanos sidecar&quot;]
+            DEP_GRAF[&quot;Deployment: grafana&lt;br/&gt;replicas: 2&quot;]
+            DEP_LOKI[&quot;Deployment: loki&lt;br/&gt;replicas: 3&quot;]
+            DEP_JAEGER[&quot;Deployment: jaeger&lt;br/&gt;replicas: 1&quot;]
+        end
+    end
+
+    subgraph Helm[&quot;Helm Chart Structure&quot;]
+        H_CHART[&quot;Chart: helix-platform&lt;br/&gt;version: 2.4.0&lt;br/&gt;appVersion: 2.4.0&quot;]
+        H_VAL[&quot;values.yaml&lt;br/&gt;(global overrides)&quot;]
+        H_VAL_PROD[&quot;values-prod.yaml&lt;br/&gt;(production overrides)&quot;]
+        H_VAL_STG[&quot;values-staging.yaml&lt;br/&gt;(staging overrides)&quot;]
+        H_SUB1[&quot;Subchart: helix-control&quot;]
+        H_SUB2[&quot;Subchart: helix-data&quot;]
+        H_SUB3[&quot;Subchart: helix-workload&quot;]
+        H_SUB4[&quot;Subchart: helix-system&quot;]
+        H_HOOK[&quot;Hooks:&lt;br/&gt;pre-install (seeds)&lt;br/&gt;post-install (smoke test)&lt;br/&gt;pre-upgrade (backup)&quot;]
+    end
+
+    subgraph Docker[&quot;Docker Compose (Development)&quot;]
+        DC_API[&quot;api-gateway:8000&quot;]
+        DC_AUTH[&quot;auth-service:8001&quot;]
+        DC_SCHED[&quot;scheduler:8002&quot;]
+        DC_WORK[&quot;worker-mgr:8003&quot;]
+        DC_NATS[&quot;nats:4222/8222&quot;]
+        DC_ETCD[&quot;etcd:2379&quot;]
+        DC_PG[&quot;postgresql:5432&quot;]
+        DC_REDIS[&quot;redis:6379&quot;]
+        DC_MINIO[&quot;minio:9000&quot;]
+    end
+
+    H_CHART --&gt; H_VAL
+    H_VAL --&gt; H_VAL_PROD
+    H_VAL --&gt; H_VAL_STG
+    H_CHART --&gt; H_SUB1
+    H_CHART --&gt; H_SUB2
+    H_CHART --&gt; H_SUB3
+    H_CHART --&gt; H_SUB4
+    H_CHART --&gt; H_HOOK
+
+    H_SUB1 --&gt; DEP_API
+    H_SUB1 --&gt; DEP_AUTH
+    H_SUB1 --&gt; DEP_SCHED
+    H_SUB1 --&gt; DEP_WORK
+    H_SUB1 --&gt; DEP_GPU
+    H_SUB1 --&gt; DEP_SESS
+    H_SUB1 --&gt; DEP_BUILD
+    H_SUB1 --&gt; DEP_HEALTH
+    H_SUB1 --&gt; DEP_EVENT
+    H_SUB1 --&gt; DEP_ETCD
+
+    H_SUB2 --&gt; STS_PG
+    H_SUB2 --&gt; STS_REDIS
+    H_SUB2 --&gt; STS_MINIO
+
+    H_SUB3 --&gt; DS_NODE
+    H_SUB3 --&gt; DS_WG
+    H_SUB3 --&gt; DS_SPIRE
+    H_SUB3 --&gt; DS_DCGM
+
+    DC_API --&gt; DC_AUTH
+    DC_API --&gt; DC_SCHED
+    DC_SCHED --&gt; DC_WORK
+    DC_SCHED --&gt; DC_NATS
+    DC_SCHED --&gt; DC_ETCD
+    DC_WORK --&gt; DC_PG
+    DC_WORK --&gt; DC_REDIS
+    DC_WORK --&gt; DC_MINIO
+
+    style K8s fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Helm fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Docker fill:#fff3e0,stroke:#e65100,stroke-width:2px</code></pre>
+<h3 id="description-15">Description</h3>
+<p>The Deployment Architecture supports three deployment topologies
+optimized for different environments:</p>
+<p><strong>Kubernetes (Production)</strong>: Four namespaces isolate
+concerns. <code>helix-control</code> runs the control-plane services as
+Deployments (with RollingUpdate strategy for zero-downtime upgrades) and
+StatefulSets for NATS and etcd (which require stable network
+identities). <code>helix-data</code> runs stateful data
+stores—PostgreSQL (primary + replicas with PVC-backed storage), Redis (3
+master + 3 replica cluster), and MinIO (4-node erasure coding for
+durability). <code>helix-workload</code> runs DaemonSets that must
+execute on every node (node-agent, wg-mesh, spire-agent) or GPU nodes
+(dcgm-exporter). <code>helix-system</code> runs observability stack
+(Prometheus with Thanos sidecar for long-term storage, Grafana, Loki,
+Jaeger).</p>
+<p><strong>Helm Chart</strong>: The <code>helix-platform</code> umbrella
+chart (version 2.4.0) contains four subcharts corresponding to the four
+namespaces, plus hooks for pre-install (seed initial data), post-install
+(smoke test), and pre-upgrade (backup etcd). Three values files provide
+environment-specific overrides—<code>values.yaml</code> for defaults,
+<code>values-prod.yaml</code> for production (higher replicas, resource
+limits, PodDisruptionBudgets), and <code>values-staging.yaml</code> for
+staging (fewer replicas, debug logging).</p>
+<p><strong>Docker Compose (Development)</strong>: A simplified
+single-host setup with all services running on their standard ports.
+Used for local development and CI testing. Lacks the resilience features
+of Kubernetes (no replica sets, no rolling updates) but provides fast
+iteration.</p>
+<h3 id="key-relationships-highlighted-15">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Helm subcharts → Kubernetes namespaces</strong>: Each
+subchart maps to a namespace, enabling independent versioning and
+deployment of control-plane, data, workload, and system components.</li>
+<li><strong>DaemonSets → Node-level agents</strong>: Node-agent,
+wg-mesh, and spire-agent run on every node via DaemonSets, ensuring
+consistent infrastructure across the fleet.</li>
+<li><strong>StatefulSets → Stable identities</strong>: NATS and etcd use
+StatefulSets for stable network identities, enabling Raft cluster
+formation and leader election.</li>
+<li><strong>Docker Compose → Development parity</strong>: The compose
+file mirrors the Kubernetes topology at a simplified level, ensuring
+developers can test service interactions locally.</li>
+</ul>
+<hr />
+<h2 id="database-schema-er">17. Database Schema ER</h2>
+<h3 id="title-16">Title</h3>
+<p><strong>PostgreSQL + etcd + Redis + SQLite Entity-Relationship
+Model</strong></p>
+<h3 id="mermaid-diagram-16">Mermaid Diagram</h3>
+<pre class="mermaid"><code>erDiagram
+    PostgreSQL {
+        WORKLOADS workloads {
+            uuid id PK
+            string name
+            uuid namespace_id FK
+            string image
+            jsonb resource_requests
+            jsonb resource_limits
+            jsonb gpu_requests
+            string status
+            uuid node_id FK
+            uuid scheduled_gpu_id FK
+            timestamptz created_at
+            timestamptz updated_at
+            timestamptz terminated_at
+            jsonb labels
+            jsonb annotations
+        }
+        NAMESPACES namespaces {
+            uuid id PK
+            string name UK
+            uuid owner_id FK
+            jsonb resource_quota
+            jsonb labels
+            timestamptz created_at
+        }
+        NODES nodes {
+            uuid id PK
+            string hostname UK
+            string region
+            string zone
+            string instance_type
+            inet ip_address
+            jsonb capacity
+            jsonb allocatable
+            string status
+            jsonb labels
+            jsonb taints
+            timestamptz joined_at
+            timestamptz last_heartbeat
+        }
+        GPU_DEVICES gpu_devices {
+            uuid id PK
+            uuid node_id FK
+            string pci_address
+            string model
+            int memory_mb
+            string mig_profile
+            string status
+            int ecc_errors
+            timestamptz last_checked
+        }
+        GPU_RESERVATIONS gpu_reservations {
+            uuid id PK
+            uuid gpu_id FK
+            uuid workload_id FK
+            string mode
+            jsonb mig_config
+            timestamptz starts_at
+            timestamptz ends_at
+        }
+        USERS users {
+            uuid id PK
+            string email UK
+            string display_name
+            string oidc_subject
+            timestamptz created_at
+            timestamptz last_login
+        }
+        ROLES roles {
+            uuid id PK
+            string name UK
+            jsonb permissions
+            string description
+        }
+        ROLE_BINDINGS role_bindings {
+            uuid id PK
+            uuid user_id FK
+            uuid role_id FK
+            uuid namespace_id FK
+            timestamptz created_at
+        }
+        AUDIT_EVENTS audit_events {
+            uuid id PK
+            string event_type
+            uuid actor_id FK
+            string resource_type
+            uuid resource_id
+            jsonb details
+            inet source_ip
+            timestamptz occurred_at
+        }
+        SESSIONS sessions {
+            uuid id PK
+            uuid user_id FK
+            jsonb crdt_state
+            string backend
+            timestamptz expires_at
+            timestamptz created_at
+        }
+        BUILD_JOBS build_jobs {
+            uuid id PK
+            uuid namespace_id FK
+            string repository
+            string commit_sha
+            string branch
+            string status
+            string platform
+            jsonb config
+            timestamptz started_at
+            timestamptz completed_at
+            int duration_ms
+        }
+        FEDERATED_CLUSTERS federated_clusters {
+            uuid id PK
+            string name UK
+            string region
+            string endpoint
+            string api_key_hash
+            string status
+            timestamptz last_sync
+        }
+    }
+
+    etcd {
+        ETCD_KEYS key_prefix_layout {
+            string prefix_/helix/schedule &quot;schedule bindings&quot;
+            string prefix_/helix/gpu &quot;gpu allocations&quot;
+            string prefix_/helix/mesh &quot;mesh config xDS&quot;
+            string prefix_/helix/membership &quot;swim membership&quot;
+            string prefix_/helix/config &quot;dynamic config&quot;
+            string prefix_/helix/leader &quot;leader elections&quot;
+            string prefix_/helix/leases &quot;ephemeral node leases&quot;
+        }
+    }
+
+    Redis {
+        REDIS_STRUCTURES data_structures {
+            string key_session_current &quot;hash: session state cache&quot;
+            string key_schedule_cache &quot;hash: schedule result cache&quot;
+            string key_build_queue &quot;sorted_set: priority queue&quot;
+            string key_health_state &quot;hash: current health FSM&quot;
+            string key_rate_limit &quot;counter: API rate limiting&quot;
+            string key_ddos_tokens &quot;token_bucket: DDoS mitigation&quot;
+        }
+    }
+
+    SQLite {
+        SQLITE_TABLES local_tables {
+            string table_local_sessions &quot;offline session store&quot;
+            string table_local_config &quot;cached configuration&quot;
+            string table_local_events &quot;event buffer for replay&quot;
+            string table_local_health &quot;local health history&quot;
+        }
+    }
+
+    workloads ||--o{ gpu_reservations : &quot;reserves&quot;
+    workloads }o--|| namespaces : &quot;belongs to&quot;
+    workloads }o--o| nodes : &quot;scheduled on&quot;
+    gpu_devices ||--o{ gpu_reservations : &quot;allocated by&quot;
+    gpu_devices }o--|| nodes : &quot;installed in&quot;
+    nodes ||--o{ workloads : &quot;hosts&quot;
+    users ||--o{ role_bindings : &quot;has&quot;
+    users ||--o{ sessions : &quot;owns&quot;
+    users ||--o{ audit_events : &quot;triggers&quot;
+    roles ||--o{ role_bindings : &quot;assigned via&quot;
+    role_bindings }o--o| namespaces : &quot;scoped to&quot;
+    namespaces ||--o{ build_jobs : &quot;contains&quot;
+    build_jobs }o--|| namespaces : &quot;belongs to&quot;</code></pre>
+<h3 id="description-16">Description</h3>
+<p>This entity-relationship diagram models the complete data layer of
+the Helix Cluster, spanning four storage systems:</p>
+<p><strong>PostgreSQL</strong>: The primary relational store with 11
+tables. <code>workloads</code> is the central entity, linked to
+<code>namespaces</code> (multi-tenancy scoping), <code>nodes</code>
+(placement), and <code>gpu_reservations</code> (GPU allocation). The
+<code>gpu_devices</code> table tracks physical GPU hardware per node.
+Authentication and authorization are modeled through <code>users</code>,
+<code>roles</code>, and <code>role_bindings</code> (with optional
+namespace scoping). <code>audit_events</code> records all
+security-relevant actions. <code>sessions</code> stores CRDT session
+state. <code>build_jobs</code> tracks build pipeline execution.
+<code>federated_clusters</code> manages cross-cluster connectivity.</p>
+<p><strong>etcd</strong>: Six key prefix hierarchies store the cluster’s
+hot-path state: schedule bindings (written by the Omega Scheduler), GPU
+allocations (written by the GPU Service), mesh configuration as xDS
+snapshots (read by the Mesh Controller), SWIM membership (written by the
+gossip daemon), dynamic configuration (hot-reloaded by all services),
+and leader elections (with lease-based ephemeral keys).</p>
+<p><strong>Redis</strong>: Six data structures support low-latency
+operations: session state cache (current CRDT state for fast reads),
+schedule result cache (avoids etcd reads on the hot path), build
+priority queue (sorted set for the Build Orchestrator), health FSM state
+(current health of every workload), API rate limiting counters, and DDoS
+mitigation token buckets.</p>
+<p><strong>SQLite</strong>: Four local tables support offline/fallback
+operation on each node: offline session store, cached configuration,
+event buffer for replay after reconnection, and local health
+history.</p>
+<h3 id="key-relationships-highlighted-16">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>workloads ↔︎ gpu_reservations ↔︎ gpu_devices ↔︎ nodes</strong>:
+This four-way relationship traces a workload to its reserved GPU, which
+is installed on a specific node—enabling GPU-aware scheduling
+queries.</li>
+<li><strong>users ↔︎ role_bindings ↔︎ roles ↔︎ namespaces</strong>: Role
+bindings can be cluster-scoped (no namespace) or namespace-scoped,
+enabling both global and per-tenant authorization.</li>
+<li><strong>PostgreSQL ↔︎ etcd data flow</strong>: PostgreSQL stores the
+durable record of scheduling decisions; etcd stores the real-time state
+that drives scheduling. The Scheduler writes to etcd first (for speed)
+and asynchronously persists to PostgreSQL (for durability).</li>
+<li><strong>Redis ↔︎ etcd cache coherence</strong>: The schedule cache in
+Redis is populated from etcd watches; if Redis entries are stale, the
+Scheduler falls back to etcd reads.</li>
+</ul>
+<hr />
+<h2 id="challenges-integration-lifecycle">18. Challenges Integration
+Lifecycle</h2>
+<h3 id="title-17">Title</h3>
+<p><strong>Challenge Execution Flow from Creation to
+Verification</strong></p>
+<h3 id="mermaid-diagram-17">Mermaid Diagram</h3>
+<pre class="mermaid"><code>sequenceDiagram
+    autonumber
+    actor Operator
+    participant API as API Gateway
+    participant CH as Challenge Service
+    participant VALID as Challenge Validator
+    participant SCHED as Omega Scheduler
+    participant WORK as Worker Manager
+    participant PROV as Problem Provider
+    participant SOLV as Solver Runtime
+    participant JUDGE as Judge Engine
+    participant ANTI as Anti-Bluff Scanner
+    participant EVENT as Event Bus
+    participant DB as PostgreSQL
+
+    Operator-&gt;&gt;API: POST /v1/challenges&lt;br/&gt;{title, difficulty, constraints}
+    API-&gt;&gt;CH: CreateChallenge(spec)
+    CH-&gt;&gt;VALID: ValidateSpec(spec)
+    VALID--&gt;&gt;CH: {valid: true, warnings: []}
+    CH-&gt;&gt;DB: INSERT challenges (id, spec, status=draft)
+    CH--&gt;&gt;API: 201 Created {challenge_id}
+    API--&gt;&gt;Operator: Challenge created
+
+    Note over Operator: Challenge is now in DRAFT state
+
+    Operator-&gt;&gt;API: PUT /v1/challenges/{id}/publish
+    API-&gt;&gt;CH: PublishChallenge(id)
+    CH-&gt;&gt;ANTI: ScanForBluff(challenge_spec)
+    ANTI-&gt;&gt;ANTI: Check for:&lt;br/&gt;1. Trivially solvable&lt;br/&gt;2. Impossible constraints&lt;br/&gt;3. Leaked solutions&lt;br/&gt;4. Ambiguous requirements
+    ANTI--&gt;&gt;CH: BluffScore: 0.12 (low risk)
+    CH-&gt;&gt;DB: UPDATE status=published
+    CH-&gt;&gt;EVENT: Publish ChallengePublished
+    CH--&gt;&gt;API: 200 OK {status: published}
+
+    Note over Operator: Participants can now attempt
+
+    actor Participant
+    Participant-&gt;&gt;API: POST /v1/challenges/{id}/attempt&lt;br/&gt;{solution_code}
+    API-&gt;&gt;CH: SubmitAttempt(challenge_id, code)
+    CH-&gt;&gt;SCHED: ScheduleWorkload(attempt_spec)&lt;br/&gt;cpu=2, mem=4Gi, gpu=0, timeout=300s
+
+    SCHED--&gt;&gt;CH: Scheduled on node n7
+
+    CH-&gt;&gt;WORK: ExecuteAttempt(spec)
+    WORK-&gt;&gt;PROV: ProvideProblem(challenge_id, seed)
+    PROV--&gt;&gt;WORK: ProblemInstance{input, constraints}
+
+    WORK-&gt;&gt;SOLV: RunSolver(code, problem_instance)
+    Note over SOLV: Execute in sandboxed&lt;br/&gt;container with resource&lt;br/&gt;limits and timeout
+
+    SOLV--&gt;&gt;WORK: SolverResult{output, exit_code, time_ms, mem_kb}
+    WORK-&gt;&gt;JUDGE: Judge(problem_instance, solver_result)
+    Note over JUDGE: Compare output against&lt;br/&gt;expected solutions&lt;br/&gt;Check correctness,&lt;br/&gt;time, memory limits
+
+    JUDGE--&gt;&gt;WORK: JudgeVerdict{pass, score, feedback}
+    WORK-&gt;&gt;EVENT: Publish AttemptCompleted
+    WORK-&gt;&gt;CH: AttemptResult(attempt_id, verdict)
+    CH-&gt;&gt;DB: INSERT attempt_results
+    CH--&gt;&gt;API: 200 OK {verdict, score, feedback}
+    API--&gt;&gt;Participant: Result: PASS (score: 95/100)
+
+    Note over Participant: Multiple attempts tracked
+
+    Participant-&gt;&gt;API: GET /v1/challenges/{id}/leaderboard
+    API-&gt;&gt;CH: GetLeaderboard(challenge_id)
+    CH-&gt;&gt;DB: SELECT top scores
+    CH--&gt;&gt;API: Leaderboard entries
+    API--&gt;&gt;Participant: Leaderboard displayed</code></pre>
+<h3 id="description-17">Description</h3>
+<p>This sequence diagram traces the complete lifecycle of a
+challenge—from creation by an Operator, through publication with
+anti-bluff scanning, to participant attempt and judging. The flow
+involves nine services:</p>
+<p><strong>Creation Phase</strong> (steps 1–6): The Operator submits a
+challenge specification through the API Gateway. The Challenge Service
+validates the spec (checking for required fields, feasible constraints,
+and valid difficulty ratings) and persists it in PostgreSQL with
+<code>status=draft</code>.</p>
+<p><strong>Publication Phase</strong> (steps 7–12): When the Operator
+publishes the challenge, the Anti-Bluff Scanner evaluates the spec for
+four risk factors: trivially solvable (too easy), impossible constraints
+(unsolvable), leaked solutions (answer appears in spec), and ambiguous
+requirements (multiple valid interpretations). The BluffScore ranges
+from 0.0 (no risk) to 1.0 (certain bluff). Only challenges below the
+threshold (0.3 by default) are published. Upon publication, a
+<code>ChallengePublished</code> event is broadcast.</p>
+<p><strong>Attempt Phase</strong> (steps 13–18): A Participant submits
+solution code. The Challenge Service schedules an execution workload via
+the Omega Scheduler. The Worker Manager obtains a problem instance from
+the Problem Provider (which generates deterministic inputs from a seed
+to ensure reproducibility) and executes the solver in a sandboxed
+container with strict resource limits and timeout.</p>
+<p><strong>Judging Phase</strong> (steps 19–23): The Judge Engine
+compares the solver’s output against expected solutions, checking
+correctness, time limits, and memory limits. The verdict (pass/fail with
+score and feedback) is persisted and an <code>AttemptCompleted</code>
+event is published.</p>
+<p><strong>Leaderboard Phase</strong> (steps 24–27): Participants can
+query the leaderboard, which is computed from the top scores in
+PostgreSQL.</p>
+<h3 id="key-relationships-highlighted-17">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Anti-Bluff Scanner → Publication gate</strong>: The
+BluffScore acts as a quality gate—challenges with high scores are
+blocked from publication, preventing poorly designed or dishonest
+challenges from reaching participants.</li>
+<li><strong>Problem Provider → Deterministic seeding</strong>: Using a
+seeded random number generator ensures that all participants solving the
+same challenge version receive equivalent problem instances.</li>
+<li><strong>Solver Runtime → Sandboxed execution</strong>: The solver
+runs in a container with cgroup resource limits, seccomp filters, and
+network isolation, preventing malicious code from affecting the host or
+other workloads.</li>
+<li><strong>Judge Engine → Objective evaluation</strong>: The judge
+provides deterministic, reproducible verdicts based on output comparison
+and resource usage, eliminating subjective grading.</li>
+</ul>
+<hr />
+<h2 id="anti-bluff-pipeline">19. Anti-Bluff Pipeline</h2>
+<h3 id="title-18">Title</h3>
+<p><strong>Scanner → Mutation → Anchor Verification
+Pipeline</strong></p>
+<h3 id="mermaid-diagram-18">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Input[&quot;Anti-Bluff Input&quot;]
+        SPEC[&quot;Challenge Spec&lt;br/&gt;(YAML/JSON)&quot;]
+        CODE[&quot;Solution Code&lt;br/&gt;(submitted solver)&quot;]
+        META[&quot;Metadata&lt;br/&gt;(author, tags, history)&quot;]
+    end
+
+    subgraph Scan[&quot;Phase 1 — Scanner&quot;]
+        S_STRUCT[&quot;Structural Scanner&lt;br/&gt;(AST analysis)&quot;]
+        S_PATTER[&quot;Pattern Scanner&lt;br/&gt;(regex + ML)&quot;]
+        S_LEAK[&quot;Leak Detector&lt;br/&gt;(solution in spec?)&quot;]
+        S_TRIVIAL[&quot;Triviality Detector&lt;br/&gt;(too easy?)&quot;]
+        S_IMPOSS[&quot;Impossibility Detector&lt;br/&gt;(unsolvable?)&quot;]
+        S_AMBIG[&quot;Ambiguity Detector&lt;br/&gt;(multiple valid answers?)&quot;]
+        S_SCORE1[&quot;Scan Score&lt;br/&gt;(0.0 – 1.0 per check)&quot;]
+    end
+
+    subgraph Mutation[&quot;Phase 2 — Mutation Engine&quot;]
+        M_OPS[&quot;Mutation Operators:&lt;br/&gt;boundary shift,&lt;br/&gt;constraint relax,&lt;br/&gt;constraint tighten,&lt;br/&gt;input scale,&lt;br/&gt;corner case inject&quot;]
+        M_GEN[&quot;Mutant Generator&lt;br/&gt;(N=50 variants)&quot;]
+        M_EXEC[&quot;Mutant Executor&lt;br/&gt;(run reference solver)&quot;]
+        M_COMPARE[&quot;Result Comparator&lt;br/&gt;(output diff analysis)&quot;]
+        M_SCORE2[&quot;Mutation Score&lt;br/&gt;(diversity metric)&quot;]
+    end
+
+    subgraph Anchor[&quot;Phase 3 — Anchor Verification&quot;]
+        A_REF[&quot;Reference Solutions&lt;br/&gt;(N=3 independent)&quot;]
+        A_RUN[&quot;Anchor Runner&lt;br/&gt;(execute all refs)&quot;]
+        A_CONSENSUS[&quot;Consensus Check&lt;br/&gt;(do refs agree?)&quot;]
+        A_BENCHMARK[&quot;Benchmark Suite&lt;br/&gt;(performance bounds)&quot;]
+        A_PROOF[&quot;Proof Generator&lt;br/&gt;(formal verification&lt;br/&gt;for eligible problems)&quot;]
+        A_SCORE3[&quot;Anchor Score&lt;br/&gt;(confidence metric)&quot;]
+    end
+
+    subgraph Decision[&quot;Decision Engine&quot;]
+        D_AGG[&quot;Score Aggregator&lt;br/&gt;(weighted: scan×0.3 +&lt;br/&gt;mutation×0.3 +&lt;br/&gt;anchor×0.4)&quot;]
+        D_THRESHOLD[&quot;Threshold Check&lt;br/&gt;(publish: &lt;0.3,&lt;br/&gt;review: 0.3-0.6,&lt;br/&gt;reject: &gt;0.6)&quot;]
+        D_REPORT[&quot;Bluff Report&lt;br/&gt;(detailed findings)&quot;]
+        D_ACTION[&quot;Action:&lt;br/&gt;APPROVE / REVIEW / REJECT&quot;]
+    end
+
+    subgraph Feedback[&quot;Feedback Loop&quot;]
+        FB_STORE[&quot;Bluff Database&lt;br/&gt;(historical scores)&quot;]
+        FB_TRAIN[&quot;ML Training Data&lt;br/&gt;(scanner improvement)&quot;]
+        FB_RULES[&quot;Rule Updates&lt;br/&gt;(pattern database)&quot;]
+    end
+
+    SPEC --&gt; S_STRUCT
+    SPEC --&gt; S_PATTER
+    SPEC --&gt; S_LEAK
+    SPEC --&gt; S_TRIVIAL
+    SPEC --&gt; S_IMPOSS
+    SPEC --&gt; S_AMBIG
+    CODE --&gt; S_LEAK
+
+    S_STRUCT --&gt; S_SCORE1
+    S_PATTER --&gt; S_SCORE1
+    S_LEAK --&gt; S_SCORE1
+    S_TRIVIAL --&gt; S_SCORE1
+    S_IMPOSS --&gt; S_SCORE1
+    S_AMBIG --&gt; S_SCORE1
+
+    SPEC --&gt; M_OPS
+    CODE --&gt; M_OPS
+    M_OPS --&gt; M_GEN
+    M_GEN --&gt; M_EXEC
+    M_EXEC --&gt; M_COMPARE
+    M_COMPARE --&gt; M_SCORE2
+
+    SPEC --&gt; A_REF
+    A_REF --&gt; A_RUN
+    A_RUN --&gt; A_CONSENSUS
+    A_RUN --&gt; A_BENCHMARK
+    A_CONSENSUS --&gt; A_PROOF
+    A_CONSENSUS --&gt; A_SCORE3
+    A_BENCHMARK --&gt; A_SCORE3
+    A_PROOF --&gt; A_SCORE3
+
+    S_SCORE1 --&gt; D_AGG
+    M_SCORE2 --&gt; D_AGG
+    A_SCORE3 --&gt; D_AGG
+    D_AGG --&gt; D_THRESHOLD
+    D_THRESHOLD --&gt; D_REPORT
+    D_THRESHOLD --&gt; D_ACTION
+
+    D_REPORT --&gt; FB_STORE
+    FB_STORE --&gt; FB_TRAIN
+    FB_STORE --&gt; FB_RULES
+    FB_TRAIN --&gt; S_PATTER
+    FB_RULES --&gt; S_PATTER
+
+    style Input fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Scan fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Mutation fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Anchor fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Decision fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Feedback fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-18">Description</h3>
+<p>The Anti-Bluff Pipeline is a three-phase system that validates
+challenge quality and detects dishonest or poorly designed challenges.
+It operates as a quality gate between challenge creation and
+publication:</p>
+<p><strong>Phase 1 — Scanner</strong>: Six specialized scanners analyze
+the challenge specification and (optionally) submitted solution code.
+The Structural Scanner performs AST analysis to detect suspicious
+patterns (e.g., hardcoded answers disguised as computation). The Pattern
+Scanner uses a combination of regex rules and a trained ML model to
+identify known bluff patterns. The Leak Detector checks whether the
+solution is embedded in the spec (e.g., expected output appears in
+comments or examples). The Triviality Detector estimates whether the
+challenge can be solved with minimal effort. The Impossibility Detector
+checks whether the constraints are internally contradictory. The
+Ambiguity Detector identifies specs that could have multiple valid
+interpretations. Each scanner produces a score from 0.0 (no risk) to 1.0
+(certain bluff).</p>
+<p><strong>Phase 2 — Mutation Engine</strong>: Applies five mutation
+operators to generate 50 variant problem instances. Boundary shift
+adjusts numeric boundaries, constraint relax/tighten modifies constraint
+parameters, input scale changes input sizes, and corner case inject adds
+edge cases. The Mutant Executor runs a reference solver on each variant,
+and the Result Comparator analyzes output diversity. Low diversity (all
+mutants produce similar outputs) suggests the challenge is trivial; very
+high diversity suggests it may be ambiguous or impossible.</p>
+<p><strong>Phase 3 — Anchor Verification</strong>: Runs three
+independent reference solutions and checks for consensus. If all three
+agree, confidence is high. The Benchmark Suite establishes performance
+bounds (minimum/maximum expected execution time and memory). For
+eligible problems (e.g., sorting, graph algorithms), a Proof Generator
+provides formal verification of correctness properties.</p>
+<p><strong>Decision Engine</strong>: Aggregates the three phase scores
+with configurable weights (scan: 0.3, mutation: 0.3, anchor: 0.4). The
+composite score determines the action: below 0.3 → APPROVE
+(auto-publish), 0.3–0.6 → REVIEW (human review required), above 0.6 →
+REJECT (blocked).</p>
+<p><strong>Feedback Loop</strong>: Historical bluff scores and outcomes
+feed back into the scanner’s ML model and rule database, continuously
+improving detection accuracy.</p>
+<h3 id="key-relationships-highlighted-18">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Scanner → Mutation → Anchor progression</strong>: The three
+phases provide increasing confidence—scanners are fast but heuristic,
+mutation provides statistical evidence, and anchors provide ground-truth
+verification.</li>
+<li><strong>Weighted aggregation</strong>: Anchor verification receives
+the highest weight (0.4) because it provides the strongest signal;
+scanners and mutations are supporting evidence.</li>
+<li><strong>Feedback loop → Scanner improvement</strong>: Historical
+data trains the ML model and updates the pattern database, creating a
+virtuous cycle of improving detection.</li>
+<li><strong>Mutation diversity → Quality signal</strong>: Low mutant
+output diversity indicates triviality; high diversity indicates
+ambiguity. The sweet spot is moderate diversity showing the challenge is
+non-trivial but well-defined.</li>
+</ul>
+<hr />
+<h2 id="cicd-pipeline">20. CI/CD Pipeline</h2>
+<h3 id="title-19">Title</h3>
+<p><strong>Build → Test → Scan → Deploy Automation</strong></p>
+<h3 id="mermaid-diagram-19">Mermaid Diagram</h3>
+<pre class="mermaid"><code>graph TD
+    subgraph Trigger[&quot;Pipeline Triggers&quot;]
+        T_PUSH[&quot;Git Push&lt;br/&gt;(feature branch)&quot;]
+        T_MERGE[&quot;PR Merge&lt;br/&gt;(main branch)&quot;]
+        T_TAG[&quot;Git Tag&lt;br/&gt;(v*.*.*)&quot;]
+        T_MANUAL[&quot;Manual Trigger&lt;br/&gt;(operator)&quot;]
+        T_SCHEDULE[&quot;Scheduled&lt;br/&gt;(nightly)&quot;]
+    end
+
+    subgraph Build[&quot;Build Stage&quot;]
+        B_COMPILE[&quot;Compile&lt;br/&gt;(Rust: cargo build&lt;br/&gt;Go: go build&lt;br/&gt;TS: tsc + esbuild)&quot;]
+        B_LINT[&quot;Lint&lt;br/&gt;(Rust: clippy&lt;br/&gt;Go: golangci-lint&lt;br/&gt;TS: eslint)&quot;]
+        B_FMT[&quot;Format Check&lt;br/&gt;(Rust: rustfmt&lt;br/&gt;Go: gofmt&lt;br/&gt;TS: prettier)&quot;]
+        B_DOC[&quot;Doc Generation&lt;br/&gt;(Rust: cargo doc&lt;br/&gt;Go: godoc&lt;br/&gt;TS: typedoc)&quot;]
+        B_IMG[&quot;Container Build&lt;br/&gt;(Dockerfile → OCI image&lt;br/&gt;BuildKit cache)&quot;]
+        B_WASM[&quot;WASM Build&lt;br/&gt;(wasm-pack build&lt;br/&gt;for scheduler plugins)&quot;]
+    end
+
+    subgraph Test[&quot;Test Stage&quot;]
+        T_UNIT[&quot;Unit Tests&lt;br/&gt;(nextest -j4 --timeout 60s)&quot;]
+        T_INTEG[&quot;Integration Tests&lt;br/&gt;(Docker Compose stack)&quot;]
+        T_E2E[&quot;E2E Tests&lt;br/&gt;(Playwright, 15m timeout)&quot;]
+        T_DST[&quot;DST Suite&lt;br/&gt;(deterministic sim,&lt;br/&gt;2h timeout)&quot;]
+        T_FUZZ[&quot;Fuzz Tests&lt;br/&gt;(30min per target,&lt;br/&gt;ASAN enabled)&quot;]
+        T_MUT[&quot;Mutation Tests&lt;br/&gt;(Rust + Go, 1h)&quot;]
+        T_PROP[&quot;Property Tests&lt;br/&gt;(1000 cases per prop)&quot;]
+    end
+
+    subgraph Scan[&quot;Security Scan Stage&quot;]
+        S_SAST[&quot;SAST&lt;br/&gt;(Semgrep + CodeQL)&quot;]
+        S_DAST[&quot;DAST&lt;br/&gt;(OWASP ZAP,&lt;br/&gt;API fuzzing)&quot;]
+        S_DEP[&quot;Dependency Scan&lt;br/&gt;(Trivy + Snyk)&quot;]
+        S_IMG_S[&quot;Image Scan&lt;br/&gt;(Trivy --severity HIGH,CRITICAL)&quot;]
+        S_SECR[&quot;Secret Scan&lt;br/&gt;(gitleaks)&quot;]
+        S_LIC[&quot;License Scan&lt;br/&gt;(FOSSA)&quot;]
+        S_IAC[&quot;IaC Scan&lt;br/&gt;(Checkov + tfsec)&quot;]
+    end
+
+    subgraph Publish[&quot;Publish Stage&quot;]
+        P_REG[&quot;Push to Registry&lt;br/&gt;(OCI image → Registry :8013)&quot;]
+        P_CHART[&quot;Publish Helm Chart&lt;br/&gt;(Chart Museum)&quot;]
+        P_BIN[&quot;Publish Binaries&lt;br/&gt;(GitHub Releases + S3)&quot;]
+        P_WASM_P[&quot;Publish WASM&lt;br/&gt;(plugin registry)&quot;]
+        P_SBOM[&quot;SBOM Generation&lt;br/&gt;(Syft + attestation)&quot;]
+        P_SIGN[&quot;Sign Artifacts&lt;br/&gt;(Cosign + Rekor)&quot;]
+    end
+
+    subgraph Deploy[&quot;Deploy Stage&quot;]
+        D_STG[&quot;Staging Deploy&lt;br/&gt;(Helm upgrade --install&lt;br/&gt;values-staging.yaml)&quot;]
+        D_SMOKE[&quot;Smoke Tests&lt;br/&gt;(health + critical paths)&quot;]
+        D_CANARY[&quot;Canary Deploy&lt;br/&gt;(10% traffic, 5min observe)&quot;]
+        D_PROMOTE[&quot;Promote&lt;br/&gt;(increase to 100%)&quot;]
+        D_ROLLBACK[&quot;Auto-Rollback&lt;br/&gt;(error rate &gt; 1%)&quot;]
+        D_PROD[&quot;Production Deploy&lt;br/&gt;(Helm upgrade --install&lt;br/&gt;values-prod.yaml)&quot;]
+    end
+
+    subgraph Notify[&quot;Notifications&quot;]
+        N_SLACK[&quot;Slack&lt;br/&gt;(#helix-ci)&quot;]
+        N_GH[&quot;GitHub Status Check&lt;br/&gt;(commit status)&quot;]
+        N_PAGER[&quot;PagerDuty&lt;br/&gt;(prod failures only)&quot;]
+        N_METRIC[&quot;Metrics&lt;br/&gt;(Pipeline Prometheus)&quot;]
+    end
+
+    T_PUSH --&gt; B_COMPILE
+    T_MERGE --&gt; B_COMPILE
+    T_TAG --&gt; B_COMPILE
+    T_MANUAL --&gt; B_COMPILE
+    T_SCHEDULE --&gt; B_COMPILE
+
+    B_COMPILE --&gt; B_LINT --&gt; B_FMT --&gt; B_DOC --&gt; B_IMG --&gt; B_WASM
+
+    B_WASM --&gt; T_UNIT
+    T_UNIT --&gt; T_INTEG --&gt; T_E2E --&gt; T_DST
+    T_E2E --&gt; T_FUZZ
+    T_E2E --&gt; T_MUT
+    T_UNIT --&gt; T_PROP
+
+    T_DST --&gt; S_SAST
+    T_FUZZ --&gt; S_SAST
+    T_PROP --&gt; S_SAST
+    S_SAST --&gt; S_DAST --&gt; S_DEP --&gt; S_IMG_S --&gt; S_SECR --&gt; S_LIC --&gt; S_IAC
+
+    S_IAC --&gt; P_REG
+    S_IAC --&gt; P_CHART
+    S_IAC --&gt; P_BIN
+    S_IAC --&gt; P_WASM_P
+    P_REG --&gt; P_SBOM --&gt; P_SIGN
+
+    P_SIGN --&gt; D_STG --&gt; D_SMOKE
+    D_SMOKE --&gt; D_CANARY --&gt; D_PROMOTE
+    D_PROMOTE --&gt; D_PROD
+    D_CANARY --&gt; D_ROLLBACK
+
+    D_STG --&gt; N_SLACK
+    D_PROD --&gt; N_SLACK
+    D_PROD --&gt; N_GH
+    D_ROLLBACK --&gt; N_PAGER
+    D_PROD --&gt; N_METRIC
+
+    style Trigger fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Build fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Test fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Scan fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Publish fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Deploy fill:#e0f2f1,stroke:#00695c,stroke-width:2px</code></pre>
+<h3 id="description-19">Description</h3>
+<p>The CI/CD Pipeline automates the journey from code commit to
+production deployment across six stages:</p>
+<p><strong>Trigger</strong>: Five trigger types initiate the
+pipeline—Git Push (feature branches run a subset), PR Merge (full
+pipeline), Git Tag (release pipeline with publishing), Manual Trigger
+(operator-initiated, e.g., hotfix), and Scheduled (nightly full run
+including long-duration DST and mutation tests).</p>
+<p><strong>Build Stage</strong>: Compiles all language-specific code
+(Rust via cargo, Go via go build, TypeScript via tsc + esbuild), runs
+linters (clippy, golangci-lint, eslint), checks formatting (rustfmt,
+gofmt, prettier), generates documentation, builds container images
+(using BuildKit with layer caching), and compiles WASM scheduler
+plugins.</p>
+<p><strong>Test Stage</strong>: Runs the full seven-tier testing
+strategy—unit tests (nextest with 4-way parallelism and 60s per-test
+timeout), integration tests (Docker Compose service mesh), E2E tests
+(Playwright with 15-minute timeout), DST suite (deterministic simulation
+with 2-hour timeout for thorough interleaving), fuzz tests (30 minutes
+per target with ASAN), mutation tests (1-hour budget), and property
+tests (1000 cases per property).</p>
+<p><strong>Security Scan Stage</strong>: Seven security scans—SAST
+(Semgrep for pattern-based, CodeQL for dataflow-based analysis), DAST
+(OWASP ZAP for API fuzzing), dependency scanning (Trivy for OS packages,
+Snyk for language packages), image scanning (Trivy with HIGH and
+CRITICAL severity gates), secret scanning (gitleaks for leaked
+credentials), license scanning (FOSSA for compliance), and IaC scanning
+(Checkov for Kubernetes manifests, tfsec for Terraform).</p>
+<p><strong>Publish Stage</strong>: Pushes artifacts to their
+destinations—OCI images to the Registry Service (:8013), Helm charts to
+Chart Museum, binaries to GitHub Releases and S3, WASM plugins to the
+plugin registry. SBOMs are generated with Syft and attested with Cosign
+signatures stored in the Rekor transparency log.</p>
+<p><strong>Deploy Stage</strong>: Follows a progressive delivery
+strategy—staging deployment with Helm (using values-staging.yaml), smoke
+tests (health checks and critical path verification), canary deployment
+(10% traffic for 5 minutes with error-rate monitoring), promotion to
+100% if the error rate stays below 1%, or automatic rollback if the
+error rate exceeds 1%. Production deployment uses values-prod.yaml with
+PodDisruptionBudgets and higher replica counts.</p>
+<h3 id="key-relationships-highlighted-19">Key Relationships
+Highlighted</h3>
+<ul>
+<li><strong>Trigger → Pipeline scope</strong>: Feature branches run
+build + unit tests only; PR merges run the full pipeline; tags add the
+publish stage; nightly runs include long-duration tests (DST,
+mutation).</li>
+<li><strong>Test → Scan gate</strong>: All test stages must pass before
+security scans begin; scan failures block publishing.</li>
+<li><strong>Canary → Auto-rollback</strong>: The canary phase
+continuously monitors error rates; exceeding the 1% threshold triggers
+automatic rollback and PagerDuty alerting.</li>
+<li><strong>SBOM + Cosign → Supply chain security</strong>: Every
+published artifact has an SBOM and a Cosign signature in the Rekor
+transparency log, enabling full supply chain verification.</li>
+</ul>
+<hr />
+<h2 id="appendix-a-diagram-cross-reference">Appendix A: Diagram
+Cross-Reference</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Diagram</th>
+<th>Key Upstream Dependencies</th>
+<th>Key Downstream Consumers</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1. System L0-L7</td>
+<td>— (root)</td>
+<td>All other diagrams</td>
+</tr>
+<tr class="even">
+<td>2. Control-Plane</td>
+<td>Diagram 1 (L5-L7)</td>
+<td>Diagrams 3, 6, 7</td>
+</tr>
+<tr class="odd">
+<td>3. Workload Flow</td>
+<td>Diagrams 2, 6, 7</td>
+<td>Diagrams 11, 18</td>
+</tr>
+<tr class="even">
+<td>4. SWIM Lifecycle</td>
+<td>Diagram 1 (L3)</td>
+<td>Diagram 5 (peer discovery)</td>
+</tr>
+<tr class="odd">
+<td>5. WireGuard Mesh</td>
+<td>Diagrams 1 (L4), 4 (membership)</td>
+<td>Diagram 8 (transport security)</td>
+</tr>
+<tr class="even">
+<td>6. Omega Scheduler</td>
+<td>Diagram 2 (services)</td>
+<td>Diagrams 3, 7, 13</td>
+</tr>
+<tr class="odd">
+<td>7. GPU Management</td>
+<td>Diagram 1 (L2)</td>
+<td>Diagrams 3, 6</td>
+</tr>
+<tr class="even">
+<td>8. Security</td>
+<td>Diagrams 1 (L4), 5 (WireGuard)</td>
+<td>All diagrams (cross-cutting)</td>
+</tr>
+<tr class="odd">
+<td>9. Session Management</td>
+<td>Diagram 2 (Session Service)</td>
+<td>Diagram 3 (user sessions)</td>
+</tr>
+<tr class="even">
+<td>10. Build Service</td>
+<td>Diagram 2 (Build Service)</td>
+<td>Diagram 20 (CI/CD)</td>
+</tr>
+<tr class="odd">
+<td>11. Health Monitoring</td>
+<td>Diagram 2 (Health Service)</td>
+<td>Diagram 3 (health probes)</td>
+</tr>
+<tr class="even">
+<td>12. Event/Messaging</td>
+<td>Diagram 2 (Event Bus)</td>
+<td>All diagrams (cross-cutting)</td>
+</tr>
+<tr class="odd">
+<td>13. Federation</td>
+<td>Diagrams 2, 6 (scheduling)</td>
+<td>Diagram 14 (consensus)</td>
+</tr>
+<tr class="even">
+<td>14. Consensus</td>
+<td>Diagram 1 (L3-L4)</td>
+<td>Diagrams 2, 6, 7</td>
+</tr>
+<tr class="odd">
+<td>15. Testing</td>
+<td>— (meta)</td>
+<td>Diagram 20 (CI/CD test stage)</td>
+</tr>
+<tr class="even">
+<td>16. Deployment</td>
+<td>All diagrams (packaging)</td>
+<td>Diagram 20 (deploy stage)</td>
+</tr>
+<tr class="odd">
+<td>17. Database Schema</td>
+<td>All data-producing diagrams</td>
+<td>All data-consuming diagrams</td>
+</tr>
+<tr class="even">
+<td>18. Challenges</td>
+<td>Diagrams 3, 6, 7, 19</td>
+<td>Diagram 17 (persistence)</td>
+</tr>
+<tr class="odd">
+<td>19. Anti-Bluff</td>
+<td>Diagram 18 (validation gate)</td>
+<td>Diagram 15 (testing)</td>
+</tr>
+<tr class="even">
+<td>20. CI/CD</td>
+<td>Diagrams 10, 15, 16</td>
+<td>All diagrams (delivery)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="appendix-b-mermaid-rendering-notes">Appendix B: Mermaid
+Rendering Notes</h2>
+<ul>
+<li><strong>GitHub</strong>: All diagrams render natively in GitHub
+markdown. Use ```<code>mermaid</code> code fences.</li>
+<li><strong>VS Code</strong>: Install the “Markdown Preview Mermaid
+Support” extension for live preview.</li>
+<li><strong>Static Generation</strong>: Use <code>mmdc</code>
+(mermaid-cli) to generate SVG/PNG files:
+<code>mmdc -i ARCHITECTURE_DIAGRAMS.md -o output/</code>.</li>
+<li><strong>Theme</strong>: All diagrams use default theme colors; the
+<code>style</code> directives add domain-specific color coding.</li>
+<li><strong>Performance</strong>: Diagrams with &gt;30 nodes may render
+slowly in browsers; consider splitting into sub-diagrams for
+presentation.</li>
+</ul>
+<h2 id="appendix-c-revision-history">Appendix C: Revision History</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Version</th>
+<th>Date</th>
+<th>Author</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1.0</td>
+<td>2025-06-15</td>
+<td>Platform Team</td>
+<td>Initial 10 diagrams</td>
+</tr>
+<tr class="even">
+<td>1.5</td>
+<td>2025-09-20</td>
+<td>Platform Team</td>
+<td>Added diagrams 11-15, expanded existing</td>
+</tr>
+<tr class="odd">
+<td>2.0</td>
+<td>2025-12-10</td>
+<td>Platform Team</td>
+<td>Added diagrams 16-20, cross-reference appendix</td>
+</tr>
+<tr class="even">
+<td>2.4</td>
+<td>2026-03-04</td>
+<td>Platform Team</td>
+<td>Updated for Omega Scheduler v2, WireGuard mesh redesign, Anti-Bluff
+pipeline addition</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="appendix-d-operational-runbooks-by-diagram">Appendix D:
+Operational Runbooks by Diagram</h2>
+<p>This appendix links common operational scenarios to the relevant
+architectural diagrams, enabling on-call engineers to quickly locate the
+context they need during incidents.</p>
+<h3 id="d.1-scheduling-failures">D.1 Scheduling Failures</h3>
+<p><strong>Symptom</strong>: Workloads stuck in <code>Pending</code>
+state, scheduler logs show “no feasible nodes.”</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 6 (Omega
+Scheduler)</strong>: Trace the Filter → Score → Bind pipeline to
+identify which filter is eliminating all nodes. Check the Unschedulable
+Cache for recent flush events. - <strong>Diagram 7 (GPU
+Management)</strong>: If GPU workloads are failing, verify GPU
+availability in the Reservation Engine and check MIG profile
+compatibility. - <strong>Diagram 14 (Consensus)</strong>: Ensure the
+etcd cluster is healthy—scheduler reads node states from etcd, and a
+slow etcd can cause stale cache data.</p>
+<p><strong>Runbook</strong>: Check
+<code>kubectl get nodes -o wide</code> for node capacity. Check
+<code>etcdctl endpoint health</code> for consensus health. Review
+scheduler logs for filter-stage elimination reasons. If the Filter phase
+passes but Score produces low scores, check the SchedulingProfile
+weights.</p>
+<h3 id="d.2-node-membership-flaps">D.2 Node Membership Flaps</h3>
+<p><strong>Symptom</strong>: Nodes repeatedly transition between Alive
+and Suspect states, causing workload evictions.</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 4 (SWIM
+Gossip)</strong>: Examine the state machine transitions. Frequent Alive
+→ Suspect → Alive cycles indicate network issues between the prober and
+the target. - <strong>Diagram 5 (WireGuard Mesh)</strong>: If the node
+is behind NAT, check STUN reachability and TURN relay health. WireGuard
+tunnel flaps can cause SWIM probe failures. - <strong>Diagram 11 (Health
+Monitoring)</strong>: Verify that the Health Service is not
+misclassifying network-caused probe failures as workload failures.</p>
+<p><strong>Runbook</strong>: Check <code>swim-gossip-daemon</code> logs
+for probe timings. Verify WireGuard tunnel status with
+<code>wg show</code>. If TURN relay is overloaded, consider adding relay
+capacity. Adjust <code>suspect_timeout</code> if the network is known to
+be high-latency.</p>
+<h3 id="d.3-session-data-loss">D.3 Session Data Loss</h3>
+<p><strong>Symptom</strong>: Users report missing session state after
+session migration or node failure.</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 9 (Session
+Management)</strong>: Trace the CRDT sync path between replicas. If CRDT
+deltas were not propagated before the source node failed, data may be
+lost. - <strong>Diagram 12 (Event/Messaging)</strong>: Verify that the
+<code>SessionUpdated</code> events were published to NATS. If NATS was
+temporarily unavailable, delta sync may have been skipped. -
+<strong>Diagram 17 (Database Schema)</strong>: Check PostgreSQL for the
+session’s persistent state. If the session was only in Redis (hot tier),
+it may not have been persisted before the failure.</p>
+<p><strong>Runbook</strong>: Check Redis for the session key. Check
+PostgreSQL for the latest persisted CRDT state. Review NATS JetStream
+for delivery confirmations. If the session was in the middle of
+migration (Diagram 9, Migration Protocol), check whether the State
+Transfer phase completed.</p>
+<h3 id="d.4-gpu-scheduling-conflicts">D.4 GPU Scheduling Conflicts</h3>
+<p><strong>Symptom</strong>: Two workloads scheduled on the same GPU,
+causing OOM or compute errors.</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 7 (GPU
+Management)</strong>: The Reservation Engine should prevent this via
+transactional allocation. Check whether the transaction in etcd was
+correctly committed. - <strong>Diagram 14 (Consensus)</strong>: Verify
+etcd transaction isolation. A split-brain scenario could allow two
+schedulers to independently reserve the same GPU. - <strong>Diagram 6
+(Omega Scheduler)</strong>: Check the Bind phase—was the bind
+transactional? If the scheduler used a stale cache, it may have read
+outdated GPU availability.</p>
+<p><strong>Runbook</strong>: Query <code>gpu_reservations</code> in
+PostgreSQL for overlapping time ranges on the same GPU. Check etcd
+revision history for the GPU allocation key. Verify that only one
+scheduler leader is active (check the leader lease in etcd). If the
+scheduler cache was stale, increase the etcd watch refresh interval.</p>
+<h3 id="d.5-build-pipeline-failures">D.5 Build Pipeline Failures</h3>
+<p><strong>Symptom</strong>: Builds failing with “execution backend
+error” or “cache corruption.”</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 10 (Build
+Service)</strong>: Trace from the Build Orchestrator through the Worker
+Pool to the Execution Backend. If the Podman backend is failing, check
+container runtime health on the worker. - <strong>Diagram 2
+(Control-Plane)</strong>: Verify that the Build Service (:8005) can
+reach the Registry Service (:8013) for image pushes. - <strong>Diagram
+20 (CI/CD)</strong>: If the failure is in the CI/CD pipeline, identify
+which stage (Build, Test, Scan, or Deploy) failed.</p>
+<p><strong>Runbook</strong>: Check worker logs for Podman/containerd
+errors. Verify disk space on build workers (cache corruption is often
+caused by full disks). Check Registry Service health and available
+storage. If using the Exec backend, verify namespace isolation is
+working (check <code>lsns</code> output).</p>
+<h3 id="d.6-federation-sync-delays">D.6 Federation Sync Delays</h3>
+<p><strong>Symptom</strong>: Federated workloads not appearing in remote
+clusters, or stale cluster health data.</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 13
+(Federation)</strong>: Check the Federation Hub → Spoke connectivity.
+Verify heartbeats are being received (5-second interval, 3 missed =
+suspect). - <strong>Diagram 5 (WireGuard Mesh)</strong>: Cross-region
+WireGuard tunnels may be degraded. Check tunnel latency and packet loss.
+- <strong>Diagram 12 (Event/Messaging)</strong>: NATS stream mirroring
+between clusters may be lagging. Check mirror lag metrics.</p>
+<p><strong>Runbook</strong>: Verify WireGuard tunnel status between hub
+and spoke. Check NATS mirror consumer lag. Verify Federation Agent logs
+on the spoke cluster. If the hub is overloaded (handling too many
+spokes), consider splitting into regional hubs.</p>
+<h3 id="d.7-security-incidents">D.7 Security Incidents</h3>
+<p><strong>Symptom</strong>: Unauthorized workload deployment,
+suspicious API access patterns, or certificate expiration warnings.</p>
+<p><strong>Relevant Diagrams</strong>: - <strong>Diagram 8 (Security
+Architecture)</strong>: Trace from the Identity layer through
+Authentication to Authorization. If an unauthorized action occurred,
+check whether the RBAC policy was misconfigured. - <strong>Diagram 4
+(SWIM Gossip)</strong>: A node that was declared Dead but continues to
+communicate may indicate a zombie node with revoked SVIDs. -
+<strong>Diagram 8 (Audit)</strong>: Query the Audit Store for the
+specific action and actor. The audit trail should show the JWT claims
+and RBAC decision.</p>
+<p><strong>Runbook</strong>: Check SPIRE Server for SVID issuance logs.
+Verify RBAC policy in etcd <code>/auth/policies</code>. Query
+<code>audit_events</code> in PostgreSQL for the suspicious action. If
+SVIDs were compromised, rotate the trust bundle via SPIRE Server.</p>
+<hr />
+<h2 id="appendix-e-capacity-planning-reference">Appendix E: Capacity
+Planning Reference</h2>
+<p>This appendix provides capacity planning guidance derived from the
+architectural diagrams, helping operators size their Helix Cluster
+deployments appropriately.</p>
+<h3 id="e.1-control-plane-sizing">E.1 Control-Plane Sizing</h3>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Component</th>
+<th>Small (≤50 nodes)</th>
+<th>Medium (50-200 nodes)</th>
+<th>Large (200-1000 nodes)</th>
+<th>XL (1000+ nodes)</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>API Gateway replicas</td>
+<td>2</td>
+<td>3</td>
+<td>5</td>
+<td>8</td>
+</tr>
+<tr class="even">
+<td>Scheduler replicas</td>
+<td>1 (leader)</td>
+<td>2 (leader + standby)</td>
+<td>3 (leader + 2 standby)</td>
+<td>5 (leader + 4 standby)</td>
+</tr>
+<tr class="odd">
+<td>etcd cluster size</td>
+<td>3</td>
+<td>3</td>
+<td>5</td>
+<td>5 + proxy</td>
+</tr>
+<tr class="even">
+<td>NATS cluster size</td>
+<td>3</td>
+<td>3</td>
+<td>3</td>
+<td>5</td>
+</tr>
+<tr class="odd">
+<td>PostgreSQL instances</td>
+<td>1 primary + 1 replica</td>
+<td>1 primary + 2 replicas</td>
+<td>1 primary + 3 replicas</td>
+<td>1 primary + 5 replicas + read replicas</td>
+</tr>
+<tr class="even">
+<td>Redis cluster</td>
+<td>3 master + 3 replica</td>
+<td>3 master + 3 replica</td>
+<td>6 master + 6 replica</td>
+<td>9 master + 9 replica</td>
+</tr>
+</tbody>
+</table>
+<h3 id="e.2-data-plane-sizing">E.2 Data-Plane Sizing</h3>
+<p>The data-plane sizing is driven by workload density and GPU
+requirements. Key formulas derived from Diagram 7 (GPU Management) and
+Diagram 6 (Omega Scheduler):</p>
+<ul>
+<li><strong>Scheduling throughput</strong>: The Omega Scheduler can
+process approximately 500 scheduling decisions per second per replica on
+standard hardware. For clusters with burst scheduling needs (e.g.,
+10,000 workloads starting simultaneously), scale scheduler replicas
+proportionally.</li>
+<li><strong>GPU reservation throughput</strong>: The GPU Service’s
+Reservation Engine processes approximately 200 transactional GPU
+allocations per second. For GPU-heavy clusters, consider sharding the
+GPU inventory across multiple etcd key ranges.</li>
+<li><strong>Session concurrency</strong>: The Session Service’s CRDT
+Engine handles approximately 10,000 concurrent sessions per replica.
+Sessions that are idle consume minimal resources; active sessions with
+frequent CRDT merges consume CPU proportional to the merge rate.</li>
+</ul>
+<h3 id="e.3-network-sizing">E.3 Network Sizing</h3>
+<p>Network sizing is derived from Diagram 5 (WireGuard Mesh) and Diagram
+12 (Event/Messaging):</p>
+<ul>
+<li><strong>WireGuard mesh bandwidth</strong>: Each inter-node WireGuard
+tunnel consumes approximately 50 Mbps of encrypted overhead for a fully
+loaded cluster. For a 100-node cluster with a full mesh, plan for 100 ×
+99 / 2 = 4,950 tunnels, but in practice the on-demand tunnel strategy
+(Diagram 5) reduces active tunnels to approximately 3 × N (where N is
+the node count).</li>
+<li><strong>NATS bandwidth</strong>: Domain events average 1 KB each. At
+peak, the Event Bus processes approximately 50,000 events per second,
+requiring 50 MB/s of bandwidth within the NATS cluster.</li>
+<li><strong>Cross-region bandwidth</strong>: Federation event mirroring
+(Diagram 13) replicates approximately 10% of the event volume across
+regions. For a cluster generating 50,000 events/second, plan for 5 MB/s
+of cross-region bandwidth per spoke.</li>
+</ul>
+<h3 id="e.4-storage-sizing">E.4 Storage Sizing</h3>
+<p>Storage sizing is derived from Diagram 17 (Database Schema):</p>
+<ul>
+<li><strong>PostgreSQL</strong>: Workload metadata averages 2 KB per
+workload. For 100,000 workloads with 30-day retention, plan for
+approximately 600 MB of workload data. Audit events average 500 bytes
+each; at 50,000 events/second with 90-day retention, plan for
+approximately 2 TB of audit data.</li>
+<li><strong>etcd</strong>: Schedule bindings average 500 bytes each. For
+100,000 concurrent bindings, plan for approximately 50 MB of etcd data.
+With MVCC revision history (default 100,000 revisions), plan for
+approximately 5 GB.</li>
+<li><strong>Redis</strong>: Session state averages 5 KB per session. For
+100,000 concurrent sessions, plan for approximately 500 MB of Redis
+memory. Schedule cache entries average 200 bytes each; for 100,000
+workloads, plan for approximately 20 MB.</li>
+<li><strong>Object storage (S3/MinIO)</strong>: Build artifacts average
+500 MB per image. For 1,000 builds per day with 30-day retention, plan
+for approximately 15 TB of object storage.</li>
+</ul>
+<hr />
+<h2 id="appendix-f-glossary-of-helix-specific-terms">Appendix F:
+Glossary of Helix-Specific Terms</h2>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Term</th>
+<th>Definition</th>
+<th>Related Diagram</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><strong>Omega Scheduler</strong></td>
+<td>The custom scheduling engine that replaces Kubernetes’ default
+scheduler, providing GPU-aware, topology-aware, and WASM-extensible
+scheduling.</td>
+<td>Diagram 6</td>
+</tr>
+<tr class="even">
+<td><strong>Honey Cell</strong></td>
+<td>An ephemeral single-node cluster used for integration testing,
+provisioned on-demand and torn down after test completion.</td>
+<td>Diagram 15</td>
+</tr>
+<tr class="odd">
+<td><strong>Bluff Score</strong></td>
+<td>A composite risk score (0.0–1.0) produced by the Anti-Bluff
+Pipeline, measuring the likelihood that a challenge is poorly designed
+or dishonest.</td>
+<td>Diagram 19</td>
+</tr>
+<tr class="even">
+<td><strong>Anchor Verification</strong></td>
+<td>The third phase of the Anti-Bluff Pipeline that runs multiple
+independent reference solutions to establish ground-truth
+correctness.</td>
+<td>Diagram 19</td>
+</tr>
+<tr class="odd">
+<td><strong>SPIFFE ID</strong></td>
+<td>A URI-formatted identity
+(<code>spiffe://helix.cluster/ns/{namespace}/sa/{service}</code>)
+assigned to every workload by the SPIRE infrastructure.</td>
+<td>Diagram 8</td>
+</tr>
+<tr class="even">
+<td><strong>SVID</strong></td>
+<td>SPIFFE Verifiable Identity Document—a short-lived X.509 certificate
+or JWT that cryptographically binds a workload to its SPIFFE ID.</td>
+<td>Diagram 8</td>
+</tr>
+<tr class="odd">
+<td><strong>MIG Profile</strong></td>
+<td>A Multi-Instance GPU partition configuration (e.g.,
+<code>1g.5gb</code>, <code>7g.40gb</code>) that divides an A100/H100 GPU
+into isolated instances.</td>
+<td>Diagram 7</td>
+</tr>
+<tr class="even">
+<td><strong>Protocol Period</strong></td>
+<td>The interval between SWIM gossip rounds (default 1 second). All SWIM
+timers are expressed as multiples of this period.</td>
+<td>Diagram 4</td>
+</tr>
+<tr class="odd">
+<td><strong>Incarnation Number</strong></td>
+<td>A monotonically increasing counter used by SWIM to distinguish fresh
+state from stale state. A node increments its incarnation when refuting
+a suspicion.</td>
+<td>Diagram 4</td>
+</tr>
+<tr class="even">
+<td><strong>DST</strong></td>
+<td>Deterministic Simulation Testing—a testing methodology where
+concurrency is controlled by a deterministic scheduler, enabling exact
+reproduction of race conditions.</td>
+<td>Diagram 15</td>
+</tr>
+<tr class="odd">
+<td><strong>Automerge-RS</strong></td>
+<td>The Rust implementation of the Automerge CRDT library used by the
+Session Service for conflict-free state replication.</td>
+<td>Diagram 9</td>
+</tr>
+<tr class="even">
+<td><strong>BuildKit Cache</strong></td>
+<td>Docker BuildKit’s content-addressable cache that enables layer reuse
+across builds, reducing build times by 40-60% for incremental
+changes.</td>
+<td>Diagram 10</td>
+</tr>
+<tr class="odd">
+<td><strong>xDS</strong></td>
+<td>The Envoy configuration discovery service API used by the Mesh
+Controller to dynamically configure Envoy proxies (listeners, routes,
+clusters, endpoints).</td>
+<td>Diagram 2</td>
+</tr>
+<tr class="even">
+<td><strong>Canary Deploy</strong></td>
+<td>A progressive deployment strategy that routes a small percentage of
+traffic (default 10%) to the new version before full promotion, with
+automatic rollback on error-rate spikes.</td>
+<td>Diagram 20</td>
+</tr>
+<tr class="odd">
+<td><strong>Trust Bundle</strong></td>
+<td>The collection of root CA and intermediate CA certificates
+distributed by SPIRE, used by all workloads to verify mTLS peer
+certificates.</td>
+<td>Diagram 8</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="appendix-g-diagram-maintenance-guide">Appendix G: Diagram
+Maintenance Guide</h2>
+<p>This appendix describes how to keep this document synchronized with
+the evolving Helix Cluster codebase.</p>
+<h3 id="g.1-when-to-update-diagrams">G.1 When to Update Diagrams</h3>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Change Type</th>
+<th>Diagrams to Update</th>
+<th>Reviewer</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>New service added</td>
+<td>2 (Control-Plane), 1 (L0-L7 if new layer)</td>
+<td>Platform Lead</td>
+</tr>
+<tr class="even">
+<td>Service port change</td>
+<td>2 (Control-Plane)</td>
+<td>SRE</td>
+</tr>
+<tr class="odd">
+<td>New scheduling filter/score</td>
+<td>6 (Omega Scheduler)</td>
+<td>Scheduler Team</td>
+</tr>
+<tr class="even">
+<td>New GPU backend</td>
+<td>7 (GPU Management)</td>
+<td>GPU Team</td>
+</tr>
+<tr class="odd">
+<td>New security layer</td>
+<td>8 (Security Architecture)</td>
+<td>Security Team</td>
+</tr>
+<tr class="even">
+<td>New CRDT type</td>
+<td>9 (Session Management)</td>
+<td>Session Team</td>
+</tr>
+<tr class="odd">
+<td>New build execution backend</td>
+<td>10 (Build Service)</td>
+<td>Build Team</td>
+</tr>
+<tr class="even">
+<td>New health checker</td>
+<td>11 (Health Monitoring)</td>
+<td>SRE</td>
+</tr>
+<tr class="odd">
+<td>New event stream</td>
+<td>12 (Event/Messaging)</td>
+<td>Platform Lead</td>
+</tr>
+<tr class="even">
+<td>New spoke cluster</td>
+<td>13 (Federation)</td>
+<td>Federation Team</td>
+</tr>
+<tr class="odd">
+<td>etcd key prefix change</td>
+<td>14 (Consensus), 17 (Database Schema)</td>
+<td>Platform Lead</td>
+</tr>
+<tr class="even">
+<td>New testing tier</td>
+<td>15 (Testing Architecture)</td>
+<td>QA Lead</td>
+</tr>
+<tr class="odd">
+<td>New Helm subchart</td>
+<td>16 (Deployment)</td>
+<td>DevOps</td>
+</tr>
+<tr class="even">
+<td>Database schema migration</td>
+<td>17 (Database Schema)</td>
+<td>Data Team</td>
+</tr>
+<tr class="odd">
+<td>New anti-bluff scanner</td>
+<td>19 (Anti-Bluff Pipeline)</td>
+<td>Challenge Team</td>
+</tr>
+<tr class="even">
+<td>New CI/CD stage</td>
+<td>20 (CI/CD Pipeline)</td>
+<td>DevOps</td>
+</tr>
+</tbody>
+</table>
+<h3 id="g.2-validation-checklist">G.2 Validation Checklist</h3>
+<p>Before merging changes to this document, verify:</p>
+<ol type="1">
+<li><strong>Mermaid syntax</strong>: Copy each diagram’s code block into
+the Mermaid Live Editor (https://mermaid.live) and confirm it renders
+without errors.</li>
+<li><strong>Cross-references</strong>: If a component appears in
+multiple diagrams, verify that its name, port, and description are
+consistent across all occurrences.</li>
+<li><strong>Port uniqueness</strong>: No two services in Diagram 2
+should share the same port number.</li>
+<li><strong>Subgraph nesting</strong>: Ensure all nodes are assigned to
+exactly one subgraph; ungrouped nodes indicate an organizational
+gap.</li>
+<li><strong>Arrow direction</strong>: Verify that data-flow arrows point
+in the correct direction (producer → consumer for data, caller → callee
+for RPC).</li>
+<li><strong>Style consistency</strong>: All diagrams should use the same
+color scheme for the same domain (blue for control-plane, green for
+data-plane, orange for compute, red for security, purple for storage,
+teal for infrastructure).</li>
+</ol>
+<hr />
+<p><em>End of Document</em></p>
+</body>
+</html>

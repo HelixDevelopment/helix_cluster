@@ -1,0 +1,34 @@
+<mxfile host="app.diagrams.net" modified="2026-06-08" agent="Helix" version="21.0.0">
+  <diagram name="System Architecture L0-L7" id="sysarch">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="L7" value="L7: Federation &amp; Observability&lt;br&gt;pkg/federation | pkg/tracing | pkg/events | pkg/metrics" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1a5276;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="40" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L6" value="L6: Control-Plane Services&lt;br&gt;cmd/helix-gateway | cmd/helix-scheduler | cmd/helix-session | cmd/helix-security" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#1f618d;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="160" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L5" value="L5: Secure Transport&lt;br&gt;pkg/wireguard | pkg/security | pkg/hybridkex | pkg/attestadmit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2874a6;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="280" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L4" value="L4: Scheduling &amp; Economics&lt;br&gt;pkg/scheduler | pkg/burstcapacity | pkg/costbroker | pkg/marketplaceadapter" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#2e86c1;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="400" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L3" value="L3: Consensus &amp; Replicated State&lt;br&gt;pkg/leader | pkg/lock | pkg/mvcc | pkg/crdt | pkg/voting" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#3498db;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="520" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L2" value="L2: Membership &amp; Discovery&lt;br&gt;pkg/swim | pkg/discovery | pkg/edgeheartbeat | pkg/devicecatalog" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#5dade2;fontColor=#FFFFFF;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="640" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L1" value="L1: Node Lifecycle&lt;br&gt;internal/node | internal/console | internal/health | internal/gpu" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#85c1e9;fontColor=#1a5276;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="760" width="1400" height="80" as="geometry"/>
+        </mxCell>
+        <mxCell id="L0" value="L0: Hardware Substrate&lt;br&gt;pkg/resources | internal/gpu/detect | internal/wireguard | pkg/powergater" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#aed6f1;fontColor=#1a5276;fontSize=14;strokeColor=none;" vertex="1" parent="1">
+          <mxGeometry x="100" y="880" width="1400" height="80" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

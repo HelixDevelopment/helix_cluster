@@ -1,0 +1,68 @@
+sequenceDiagram
+    autonumber
+    actor Operator
+    participant API as API Gateway
+    participant CH as Challenge Service
+    participant VALID as Challenge Validator
+    participant SCHED as Omega Scheduler
+    participant WORK as Worker Manager
+    participant PROV as Problem Provider
+    participant SOLV as Solver Runtime
+    participant JUDGE as Judge Engine
+    participant ANTI as Anti-Bluff Scanner
+    participant EVENT as Event Bus
+    participant DB as PostgreSQL
+
+    Operator->>API: POST /v1/challenges<br/>{title, difficulty, constraints}
+    API->>CH: CreateChallenge(spec)
+    CH->>VALID: ValidateSpec(spec)
+    VALID-->>CH: {valid: true, warnings: []}
+    CH->>DB: INSERT challenges (id, spec, status=draft)
+    CH-->>API: 201 Created {challenge_id}
+    API-->>Operator: Challenge created
+
+    Note over Operator: Challenge is now in DRAFT state
+
+    Operator->>API: PUT /v1/challenges/{id}/publish
+    API->>CH: PublishChallenge(id)
+    CH->>ANTI: ScanForBluff(challenge_spec)
+    ANTI->>ANTI: Check for:<br/>1. Trivially solvable<br/>2. Impossible constraints<br/>3. Leaked solutions<br/>4. Ambiguous requirements
+    ANTI-->>CH: BluffScore: 0.12 (low risk)
+    CH->>DB: UPDATE status=published
+    CH->>EVENT: Publish ChallengePublished
+    CH-->>API: 200 OK {status: published}
+
+    Note over Operator: Participants can now attempt
+
+    actor Participant
+    Participant->>API: POST /v1/challenges/{id}/attempt<br/>{solution_code}
+    API->>CH: SubmitAttempt(challenge_id, code)
+    CH->>SCHED: ScheduleWorkload(attempt_spec)<br/>cpu=2, mem=4Gi, gpu=0, timeout=300s
+
+    SCHED-->>CH: Scheduled on node n7
+
+    CH->>WORK: ExecuteAttempt(spec)
+    WORK->>PROV: ProvideProblem(challenge_id, seed)
+    PROV-->>WORK: ProblemInstance{input, constraints}
+
+    WORK->>SOLV: RunSolver(code, problem_instance)
+    Note over SOLV: Execute in sandboxed<br/>container with resource<br/>limits and timeout
+
+    SOLV-->>WORK: SolverResult{output, exit_code, time_ms, mem_kb}
+    WORK->>JUDGE: Judge(problem_instance, solver_result)
+    Note over JUDGE: Compare output against<br/>expected solutions<br/>Check correctness,<br/>time, memory limits
+
+    JUDGE-->>WORK: JudgeVerdict{pass, score, feedback}
+    WORK->>EVENT: Publish AttemptCompleted
+    WORK->>CH: AttemptResult(attempt_id, verdict)
+    CH->>DB: INSERT attempt_results
+    CH-->>API: 200 OK {verdict, score, feedback}
+    API-->>Participant: Result: PASS (score: 95/100)
+
+    Note over Participant: Multiple attempts tracked
+
+    Participant->>API: GET /v1/challenges/{id}/leaderboard
+    API->>CH: GetLeaderboard(challenge_id)
+    CH->>DB: SELECT top scores
+    CH-->>API: Leaderboard entries
+    API-->>Participant: Leaderboard displayed

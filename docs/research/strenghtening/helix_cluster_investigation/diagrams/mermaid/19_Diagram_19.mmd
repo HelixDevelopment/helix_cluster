@@ -1,0 +1,97 @@
+graph TD
+    subgraph Input["Anti-Bluff Input"]
+        SPEC["Challenge Spec<br/>(YAML/JSON)"]
+        CODE["Solution Code<br/>(submitted solver)"]
+        META["Metadata<br/>(author, tags, history)"]
+    end
+
+    subgraph Scan["Phase 1 — Scanner"]
+        S_STRUCT["Structural Scanner<br/>(AST analysis)"]
+        S_PATTER["Pattern Scanner<br/>(regex + ML)"]
+        S_LEAK["Leak Detector<br/>(solution in spec?)"]
+        S_TRIVIAL["Triviality Detector<br/>(too easy?)"]
+        S_IMPOSS["Impossibility Detector<br/>(unsolvable?)"]
+        S_AMBIG["Ambiguity Detector<br/>(multiple valid answers?)"]
+        S_SCORE1["Scan Score<br/>(0.0 – 1.0 per check)"]
+    end
+
+    subgraph Mutation["Phase 2 — Mutation Engine"]
+        M_OPS["Mutation Operators:<br/>boundary shift,<br/>constraint relax,<br/>constraint tighten,<br/>input scale,<br/>corner case inject"]
+        M_GEN["Mutant Generator<br/>(N=50 variants)"]
+        M_EXEC["Mutant Executor<br/>(run reference solver)"]
+        M_COMPARE["Result Comparator<br/>(output diff analysis)"]
+        M_SCORE2["Mutation Score<br/>(diversity metric)"]
+    end
+
+    subgraph Anchor["Phase 3 — Anchor Verification"]
+        A_REF["Reference Solutions<br/>(N=3 independent)"]
+        A_RUN["Anchor Runner<br/>(execute all refs)"]
+        A_CONSENSUS["Consensus Check<br/>(do refs agree?)"]
+        A_BENCHMARK["Benchmark Suite<br/>(performance bounds)"]
+        A_PROOF["Proof Generator<br/>(formal verification<br/>for eligible problems)"]
+        A_SCORE3["Anchor Score<br/>(confidence metric)"]
+    end
+
+    subgraph Decision["Decision Engine"]
+        D_AGG["Score Aggregator<br/>(weighted: scan×0.3 +<br/>mutation×0.3 +<br/>anchor×0.4)"]
+        D_THRESHOLD["Threshold Check<br/>(publish: <0.3,<br/>review: 0.3-0.6,<br/>reject: >0.6)"]
+        D_REPORT["Bluff Report<br/>(detailed findings)"]
+        D_ACTION["Action:<br/>APPROVE / REVIEW / REJECT"]
+    end
+
+    subgraph Feedback["Feedback Loop"]
+        FB_STORE["Bluff Database<br/>(historical scores)"]
+        FB_TRAIN["ML Training Data<br/>(scanner improvement)"]
+        FB_RULES["Rule Updates<br/>(pattern database)"]
+    end
+
+    SPEC --> S_STRUCT
+    SPEC --> S_PATTER
+    SPEC --> S_LEAK
+    SPEC --> S_TRIVIAL
+    SPEC --> S_IMPOSS
+    SPEC --> S_AMBIG
+    CODE --> S_LEAK
+
+    S_STRUCT --> S_SCORE1
+    S_PATTER --> S_SCORE1
+    S_LEAK --> S_SCORE1
+    S_TRIVIAL --> S_SCORE1
+    S_IMPOSS --> S_SCORE1
+    S_AMBIG --> S_SCORE1
+
+    SPEC --> M_OPS
+    CODE --> M_OPS
+    M_OPS --> M_GEN
+    M_GEN --> M_EXEC
+    M_EXEC --> M_COMPARE
+    M_COMPARE --> M_SCORE2
+
+    SPEC --> A_REF
+    A_REF --> A_RUN
+    A_RUN --> A_CONSENSUS
+    A_RUN --> A_BENCHMARK
+    A_CONSENSUS --> A_PROOF
+    A_CONSENSUS --> A_SCORE3
+    A_BENCHMARK --> A_SCORE3
+    A_PROOF --> A_SCORE3
+
+    S_SCORE1 --> D_AGG
+    M_SCORE2 --> D_AGG
+    A_SCORE3 --> D_AGG
+    D_AGG --> D_THRESHOLD
+    D_THRESHOLD --> D_REPORT
+    D_THRESHOLD --> D_ACTION
+
+    D_REPORT --> FB_STORE
+    FB_STORE --> FB_TRAIN
+    FB_STORE --> FB_RULES
+    FB_TRAIN --> S_PATTER
+    FB_RULES --> S_PATTER
+
+    style Input fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style Scan fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style Mutation fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style Anchor fill:#fce4ec,stroke:#c62828,stroke-width:2px
+    style Decision fill:#f3e5f5,stroke:#6a1b9a,stroke-width:2px
+    style Feedback fill:#e0f2f1,stroke:#00695c,stroke-width:2px

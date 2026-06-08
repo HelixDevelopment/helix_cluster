@@ -1,0 +1,13 @@
+<mxfile host="app.diagrams.net" modified="2026-06-08" agent="Helix" version="21.0.0">
+  <diagram name="06_omega_scheduler" id="06_omega_scheduler">
+    <mxGraphModel dx="1422" dy="762" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="1200" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="note" value="See ARCHITECTURE_DIAGRAMS.md for Mermaid source&lt;br&gt;and PNG/SVG exports for rendered version." style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;fontSize=14;" vertex="1" parent="1">
+          <mxGeometry x="500" y="400" width="400" height="60" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

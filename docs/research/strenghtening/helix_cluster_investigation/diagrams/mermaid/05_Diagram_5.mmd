@@ -1,0 +1,59 @@
+graph TD
+    subgraph RegionA["Region A — US-East"]
+        NA1["Node A1<br/>10.0.1.1/24<br/>WG: 172.16.0.1<br/>Public: 203.0.113.10"]
+        NA2["Node A2<br/>10.0.1.2/24<br/>WG: 172.16.0.2<br/>NAT: Behind CGNAT"]
+        NA3["Node A3<br/>10.0.1.3/24<br/>WG: 172.16.0.3<br/>Public: 203.0.113.11"]
+        NA_RLY["Relay A<br/>STUN/TURN<br/>203.0.113.50:51820"]
+    end
+
+    subgraph RegionB["Region B — EU-West"]
+        NB1["Node B1<br/>10.0.2.1/24<br/>WG: 172.16.1.1<br/>Public: 198.51.100.10"]
+        NB2["Node B2<br/>10.0.2.2/24<br/>WG: 172.16.1.2<br/>NAT: Symmetric NAT"]
+        NB3["Node B3<br/>10.0.2.3/24<br/>WG: 172.16.1.3<br/>Public: 198.51.100.11"]
+        NB_RLY["Relay B<br/>STUN/TURN<br/>198.51.100.50:51820"]
+    end
+
+    subgraph RegionC["Region C — AP-South"]
+        NC1["Node C1<br/>10.0.3.1/24<br/>WG: 172.16.2.1<br/>Public: 192.0.2.10"]
+        NC2["Node C2<br/>10.0.3.2/24<br/>WG: 172.16.2.2<br/>NAT: Behind firewall"]
+    end
+
+    subgraph WGCtrl["WireGuard Control Plane"]
+        WG_MGR["wg-mesh-daemon<br/>(per node)"]
+        WG_CFG["WireGuard Config<br/>Store (etcd)"]
+        WG_KM["Key Manager<br/>(key-rotation daemon)"]
+        WG_STUN["STUN Server<br/>:3478"]
+    end
+
+    %% Direct mesh links (solid = established, dashed = on-demand)
+    NA1 -->|"WG Tunnel<br/>PSK +Curve25519"| NA3
+    NA1 -.->|"On-demand tunnel"| NA2
+    NA3 -->|"WG Tunnel"| NA2
+    NA1 -->|"Inter-region WG"| NB1
+    NA3 -->|"Inter-region WG"| NB3
+
+    NB1 -->|"WG Tunnel"| NB3
+    NB1 -.->|"On-demand tunnel"| NB2
+    NB3 -.->|"On-demand via relay"| NB2
+
+    NA1 -->|"Cross-region WG"| NC1
+    NB1 -->|"Cross-region WG"| NC1
+
+    %% NAT traversal paths
+    NA2 -->|"Hole-punch via STUN"| NA_RLY
+    NB2 -->|"TURN relay"| NB_RLY
+    NC2 -->|"Hole-punch via STUN"| NA_RLY
+
+    %% Control plane connections
+    WG_MGR --> WG_CFG
+    WG_KM --> WG_CFG
+    WG_STUN --> NA2
+    WG_STUN --> NB2
+    WG_STUN --> NC2
+
+    NA_RLY -.->|"Relay fallback"| NB_RLY
+
+    style RegionA fill:#e3f2fd,stroke:#1565c0,stroke-width:2px
+    style RegionB fill:#e8f5e9,stroke:#2e7d32,stroke-width:2px
+    style RegionC fill:#fff3e0,stroke:#e65100,stroke-width:2px
+    style WGCtrl fill:#fce4ec,stroke:#c62828,stroke-width:2px
