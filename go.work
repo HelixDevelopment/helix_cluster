@@ -19,6 +19,7 @@ use (
 	./fpgadetect
 	./hwinventory
 	./npudetect
+	./observability/tracing
 	./pkg/build
 	./pkg/hxcregistry
 	./recovery
