@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 100
-**Last modified:** 2026-06-13T18:44:46Z
+**Revision:** 101
+**Last modified:** 2026-06-13T18:50:45Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **522**.
+Total completed: **523**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -532,3 +532,4 @@ Total completed: **522**.
 | HXC-986 | Research | P1 | TLA+ Raft PreVote spec — stale/restarted node cannot disrupt a stable leader (TLC-verified) | 46f72fd |
 | HXC-987 | Feature | P1 | helix-raftd Prometheus /metrics endpoint (live raft state, real scrape proven) | a56363d |
 | HXC-988 | Feature | P1 | e2ee adversarial tamper/wrong-key crypto tests (AEAD tag, ML-KEM-768 implicit rejection) | 8f84114 |
+| HXC-989 | Docs | P2 | helix-raftd observability materials: Prometheus scrape config + Grafana dashboard + docs/observability.md | 87a157d |
