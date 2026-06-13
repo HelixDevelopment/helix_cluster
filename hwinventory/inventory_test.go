@@ -51,9 +51,9 @@ func TestCollect_HostReport(t *testing.T) {
 	}
 
 	t.Logf("HOST CAPABILITY REPORT (real inventory):\n%s", string(raw))
-	t.Logf("summary: host=%s os=%s/%s cpu=%q logical=%d physical=%d mem=%d bytes (%.2f GiB) gpus=%d npus=%d",
+	t.Logf("summary: host=%s os=%s/%s cpu=%q logical=%d physical=%d mem=%d bytes (%.2f GiB) gpus=%d npus=%d fpgas=%d",
 		inv.Host, inv.OS, inv.Arch, inv.CPU.Model, inv.CPU.LogicalCores, inv.CPU.PhysicalCores,
-		inv.MemoryBytes, float64(inv.MemoryBytes)/(1<<30), len(inv.GPUs), len(inv.NPUs))
+		inv.MemoryBytes, float64(inv.MemoryBytes)/(1<<30), len(inv.GPUs), len(inv.NPUs), len(inv.FPGAs))
 
 	for i, g := range inv.GPUs {
 		t.Logf("  GPU[%d]: vendor=%q model=%q api=%q cores=%d unified=%v mem=%d source=%q",
@@ -67,6 +67,21 @@ func TestCollect_HostReport(t *testing.T) {
 			i, n.Vendor, n.Model, n.Runtime, n.TOPS, n.Source)
 		if n.Vendor == "" || n.Model == "" {
 			t.Errorf("NPU[%d] has empty vendor/model: %+v", i, n)
+		}
+	}
+
+	// FPGAs: the inventory MUST carry a non-nil FPGAs slice so the report
+	// renders [] (not null). On this Apple-silicon host the fpgadetect oracle
+	// confirms there is no FPGA, so the slice is empty here — but any FPGA that
+	// IS reported must be a real, fully-identified device (non-empty vendor).
+	if inv.FPGAs == nil {
+		t.Error("FPGAs slice is nil (Collect must populate a non-nil slice via fpgadetect.DetectFPGAs)")
+	}
+	for i, f := range inv.FPGAs {
+		t.Logf("  FPGA[%d]: vendor=%q model=%q family=%q iface=%q pciVendor=%q source=%q",
+			i, f.Vendor, f.Model, f.Family, f.Interface, f.PCIVendorID, f.Source)
+		if f.Vendor == "" {
+			t.Errorf("FPGA[%d] has empty vendor: %+v", i, f)
 		}
 	}
 }
@@ -86,7 +101,7 @@ func TestInventory_JSON_AllFields(t *testing.T) {
 	if err := json.Unmarshal(raw, &m); err != nil {
 		t.Fatalf("unmarshal to map: %v", err)
 	}
-	for _, key := range []string{"host", "os", "arch", "cpu", "memory_bytes", "gpus", "npus"} {
+	for _, key := range []string{"host", "os", "arch", "cpu", "memory_bytes", "gpus", "npus", "fpgas"} {
 		if _, ok := m[key]; !ok {
 			t.Errorf("JSON report missing top-level field %q", key)
 		}

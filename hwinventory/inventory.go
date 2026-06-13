@@ -1,8 +1,11 @@
 // Package hwinventory implements a unified host hardware-inventory engine for
 // the Helix Cluster OS device-discovery layer. It aggregates the existing
-// per-OS GPU and NPU detectors (devicedetect.DetectGPUs / npudetect.DetectNPUs)
-// together with real CPU and total-memory probes into a single, JSON-renderable
-// host capability report.
+// per-OS GPU, NPU and FPGA detectors (devicedetect.DetectGPUs /
+// npudetect.DetectNPUs / fpgadetect.DetectFPGAs) together with real CPU and
+// total-memory probes into a single, JSON-renderable host capability report.
+//
+// A runnable CLI is provided at ./cmd/hwinfo: `go run ./cmd/hwinfo` prints the
+// real host capability report (CPU, memory, GPUs, NPUs, FPGAs) as JSON.
 //
 // Per the Helix CLAUDE-2 Cross-Platform Parity Guarantee, the CPU and memory
 // probes are implemented per-OS behind build tags with a REAL implementation
@@ -12,8 +15,8 @@
 //     machdep.cpu.brand_string and hw.memsize.
 //   - linux:  cpu_linux.go  — /proc/cpuinfo and /proc/meminfo.
 //
-// The GPU and NPU portions are delegated to the proven sibling modules, which
-// themselves provide real per-OS detection.
+// The GPU, NPU and FPGA portions are delegated to the proven sibling modules,
+// which themselves provide real per-OS detection.
 package hwinventory
 
 import (
@@ -24,6 +27,7 @@ import (
 	"runtime"
 
 	"github.com/HelixDevelopment/helix_cluster/devicedetect"
+	"github.com/HelixDevelopment/helix_cluster/fpgadetect"
 	"github.com/HelixDevelopment/helix_cluster/npudetect"
 )
 
@@ -76,6 +80,10 @@ type Inventory struct {
 
 	// NPUs are the detected neural accelerators (may be empty; never nil).
 	NPUs []npudetect.NPU `json:"npus"`
+
+	// FPGAs are the detected FPGAs / FPGA accelerator cards (may be empty on a
+	// host with no detectable FPGA — as on this Apple-silicon host; never nil).
+	FPGAs []fpgadetect.FPGA `json:"fpgas"`
 }
 
 // Collect probes the current host and assembles a full Inventory: real CPU
@@ -90,8 +98,9 @@ func Collect(ctx context.Context) (Inventory, error) {
 		OS:   runtime.GOOS,
 		Arch: runtime.GOARCH,
 		// Ensure non-nil slices so the JSON report always renders [] not null.
-		GPUs: []devicedetect.GPU{},
-		NPUs: []npudetect.NPU{},
+		GPUs:  []devicedetect.GPU{},
+		NPUs:  []npudetect.NPU{},
+		FPGAs: []fpgadetect.FPGA{},
 	}
 
 	host, err := os.Hostname()
@@ -136,6 +145,14 @@ func Collect(ctx context.Context) (Inventory, error) {
 	}
 	if npus != nil {
 		inv.NPUs = npus
+	}
+
+	fpgas, err := fpgadetect.DetectFPGAs(ctx)
+	if err != nil {
+		return Inventory{}, fmt.Errorf("hwinventory: detect FPGAs: %w", err)
+	}
+	if fpgas != nil {
+		inv.FPGAs = fpgas
 	}
 
 	return inv, nil
