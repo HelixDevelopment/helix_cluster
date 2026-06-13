@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 69
-**Last modified:** 2026-06-13T13:28:14Z
+**Revision:** 70
+**Last modified:** 2026-06-13T13:29:36Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **411**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **410**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -274,7 +274,7 @@ Total active items: **411**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-913 | Task | P3 | Completed | pkg/porcupine: implement state-dedup memoization via Model.Equal for large histories |
 | HXC-914 | Task | P3 | Queued | internal/chaos: author live-cluster nightly pipeline + GitHub Actions workflow |
 
-## Phase 8 (70 active)
+## Phase 8 (69 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -303,7 +303,6 @@ Total active items: **411**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1428 | Feature | P1 | Completed | Implement SSE streaming decoder for Chutes chat completions |
 | HXC-1429 | Feature | P1 | Completed | Implement Chutes API model-list and user-account/balance queries |
 | HXC-1430 | Feature | P1 | Completed | Implement model-router default-model resolution by strategy (latency/throughput/quality/cost) |
-| HXC-1431 | Feature | P1 | Queued | Wire E2EE inference envelope between pkg/chutes and security/pkg/e2ee |
 | HXC-1448 | Feature | P1 | Completed | Implement GraVal attestation hook in internal/gpu Manager |
 | HXC-1454 | Feature | P1 | Completed | Implement MarketplaceAdapter interface and Chutes adapter |
 | HXC-1455 | Feature | P1 | Completed | Implement UnifiedManager.RouteWorkload concurrent pricing + composite scoring |

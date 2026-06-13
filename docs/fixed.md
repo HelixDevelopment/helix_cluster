@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 69
-**Last modified:** 2026-06-13T13:28:14Z
+**Revision:** 70
+**Last modified:** 2026-06-13T13:29:36Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **306**.
+Total completed: **307**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -268,6 +268,7 @@ Total completed: **306**.
 | HXC-1365 | Feature | P1 | Extend pkg/scheduler with latency-aware spot/preemptible scoring | 0c8b4ca |
 | HXC-1367 | Feature | P1 | Implement pkg/gitops ArgoCD ApplicationSet federation client | e5f963b |
 | HXC-1373 | Feature | P1 | Implement split-brain prevention and partition-classification logic | 37c2a9a |
+| HXC-1431 | Feature | P1 | Wire E2EE inference envelope between pkg/chutes and security/pkg/e2ee | 2278f85 |
 | HXC-1484 | Feature | P1 | Extend pkg/health with miner-api and GraVal DaemonSet health checks | e5f963b |
 | HXC-1514 | Feature | P1 | Implement pkg/provider/ionet IONetProvider Ray cluster adapter | e5f963b |
 | HXC-1527 | Feature | P1 | Define gpu_proxy.proto gRPC GPUProvider kernel-dispatch service | af16635 |
