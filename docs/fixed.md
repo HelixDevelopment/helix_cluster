@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 102
-**Last modified:** 2026-06-13T18:55:59Z
+**Revision:** 103
+**Last modified:** 2026-06-13T18:58:01Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **525**.
+Total completed: **526**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -535,3 +535,4 @@ Total completed: **525**.
 | HXC-989 | Docs | P2 | helix-raftd observability materials: Prometheus scrape config + Grafana dashboard + docs/observability.md | 87a157d |
 | HXC-990 | Feature | P1 | pkg/raft PreVote runtime disruption test (runtime pairing of HXC-986) | 03a9cea |
 | HXC-991 | Feature | P2 | helix-raftctl CLI client for helix-raftd admin API (live-cluster proven) | 8c8922a |
+| HXC-992 | Feature | P1 | pkg/scheduler Omega optimistic-concurrency barrier-race test (no double-booking) | 8a3f499 |
