@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 59
-**Last modified:** 2026-06-13T11:01:13Z
+**Revision:** 60
+**Last modified:** 2026-06-13T11:03:06Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **416**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **415**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -149,7 +149,7 @@ Total active items: **416**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (29 active)
+## Phase 5 (28 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -166,7 +166,6 @@ Total active items: **416**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1327 | Feature | P1 | Queued | Implement gVisor/Kata per-tier sandbox hardening for UNTRUSTED/edge nodes (DEFERRED) |
 | HXC-1329 | Feature | P1 | Queued | Implement hybrid cloud-on-prem WireGuard mesh joining spot workers to on-prem cluster |
 | HXC-1332 | Task | P1 | Queued | Phase 5a integration test: 10-node mixed handheld+SBC cluster |
-| HXC-1307 | Feature | P2 | Queued | Implement device discovery engine: FPGA detection (Xilinx/Intel/Lattice, hard vs soft core) |
 | HXC-1318 | Feature | P2 | Queued | Implement pkg/fpga + internal/fpga hard-SoC/soft-core/DPU backends (DEFERRED hw) |
 | HXC-1319 | Feature | P2 | Queued | Implement bitstream verification + management for FPGA tiers (T11 required) |
 | HXC-1324 | Feature | P2 | Queued | Implement internal/exotic Groq LPU inference adapter (<100ms TTFT) (DEFERRED cloud) |
