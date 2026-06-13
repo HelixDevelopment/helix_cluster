@@ -24,6 +24,7 @@ use (
 	./pkg/hxcregistry
 	./recovery
 	./security
+	./storage/qcow2
 	./transport/coap
 	./transport/quic
 	./transport/webrtc
