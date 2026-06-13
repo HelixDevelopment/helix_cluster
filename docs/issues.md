@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 66
-**Last modified:** 2026-06-13T13:17:16Z
+**Revision:** 67
+**Last modified:** 2026-06-13T13:18:12Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **413**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **412**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -94,7 +94,7 @@ Total active items: **413**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1623 | Task | P2 | Queued | HXC-1167 follow-up: validate cross-compiled helix-agent on real Orange Pi 5 Max (aarch64) execution |
 | HXC-1624 | Feature | P2 | Queued | HXC-1158 follow-up: add positive non-console SoC-match labels (RK3588/RPi/x86 server) to internal/console detector |
 
-## Phase 4 (48 active)
+## Phase 4 (47 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -112,7 +112,6 @@ Total active items: **413**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1225 | Feature | P1 | Queued | Implement QEMU/KVM ARM64 virt provisioner for T6 RK3588-approximate SBC |
 | HXC-1226 | Feature | P1 | Queued | Integrate Cuttlefish/CrosVM provisioner for T5 Android AOSP devices |
 | HXC-1228 | Feature | P1 | Queued | Implement Docker + binfmt_misc protocol stubs for T7 iOS and T8 HarmonyOS |
-| HXC-1233 | Feature | P1 | Queued | Implement qcow2 copy-on-write overlay management with 10-deep chain limit |
 | HXC-1245 | Feature | P1 | Completed | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
 | HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
 | HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |

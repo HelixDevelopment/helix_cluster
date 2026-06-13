@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 66
-**Last modified:** 2026-06-13T13:17:16Z
+**Revision:** 67
+**Last modified:** 2026-06-13T13:18:12Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **303**.
+Total completed: **304**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -206,6 +206,7 @@ Total completed: **303**.
 | HXC-1229 | Task | P0 | Build device profile registry with versioned YAML schema for T1-T8 | 1c0d943 |
 | HXC-1230 | Feature | P1 | Implement automated tier detection validating host KVM/ARM64/binfmt capabilities | f4d8da9 |
 | HXC-1231 | Feature | P1 | Implement device provisioning lifecycle abstraction (Provisioner/Instance state machine) | 553a043 |
+| HXC-1233 | Feature | P1 | Implement qcow2 copy-on-write overlay management with 10-deep chain limit | 9ee8592 |
 | HXC-1236 | Feature | P0 | Implement INetwork/HelixNetwork trait with production and simulation swappable impls | 7c41c2f |
 | HXC-1237 | Feature | P0 | Wire DST sim transport seam into pkg/swim membership (prod+sim parity) | 656bec1 |
 | HXC-1238 | Feature | P1 | Implement BUGGIFY macro framework with ~25% deterministic fire rate | 75f076f |
