@@ -32,7 +32,16 @@ type Config struct {
 	// ConnectTimeout bounds the initial connect. Default 10s.
 	ConnectTimeout time.Duration
 	// MaxReconnectInterval caps the auto-reconnect backoff. Default 30s.
+	// Values below minReconnectInterval (1s) are raised to it so a
+	// misconfiguration cannot turn paho's capped backoff into a tight
+	// reconnect loop.
 	MaxReconnectInterval time.Duration
+	// MaxPayloadBytes caps the size of an inbound MQTT payload the client
+	// will decode. Oversize messages are logged and dropped before the JSON
+	// decoder runs, so a hostile broker/publisher cannot OOM the edge node.
+	// Default DefaultMaxPayloadBytes (256 KiB). A negative value disables the
+	// cap (NOT recommended); zero means use the default.
+	MaxPayloadBytes int
 	// OnConnect, if set, is called every time the client (re)connects. It is
 	// the right place to (re)subscribe so subscriptions survive reconnects.
 	OnConnect func(*Client)
@@ -51,6 +60,14 @@ func (c *Config) withDefaults() {
 	}
 	if c.MaxReconnectInterval == 0 {
 		c.MaxReconnectInterval = 30 * time.Second
+	}
+	if c.MaxReconnectInterval < minReconnectInterval {
+		// Floor the backoff cap so a tiny/misconfigured value can't let
+		// auto-reconnect hammer the broker on persistent failure.
+		c.MaxReconnectInterval = minReconnectInterval
+	}
+	if c.MaxPayloadBytes == 0 {
+		c.MaxPayloadBytes = DefaultMaxPayloadBytes
 	}
 	if c.ClientID == "" {
 		c.ClientID = "helix-edge-" + c.NodeID
@@ -85,6 +102,12 @@ func New(cfg Config) (*Client, error) {
 	if cfg.NodeID == "" {
 		return nil, errors.New("mqttclient: Config.NodeID is required")
 	}
+	// Reject a crafted node id before it is ever embedded in a topic: a
+	// wildcard ('#'/'+'), separator ('/'), or over-length id could otherwise
+	// subscribe outside this node's namespace or bloat topic tables.
+	if err := ValidateNodeID(cfg.NodeID); err != nil {
+		return nil, fmt.Errorf("mqttclient: invalid NodeID: %w", err)
+	}
 	cfg.withDefaults()
 
 	c := &Client{cfg: cfg, logfn: cfg.Logger}
@@ -97,7 +120,11 @@ func New(cfg Config) (*Client, error) {
 		SetAutoReconnect(true).
 		SetMaxReconnectInterval(cfg.MaxReconnectInterval).
 		SetCleanSession(true).
-		SetOrderMatters(false)
+		SetOrderMatters(false).
+		// Bound the number of stored QoS1 publishes re-sent at once on
+		// reconnect; paho's default (0) is unbounded and can saturate a
+		// low-capacity edge link / spike memory after a long outage.
+		SetMaxResumePubInFlight(defaultMaxResumePubInFlight)
 
 	if cfg.Username != "" {
 		opts.SetUsername(cfg.Username)
@@ -154,7 +181,13 @@ func (c *Client) SubscribeDispatch(ctx context.Context, handler DispatchHandler)
 	}
 	topic := DispatchTopic(c.cfg.NodeID)
 	cb := func(_ paho.Client, m paho.Message) {
-		item, err := DecodeWorkItem(m.Payload())
+		payload := m.Payload()
+		if c.payloadTooLarge(payload) {
+			c.log(fmt.Sprintf("dropping oversize dispatch on %s: %d bytes > max %d",
+				m.Topic(), len(payload), c.cfg.MaxPayloadBytes))
+			return
+		}
+		item, err := DecodeWorkItem(payload)
 		if err != nil {
 			c.log("dropping malformed dispatch on " + m.Topic() + ": " + errString(err))
 			return
@@ -181,8 +214,17 @@ func (c *Client) SubscribeStatus(ctx context.Context, topic string, handler Stat
 	if handler == nil {
 		return errors.New("mqttclient: SubscribeStatus requires a handler")
 	}
+	if err := validateSubscribeTopic(topic); err != nil {
+		return err
+	}
 	cb := func(_ paho.Client, m paho.Message) {
-		st, err := DecodeStatus(m.Payload())
+		payload := m.Payload()
+		if c.payloadTooLarge(payload) {
+			c.log(fmt.Sprintf("dropping oversize status on %s: %d bytes > max %d",
+				m.Topic(), len(payload), c.cfg.MaxPayloadBytes))
+			return
+		}
+		st, err := DecodeStatus(payload)
 		if err != nil {
 			c.log("dropping malformed status on " + m.Topic() + ": " + errString(err))
 			return
@@ -231,6 +273,11 @@ func (c *Client) PublishDispatch(ctx context.Context, targetNodeID string, w Wor
 	if targetNodeID == "" {
 		return errors.New("mqttclient: PublishDispatch requires a target node id")
 	}
+	// Validate before building the topic so a crafted target id ('#'/'+'/'/')
+	// cannot publish into a wildcard or escape the helix/edge namespace.
+	if err := ValidateNodeID(targetNodeID); err != nil {
+		return fmt.Errorf("mqttclient: PublishDispatch invalid target: %w", err)
+	}
 	if w.IssuedAt.IsZero() {
 		w.IssuedAt = time.Now().UTC()
 	}
@@ -266,6 +313,13 @@ func (c *Client) Close(quiesce time.Duration) {
 	ms := uint(quiesce.Milliseconds())
 	c.mqtt.Disconnect(ms)
 	c.log("disconnected from broker " + c.cfg.Broker)
+}
+
+// payloadTooLarge reports whether an inbound payload exceeds the configured
+// MaxPayloadBytes cap. A negative cap disables the check (opt-out); zero is
+// never seen here because withDefaults substitutes the default.
+func (c *Client) payloadTooLarge(payload []byte) bool {
+	return c.cfg.MaxPayloadBytes >= 0 && len(payload) > c.cfg.MaxPayloadBytes
 }
 
 func (c *Client) log(msg string) {
