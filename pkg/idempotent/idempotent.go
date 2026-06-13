@@ -19,6 +19,7 @@ package idempotent
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 // ErrOutOfSequence is returned by Append when a message arrives with a Seq that
@@ -60,7 +61,14 @@ type Message struct {
 // deduplicated, ordered log and a per-producer lastSeq watermark.
 //
 // The zero value is not ready for use; construct one with New.
+//
+// Broker is safe for concurrent use: Append and the read accessors are
+// serialized by mu. This is load-bearing for the exactly-once-EFFECT guarantee
+// — without it, two goroutines submitting the same (ProducerID, Seq) can both
+// pass the Seq==expected check before either advances lastSeq and BOTH commit
+// (a double-commit), and the unsynchronized map/slice access is a data race.
 type Broker struct {
+	mu      sync.Mutex     // serializes Append + reads so exactly-once holds under concurrency
 	base    int            // first valid Seq for every producer
 	lastSeq map[string]int // producerID -> last accepted Seq
 	seen    map[string]int // producerID -> count of messages committed (for invariants)
@@ -90,6 +98,8 @@ func (b *Broker) expected(pid string) int {
 // LastSeq returns the last accepted Seq for pid, and whether any message from
 // pid has been committed. When ok is false the returned seq is meaningless.
 func (b *Broker) LastSeq(pid string) (seq int, ok bool) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	seq, ok = b.lastSeq[pid]
 	return seq, ok
 }
@@ -97,6 +107,9 @@ func (b *Broker) LastSeq(pid string) (seq int, ok bool) {
 // Append applies msg under exactly-once semantics. See package docs for the
 // full Seq decision table.
 func (b *Broker) Append(msg Message) (Result, error) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+
 	exp := b.expected(msg.ProducerID)
 
 	switch {
@@ -122,6 +135,8 @@ func (b *Broker) Append(msg Message) (Result, error) {
 // Log returns a copy of the committed, deduplicated, in-order log so callers
 // cannot mutate broker state.
 func (b *Broker) Log() []Message {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	out := make([]Message, len(b.log))
 	copy(out, b.log)
 	return out
@@ -130,6 +145,8 @@ func (b *Broker) Log() []Message {
 // LogFor returns a copy of the committed messages for a single producer, in
 // commit order.
 func (b *Broker) LogFor(pid string) []Message {
+	b.mu.Lock()
+	defer b.mu.Unlock()
 	var out []Message
 	for _, m := range b.log {
 		if m.ProducerID == pid {
