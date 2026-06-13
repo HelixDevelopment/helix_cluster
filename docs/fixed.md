@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 95
-**Last modified:** 2026-06-13T18:11:58Z
+**Revision:** 96
+**Last modified:** 2026-06-13T18:20:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **515**.
+Total completed: **516**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -525,3 +525,4 @@ Total completed: **515**.
 | HXC-979 | Research | P1 | TLA+ snapshot-install / log-compaction safety spec (RaftSnapshot), TLC-verified exhaustive | 58aabc3 |
 | HXC-980 | Bug | P1 | registry CLI: update auto-moves current_location on status change + reconcile backfill (doc-sync truthfulness) | f1b66c1 |
 | HXC-981 | Feature | P1 | pkg/wasm: combined-bounds sandbox E2E (fuel + memory cap + capability deny enforced simultaneously) | 4457f9c |
+| HXC-982 | Feature | P0 | helix-raftd: real multi-process persistent Raft daemon (TCP + BoltDB) with kill+restart-from-disk E2E | 99f9a6c |
