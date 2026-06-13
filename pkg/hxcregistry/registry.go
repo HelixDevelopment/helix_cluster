@@ -419,19 +419,21 @@ func (r *Registry) ListItems(status string) ([]*HXCItem, error) {
 	return items, rows.Err()
 }
 
-// NextHXCID returns the next available HXC number (best effort).
+// NextHXCID returns the next available HXC number: the highest existing numeric
+// id + 1. The max MUST be computed numerically, not by TEXT ordering of hxc_id:
+// once ids span both 3-digit (HXC-999) and 4-digit (HXC-1000+) widths, a plain
+// `ORDER BY hxc_id DESC` sorts lexically and reports "HXC-999" as the max
+// (because '9' > '1' at the first digit), so it would hand back HXC-1000
+// forever and collide with every already-ingested 1000+ id. CAST(SUBSTR(...))
+// orders by the integer value so the true maximum is found.
 func (r *Registry) NextHXCID() (string, error) {
-	row := r.db.QueryRow(`SELECT hxc_id FROM items ORDER BY hxc_id DESC LIMIT 1`)
-	var last string
-	if err := row.Scan(&last); err != nil {
-		if err == sql.ErrNoRows {
-			return "HXC-001", nil
-		}
-		return "", fmt.Errorf("query last id: %w", err)
-	}
+	// SUBSTR(hxc_id, 5) strips the "HXC-" prefix (4 chars); CAST to INTEGER
+	// yields the numeric id so MAX is numeric, not lexical.
+	row := r.db.QueryRow(`SELECT COALESCE(MAX(CAST(SUBSTR(hxc_id, 5) AS INTEGER)), 0) FROM items`)
 	var num int
-	if _, err := fmt.Sscanf(last, "HXC-%d", &num); err != nil {
-		return "", fmt.Errorf("parse last id: %w", err)
+	if err := row.Scan(&num); err != nil {
+		return "", fmt.Errorf("query max id: %w", err)
 	}
+	// Pad to at least 3 digits; ids >= 1000 render at their natural width.
 	return fmt.Sprintf("HXC-%03d", num+1), nil
 }

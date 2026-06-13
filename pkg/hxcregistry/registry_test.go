@@ -110,6 +110,41 @@ func TestRegistryNextID(t *testing.T) {
 	}
 }
 
+// TestRegistryNextIDNumericNotLexical pins that NextHXCID computes the maximum
+// id NUMERICALLY, not by TEXT ordering of hxc_id. Once ids span both 3-digit
+// (HXC-999) and 4-digit (HXC-1000+) widths, a plain `ORDER BY hxc_id DESC`
+// sorts lexically and reports "HXC-999" as the max (because '9' > '1' at the
+// first digit), which would hand back HXC-1000 forever and collide with every
+// already-allocated 1000+ id. This is the bite: with HXC-1614 present, the next
+// id MUST be HXC-1615, never HXC-1000.
+func TestRegistryNextIDNumericNotLexical(t *testing.T) {
+	reg, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open registry: %v", err)
+	}
+	defer reg.Close()
+
+	// Seed ids whose lexical max ("HXC-999") differs from their numeric max
+	// ("HXC-1614"). Include 4-digit ids so the lexical-vs-numeric gap is real.
+	for _, id := range []string{"HXC-001", "HXC-999", "HXC-1000", "HXC-1001", "HXC-1614"} {
+		if err := reg.CreateItem(&HXCItem{
+			HXCID: id, Type: "Task", Status: "Completed", Priority: "P1",
+			Phase: 0, Title: "seed " + id, Description: "seed", CurrentLocation: "Fixed",
+		}); err != nil {
+			t.Fatalf("seed %s: %v", id, err)
+		}
+	}
+
+	next, err := reg.NextHXCID()
+	if err != nil {
+		t.Fatalf("next id: %v", err)
+	}
+	if next != "HXC-1615" {
+		t.Errorf("next id = %q, want HXC-1615 (numeric max 1614 + 1). A lexical "+
+			"ORDER BY would wrongly return HXC-1000 (max=\"HXC-999\")", next)
+	}
+}
+
 func TestItemValidation(t *testing.T) {
 	cases := []struct {
 		name    string
