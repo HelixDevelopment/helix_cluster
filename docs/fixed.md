@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 74
-**Last modified:** 2026-06-13T13:39:15Z
+**Revision:** 75
+**Last modified:** 2026-06-13T14:35:02Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **311**.
+Total completed: **312**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -321,3 +321,4 @@ Total completed: **311**.
 | HXC-961 | Research | P2 | TLA+ spec for vector-clock causal delivery (TLC-verified) | 7d54dd1 |
 | HXC-962 | Research | P2 | TLA+ spec for Raft single-server membership change safety (TLC-verified) | d8d39e9 |
 | HXC-963 | Research | P2 | TLA+ spec for leader-lease leaseholder reads / no-stale-read (TLC-verified) | e7dc5a4 |
+| HXC-964 | Research | P2 | TLA+ spec for phi-accrual failure-detector accuracy (TLC-verified) | 70824c5 |
