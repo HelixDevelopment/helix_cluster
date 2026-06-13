@@ -1,14 +1,14 @@
 # Issues
 
-**Revision:** 47
-**Last modified:** 2026-06-13T09:23:27Z
+**Revision:** 48
+**Last modified:** 2026-06-13T09:31:35Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
 Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (13 active)
+## Foundation (anti-bluff) (14 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -25,6 +25,7 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-939 | Docs | P2 | Completed | Refresh stale per-phase GAP_AUDIT.md files (CLAUDE-3) |
 | HXC-940 | Task | P2 | Completed | Wire the orphaned gate packages (covgate/archlint/etcdlint/qualitygate/phasegate) |
 | HXC-946 | Task | P2 | Completed | Triage trivy misconfig HIGH (50) + suppress QA-sentinel secret false-positives |
+| HXC-949 | Feature | P2 | Queued | Chaos OTel polyglot trace (Rust/Elixir/Go) + Grafana dashboards (split from HXC-1258) |
 
 ## MVP (9 active)
 
@@ -97,7 +98,7 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1624 | Feature | P2 | Queued | HXC-1158 follow-up: add positive non-console SoC-match labels (RK3588/RPi/x86 server) to internal/console detector |
 | HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
-## Phase 4 (49 active)
+## Phase 4 (48 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -119,7 +120,6 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1245 | Feature | P1 | Completed | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
 | HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
 | HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |
-| HXC-1258 | Feature | P1 | Queued | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing |
 | HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
 | HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |

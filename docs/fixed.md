@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 47
-**Last modified:** 2026-06-13T09:23:27Z
+**Revision:** 48
+**Last modified:** 2026-06-13T09:31:35Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **283**.
+Total completed: **284**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -215,6 +215,7 @@ Total completed: **283**.
 | HXC-1249 | Feature | P0 | Implement emergency-stop and auto-recovery with <=2s halt latency | 15977c0 |
 | HXC-1254 | Feature | P1 | Implement TestRunner with parallel suite execution and result collection | aba565b |
 | HXC-1255 | Feature | P1 | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) | aba565b |
+| HXC-1258 | Feature | P1 | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing | c642583 |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |
 | HXC-1265 | Feature | P1 | Implement capability-based plugin sandbox with resource limits and audit logging | 7c41c2f |
