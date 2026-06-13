@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 58
-**Last modified:** 2026-06-13T10:25:10Z
+**Revision:** 59
+**Last modified:** 2026-06-13T11:01:13Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **295**.
+Total completed: **296**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -305,3 +305,4 @@ Total completed: **295**.
 | HXC-952 | Feature | P2 | Unified hardware-inventory engine (CPU+memory+GPU+NPU aggregation) | 7011255 |
 | HXC-953 | Feature | P2 | Real Raft-backed leader-election service (pkg/raftleader adapting pkg/raft) | 7011255 |
 | HXC-954 | Feature | P1 | Edge gateway multi-transport integration (QUIC + MQTT + WebSocket end-to-end) | 1515077 |
+| HXC-955 | Feature | P2 | Distributed KV demo over Raft (cmd/raftkv-demo) — building blocks composed | c52eee8 |
