@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 125
-**Last modified:** 2026-06-13T20:46:39Z
+**Revision:** 126
+**Last modified:** 2026-06-13T20:47:17Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **562**.
+Total completed: **563**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -493,6 +493,7 @@ Total completed: **562**.
 | HXC-1666 | Bug | P0 | FIX pkg/slotmigration concurrent-map crash (routing lookups raced the commit flip) | 2895ae5 |
 | HXC-1667 | Bug | P0 | FIX pkg/edgeregistry concurrent-map race (Register raced Get/Len/ListByTier/Dump) | d623d24 |
 | HXC-1668 | Feature | P1 | pkg/modelrouter concurrent read-safety test (immutable routing table) | 8b17477 |
+| HXC-1669 | Feature | P1 | pkg/fedtopology concurrent read-safety + path-correctness test (immutable topology) | ab37c75 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
