@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 110
-**Last modified:** 2026-06-13T19:36:15Z
+**Revision:** 111
+**Last modified:** 2026-06-13T19:43:47Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **541**.
+Total completed: **543**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -472,6 +472,8 @@ Total completed: **541**.
 | HXC-1645 | Feature | P1 | pkg/voting exhaustive at-most-one-authoritative test (split-brain invariant) | f74ce34 |
 | HXC-1646 | Feature | P1 | pkg/semaphore adversarial bounded-concurrency test (never exceed N, reaches N) | 0a0caac |
 | HXC-1647 | Feature | P1 | pkg/lru adversarial eviction + capacity test (true LRU not FIFO, exact bound) | 771c77f |
+| HXC-1648 | Bug | P0 | FIX pkg/lock double-release crash + cross-owner free (unguarded UnlockFunc) | a3f3393 |
+| HXC-1649 | Bug | P0 | FIX pkg/heartbeatcoalescer Receiver data race (unsynchronized lastSeen) | 0bc06ee |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
