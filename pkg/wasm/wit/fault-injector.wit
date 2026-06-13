@@ -1,0 +1,96 @@
+// HXC-1264: WIT interface definitions for the Helix Cluster OS WASM
+// Component-Model plugin layer (on top of the HXC-1263 core-module host).
+//
+// fault-injector: a plugin world that injects parameterized faults (latency,
+// errors, resource pressure, partitions) into a target so resilience can be
+// tested deterministically. The host arms a fault spec, the plugin decides —
+// per evaluated event — whether and how to perturb it.
+package helix:fault-injector@0.1.0;
+
+/// Host environment imported by every Helix plugin world (see device-simulator).
+interface host-env {
+    /// Wall-clock nanoseconds since the Unix epoch. Requires the `clock` capability.
+    now-nanos: func() -> s64;
+    /// Fill `len` bytes with host randomness. Requires the `random` capability.
+    random-bytes: func(len: u32) -> list<u8>;
+    /// Emit a structured log record. Requires the `log` capability.
+    log: func(message: string) -> bool;
+}
+
+/// Fault specification and decision types.
+interface fault-types {
+    /// The class of fault to inject.
+    enum fault-kind {
+        /// Add latency before the event proceeds.
+        latency,
+        /// Fail the event with an error.
+        error,
+        /// Simulate a network partition / unreachable target.
+        partition,
+        /// Apply synthetic resource pressure (cpu/mem/io).
+        resource-pressure,
+        /// Corrupt or drop the event's payload.
+        data-corruption,
+    }
+
+    /// A single tunable parameter for a fault (name -> value).
+    record param {
+        key: string,
+        value: string,
+    }
+
+    /// A fault specification armed by the host.
+    record fault-spec {
+        kind: fault-kind,
+        /// Probability in [0.0, 1.0] that a given evaluated event is perturbed.
+        probability: f64,
+        /// Kind-specific tunables, e.g. latency: ("delay-ms","250").
+        params: list<param>,
+        /// Deterministic seed so injected faults reproduce on replay.
+        seed: u64,
+    }
+
+    /// What the injector decided for a single evaluated event.
+    variant decision {
+        /// Let the event proceed unperturbed.
+        pass,
+        /// Delay the event by the given milliseconds, then proceed.
+        delay(u32),
+        /// Fail the event with this error message.
+        fail(string),
+        /// Drop the event entirely (no response).
+        drop,
+    }
+
+    /// Error returned by injector operations.
+    variant inject-error {
+        not-armed,
+        invalid-spec(string),
+        internal(string),
+    }
+}
+
+/// The exported surface a fault-injector component must implement.
+interface injector {
+    use fault-types.{fault-spec, decision, inject-error};
+
+    /// Arm the injector with a fault spec. Must precede `evaluate`. A second
+    /// call replaces the armed spec.
+    arm: func(spec: fault-spec) -> result<_, inject-error>;
+
+    /// Evaluate one event identified by `event-id` (an opaque correlation key)
+    /// and decide whether/how to perturb it per the armed spec.
+    evaluate: func(event-id: string) -> result<decision, inject-error>;
+
+    /// Disarm the injector and clear state.
+    disarm: func() -> result<_, inject-error>;
+
+    /// Count of events for which a non-`pass` decision was returned.
+    injected-count: func() -> u64;
+}
+
+/// fault-injector plugin world.
+world fault-injector {
+    import host-env;
+    export injector;
+}

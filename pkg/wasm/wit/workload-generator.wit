@@ -1,0 +1,104 @@
+// HXC-1264: WIT interface definitions for the Helix Cluster OS WASM
+// Component-Model plugin layer (on top of the HXC-1263 core-module host).
+//
+// workload-generator: a plugin world that emits synthetic work items at a
+// requested rate/shape so the scheduler and data plane can be exercised under
+// reproducible synthetic load. The host pulls batches of work items from the
+// plugin; the plugin owns the generation policy (distribution, sizes, seed).
+package helix:workload-generator@0.1.0;
+
+/// Host environment imported by every Helix plugin world (see device-simulator).
+interface host-env {
+    /// Wall-clock nanoseconds since the Unix epoch. Requires the `clock` capability.
+    now-nanos: func() -> s64;
+    /// Fill `len` bytes with host randomness. Requires the `random` capability.
+    random-bytes: func(len: u32) -> list<u8>;
+    /// Emit a structured log record. Requires the `log` capability.
+    log: func(message: string) -> bool;
+}
+
+/// Work-item and generation-policy types.
+interface workload-types {
+    /// Shape of the inter-arrival / sizing distribution the generator uses.
+    enum distribution {
+        /// Every item identical / evenly spaced.
+        uniform,
+        /// Poisson-like bursty arrivals.
+        poisson,
+        /// Heavy-tailed item sizes.
+        zipfian,
+    }
+
+    /// Priority class for a generated work item.
+    enum priority {
+        low,
+        normal,
+        high,
+        critical,
+    }
+
+    /// A key/value tag attached to a work item.
+    record label {
+        key: string,
+        value: string,
+    }
+
+    /// A single synthetic unit of work.
+    record work-item {
+        /// Monotonic identifier within a generation session.
+        id: u64,
+        /// Logical work type, e.g. "http-request", "batch-job", "rpc".
+        kind: string,
+        /// Estimated cost in abstract work units (drives scheduler load).
+        cost-units: u32,
+        /// Opaque payload bytes the consumer may treat as work input.
+        payload: list<u8>,
+        priority: priority,
+        labels: list<label>,
+        /// Host timestamp (ns since epoch) the item was generated.
+        created-nanos: s64,
+    }
+
+    /// Generation policy handed to the generator at start.
+    record generation-policy {
+        /// Target items per second (best-effort shaping target).
+        rate-per-second: f64,
+        /// Distribution used for inter-arrival and sizing.
+        shape: distribution,
+        /// Mean payload size in bytes.
+        mean-payload-bytes: u32,
+        /// Deterministic seed for reproducible synthetic load.
+        seed: u64,
+    }
+
+    /// Error returned by generator operations.
+    variant gen-error {
+        not-started,
+        invalid-policy(string),
+        internal(string),
+    }
+}
+
+/// The exported surface a workload-generator component must implement.
+interface generator {
+    use workload-types.{work-item, generation-policy, gen-error};
+
+    /// Start a generation session under `policy`. Must precede `next-batch`.
+    start: func(policy: generation-policy) -> result<_, gen-error>;
+
+    /// Pull up to `max-items` freshly generated work items. Returns fewer than
+    /// `max-items` when the shaping target throttles this tick.
+    next-batch: func(max-items: u32) -> result<list<work-item>, gen-error>;
+
+    /// Total items emitted so far in the current session.
+    emitted-count: func() -> u64;
+
+    /// Stop the current session and release generator state.
+    stop: func() -> result<_, gen-error>;
+}
+
+/// workload-generator plugin world.
+world workload-generator {
+    import host-env;
+    export generator;
+}

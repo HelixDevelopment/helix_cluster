@@ -1,0 +1,102 @@
+// HXC-1264: WIT interface definitions for the Helix Cluster OS WASM
+// Component-Model plugin layer (on top of the HXC-1263 core-module host).
+//
+// device-simulator: a plugin world that simulates a physical/virtual device,
+// emitting telemetry samples and reporting health on demand. The host drives
+// the plugin (configure -> sample -> health), the plugin computes synthetic
+// readings. Capability-gated host functions (clock/random/log) are mirrored
+// from the core-module sandbox as an imported `host-env` interface so a
+// component realization keeps the same deny-by-default capability posture.
+package helix:device-simulator@0.1.0;
+
+/// Host environment imported by every Helix plugin world. Each function maps
+/// 1:1 to a capability-gated core-module host function in pkg/wasm/sandbox.go
+/// (clock_now / random_fill / log_write). A component instantiated without the
+/// matching capability sees these traps, exactly as the core-module host does.
+interface host-env {
+    /// Wall-clock nanoseconds since the Unix epoch. Requires the `clock` capability.
+    now-nanos: func() -> s64;
+
+    /// Fill a buffer of `len` bytes with host randomness. Requires the `random`
+    /// capability. Returns the drawn bytes (length == `len`).
+    random-bytes: func(len: u32) -> list<u8>;
+
+    /// Emit a structured log record to the host sink. Requires the `log`
+    /// capability. Returns true when the record was captured.
+    log: func(message: string) -> bool;
+}
+
+/// Telemetry, health and configuration types for simulated devices.
+interface device-types {
+    /// Coarse health classification for a simulated device.
+    enum health-state {
+        healthy,
+        degraded,
+        critical,
+        offline,
+    }
+
+    /// A single named telemetry reading with an SI-ish unit string.
+    record telemetry-sample {
+        /// Metric name, e.g. "temperature", "fan-rpm", "power-watts".
+        name: string,
+        /// Measured value.
+        value: f64,
+        /// Unit string, e.g. "celsius", "rpm", "watts".
+        unit: string,
+        /// Host timestamp (nanoseconds since epoch) the sample was produced.
+        timestamp-nanos: s64,
+    }
+
+    /// A health report for the simulated device at a point in time.
+    record health-report {
+        state: health-state,
+        /// 0.0 (dead) .. 1.0 (perfect) overall health score.
+        score: f64,
+        /// Human-readable detail lines (e.g. failing subsystems).
+        details: list<string>,
+    }
+
+    /// Static configuration handed to the simulator at start.
+    record device-config {
+        /// Stable device identifier.
+        device-id: string,
+        /// Device class, e.g. "gpu", "nic", "psu", "disk".
+        kind: string,
+        /// Deterministic seed so a replayed run reproduces identical telemetry.
+        seed: u64,
+    }
+
+    /// Error returned by simulator operations.
+    variant sim-error {
+        /// The device was sampled before configure() succeeded.
+        not-configured,
+        /// A configuration field was invalid; carries a reason.
+        invalid-config(string),
+        /// An internal simulator failure; carries a reason.
+        internal(string),
+    }
+}
+
+/// The exported surface a device-simulator component must implement.
+interface simulator {
+    use device-types.{telemetry-sample, health-report, device-config, sim-error};
+
+    /// Initialize the simulator with static config. Must be called before
+    /// `sample` or `health`. Idempotent: a second call re-seeds the device.
+    configure: func(config: device-config) -> result<_, sim-error>;
+
+    /// Produce the next batch of telemetry samples (advances internal time).
+    /// `count` bounds how many metrics to emit this tick.
+    sample: func(count: u32) -> result<list<telemetry-sample>, sim-error>;
+
+    /// Report the device's current health.
+    health: func() -> result<health-report, sim-error>;
+}
+
+/// device-simulator plugin world: imports the gated host environment, exports
+/// the simulator surface the host calls to drive the device.
+world device-simulator {
+    import host-env;
+    export simulator;
+}
