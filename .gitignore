@@ -89,3 +89,4 @@ qa-results/
 
 # CycloneDX SBOM build derivatives (CONST-053) — regenerate via `make sbom` (HXC-1635)
 sbom/*.cdx.json
+specs/tla2tools.jar
