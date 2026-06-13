@@ -16,6 +16,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 )
 
 // Tier is a device tier label. The registry only admits tiers in the closed
@@ -118,7 +119,13 @@ var (
 //
 // The zero value is NOT ready; use New. All reads/writes are deterministic and
 // produce sorted output independent of insertion order.
+//
+// Concurrency: a Registry is safe for concurrent use by multiple goroutines.
+// Edge devices register (writes) while the control plane looks them up (reads)
+// at the same time; mu guards the byID map so a register never races a lookup.
+// Writers take mu.Lock; readers take mu.RLock.
 type Registry struct {
+	mu   sync.RWMutex
 	byID map[string]Registration
 }
 
@@ -137,12 +144,16 @@ func (r *Registry) Register(reg Registration) error {
 	if !reg.Tier.Valid() {
 		return fmt.Errorf("%w: got %d", ErrTierOutOfRange, int(reg.Tier))
 	}
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.byID[reg.NodeID] = reg.clone()
 	return nil
 }
 
 // Get returns the registration for id, or ErrNotFound if no such node exists.
 func (r *Registry) Get(id string) (Registration, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	reg, ok := r.byID[id]
 	if !ok {
 		return Registration{}, fmt.Errorf("%w: %q", ErrNotFound, id)
@@ -151,11 +162,17 @@ func (r *Registry) Get(id string) (Registration, error) {
 }
 
 // Len reports the number of registered nodes.
-func (r *Registry) Len() int { return len(r.byID) }
+func (r *Registry) Len() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.byID)
+}
 
 // ListByTier returns all registrations whose tier == tier, sorted by node id.
 // A tier with no registered nodes yields an empty (non-nil) slice.
 func (r *Registry) ListByTier(tier Tier) []Registration {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	out := make([]Registration, 0)
 	for _, reg := range r.byID {
 		if reg.Tier == tier {
@@ -169,6 +186,8 @@ func (r *Registry) ListByTier(tier Tier) []Registration {
 // Dump returns every registration sorted deterministically by node id. The
 // returned slice is a deep copy; mutating it does not affect the registry.
 func (r *Registry) Dump() []Registration {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	out := make([]Registration, 0, len(r.byID))
 	for _, reg := range r.byID {
 		out = append(out, reg.clone())
