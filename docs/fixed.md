@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 116
-**Last modified:** 2026-06-13T20:11:50Z
+**Revision:** 117
+**Last modified:** 2026-06-13T20:14:44Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **550**.
+Total completed: **551**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -481,6 +481,7 @@ Total completed: **550**.
 | HXC-1654 | Feature | P1 | pkg/watchmanager adversarial concurrency test (register/notify/sync churn) | 47a0599 |
 | HXC-1655 | Feature | P1 | pkg/multiraft adversarial registry-concurrency test (concurrent create/route/remove) | 87efe0e |
 | HXC-1656 | Feature | P1 | pkg/pubsub adversarial concurrent sub/unsub/publish test (no send-on-closed) | b388843 |
+| HXC-1657 | Feature | P1 | pkg/tieredcache coherence test (re-Put shadows stale lower tier, no contamination) | 57a2a75 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
