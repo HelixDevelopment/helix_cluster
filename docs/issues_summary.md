@@ -1,53 +1,51 @@
 # Issues Summary
 
-**Revision:** 87
-**Last modified:** 2026-06-13T17:52:15Z
+**Revision:** 95
+**Last modified:** 2026-06-13T18:11:58Z
 **Description:** Counts of active workable items by phase / type / status / priority
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-**Total active:** 408
+**Total active:** 223
 
 ### By phase
 
 | Phase | Count |
 |---|---|
-| Foundation (anti-bluff) | 14 |
-| MVP | 9 |
+| Foundation (anti-bluff) | 7 |
+| MVP | 5 |
 | Phase 2 | 9 |
-| Phase 3 | 34 |
-| Phase 4 | 45 |
-| Phase 5 | 28 |
-| Phase 6 | 39 |
-| Phase 7 | 46 |
-| Phase 8 | 69 |
-| Phase 8B | 67 |
-| Phase 8C | 48 |
+| Phase 3 | 31 |
+| Phase 4 | 44 |
+| Phase 5 | 26 |
+| Phase 6 | 17 |
+| Phase 7 | 4 |
+| Phase 8 | 40 |
+| Phase 8B | 28 |
+| Phase 8C | 12 |
 
 ### By type
 
 | Type | Count |
 |---|---|
-| Bug | 14 |
-| Docs | 15 |
-| Feature | 300 |
-| Research | 11 |
-| Task | 68 |
+| Bug | 3 |
+| Docs | 10 |
+| Feature | 145 |
+| Research | 10 |
+| Task | 55 |
 
 ### By priority
 
 | Priority | Count |
 |---|---|
-| P0 | 85 |
-| P1 | 151 |
-| P2 | 141 |
-| P3 | 31 |
+| P0 | 47 |
+| P1 | 83 |
+| P2 | 72 |
+| P3 | 21 |
 
 ### By status
 
 | Status | Count |
 |---|---|
-| Completed | 184 |
 | In progress | 1 |
-| Obsolete | 1 |
 | Queued | 222 |
