@@ -120,10 +120,22 @@ func (e *EtcdLocker) Lock(ctx context.Context, key string) (UnlockFunc, error) {
 	if err != nil {
 		return nil, fmt.Errorf("etcd lock: %w", err)
 	}
+	// Fire-once release (mirrors MemoryLocker): the underlying etcd unlock must
+	// run AT MOST ONCE. A duplicate/stale call to this UnlockFunc after the
+	// session has moved on must not issue a second etcd unlock (which could free
+	// a lock the session no longer legitimately holds, or error spuriously). The
+	// first call performs the real unlock and captures its error; later calls
+	// return that same captured result without re-unlocking.
+	var (
+		once      sync.Once
+		unlockErr error
+	)
 	return func() error {
-		if err := unlock(); err != nil {
-			return fmt.Errorf("etcd unlock: %w", err)
-		}
-		return nil
+		once.Do(func() {
+			if err := unlock(); err != nil {
+				unlockErr = fmt.Errorf("etcd unlock: %w", err)
+			}
+		})
+		return unlockErr
 	}, nil
 }

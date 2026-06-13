@@ -13,6 +13,7 @@ package lock
 import (
 	"context"
 	"errors"
+	"sync"
 	"testing"
 )
 
@@ -49,16 +50,25 @@ type etcdLockerShim struct {
 	client etcdClientIface
 }
 
+// Lock mirrors the real EtcdLocker.Lock adapter, INCLUDING its fire-once release
+// guard — the two must be kept in sync. The fire-once behavior is asserted by
+// TestEtcdLockerShim_ReleaseIsFireOnce below.
 func (s *etcdLockerShim) Lock(ctx context.Context, key string) (UnlockFunc, error) {
 	unlock, err := s.client.Lock(ctx, key)
 	if err != nil {
 		return nil, errors.New("etcd lock: " + err.Error())
 	}
+	var (
+		once      sync.Once
+		unlockErr error
+	)
 	return func() error {
-		if err := unlock(); err != nil {
-			return errors.New("etcd unlock: " + err.Error())
-		}
-		return nil
+		once.Do(func() {
+			if err := unlock(); err != nil {
+				unlockErr = errors.New("etcd unlock: " + err.Error())
+			}
+		})
+		return unlockErr
 	}, nil
 }
 
@@ -133,6 +143,37 @@ func TestEtcdLockerShim_PropagatesUnlockError(t *testing.T) {
 	}
 	if err := unlock(); err == nil {
 		t.Fatal("expected error from unlock; got nil — unlock error swallowed")
+	}
+}
+
+// TestEtcdLockerShim_ReleaseIsFireOnce proves the adapter's fire-once guard:
+// however many times the returned UnlockFunc is called, the UNDERLYING etcd
+// unlock runs AT MOST ONCE. Without the sync.Once guard a stale/duplicate
+// release would issue a second etcd unlock — potentially freeing a lock the
+// session no longer legitimately holds (a cross-owner free, the distributed
+// analogue of pkg/lock's MemoryLocker double-release defect, HXC-1648).
+// §1.1 mutation pair: drop the sync.Once and call unlock() directly → calls
+// would equal 5, not 1, and this test fails.
+func TestEtcdLockerShim_ReleaseIsFireOnce(t *testing.T) {
+	var calls int
+	fake := &FakeEtcdClient{
+		LockFn: func(_ context.Context, _ string) (func() error, error) {
+			return func() error { calls++; return nil }, nil
+		},
+	}
+	shim := &etcdLockerShim{client: fake}
+
+	unlock, err := shim.Lock(context.Background(), "/fire-once/key")
+	if err != nil {
+		t.Fatalf("Lock: %v", err)
+	}
+	for i := 0; i < 5; i++ {
+		if err := unlock(); err != nil {
+			t.Fatalf("unlock call %d: %v", i, err)
+		}
+	}
+	if calls != 1 {
+		t.Fatalf("underlying etcd unlock invoked %d times, want 1 (fire-once guard missing)", calls)
 	}
 }
 
