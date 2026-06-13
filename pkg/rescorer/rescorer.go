@@ -18,13 +18,21 @@
 // applied between cycles therefore takes effect on the NEXT cycle: the spiked
 // provider's score worsens and it drops in the ranking, moving traffic off it.
 //
+// A ReScorer is safe for concurrent use: prices/scores may be updated
+// (SetPrice, Tick) from many request goroutines while selection reads the
+// ranking (Ranking, Top) concurrently. An internal RWMutex serializes the
+// writers and lets readers run in parallel.
+//
 // A price-spike GUARD reacts faster than a full cycle: if an abrupt jump above a
 // configured factor is detected for the current top provider, the guard forces
 // an immediate re-rank on the very next Tick (within one cycle) so the spiked
 // provider is demoted without waiting for the cycle boundary.
 package rescorer
 
-import "sort"
+import (
+	"sort"
+	"sync"
+)
 
 // provider holds the mutable per-provider state.
 type provider struct {
@@ -63,6 +71,14 @@ type ReScorer struct {
 	// <= 1 disables the guard.
 	SpikeFactor float64
 
+	// mu guards all mutable state below. SetPrice/Tick are writers (they mutate
+	// the providers map, order, ranking and clock/boundary bookkeeping);
+	// Ranking/Top are readers. The scorer fills a routing/load-balancer role
+	// where scores are updated from many request goroutines while selection
+	// reads the ranking, so this lock makes that documented concurrent role
+	// race-free.
+	mu sync.RWMutex
+
 	providers map[string]*provider
 	order     []string // insertion order, for deterministic tie-breaking
 	ranking   []string // published ranking, best first; updated only at re-rank
@@ -90,6 +106,8 @@ func New(cycleTicks int64, startClock int64, spikeFactor float64) *ReScorer {
 // It updates the live price immediately but does NOT re-rank: the published
 // ranking changes only at the next cycle boundary (or via the spike guard).
 func (r *ReScorer) SetPrice(providerID string, price float64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	if r.providers == nil {
 		r.providers = make(map[string]*provider)
 	}
@@ -147,6 +165,8 @@ func (r *ReScorer) rerank() {
 // The first Tick establishes the initial ranking. Subsequent re-ranks happen
 // only at boundaries (now - lastBoundary >= CycleTicks) unless the guard fires.
 func (r *ReScorer) Tick(now int64) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.Clock = now
 
 	if !r.initialized {
@@ -176,6 +196,8 @@ func (r *ReScorer) Tick(now int64) {
 // Ranking returns the current published ranking, best (cheapest) first. The
 // returned slice is a copy and safe for the caller to retain.
 func (r *ReScorer) Ranking() []string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	out := make([]string, len(r.ranking))
 	copy(out, r.ranking)
 	return out
@@ -183,6 +205,8 @@ func (r *ReScorer) Ranking() []string {
 
 // Top returns the current best provider id, or "" if none.
 func (r *ReScorer) Top() string {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	if len(r.ranking) == 0 {
 		return ""
 	}
