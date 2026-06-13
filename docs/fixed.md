@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 87
-**Last modified:** 2026-06-13T17:52:15Z
+**Revision:** 92
+**Last modified:** 2026-06-13T18:02:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **326**.
+Total completed: **328**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -336,3 +336,5 @@ Total completed: **326**.
 | HXC-975 | Research | P2 | TLA+ spec for PN-Counter CRDT convergence (TLC-verified) | 46805f7 |
 | HXC-976 | Feature | P1 | Real BoltDB persistence for pkg/raft (durable on-disk store + recovery) | 426b213 |
 | HXC-977 | Research | P2 | TLA+ spec for rendezvous (HRW) consistent hashing minimal disruption (TLC-verified) | f061694 |
+| HXC-978 | Feature | P1 | pkg/raft: combined persistent+networked node (real TCP transport + on-disk BoltDB) with restart-recover-rejoin | 75fc874 |
+| HXC-979 | Research | P1 | TLA+ snapshot-install / log-compaction safety spec (RaftSnapshot), TLC-verified exhaustive | 58aabc3 |
