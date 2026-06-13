@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 79
-**Last modified:** 2026-06-13T15:14:02Z
+**Revision:** 80
+**Last modified:** 2026-06-13T16:28:53Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **316**.
+Total completed: **317**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -326,3 +326,4 @@ Total completed: **316**.
 | HXC-965 | Feature | P1 | End-to-end cluster node-agent: compose discovery+raft+capabilities+gateway (clusternode) | 03b7162 |
 | HXC-966 | Research | P2 | TLA+ spec for Chandy-Lamport distributed snapshot (TLC-verified) | ea0c6a7 |
 | HXC-967 | Research | P2 | TLA+ spec for Lamport distributed mutual exclusion (TLC-verified) | 6d34c9b |
+| HXC-968 | Research | P2 | TLA+ spec for Dynamo-style quorum consistency R+W>N (TLC-verified) | c9fc6dd |
