@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 99
-**Last modified:** 2026-06-13T18:36:01Z
+**Revision:** 100
+**Last modified:** 2026-06-13T18:44:46Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **519**.
+Total completed: **522**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -529,3 +529,6 @@ Total completed: **519**.
 | HXC-983 | Docs | P1 | docs/consensus.md: consolidated Raft consensus architecture doc + README link + docs_chain tracking | c81f940 |
 | HXC-984 | Feature | P1 | pkg/raft: snapshot/log-compaction InstallSnapshot integration test (runtime proof of HXC-979) | 92fb006 |
 | HXC-985 | Feature | P1 | clusternode durable consensus: NodeAgent on persistent+networked raft with full-restart-from-disk E2E | f7d19eb |
+| HXC-986 | Research | P1 | TLA+ Raft PreVote spec — stale/restarted node cannot disrupt a stable leader (TLC-verified) | 46f72fd |
+| HXC-987 | Feature | P1 | helix-raftd Prometheus /metrics endpoint (live raft state, real scrape proven) | a56363d |
+| HXC-988 | Feature | P1 | e2ee adversarial tamper/wrong-key crypto tests (AEAD tag, ML-KEM-768 implicit rejection) | 8f84114 |
