@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 57
-**Last modified:** 2026-06-13T10:22:51Z
+**Revision:** 58
+**Last modified:** 2026-06-13T10:25:10Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **294**.
+Total completed: **295**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -304,3 +304,4 @@ Total completed: **294**.
 | HXC-951 | Research | P2 | TLA+ spec for SWIM membership/failure-detection (TLC-verified safety) | 3fedcbe |
 | HXC-952 | Feature | P2 | Unified hardware-inventory engine (CPU+memory+GPU+NPU aggregation) | 7011255 |
 | HXC-953 | Feature | P2 | Real Raft-backed leader-election service (pkg/raftleader adapting pkg/raft) | 7011255 |
+| HXC-954 | Feature | P1 | Edge gateway multi-transport integration (QUIC + MQTT + WebSocket end-to-end) | 1515077 |
