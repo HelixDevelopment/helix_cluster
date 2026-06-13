@@ -34,6 +34,7 @@ func newAdminServer(node *raft.Node, bind string, logger *log.Logger) *adminServ
 	mux.HandleFunc("/status", a.handleStatus)
 	mux.HandleFunc("/get", a.handleGet)
 	mux.HandleFunc("/put", a.handlePut)
+	mux.HandleFunc("/metrics", a.handleMetrics)
 	a.srv = &http.Server{
 		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,

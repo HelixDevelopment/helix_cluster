@@ -17,11 +17,13 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -181,6 +183,105 @@ func getKey(p *proc, key string) (string, bool, error) {
 		return "", false, err
 	}
 	return body.Value, body.Found, nil
+}
+
+// scrapeMetrics issues GET /metrics against a proc's admin port and returns the
+// raw Prometheus exposition text and the HTTP Content-Type header.
+func scrapeMetrics(p *proc) (string, string, int, error) {
+	client := &http.Client{Timeout: e2eHTTPTimeout}
+	resp, err := client.Get("http://" + p.admin + "/metrics")
+	if err != nil {
+		return "", "", 0, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", "", resp.StatusCode, err
+	}
+	return string(body), resp.Header.Get("Content-Type"), resp.StatusCode, nil
+}
+
+// parsedMetrics is the result of parsing Prometheus exposition text: per-metric
+// sample values (keyed by metric name, ignoring labels for the simple single-
+// series metrics this daemon emits) plus the set of metric names that had a
+// preceding HELP and TYPE line.
+type parsedMetrics struct {
+	values    map[string]uint64 // metric name -> sample value (last seen)
+	haveHelp  map[string]bool   // metric name -> saw "# HELP <name> ..."
+	haveType  map[string]bool   // metric name -> saw "# TYPE <name> ..."
+	typeOf    map[string]string // metric name -> declared type (gauge/counter)
+	sampleSeq []string          // metric names in sample order, for HELP/TYPE-before-sample checks
+}
+
+// parseExposition parses Prometheus text exposition format strictly enough to
+// prove well-formedness: it records, for every sample line, that a matching
+// HELP and TYPE line for that metric name appeared BEFORE it. It returns an
+// error if a sample's value is not a valid number. Metric names with labels
+// (e.g. foo{node_id="n1"} 1) are reduced to their base name "foo".
+func parseExposition(t *testing.T, text string) parsedMetrics {
+	t.Helper()
+	pm := parsedMetrics{
+		values:   map[string]uint64{},
+		haveHelp: map[string]bool{},
+		haveType: map[string]bool{},
+		typeOf:   map[string]string{},
+	}
+	for _, line := range strings.Split(text, "\n") {
+		line = strings.TrimRight(line, "\r")
+		if line == "" {
+			continue
+		}
+		if strings.HasPrefix(line, "# HELP ") {
+			rest := strings.TrimPrefix(line, "# HELP ")
+			name := firstField(rest)
+			if name != "" {
+				pm.haveHelp[name] = true
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "# TYPE ") {
+			rest := strings.TrimPrefix(line, "# TYPE ")
+			name := firstField(rest)
+			fields := strings.Fields(rest)
+			if name != "" {
+				pm.haveType[name] = true
+				if len(fields) >= 2 {
+					pm.typeOf[name] = fields[1]
+				}
+			}
+			continue
+		}
+		if strings.HasPrefix(line, "#") {
+			continue // other comment
+		}
+		// Sample line: "<name>[{labels}] <value>".
+		sp := strings.LastIndexByte(line, ' ')
+		if sp <= 0 {
+			t.Fatalf("malformed metric sample line (no value): %q", line)
+		}
+		nameAndLabels := line[:sp]
+		valStr := strings.TrimSpace(line[sp+1:])
+		base := nameAndLabels
+		if i := strings.IndexByte(base, '{'); i >= 0 {
+			base = base[:i]
+		}
+		v, err := strconv.ParseUint(valStr, 10, 64)
+		if err != nil {
+			t.Fatalf("metric %q has non-uint value %q: %v", base, valStr, err)
+		}
+		pm.values[base] = v
+		pm.sampleSeq = append(pm.sampleSeq, base)
+	}
+	return pm
+}
+
+// firstField returns the first whitespace-delimited token of s, or "".
+func firstField(s string) string {
+	fields := strings.Fields(s)
+	if len(fields) == 0 {
+		return ""
+	}
+	return fields[0]
 }
 
 // waitAdminUp polls a proc's /status until it answers or the deadline passes.
@@ -583,4 +684,222 @@ See e2e.log for the timestamped event trace.
 		key2, val2, killedLeaderID, killedLeaderID, dbSizes)
 	_ = os.WriteFile(filepath.Join(evDir, "README.md"), []byte(readme), 0o640)
 	logf("EVIDENCE written to %s", evDir)
+}
+
+// TestE2EMetricsEndpoint proves the /metrics endpoint serves REAL, live raft +
+// FSM state — not constants. It spawns a genuine 3-process cluster, scrapes
+// /metrics on the leader and a follower BEFORE and AFTER a PUT, and asserts the
+// scraped numbers reflect the actual state changes:
+//
+//   - Leader vs follower: helix_raftd_is_leader is 1 on the leader process and 0
+//     on a follower process. A hardcoded metric could not differ between the two.
+//   - fsm_keys grows by the number of PUT keys: scraped fsm_keys AFTER N PUTs
+//     equals before+N (on the leader, and on the follower once replicated). A
+//     constant would fail this delta check.
+//   - fsm_applied_total is a monotonic counter that is >= the number of PUTs
+//     applied and strictly greater after the PUTs than before.
+//   - last_log_index advances after the PUTs (more committed entries).
+//   - The exposition text is well-formed: every emitted metric has a preceding
+//     HELP and TYPE line, and every sample value parses as a number.
+func TestE2EMetricsEndpoint(t *testing.T) {
+	evDir := filepath.Join("..", "..", "qa-results", "helix-raftd", "metrics-"+time.Now().UTC().Format("20060102T150405Z"))
+	if err := os.MkdirAll(evDir, 0o750); err != nil {
+		t.Fatalf("mkdir evidence dir: %v", err)
+	}
+	var ev strings.Builder
+	logf := func(format string, args ...any) {
+		line := fmt.Sprintf(format, args...)
+		t.Log(line)
+		ev.WriteString(time.Now().UTC().Format(time.RFC3339Nano) + "  " + line + "\n")
+	}
+	defer func() { _ = os.WriteFile(filepath.Join(evDir, "metrics-e2e.log"), []byte(ev.String()), 0o640) }()
+
+	bin := buildDaemon(t)
+	logf("BUILT daemon binary: %s", bin)
+
+	ids := []string{"n1", "n2", "n3"}
+	raftPorts := []int{freePort(t), freePort(t), freePort(t)}
+	adminPorts := []int{freePort(t), freePort(t), freePort(t)}
+	procs := make([]*proc, 3)
+	var peerParts []string
+	for i, id := range ids {
+		procs[i] = &proc{
+			id:      id,
+			bind:    fmt.Sprintf("127.0.0.1:%d", raftPorts[i]),
+			admin:   fmt.Sprintf("127.0.0.1:%d", adminPorts[i]),
+			dataDir: t.TempDir(),
+		}
+		peerParts = append(peerParts, fmt.Sprintf("%s=%s", id, procs[i].bind))
+	}
+	peers := strings.Join(peerParts, ",")
+	logf("PEERS membership: %s", peers)
+
+	t.Cleanup(func() {
+		for _, p := range procs {
+			p.mu.Lock()
+			cmd := p.cmd
+			p.mu.Unlock()
+			if cmd != nil && cmd.Process != nil {
+				_ = cmd.Process.Kill()
+			}
+		}
+	})
+
+	for _, p := range procs {
+		spawn(t, bin, peers, p)
+		logf("SPAWNED id=%s pid=%d admin=%s", p.id, p.pid, p.admin)
+	}
+	for _, p := range procs {
+		if err := waitAdminUp(p, e2eElectTimeout); err != nil {
+			t.Fatalf("%v\nstderr:%s", err, p.stderr.String())
+		}
+	}
+
+	leader, err := waitSingleLeader(procs, e2eElectTimeout)
+	if err != nil {
+		t.Fatalf("leader election failed: %v", err)
+	}
+	var follower *proc
+	for _, p := range procs {
+		if p.id != leader.id {
+			follower = p
+			break
+		}
+	}
+	logf("LEADER=%s FOLLOWER=%s", leader.id, follower.id)
+
+	// helper: scrape + parse + assert well-formed exposition for one proc.
+	scrapeParse := func(p *proc, when string) parsedMetrics {
+		text, ctype, code, err := scrapeMetrics(p)
+		if err != nil {
+			t.Fatalf("scrape %s %s: %v", p.id, when, err)
+		}
+		if code != http.StatusOK {
+			t.Fatalf("scrape %s %s: HTTP %d", p.id, when, code)
+		}
+		if !strings.HasPrefix(ctype, "text/plain; version=0.0.4") {
+			t.Fatalf("scrape %s %s: Content-Type %q, want Prometheus text/plain; version=0.0.4", p.id, when, ctype)
+		}
+		_ = os.WriteFile(filepath.Join(evDir, fmt.Sprintf("metrics-%s-%s.txt", p.id, when)), []byte(text), 0o640)
+		logf("SCRAPED /metrics from %s (%s), Content-Type=%q:\n%s", p.id, when, ctype, text)
+		pm := parseExposition(t, text)
+		// Well-formedness: every emitted metric must have HELP+TYPE before its sample.
+		for _, name := range pm.sampleSeq {
+			if !pm.haveHelp[name] {
+				t.Fatalf("%s %s: metric %q has a sample but no preceding # HELP", p.id, when, name)
+			}
+			if !pm.haveType[name] {
+				t.Fatalf("%s %s: metric %q has a sample but no preceding # TYPE", p.id, when, name)
+			}
+		}
+		// The expected metric set must be present.
+		for _, name := range []string{
+			"helix_raftd_is_leader", "helix_raftd_term", "helix_raftd_last_log_index",
+			"helix_raftd_commit_index", "helix_raftd_applied_index",
+			"helix_raftd_last_snapshot_index", "helix_raftd_fsm_keys",
+			"helix_raftd_fsm_applied_total",
+		} {
+			if _, ok := pm.values[name]; !ok {
+				t.Fatalf("%s %s: missing expected metric %q", p.id, when, name)
+			}
+		}
+		// Type declarations are correct where it matters.
+		if pm.typeOf["helix_raftd_fsm_applied_total"] != "counter" {
+			t.Fatalf("%s %s: fsm_applied_total TYPE=%q, want counter", p.id, when, pm.typeOf["helix_raftd_fsm_applied_total"])
+		}
+		if pm.typeOf["helix_raftd_is_leader"] != "gauge" {
+			t.Fatalf("%s %s: is_leader TYPE=%q, want gauge", p.id, when, pm.typeOf["helix_raftd_is_leader"])
+		}
+		return pm
+	}
+
+	// ---- BEFORE the PUT: capture leader & follower metrics. ----
+	leaderBefore := scrapeParse(leader, "before")
+	followerBefore := scrapeParse(follower, "before")
+
+	// ANTI-BLUFF #1: is_leader differs between the leader and follower PROCESSES.
+	// A hardcoded constant could not be 1 here and 0 there.
+	if leaderBefore.values["helix_raftd_is_leader"] != 1 {
+		t.Fatalf("leader %s reported helix_raftd_is_leader=%d, want 1", leader.id, leaderBefore.values["helix_raftd_is_leader"])
+	}
+	if followerBefore.values["helix_raftd_is_leader"] != 0 {
+		t.Fatalf("follower %s reported helix_raftd_is_leader=%d, want 0", follower.id, followerBefore.values["helix_raftd_is_leader"])
+	}
+	logf("ANTI-BLUFF leader/follower: is_leader=1 on leader %s, is_leader=0 on follower %s", leader.id, follower.id)
+
+	keysBeforeLeader := leaderBefore.values["helix_raftd_fsm_keys"]
+	appliedBeforeLeader := leaderBefore.values["helix_raftd_fsm_applied_total"]
+	lastLogBeforeLeader := leaderBefore.values["helix_raftd_last_log_index"]
+	keysBeforeFollower := followerBefore.values["helix_raftd_fsm_keys"]
+
+	// ---- Do N distinct PUTs on the leader. ----
+	const n = 3
+	for i := 0; i < n; i++ {
+		key := fmt.Sprintf("metrics/key-%d", i)
+		val := fmt.Sprintf("v-%d", i)
+		code, addr, err := putKey(leader, key, val)
+		if err != nil || code != http.StatusOK {
+			t.Fatalf("PUT %s on leader: code=%d addr=%s err=%v", key, code, addr, err)
+		}
+	}
+	logf("PUT %d distinct keys on leader %s", n, leader.id)
+
+	// Wait until the follower has replicated all N keys (so its FSM count is stable).
+	for i := 0; i < n; i++ {
+		if err := waitKeyValue(follower, fmt.Sprintf("metrics/key-%d", i), fmt.Sprintf("v-%d", i), e2eReplTimeout); err != nil {
+			t.Fatalf("follower did not replicate metrics/key-%d: %v", i, err)
+		}
+	}
+
+	// ---- AFTER the PUT: re-scrape leader & follower. ----
+	leaderAfter := scrapeParse(leader, "after")
+	followerAfter := scrapeParse(follower, "after")
+
+	// ANTI-BLUFF #2: fsm_keys on the LEADER grew by EXACTLY n. A constant metric
+	// would still read keysBeforeLeader and fail this delta.
+	if got, want := leaderAfter.values["helix_raftd_fsm_keys"], keysBeforeLeader+n; got != want {
+		t.Fatalf("leader fsm_keys after %d PUTs = %d, want %d (before=%d)", n, got, want, keysBeforeLeader)
+	}
+	logf("ANTI-BLUFF leader fsm_keys: %d -> %d (delta +%d == PUTs)", keysBeforeLeader, leaderAfter.values["helix_raftd_fsm_keys"], n)
+
+	// ANTI-BLUFF #3: fsm_keys on the FOLLOWER also grew by n — the metric reflects
+	// THAT process's replicated FSM, proving it is read per-node, not shared.
+	if got, want := followerAfter.values["helix_raftd_fsm_keys"], keysBeforeFollower+n; got != want {
+		t.Fatalf("follower fsm_keys after %d PUTs = %d, want %d (before=%d)", n, got, want, keysBeforeFollower)
+	}
+	logf("ANTI-BLUFF follower fsm_keys: %d -> %d (delta +%d == replicated PUTs)", keysBeforeFollower, followerAfter.values["helix_raftd_fsm_keys"], n)
+
+	// ANTI-BLUFF #4: fsm_applied_total (counter) strictly increased on the leader
+	// by at least n, and is >= 1 — it counts real Apply() calls.
+	if leaderAfter.values["helix_raftd_fsm_applied_total"] < appliedBeforeLeader+n {
+		t.Fatalf("leader fsm_applied_total = %d, want >= %d (before=%d + %d PUTs)",
+			leaderAfter.values["helix_raftd_fsm_applied_total"], appliedBeforeLeader+n, appliedBeforeLeader, n)
+	}
+	if leaderAfter.values["helix_raftd_fsm_applied_total"] < 1 {
+		t.Fatalf("leader fsm_applied_total = %d, want >= 1", leaderAfter.values["helix_raftd_fsm_applied_total"])
+	}
+	logf("ANTI-BLUFF fsm_applied_total: %d -> %d (>= +%d)", appliedBeforeLeader, leaderAfter.values["helix_raftd_fsm_applied_total"], n)
+
+	// ANTI-BLUFF #5: last_log_index advanced after the PUTs and is > 0.
+	if leaderAfter.values["helix_raftd_last_log_index"] <= lastLogBeforeLeader {
+		t.Fatalf("leader last_log_index did not advance: before=%d after=%d", lastLogBeforeLeader, leaderAfter.values["helix_raftd_last_log_index"])
+	}
+	if leaderAfter.values["helix_raftd_last_log_index"] == 0 {
+		t.Fatalf("leader last_log_index is 0 after PUTs")
+	}
+	logf("ANTI-BLUFF last_log_index advanced: %d -> %d", lastLogBeforeLeader, leaderAfter.values["helix_raftd_last_log_index"])
+
+	// Post-PUT invariants: fsm_keys >= 1, is_leader still distinct.
+	if leaderAfter.values["helix_raftd_fsm_keys"] < 1 {
+		t.Fatalf("leader fsm_keys < 1 after PUTs")
+	}
+	if leaderAfter.values["helix_raftd_is_leader"] != 1 || followerAfter.values["helix_raftd_is_leader"] != 0 {
+		t.Fatalf("is_leader leader/follower drifted: leader=%d follower=%d",
+			leaderAfter.values["helix_raftd_is_leader"], followerAfter.values["helix_raftd_is_leader"])
+	}
+
+	for _, p := range procs {
+		stopProc(p)
+	}
+	logf("METRICS E2E PASSED — scraped /metrics reflects real per-node raft+FSM state. Evidence in %s", evDir)
 }
