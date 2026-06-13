@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 107
-**Last modified:** 2026-06-13T19:17:24Z
+**Revision:** 108
+**Last modified:** 2026-06-13T19:24:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **532**.
+Total completed: **535**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -25,6 +25,7 @@ Total completed: **532**.
 | HXC-013 | Task | P1 |  |  |
 | HXC-014 | Task | P1 |  |  |
 | HXC-015 | Task | P1 |  |  |
+| HXC-1000 | Bug | P0 | FIX delta-ORSet strong-eventual-consistency defect (remove-before-add divergence) | 84141b9 |
 | HXC-1001 | Task | P0 | Stand up embedded-etcd integration harness for pkg/etcd tests | dbed10c |
 | HXC-1002 | Feature | P0 | Prove etcd Put/Get round-trip and missing-key semantics against real etcd | dbed10c |
 | HXC-1003 | Feature | P1 | Prove etcd GetPrefix returns exactly matching multi-key set | dbed10c |
@@ -463,6 +464,8 @@ Total completed: **532**.
 | HXC-1637 | Bug | P1 | make build is broken: builds non-existent ./cmd/helix-cluster | c99d225 |
 | HXC-1638 | Bug | P2 | helixctl binary referenced in docs but absent from cmd/ | c99d225 |
 | HXC-1639 | Bug | P2 | SQL schema drift: 0001_primary_schema.sql diverges from the golang-migrate chain (001-015) | 9fef232 |
+| HXC-1640 | Feature | P1 | pkg/stonith fencing-safety test (positive confirmation + fenced node cannot act) | 4cff5ea |
+| HXC-1641 | Bug | P1 | FIX registry NextHXCID lexical-vs-numeric id-allocation bug | 34482ee |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
