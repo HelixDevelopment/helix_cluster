@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 124
-**Last modified:** 2026-06-13T20:41:24Z
+**Revision:** 125
+**Last modified:** 2026-06-13T20:46:39Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **560**.
+Total completed: **562**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -491,6 +491,8 @@ Total completed: **560**.
 | HXC-1664 | Feature | P1 | pkg/informer cache-coherence test (latest-delta-wins, delete coherence, no resurrection) | f2afc09 |
 | HXC-1665 | Feature | P1 | pkg/rebalance adversarial minimal-disruption test (sticky, balance, idempotence) | a3c6a49 |
 | HXC-1666 | Bug | P0 | FIX pkg/slotmigration concurrent-map crash (routing lookups raced the commit flip) | 2895ae5 |
+| HXC-1667 | Bug | P0 | FIX pkg/edgeregistry concurrent-map race (Register raced Get/Len/ListByTier/Dump) | d623d24 |
+| HXC-1668 | Feature | P1 | pkg/modelrouter concurrent read-safety test (immutable routing table) | 8b17477 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
