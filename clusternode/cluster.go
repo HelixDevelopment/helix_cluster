@@ -3,6 +3,7 @@ package clusternode
 import (
 	"context"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/discovery/p2p"
@@ -22,6 +23,18 @@ type NodeCluster struct {
 	election *raftleader.ElectionCluster
 	agents   []*NodeAgent
 	byID     map[string]*NodeAgent
+
+	// mu guards routes. routes caches, per (source agent, destination id), the
+	// single loopback observer endpoint that the source's gateway routes the
+	// destination's envelopes to. It is populated lazily on first Route and
+	// reused on every subsequent Route to the same destination, so repeated
+	// Route calls do NOT keep appending fresh conns under the same id (each of
+	// which would otherwise receive a copy of the envelope into a bounded inbox
+	// that is never drained). Reusing one conn per pair keeps the inbox balanced
+	// — every Route drains exactly the one envelope it sent — and makes Route
+	// safely repeatable.
+	mu     sync.Mutex
+	routes map[string]map[string]*gateway.LoopbackConn
 }
 
 // NewNodeCluster builds an N-node in-process cluster. It creates ONE shared raft
@@ -62,7 +75,12 @@ func NewNodeCluster(ids ...string) (*NodeCluster, error) {
 		byID[id] = agent
 	}
 
-	return &NodeCluster{election: ec, agents: agents, byID: byID}, nil
+	return &NodeCluster{
+		election: ec,
+		agents:   agents,
+		byID:     byID,
+		routes:   make(map[string]map[string]*gateway.LoopbackConn),
+	}, nil
 }
 
 // Agents returns the cluster's NodeAgents in id order.
@@ -86,11 +104,30 @@ func (c *NodeCluster) Start(ctx context.Context) error {
 		return fmt.Errorf("clusternode: no agents to start")
 	}
 
+	// Track which agents this call actually brought online so that ANY error
+	// path below tears the started subset back down before returning — Start
+	// must leave nothing running (no leaked libp2p hosts / gateway goroutines)
+	// when it reports failure. NodeAgent.Start already cleans up after itself on
+	// its own internal failure; this guards the cross-agent bring-up sequence.
+	var started []*NodeAgent
+	ok := false
+	defer func() {
+		if ok {
+			return
+		}
+		// Roll back in reverse start order. NodeAgent.Stop is idempotent and
+		// leaves the shared raft group (owned by the NodeCluster) untouched.
+		for i := len(started) - 1; i >= 0; i-- {
+			_ = started[i].Stop()
+		}
+	}()
+
 	// 1. Start the anchor first so we can hand its AddrInfo to the joiners.
 	anchor := c.agents[0]
 	if err := anchor.Start(ctx); err != nil {
 		return err
 	}
+	started = append(started, anchor)
 	anchorInfo := anchor.AddrInfo()
 
 	// 2. Start every joiner with the anchor as its bootstrap peer.
@@ -99,6 +136,7 @@ func (c *NodeCluster) Start(ctx context.Context) error {
 		if err := a.Start(ctx); err != nil {
 			return err
 		}
+		started = append(started, a)
 	}
 
 	// 3. Seed the DHT on every node. Joiners dial the anchor (their bootstrap
@@ -110,6 +148,7 @@ func (c *NodeCluster) Start(ctx context.Context) error {
 		}
 	}
 
+	ok = true
 	return nil
 }
 
@@ -176,8 +215,14 @@ func (c *NodeCluster) Route(ctx context.Context, srcID, dstID string, payload []
 	}
 
 	// Register the destination's endpoint as an observer on the source's gateway
-	// so the source gateway has a route to dstID. We keep a handle to its inbox.
-	dstConn, err := src.loop.Connect(dstID)
+	// so the source gateway has a route to dstID — but do it ONCE per (src,dst)
+	// and reuse it on every subsequent Route. Connecting afresh each call would
+	// append another conn under dstID; the routing table delivers a dispatch to
+	// ALL conns for an id, so repeated Route calls would fan the envelope to
+	// every stale conn whose bounded inbox is never drained, and eventually fill
+	// them. Caching one conn per pair keeps the inbox balanced (this Route drains
+	// exactly the one envelope it sent) and makes Route safely repeatable.
+	dstConn, err := c.routeConn(src, dstID)
 	if err != nil {
 		return gateway.Envelope{}, fmt.Errorf("clusternode: wire route %q->%q: %w", srcID, dstID, err)
 	}
@@ -203,6 +248,33 @@ func (c *NodeCluster) Route(ctx context.Context, srcID, dstID string, payload []
 	case <-ctx.Done():
 		return gateway.Envelope{}, fmt.Errorf("clusternode: route %q->%q: %w", srcID, dstID, ctx.Err())
 	}
+}
+
+// routeConn returns the single loopback observer endpoint for dstID on src's
+// gateway, creating and registering it on first use and reusing it thereafter.
+// One conn per (src,dst) pair is what makes Route safely repeatable: the gateway
+// delivers a dispatch to every conn registered under dstID, so a fresh conn per
+// call would leave stale, never-drained inboxes behind. The conns are owned by
+// src's loopback transport and are torn down when the agent (and thus its
+// gateway) is stopped in Stop.
+func (c *NodeCluster) routeConn(src *NodeAgent, dstID string) (*gateway.LoopbackConn, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	bySrc := c.routes[src.ID()]
+	if bySrc == nil {
+		bySrc = make(map[string]*gateway.LoopbackConn)
+		c.routes[src.ID()] = bySrc
+	}
+	if conn := bySrc[dstID]; conn != nil {
+		return conn, nil
+	}
+	conn, err := src.loop.Connect(dstID)
+	if err != nil {
+		return nil, err
+	}
+	bySrc[dstID] = conn
+	return conn, nil
 }
 
 // Stop tears down every agent (discovery + gateway) and shuts down the shared
