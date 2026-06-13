@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 98
-**Last modified:** 2026-06-13T18:30:03Z
+**Revision:** 99
+**Last modified:** 2026-06-13T18:36:01Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **518**.
+Total completed: **519**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -528,3 +528,4 @@ Total completed: **518**.
 | HXC-982 | Feature | P0 | helix-raftd: real multi-process persistent Raft daemon (TCP + BoltDB) with kill+restart-from-disk E2E | 99f9a6c |
 | HXC-983 | Docs | P1 | docs/consensus.md: consolidated Raft consensus architecture doc + README link + docs_chain tracking | c81f940 |
 | HXC-984 | Feature | P1 | pkg/raft: snapshot/log-compaction InstallSnapshot integration test (runtime proof of HXC-979) | 92fb006 |
+| HXC-985 | Feature | P1 | clusternode durable consensus: NodeAgent on persistent+networked raft with full-restart-from-disk E2E | f7d19eb |
