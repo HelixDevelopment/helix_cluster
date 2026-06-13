@@ -158,6 +158,35 @@ func applyBaseLogging(conf, base *hraft.Config) {
 	}
 }
 
+// applySnapshotTuning copies the snapshot/log-compaction tuning fields
+// (SnapshotInterval, SnapshotThreshold, TrailingLogs) from an optional base
+// *hraft.Config onto conf, but ONLY for fields the caller actually set to a
+// non-zero value. A nil base, or an unset (zero) field, leaves conf's existing
+// default untouched — so EXISTING callers that pass nil (or a base with only
+// logging fields set) get byte-for-byte the same configuration as before this
+// helper existed; their election/replication semantics are unchanged.
+//
+// It exists so a TEST can drive hashicorp/raft's real automatic snapshotting +
+// log compaction (low SnapshotThreshold + low TrailingLogs + short
+// SnapshotInterval cause applying many entries to trigger an FSM snapshot and
+// truncate the log past the snapshot point). It deliberately touches ONLY these
+// three snapshot fields — no timers, ids, or other behavior — so it cannot
+// affect any production path that does not opt in by setting them.
+func applySnapshotTuning(conf, base *hraft.Config) {
+	if base == nil {
+		return
+	}
+	if base.SnapshotInterval != 0 {
+		conf.SnapshotInterval = base.SnapshotInterval
+	}
+	if base.SnapshotThreshold != 0 {
+		conf.SnapshotThreshold = base.SnapshotThreshold
+	}
+	if base.TrailingLogs != 0 {
+		conf.TrailingLogs = base.TrailingLogs
+	}
+}
+
 // nodeConfig holds the wiring for a single in-memory Raft node.
 type nodeConfig struct {
 	id        string
@@ -202,6 +231,11 @@ func newInmemNode(id string, base *hraft.Config) (*nodeConfig, error) {
 	// Silence library logs by default; the test can override via base.
 	conf.LogLevel = "ERROR"
 	applyBaseLogging(conf, base)
+	// Snapshot/log-compaction tuning is opt-in via base (zero fields are ignored),
+	// so this is a no-op for every existing caller that passes nil or logging-only
+	// base config; defaults are preserved. The snapshot integration test uses it to
+	// force real auto-snapshot + log truncation.
+	applySnapshotTuning(conf, base)
 
 	return &nodeConfig{
 		id:        id,
