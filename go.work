@@ -16,6 +16,7 @@ use (
 	./discovery
 	./edge/gateway
 	./edge/mqttclient
+	./fpgadetect
 	./hwinventory
 	./npudetect
 	./pkg/build
