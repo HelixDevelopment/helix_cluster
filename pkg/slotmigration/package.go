@@ -26,6 +26,7 @@ package slotmigration
 import (
 	"errors"
 	"fmt"
+	"sync"
 )
 
 // Phase is a state of the migration state machine.
@@ -132,10 +133,15 @@ type migration struct {
 // view of which node currently owns each slot and whether a session is alive.
 // The zero value is not usable; construct with NewController.
 //
-// Controller is single-goroutine in its logical model: callers serialize Step,
-// StartMigration, and Abort. (The closure tests assert the invariant after each
-// driven step rather than under concurrent mutation.)
+// Mutators (Step, StartMigration, Abort, InjectTransferFailure, Seed) are
+// serialized by callers in the logical model, but the authoritative ownership
+// view is queried concurrently by routers/lookups DURING a migration. All public
+// methods are therefore guarded by an RWMutex: mutators take the write lock and
+// the COMMIT flip is observed atomically by readers, while concurrent routing
+// lookups (Owner/OwnerCount/SessionAlive/Phase) take the read lock and can never
+// observe a torn map or trip a "concurrent map read and map write" panic.
 type Controller struct {
+	mu  sync.RWMutex
 	clk Clock
 
 	// owner maps slot -> authoritative owning node. Exactly one entry per known
@@ -177,24 +183,34 @@ func (c *Controller) Seed(slot, session, owner string) error {
 	if slot == "" || session == "" || owner == "" {
 		return ErrEmptyArg
 	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	c.owner[slot] = owner
 	c.alive[session] = true
 	return nil
 }
 
 // Phase returns the current state-machine phase.
-func (c *Controller) Phase() Phase { return c.phase }
+func (c *Controller) Phase() Phase {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	return c.phase
+}
 
 // Owner returns the authoritative owner of slot and whether the slot is owned.
 // During PREPARE and TRANSFER this is always the source; only after COMMIT does
 // it become the destination.
 func (c *Controller) Owner(slot string) (string, bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	o, ok := c.owner[slot]
 	return o, ok && o != ""
 }
 
 // SessionAlive reports whether session is currently alive (never lost).
 func (c *Controller) SessionAlive(session string) bool {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	return c.alive[session]
 }
 
@@ -202,6 +218,8 @@ func (c *Controller) SessionAlive(session string) bool {
 // started, or 0 when no migration has started. After a terminal phase it
 // reflects the total ticks the migration consumed.
 func (c *Controller) Elapsed() int64 {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	if c.mig == nil {
 		return 0
 	}
@@ -219,6 +237,8 @@ func (c *Controller) StartMigration(slot, session, src, dst string) error {
 	if src == dst {
 		return ErrSameNode
 	}
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.phase == PhasePrepare || c.phase == PhaseTransfer {
 		return ErrBusy
 	}
@@ -246,6 +266,8 @@ func (c *Controller) StartMigration(slot, session, src, dst string) error {
 // session stays alive. It is a no-op (returns ErrNoMigration) when no migration
 // is in flight.
 func (c *Controller) InjectTransferFailure() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.mig == nil || (c.phase != PhasePrepare && c.phase != PhaseTransfer) {
 		return ErrNoMigration
 	}
@@ -266,6 +288,8 @@ func (c *Controller) InjectTransferFailure() error {
 // observable point. Step returns ErrNoMigration if the machine is idle or in a
 // terminal phase.
 func (c *Controller) Step() (Phase, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.mig == nil || c.phase == PhaseIdle || c.phase == PhaseCommitted || c.phase == PhaseAborted {
 		return c.phase, ErrNoMigration
 	}
@@ -306,7 +330,7 @@ func (c *Controller) Step() (Phase, error) {
 
 // commitNow performs the atomic ownership flip. After this, dst is the sole
 // owner of the slot, the source no longer owns it, and the session remains
-// alive bound to dst.
+// alive bound to dst. The caller must hold c.mu (write lock).
 func (c *Controller) commitNow() {
 	m := c.mig
 	// The flip: a single assignment makes dst the owner. There is never an
@@ -320,7 +344,7 @@ func (c *Controller) commitNow() {
 
 // abortNow rolls back cleanly: the source keeps ownership (owner map is left
 // untouched, since it was never flipped), the destination holds nothing, and
-// the session stays alive on the source.
+// the session stays alive on the source. The caller must hold c.mu (write lock).
 func (c *Controller) abortNow() {
 	m := c.mig
 	// Defensive: ensure ownership is exactly the source and nothing leaked to
@@ -337,6 +361,8 @@ func (c *Controller) abortNow() {
 // ErrNoMigration when there is no in-flight migration to abort. Abort does not
 // itself advance logical time.
 func (c *Controller) Abort() error {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	if c.mig == nil || (c.phase != PhasePrepare && c.phase != PhaseTransfer) {
 		return ErrNoMigration
 	}
@@ -352,6 +378,8 @@ func (c *Controller) Abort() error {
 // an owner until COMMIT, because it does not appear in the owner map for the
 // slot before the flip.
 func (c *Controller) OwnerCount(slot string) int {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	o, ok := c.owner[slot]
 	if !ok || o == "" {
 		return 0
@@ -362,6 +390,8 @@ func (c *Controller) OwnerCount(slot string) int {
 // Migrating reports the in-flight migration's parameters and whether one is in
 // a non-terminal phase. Useful for tests/diagnostics.
 func (c *Controller) Migrating() (slot, session, src, dst string, inFlight bool) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	if c.mig == nil {
 		return "", "", "", "", false
 	}
