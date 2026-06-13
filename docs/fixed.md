@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 54
-**Last modified:** 2026-06-13T10:08:26Z
+**Revision:** 55
+**Last modified:** 2026-06-13T10:11:27Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **291**.
+Total completed: **292**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -301,3 +301,4 @@ Total completed: **291**.
 | HXC-947 | Task | P3 | Add root go.mod require/replace for digital.vasic.security (out-of-workspace builds) | a39e89b |
 | HXC-948 | Bug | P2 | Fix api/v1 module path /v1-suffix blocking out-of-workspace require/replace | 42d38fb |
 | HXC-950 | Bug | P1 | sidecarutil HealthProbe load-robustness (WaitDelay + transient retry) | b081dad |
+| HXC-951 | Research | P2 | TLA+ spec for SWIM membership/failure-detection (TLC-verified safety) | 3fedcbe |
