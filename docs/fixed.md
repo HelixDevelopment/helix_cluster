@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 71
-**Last modified:** 2026-06-13T13:30:21Z
+**Revision:** 72
+**Last modified:** 2026-06-13T13:37:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **308**.
+Total completed: **309**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -318,3 +318,4 @@ Total completed: **308**.
 | HXC-958 | Research | P2 | TLA+ spec for OR-Set CRDT convergence (TLC-verified, add-wins) | be574fe |
 | HXC-959 | Research | P2 | TLA+ spec for Two-Phase Commit atomicity (TLC-verified) | dac5022 |
 | HXC-960 | Research | P2 | TLA+ spec for Saga compensation atomicity (TLC-verified) | de127fc |
+| HXC-961 | Research | P2 | TLA+ spec for vector-clock causal delivery (TLC-verified) | 7d54dd1 |
