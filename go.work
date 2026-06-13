@@ -24,5 +24,6 @@ use (
 	./pkg/hxcregistry
 	./recovery
 	./security
+	./transport/coap
 	./transport/quic
 )
