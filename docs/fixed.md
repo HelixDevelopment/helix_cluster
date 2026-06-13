@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 127
-**Last modified:** 2026-06-13T20:52:36Z
+**Revision:** 128
+**Last modified:** 2026-06-13T20:54:11Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **564**.
+Total completed: **565**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -495,6 +495,7 @@ Total completed: **564**.
 | HXC-1668 | Feature | P1 | pkg/modelrouter concurrent read-safety test (immutable routing table) | 8b17477 |
 | HXC-1669 | Feature | P1 | pkg/fedtopology concurrent read-safety + path-correctness test (immutable topology) | ab37c75 |
 | HXC-1670 | Bug | P0 | FIX pkg/jwt keystore concurrent-map crash on auth path (verify raced rotation) | 698ef55 |
+| HXC-1671 | Feature | P1 | pkg/ewmarank concurrency-contract + ranking-correctness test (documented single-threaded) | 2b0c1c3 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
