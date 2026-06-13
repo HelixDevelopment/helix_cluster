@@ -52,8 +52,8 @@ func newStressProtocol(t *testing.T, id string) *Protocol {
 // sync.Once teardown must hold under heavy contention.
 func TestStop_StressManyConcurrentCallers(t *testing.T) {
 	const (
-		instances       = 40
-		callersPerInst  = 16
+		instances      = 40
+		callersPerInst = 16
 	)
 	var stopped int64
 	var wg sync.WaitGroup

@@ -64,21 +64,23 @@ func strSet(ss []string) map[string]bool {
 // ---------------------------------------------------------------------------
 
 // TestDelegatesDeterminismAndExactCount verifies:
-//   (a) Delegates(g) returns EXACTLY K members for each group across 10
-//       independent reconstructions of the topology.
-//   (b) The exact same IDs are returned on every reconstruction (determinism).
-//   (c) The elected IDs are independently confirmed to be the K members with
-//       the lowest stableHash(ID) in their group (correctness, not just
-//       stability).
-//   (d) Non-gossip-eligible members (StateDead) are never elected.
+//
+//	(a) Delegates(g) returns EXACTLY K members for each group across 10
+//	    independent reconstructions of the topology.
+//	(b) The exact same IDs are returned on every reconstruction (determinism).
+//	(c) The elected IDs are independently confirmed to be the K members with
+//	    the lowest stableHash(ID) in their group (correctness, not just
+//	    stability).
+//	(d) Non-gossip-eligible members (StateDead) are never elected.
 //
 // MUTATION that breaks this test:
-//   Change the delegate election in NewHierarchicalTopology to use
-//   rand.Shuffle instead of sort.Slice(stableHash) — the chosen IDs will
-//   differ from both the golden set and across reconstructions.
-//   Alternatively, replacing stableHash with a constant (always 0) will still
-//   produce a stable result but the elected IDs will differ from the
-//   hash-lowest golden set, failing assertion (c).
+//
+//	Change the delegate election in NewHierarchicalTopology to use
+//	rand.Shuffle instead of sort.Slice(stableHash) — the chosen IDs will
+//	differ from both the golden set and across reconstructions.
+//	Alternatively, replacing stableHash with a constant (always 0) will still
+//	produce a stable result but the elected IDs will differ from the
+//	hash-lowest golden set, failing assertion (c).
 func TestDelegatesDeterminismAndExactCount(t *testing.T) {
 	t.Parallel()
 
@@ -180,9 +182,10 @@ func memberByIDInSlice(ms []*Member, id string) *Member {
 // values in their group.
 //
 // MUTATION that breaks this test:
-//   Change election sort to sort.Slice by ID string instead of stableHash —
-//   the two selected IDs will differ from the hash-based expectation whenever
-//   the alphabetically-first IDs are not also the hash-lowest IDs.
+//
+//	Change election sort to sort.Slice by ID string instead of stableHash —
+//	the two selected IDs will differ from the hash-based expectation whenever
+//	the alphabetically-first IDs are not also the hash-lowest IDs.
 func TestDelegateElectionPicksLowestHashIDs(t *testing.T) {
 	t.Parallel()
 
@@ -232,9 +235,10 @@ func TestDelegateElectionPicksLowestHashIDs(t *testing.T) {
 // delegate receives gossip targets drawn exclusively from its own group.
 //
 // MUTATION that breaks this test:
-//   Remove the `!ht.delegateSet[selfID]` early-return in SelectGossipTargets
-//   so all nodes always get cross-group delegates — the test's check that no
-//   remote member IDs appear will then fail.
+//
+//	Remove the `!ht.delegateSet[selfID]` early-return in SelectGossipTargets
+//	so all nodes always get cross-group delegates — the test's check that no
+//	remote member IDs appear will then fail.
 func TestNonDelegateTargetsOnlySameGroup(t *testing.T) {
 	t.Parallel()
 
@@ -295,15 +299,17 @@ func TestNonDelegateTargetsOnlySameGroup(t *testing.T) {
 
 // TestDelegateTargetsIncludesOnlyOtherDelegates verifies that a delegate's
 // target list includes:
-//   (a) its same-group intra peers (excluding self), and
-//   (b) EXACTLY the elected delegates of every other group — NOT all remote members.
+//
+//	(a) its same-group intra peers (excluding self), and
+//	(b) EXACTLY the elected delegates of every other group — NOT all remote members.
 //
 // This is the core O(groups) WAN fanout proof.
 //
 // MUTATION that breaks this test:
-//   Change SelectGossipTargets to append all remote members (memberByID values)
-//   instead of only ht.delegates[gk] — the returned set will include
-//   non-delegate remote IDs and the "no unexpected remote ID" assertion fails.
+//
+//	Change SelectGossipTargets to append all remote members (memberByID values)
+//	instead of only ht.delegates[gk] — the returned set will include
+//	non-delegate remote IDs and the "no unexpected remote ID" assertion fails.
 func TestDelegateTargetsIncludesOnlyOtherDelegates(t *testing.T) {
 	t.Parallel()
 
@@ -398,8 +404,9 @@ func TestDelegateTargetsIncludesOnlyOtherDelegates(t *testing.T) {
 // correctly.
 //
 // MUTATION that breaks this test:
-//   Clear ht.delegateSet after construction (set it to empty map) — IsDelegate
-//   would always return false and the delegate-positive assertions fail.
+//
+//	Clear ht.delegateSet after construction (set it to empty map) — IsDelegate
+//	would always return false and the delegate-positive assertions fail.
 func TestIsDelegateAndGroupFor(t *testing.T) {
 	t.Parallel()
 
@@ -453,9 +460,10 @@ func TestIsDelegateAndGroupFor(t *testing.T) {
 // Delegates(), SelectGossipTargets(), nor IsDelegate().
 //
 // MUTATION that breaks this test:
-//   Remove the `m.State == StateDead || m.State == StateLeft` guard in
-//   NewHierarchicalTopology — dead members would enter groupMembers and could
-//   be elected as delegates, causing the assertion to fail.
+//
+//	Remove the `m.State == StateDead || m.State == StateLeft` guard in
+//	NewHierarchicalTopology — dead members would enter groupMembers and could
+//	be elected as delegates, causing the assertion to fail.
 func TestDeadMembersExcluded(t *testing.T) {
 	t.Parallel()
 
@@ -497,8 +505,9 @@ func TestDeadMembersExcluded(t *testing.T) {
 // documented.
 //
 // MUTATION that breaks this test:
-//   Remove the sort.Strings(sortedGroupKeys) call in NewHierarchicalTopology —
-//   map iteration order is random so the returned slice will not be sorted.
+//
+//	Remove the sort.Strings(sortedGroupKeys) call in NewHierarchicalTopology —
+//	map iteration order is random so the returned slice will not be sorted.
 func TestGroupsSorted(t *testing.T) {
 	t.Parallel()
 
@@ -531,9 +540,10 @@ func TestGroupsSorted(t *testing.T) {
 // key.
 //
 // MUTATION that breaks this test:
-//   Ignore groupKeyFn and always call DefaultGroupKeyFn — members with no
-//   "zone" key all land in the same empty-string group, collapsing the 2-group
-//   structure and breaking the group count assertion.
+//
+//	Ignore groupKeyFn and always call DefaultGroupKeyFn — members with no
+//	"zone" key all land in the same empty-string group, collapsing the 2-group
+//	structure and breaking the group count assertion.
 func TestCustomGroupKeyFn(t *testing.T) {
 	t.Parallel()
 
@@ -576,8 +586,9 @@ func TestCustomGroupKeyFn(t *testing.T) {
 // the returned target list, whether self is a delegate or not.
 //
 // MUTATION that breaks this test:
-//   Remove the `id == selfID` guard in SelectGossipTargets — self is appended
-//   to the intra list.
+//
+//	Remove the `id == selfID` guard in SelectGossipTargets — self is appended
+//	to the intra list.
 func TestSelectGossipTargetsExcludesSelf(t *testing.T) {
 	t.Parallel()
 
@@ -635,8 +646,9 @@ func TestSelectGossipTargetsExcludesSelf_table(t *testing.T) {
 // count in a group, all alive members are returned (not a panic or nil).
 //
 // MUTATION that breaks this test:
-//   Remove the `if k > len(alive) { k = len(alive) }` clamp in
-//   NewHierarchicalTopology — alive[:k] would panic with index out of range.
+//
+//	Remove the `if k > len(alive) { k = len(alive) }` clamp in
+//	NewHierarchicalTopology — alive[:k] would panic with index out of range.
 func TestDelegatesPerGroupClamped(t *testing.T) {
 	t.Parallel()
 
@@ -686,11 +698,12 @@ func makeSuspect(id, zone string) *Member {
 // node calling SelectGossipTargets, silently breaking gossip for that node.
 //
 // MUTATION that breaks this test:
-//   Change the guard in NewHierarchicalTopology back to
-//   `if m.State != StateAlive { continue }` — the suspect member is excluded,
-//   GroupFor returns "", Delegates returns only the alive member, and
-//   SelectGossipTargets for the suspect returns an empty slice, causing the
-//   concrete assertions below to fail.
+//
+//	Change the guard in NewHierarchicalTopology back to
+//	`if m.State != StateAlive { continue }` — the suspect member is excluded,
+//	GroupFor returns "", Delegates returns only the alive member, and
+//	SelectGossipTargets for the suspect returns an empty slice, causing the
+//	concrete assertions below to fail.
 func TestSuspectMembersIncluded(t *testing.T) {
 	t.Parallel()
 

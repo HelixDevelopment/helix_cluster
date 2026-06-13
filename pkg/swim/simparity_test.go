@@ -116,6 +116,7 @@ func memberIDsAlive(p *Protocol) []string {
 //     execute → members not added → assertion fails.
 //  4. Return wrong state in handleJoin (e.g. StateDead instead of StateAlive)
 //     → Alive assertion fails.
+//
 // ---------------------------------------------------------------------------
 func TestSimParity_MembershipConvergence(t *testing.T) {
 	const seed = int64(1237)
@@ -180,6 +181,7 @@ func TestSimParity_MembershipConvergence(t *testing.T) {
 //     → the sorted alive-ID slices differ → assert.Equal fails.
 //   - Use map iteration order (non-deterministic) instead of the seq
 //     tie-breaker in SimNetwork.deliverNext → non-reproducible ordering.
+//
 // ---------------------------------------------------------------------------
 func TestSimParity_Determinism(t *testing.T) {
 	const seed = int64(1237)
@@ -242,6 +244,7 @@ func TestSimParity_Determinism(t *testing.T) {
 //     Join/Alive exchange never fires, Members() shows only self.
 //   - Ignore cfg.Transport and always use NewTransport(cfg.BindAddr, cfg.BindPort)
 //     → same failure.
+//
 // ---------------------------------------------------------------------------
 func TestSimParity_SeamInjectionIsLoadBearing(t *testing.T) {
 	net := NewSimNetwork(1237, PerfectLink)
