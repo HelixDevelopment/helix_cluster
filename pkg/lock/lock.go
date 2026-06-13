@@ -79,7 +79,20 @@ func (m *MemoryLocker) Lock(ctx context.Context, key string) (UnlockFunc, error)
 
 	select {
 	case <-locked:
-		return func() error { lm.Unlock(); return nil }, nil
+		// Fire-once release. A bare lm.Unlock() is unguarded: calling the
+		// returned UnlockFunc twice triggers Go's *fatal* "sync: unlock of
+		// unlocked mutex" (a process-killing runtime error that recover() cannot
+		// catch), and — worse — a stale/duplicate release after the key's mutex
+		// has been re-acquired by a DIFFERENT owner would free that other owner's
+		// lock, silently breaking mutual exclusion. Because sync.Mutex carries no
+		// owner identity, the only safe contract is that each UnlockFunc releases
+		// AT MOST ONCE. sync.Once makes the second+ call a no-op rather than a
+		// cross-owner free or a fatal crash.
+		var once sync.Once
+		return func() error {
+			once.Do(func() { lm.Unlock() })
+			return nil
+		}, nil
 	case <-ctx.Done():
 		ctxErr := ctx.Err()
 		// Signal the goroutine to release the mutex when it eventually acquires it.
