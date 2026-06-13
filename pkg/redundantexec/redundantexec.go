@@ -15,6 +15,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"sync"
 )
 
 // ErrNoQuorum is returned by Validator.Validate when the submitted results do
@@ -76,6 +77,14 @@ type Validator struct {
 	// requires agreeCount >= that minimum AND a strict plurality.
 	QuorumFraction float64
 
+	// mu guards workers and the Trust fields of the *Worker records it owns.
+	// Validate (write path: registers new workers and mutates trust) and Trust
+	// (read path) may be called concurrently from many goroutines — redundant
+	// execution is inherently concurrent: workers report and state is queried in
+	// parallel — so all access to the shared map and to the aliased *Worker.Trust
+	// fields is serialized through this lock.
+	mu sync.RWMutex
+
 	// workers holds the persistent trust state keyed by worker ID. It is
 	// created lazily so a zero Validator is usable.
 	workers map[string]*Worker
@@ -96,6 +105,8 @@ func NewValidator(quorumFraction float64) *Validator {
 // Trust returns the current trust score for a worker. Unknown workers default
 // to InitialTrust.
 func (v *Validator) Trust(workerID string) float64 {
+	v.mu.RLock()
+	defer v.mu.RUnlock()
 	if v.workers == nil {
 		return InitialTrust
 	}
@@ -138,11 +149,19 @@ func (v *Validator) thresholdCount(total int) int {
 // If no value reaches the quorum threshold, or the leader is tied, ErrNoQuorum
 // is returned and NO trust is changed and NO canonical value is chosen.
 func (v *Validator) Validate(taskID string, results []Result) (Validated, error) {
-	if v.workers == nil {
-		v.workers = make(map[string]*Worker)
-	}
 	if len(results) == 0 {
 		return Validated{}, ErrNoResults
+	}
+
+	// The trust map and the aliased *Worker.Trust fields are written below
+	// (worker registration + reward/penalty), so hold the write lock for the
+	// whole quorum+mutation section. Tally computation is cheap and bounded by
+	// len(results); holding the lock across it keeps the register/update/read
+	// paths mutually exclusive.
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	if v.workers == nil {
+		v.workers = make(map[string]*Worker)
 	}
 
 	total := len(results)
@@ -214,7 +233,8 @@ func (v *Validator) Validate(taskID string, results []Result) (Validated, error)
 }
 
 // worker returns the persistent worker record, creating it at InitialTrust on
-// first sight.
+// first sight. The caller MUST hold v.mu (write lock); it is only invoked from
+// Validate, which holds it.
 func (v *Validator) worker(id string) *Worker {
 	w, ok := v.workers[id]
 	if !ok {
