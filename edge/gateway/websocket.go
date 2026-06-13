@@ -14,6 +14,52 @@ import (
 // the node identity its connection serves, e.g. ws://host/edge?node=node-A.
 const nodeIDQueryParam = "node"
 
+// Unauthenticated-transport caveat (analogous to the CoAP DTLS note).
+//
+// The WebSocket transport accepts upgrades with CheckOrigin returning true and
+// performs NO authentication of its own — it trusts a fronting auth layer to
+// gate who may reach this endpoint. When the gateway is exposed without that
+// fronting layer, ANY client can open a connection and declare an arbitrary
+// node id via the ?node= query parameter. The DoS guards below (connection cap,
+// distinct-node cap, per-message read limit, idle reaping, and bounded send
+// queues) bound the resource cost of such unauthenticated connections so a flood
+// cannot exhaust memory or wedge routing, but they are NOT a substitute for
+// authentication: an unauthenticated peer can still occupy a slot up to the cap
+// and register/observe node ids. Operators MUST run this transport behind an
+// authenticating/authorizing front end (or add per-connection auth) before
+// exposing it to untrusted networks.
+//
+// WebSocket DoS / resource-exhaustion guards.
+//
+// gorilla/websocket applies NO read limit by default, so without an explicit
+// SetReadLimit a single hostile frame can drive an unbounded allocation and
+// OOM the gateway. It also performs no idle reaping, so a peer that opens a
+// socket and then sends nothing pins a goroutine and a registry slot forever
+// (slow-loris). These constants bound both vectors:
+const (
+	// wsMaxMessageBytes caps a single inbound WebSocket message. A frame larger
+	// than this makes ReadMessage return a close error (the read pump then tears
+	// the connection down) instead of allocating the whole payload. It matches
+	// the QUIC adapter's 8 MiB frame cap so envelope size is bounded uniformly
+	// across transports.
+	wsMaxMessageBytes = 8 << 20 // 8 MiB
+
+	// wsReadIdleTimeout is the maximum time a connection may be silent before it
+	// is reaped. The read deadline is refreshed on every received frame and on
+	// every pong, so a live peer (which answers our pings) is never dropped while
+	// a dead/stalled one is closed rather than accumulated.
+	wsReadIdleTimeout = 90 * time.Second
+
+	// wsPingInterval is how often the server sends a ping to keep a live peer's
+	// read deadline fresh. It is comfortably below wsReadIdleTimeout so a healthy
+	// connection always refreshes before the idle deadline elapses.
+	wsPingInterval = 30 * time.Second
+
+	// wsWriteTimeout bounds a single socket write (data or control frame) so a
+	// stalled consumer cannot block a writer indefinitely.
+	wsWriteTimeout = 10 * time.Second
+)
+
 // WebSocketTransport is a real WebSocket server transport. It exposes an
 // http.Handler that upgrades inbound HTTP requests to WebSocket connections,
 // registers each upgraded connection with the gateway under the node id from
@@ -33,6 +79,22 @@ type WebSocketTransport struct {
 	mu     sync.Mutex
 	conns  map[*wsConn]struct{}
 	closed bool
+
+	// testReadIdleOverride, when > 0, replaces wsReadIdleTimeout for connections
+	// served by this transport. It exists ONLY to let the slow-loris test drive
+	// the real reaping path on a short, deterministic deadline instead of the
+	// 90s production constant; production code never sets it, so the default
+	// behavior is unchanged.
+	testReadIdleOverride time.Duration
+}
+
+// readIdleTimeout returns the effective idle read timeout for this transport,
+// honoring the test override when set.
+func (t *WebSocketTransport) readIdleTimeout() time.Duration {
+	if t.testReadIdleOverride > 0 {
+		return t.testReadIdleOverride
+	}
+	return wsReadIdleTimeout
 }
 
 // NewWebSocketTransport creates a WebSocket transport bound to a gateway and
@@ -91,7 +153,15 @@ func (t *WebSocketTransport) serve(w http.ResponseWriter, r *http.Request) {
 	t.mu.Unlock()
 
 	if err := t.gw.Register(c); err != nil {
-		t.dropConn(c)
+		// Registry is full (ErrTooManyConns / ErrTooManyNodes) or the gateway is
+		// closing: refuse the connection by sending a WebSocket close frame with a
+		// "try again later" status and tearing the socket down, rather than leaking
+		// a registry slot. The peer learns it was rejected instead of silently
+		// hanging.
+		t.mu.Lock()
+		delete(t.conns, c)
+		t.mu.Unlock()
+		_ = c.writeControlClose(websocket.CloseTryAgainLater, err.Error())
 		_ = raw.Close()
 		return
 	}
@@ -156,22 +226,78 @@ func (c *wsConn) Send(env Envelope) error {
 	}
 	c.writeMu.Lock()
 	defer c.writeMu.Unlock()
-	_ = c.raw.SetWriteDeadline(time.Now().Add(10 * time.Second))
+	_ = c.raw.SetWriteDeadline(time.Now().Add(wsWriteTimeout))
 	return c.raw.WriteMessage(websocket.TextMessage, b)
+}
+
+// writeControlClose sends a WebSocket close control frame with the given status
+// code and reason, serialized against data writes. Best-effort: a write error
+// is returned but the caller closes the socket regardless.
+func (c *wsConn) writeControlClose(code int, reason string) error {
+	c.writeMu.Lock()
+	defer c.writeMu.Unlock()
+	msg := websocket.FormatCloseMessage(code, reason)
+	return c.raw.WriteControl(websocket.CloseMessage, msg, time.Now().Add(wsWriteTimeout))
+}
+
+// pingLoop periodically pings the peer to keep a live connection's read deadline
+// fresh (each pong refreshes it via the pong handler). It exits when done is
+// closed (the read pump returned). Ping writes go through writeMu so they never
+// race a data write, which gorilla/websocket forbids.
+func (c *wsConn) pingLoop(done <-chan struct{}) {
+	ticker := time.NewTicker(wsPingInterval)
+	defer ticker.Stop()
+	for {
+		select {
+		case <-done:
+			return
+		case <-ticker.C:
+			c.writeMu.Lock()
+			err := c.raw.WriteControl(websocket.PingMessage, nil, time.Now().Add(wsWriteTimeout))
+			c.writeMu.Unlock()
+			if err != nil {
+				// A failed ping means the socket is gone; the read pump will observe
+				// the read error and tear down. Stop pinging.
+				return
+			}
+		}
+	}
 }
 
 // readPump reads frames until the socket closes, decoding each into an Envelope
 // and routing it through the gateway. On exit it unregisters the connection.
+//
+// It installs the DoS guards for the WebSocket path:
+//   - SetReadLimit bounds a single inbound message so an oversized frame closes
+//     the connection instead of allocating unbounded memory;
+//   - a read deadline (refreshed per frame and per pong) reaps a silent/stalled
+//     peer instead of pinning it forever;
+//   - a ping loop keeps a genuinely live peer's deadline fresh.
 func (c *wsConn) readPump() {
+	done := make(chan struct{})
 	defer func() {
+		close(done)
 		c.t.dropConn(c)
 		_ = c.raw.Close()
 	}()
+
+	idle := c.t.readIdleTimeout()
+	c.raw.SetReadLimit(wsMaxMessageBytes)
+	_ = c.raw.SetReadDeadline(time.Now().Add(idle))
+	c.raw.SetPongHandler(func(string) error {
+		// A live peer answered our ping: extend its idle deadline.
+		return c.raw.SetReadDeadline(time.Now().Add(idle))
+	})
+
+	go c.pingLoop(done)
+
 	for {
 		_, data, err := c.raw.ReadMessage()
 		if err != nil {
 			return
 		}
+		// A frame arrived from a live peer: refresh the idle deadline.
+		_ = c.raw.SetReadDeadline(time.Now().Add(idle))
 		env, err := DecodeEnvelope(data)
 		if err != nil {
 			// A malformed frame is dropped without tearing down the socket; the

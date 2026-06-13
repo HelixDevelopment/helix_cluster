@@ -14,6 +14,44 @@ var ErrNoRoute = errors.New("gateway: no route to destination node")
 // ErrClosed is returned by gateway operations after the gateway is closed.
 var ErrClosed = errors.New("gateway: closed")
 
+// ErrTooManyConns is returned by Register when accepting the connection would
+// exceed the gateway's configured maximum number of concurrent connections. It
+// is the DoS guard for unbounded connection growth: a transport that surfaces
+// this error MUST reject/close the underlying socket rather than leak a slot.
+var ErrTooManyConns = errors.New("gateway: connection limit reached")
+
+// ErrTooManyNodes is returned by Register when accepting the connection would
+// register a NEW node id beyond the gateway's configured maximum number of
+// distinct registered nodes. Re-registering an already-known node (e.g. an
+// additional observer of a node that is already routed) is NOT counted against
+// this cap, so legitimate multi-observer fan-out is unaffected while a flood of
+// distinct synthetic node ids cannot grow the routing table without bound.
+var ErrTooManyNodes = errors.New("gateway: node limit reached")
+
+// Default resource caps. They bound the gateway's two unbounded-growth vectors
+// (total connections and distinct routed nodes) at safe-by-default values. They
+// are generous enough for real cluster fan-out yet finite, so a hostile or
+// buggy peer flood cannot exhaust memory by opening connections / registering
+// node ids without bound. Override per-Gateway via Config.
+const (
+	// DefaultMaxConns caps total concurrently-registered connections across all
+	// transports.
+	DefaultMaxConns = 4096
+	// DefaultMaxNodes caps the number of DISTINCT node ids in the routing table.
+	DefaultMaxNodes = 4096
+)
+
+// Config tunes a Gateway's resource caps. The zero value yields the safe
+// defaults above via New; use NewWithConfig to override. A non-positive field
+// means "use the default" rather than "unlimited", so a misconfigured zero can
+// never silently disable a DoS guard.
+type Config struct {
+	// MaxConns caps total concurrently-registered connections. <=0 => default.
+	MaxConns int
+	// MaxNodes caps distinct registered node ids. <=0 => default.
+	MaxNodes int
+}
+
 // Conn is a single registered connection on a transport. It represents one
 // reachable endpoint (typically one edge node, or one observer of a node's
 // status). A transport creates a Conn when an endpoint attaches and hands it to
@@ -52,20 +90,48 @@ type Transport interface {
 // the authoritative routing structure: a dispatch addressed to node A is
 // delivered to exactly the Conns registered under A and to no other key, which
 // is what guarantees node-to-node isolation.
+//
+// It also enforces the gateway's resource caps under its own lock so the
+// check-and-insert is atomic: maxConns bounds total connections and maxNodes
+// bounds distinct node ids. totalConns is the running connection count, kept in
+// step with the byNode slices so the cap check is O(1) and race-free.
 type routingTable struct {
-	mu     sync.RWMutex
-	byNode map[string][]Conn
+	mu         sync.RWMutex
+	byNode     map[string][]Conn
+	totalConns int
+	maxConns   int
+	maxNodes   int
 }
 
-func newRoutingTable() *routingTable {
-	return &routingTable{byNode: make(map[string][]Conn)}
+func newRoutingTable(maxConns, maxNodes int) *routingTable {
+	return &routingTable{
+		byNode:   make(map[string][]Conn),
+		maxConns: maxConns,
+		maxNodes: maxNodes,
+	}
 }
 
-func (t *routingTable) add(c Conn) {
+// add registers a connection, enforcing the connection and node caps
+// atomically. It returns ErrTooManyConns if the total connection cap would be
+// exceeded, or ErrTooManyNodes if registering would introduce a NEW node id
+// beyond the node cap. Adding another connection under an already-known node id
+// (an additional observer) does not count against maxNodes, so legitimate
+// multi-conn fan-out coalesces under one routing key instead of leaking node
+// entries.
+func (t *routingTable) add(c Conn) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
+	if t.totalConns >= t.maxConns {
+		return ErrTooManyConns
+	}
 	id := c.NodeID()
-	t.byNode[id] = append(t.byNode[id], c)
+	existing, known := t.byNode[id]
+	if !known && len(t.byNode) >= t.maxNodes {
+		return ErrTooManyNodes
+	}
+	t.byNode[id] = append(existing, c)
+	t.totalConns++
+	return nil
 }
 
 func (t *routingTable) remove(c Conn) {
@@ -76,6 +142,7 @@ func (t *routingTable) remove(c Conn) {
 	for i, existing := range conns {
 		if existing == c {
 			conns = append(conns[:i], conns[i+1:]...)
+			t.totalConns--
 			break
 		}
 	}
@@ -126,9 +193,26 @@ type Gateway struct {
 	ts     []Transport
 }
 
-// New creates an empty Gateway with no transports registered.
+// New creates an empty Gateway with no transports registered, using the default
+// resource caps (DefaultMaxConns / DefaultMaxNodes).
 func New() *Gateway {
-	return &Gateway{table: newRoutingTable()}
+	return NewWithConfig(Config{})
+}
+
+// NewWithConfig creates an empty Gateway with explicit resource caps. A
+// non-positive cap field falls back to its safe default rather than disabling
+// the guard, so the DoS protections can be tuned but never accidentally turned
+// off by a zero value.
+func NewWithConfig(cfg Config) *Gateway {
+	maxConns := cfg.MaxConns
+	if maxConns <= 0 {
+		maxConns = DefaultMaxConns
+	}
+	maxNodes := cfg.MaxNodes
+	if maxNodes <= 0 {
+		maxNodes = DefaultMaxNodes
+	}
+	return &Gateway{table: newRoutingTable(maxConns, maxNodes)}
 }
 
 // AddTransport registers a transport so the gateway closes it on shutdown. The
@@ -149,8 +233,10 @@ func (g *Gateway) Register(c Conn) error {
 	if closed {
 		return ErrClosed
 	}
-	g.table.add(c)
-	return nil
+	// add enforces the connection/node caps atomically and surfaces
+	// ErrTooManyConns / ErrTooManyNodes, which transports translate into a
+	// rejected/closed socket so a flood cannot grow the registry without bound.
+	return g.table.add(c)
 }
 
 // Unregister detaches a connection from the routing table. It is idempotent.

@@ -1,6 +1,21 @@
 package gateway
 
-import "sync"
+import (
+	"errors"
+	"sync"
+)
+
+// ErrInboxFull is returned by LoopbackConn.Send when the endpoint's bounded
+// inbox is full. It is the backpressure signal for the in-process transport: a
+// slow consumer drops the surplus envelope (surfaced honestly to the router as
+// firstErr) instead of blocking the gateway's routing goroutine or growing the
+// buffer without bound.
+var ErrInboxFull = errors.New("gateway: loopback inbox full")
+
+// loopbackInboxCap bounds a loopback endpoint's inbox so a stalled in-process
+// consumer cannot cause unbounded memory growth. Past this depth Send drops
+// rather than blocks.
+const loopbackInboxCap = 16
 
 // LoopbackTransport is an in-process transport with no sockets. It is used to
 // attach in-memory endpoints (e.g. a co-located scheduler or a test harness)
@@ -37,7 +52,7 @@ func (t *LoopbackTransport) Connect(nodeID string) (*LoopbackConn, error) {
 	c := &LoopbackConn{
 		gw:     t.gw,
 		nodeID: nodeID,
-		Inbox:  make(chan Envelope, 16),
+		Inbox:  make(chan Envelope, loopbackInboxCap),
 	}
 	t.conns = append(t.conns, c)
 	t.mu.Unlock()
@@ -85,6 +100,14 @@ func (c *LoopbackConn) NodeID() string { return c.nodeID }
 // Send implements Conn: it delivers a routed envelope to this endpoint's Inbox.
 // The Envelope carries an immutable byte slice (json.RawMessage) which is not
 // reused by the gateway, so the receiver observes byte-identical payload.
+//
+// Delivery is non-blocking and bounded: the inbox is a fixed-capacity channel,
+// and a full inbox returns ErrInboxFull rather than blocking the caller. The
+// caller here is the gateway's routing goroutine, so blocking on a stalled
+// in-process consumer would wedge routing for every other destination and let
+// the slow consumer apply unbounded backpressure. Dropping past the bound keeps
+// the router live and memory bounded; the drop is surfaced honestly (Route
+// returns it as firstErr) instead of being hidden.
 func (c *LoopbackConn) Send(env Envelope) error {
 	c.mu.Lock()
 	if c.closed {
@@ -92,8 +115,12 @@ func (c *LoopbackConn) Send(env Envelope) error {
 		return ErrClosed
 	}
 	c.mu.Unlock()
-	c.Inbox <- env
-	return nil
+	select {
+	case c.Inbox <- env:
+		return nil
+	default:
+		return ErrInboxFull
+	}
 }
 
 // Route pushes an envelope from this endpoint into the gateway for routing to
