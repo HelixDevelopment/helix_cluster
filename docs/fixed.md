@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 51
-**Last modified:** 2026-06-13T09:52:47Z
+**Revision:** 52
+**Last modified:** 2026-06-13T09:56:12Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **288**.
+Total completed: **289**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -298,3 +298,4 @@ Total completed: **288**.
 | HXC-943 | Bug | P1 | Test HelixQA validators (done) and vision/ORB (blocked) + fix helixqa module graph | a39e89b |
 | HXC-947 | Task | P3 | Add root go.mod require/replace for digital.vasic.security (out-of-workspace builds) | a39e89b |
 | HXC-948 | Bug | P2 | Fix api/v1 module path /v1-suffix blocking out-of-workspace require/replace | 42d38fb |
+| HXC-950 | Bug | P1 | sidecarutil HealthProbe load-robustness (WaitDelay + transient retry) | b081dad |
