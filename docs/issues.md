@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 46
-**Last modified:** 2026-06-13T09:19:57Z
+**Revision:** 47
+**Last modified:** 2026-06-13T09:23:27Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **423**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (13 active)
 
@@ -54,7 +54,7 @@ Total active items: **423**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 | HXC-931 | Task | P3 | Queued | Reconcile internal/console linux_boot.go (BootMachine) with boot_coordinator.go (BootCoordinator) |
 
-## Phase 3 (39 active)
+## Phase 3 (38 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -63,7 +63,6 @@ Total active items: **423**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1172 | Feature | P0 | Queued | Scaffold Android Agent APK (Kotlin + NDK + Termux) |
 | HXC-1173 | Feature | P0 | Queued | Implement Android foreground service framework with START_STICKY |
 | HXC-1174 | Feature | P0 | Queued | Integrate Android BatteryManager monitoring |
-| HXC-1178 | Feature | P0 | Queued | Implement MQTT client for edge work dispatch and status |
 | HXC-1184 | Feature | P0 | Completed | Implement edge node registration for all tiers (T3-T8) |
 | HXC-1186 | Feature | P0 | Queued | Implement edge protocol gateway (MQTT/QUIC/WebSocket) |
 | HXC-1197 | Feature | P0 | Completed | Implement edge output verification (LLMsVerifier/redundant/checksum) |

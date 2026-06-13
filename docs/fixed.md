@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 46
-**Last modified:** 2026-06-13T09:19:57Z
+**Revision:** 47
+**Last modified:** 2026-06-13T09:23:27Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **282**.
+Total completed: **283**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -180,6 +180,7 @@ Total completed: **282**.
 | HXC-1165 | Task | P2 | Ensure api/v1/node.proto carries trust_level + thermal fields consumed end-to-end | af16635 |
 | HXC-1167 | Task | P0 | Build ARM64 cross-compilation toolchain for Helix agent | da02870 |
 | HXC-1175 | Feature | P0 | Implement charging-gated PowerGater scheduling guard | 2a90f56 |
+| HXC-1178 | Feature | P0 | Implement MQTT client for edge work dispatch and status | cd8bb86 |
 | HXC-1185 | Feature | P0 | Implement edge heartbeat with battery/thermal/network telemetry | 2a90f56 |
 | HXC-1187 | Feature | P0 | Define EdgeWorkUnit and EdgeWorkResult protobuf schemas | af16635 |
 | HXC-1188 | Feature | P0 | Enforce work-unit resource limits (duration/memory/CPU) on edge devices | 7718c20 |
