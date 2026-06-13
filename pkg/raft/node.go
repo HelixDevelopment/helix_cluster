@@ -69,6 +69,23 @@ func (n *Node) Leader() string {
 	return string(id)
 }
 
+// LeaderAddr returns the network ADDRESS of the cluster leader as currently known
+// by this node, or "" if no leader is known yet. For a TCP-backed node this is
+// the leader's real host:port — what a follower's admin endpoint reports so a
+// client can redirect its write to the leader process.
+func (n *Node) LeaderAddr() string {
+	addr, _ := n.raft.LeaderWithID()
+	return string(addr)
+}
+
+// LastIndex returns the last index in this node's stable storage (last log entry
+// or last snapshot). It is a sink-side catch-up signal: a freshly restarted node
+// rejoining the cluster reports a LastIndex that climbs to match the leader's as
+// it replays its on-disk log and receives any entries it missed.
+func (n *Node) LastIndex() uint64 {
+	return n.raft.LastIndex()
+}
+
 // Apply proposes a Command to the Raft log. It only succeeds on the leader; the
 // command is replicated to a majority and applied to every FSM before the
 // returned future resolves. On a follower it returns ErrNotLeader.

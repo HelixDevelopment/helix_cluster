@@ -37,14 +37,38 @@ import (
 // bound *net.TCPAddr. It is the transport half of newTCPNode, factored out so the
 // persistent+networked builder reuses the identical real-TCP wiring rather than
 // duplicating it.
+//
+// It is a thin convenience wrapper over openTCPTransportAt with the loopback
+// ephemeral bind address "127.0.0.1:0": the OS assigns a free port. The shared
+// listener/StreamLayer/NetworkTransport wiring lives in openTCPTransportAt so the
+// ephemeral (in-process test cluster) and fixed-address (multi-process daemon)
+// paths cannot drift.
 func openTCPTransport(id string, base *hraft.Config) (*hraft.NetworkTransport, *net.TCPAddr, error) {
-	resolved, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	return openTCPTransportAt(id, "127.0.0.1:0", base)
+}
+
+// openTCPTransportAt binds a TCP listener at the CALLER-SPECIFIED bindAddr and
+// wraps it in a hashicorp/raft NetworkTransport, returning the transport plus the
+// concrete bound *net.TCPAddr. This is the single shared real-TCP wiring used by
+// BOTH the ephemeral path (openTCPTransport, "127.0.0.1:0") and the multi-process
+// daemon path, which passes a fixed host:port (e.g. "127.0.0.1:7001") so peers
+// across separate OS processes can be configured ahead of time by known address.
+//
+// bindAddr is any address net.ResolveTCPAddr accepts: "host:port" for a fixed
+// port, ":0"/"127.0.0.1:0" for an OS-assigned ephemeral port. The returned
+// *net.TCPAddr is the ACTUAL bound address (with the concrete port), so a fixed
+// bind echoes its port and an ephemeral bind reveals the chosen one.
+func openTCPTransportAt(id, bindAddr string, base *hraft.Config) (*hraft.NetworkTransport, *net.TCPAddr, error) {
+	if bindAddr == "" {
+		return nil, nil, fmt.Errorf("raft: empty bind address for %s", id)
+	}
+	resolved, err := net.ResolveTCPAddr("tcp", bindAddr)
 	if err != nil {
-		return nil, nil, fmt.Errorf("raft: resolve loopback addr for %s: %w", id, err)
+		return nil, nil, fmt.Errorf("raft: resolve bind addr %q for %s: %w", bindAddr, id, err)
 	}
 	listener, err := net.ListenTCP("tcp", resolved)
 	if err != nil {
-		return nil, nil, fmt.Errorf("raft: listen tcp for %s: %w", id, err)
+		return nil, nil, fmt.Errorf("raft: listen tcp %q for %s: %w", bindAddr, id, err)
 	}
 	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
 	if !ok {
@@ -87,9 +111,29 @@ func persistentTCPConfig(id string, base *hraft.Config) *hraft.Config {
 // *net.TCPAddr, and whether the data dir already held raft state (so the caller
 // can skip re-bootstrap on reopen — identical reopen semantics to store.go).
 //
+// It is the ephemeral-port convenience over newPersistentNetworkNodeAt (bind
+// "127.0.0.1:0"); the in-process test cluster builder uses it. The combined
+// store+transport assembly lives once in newPersistentNetworkNodeAt so the
+// ephemeral and fixed-address (multi-process daemon) paths cannot drift.
+func newPersistentNetworkNode(id, dataDir string, base *hraft.Config) (nc *nodeConfig, boltStore *raftboltdb.BoltStore, tcpAddr *net.TCPAddr, alreadyInit bool, err error) {
+	return newPersistentNetworkNodeAt(id, dataDir, "127.0.0.1:0", base)
+}
+
+// newPersistentNetworkNodeAt builds a single Raft node backed by BOTH a REAL TCP
+// NetworkTransport bound at the CALLER-SPECIFIED bindAddr AND a REAL on-disk
+// BoltStore (log+stable) + FileSnapshotStore rooted at dataDir. It returns the
+// nodeConfig wiring, the open *BoltStore, the ACTUAL bound *net.TCPAddr, and
+// whether the data dir already held raft state (reopen detection identical to
+// store.go's openPersistentStores).
+//
+// The bindAddr makes this the multi-process building block: a daemon process can
+// bind a FIXED host:port so its peers — running in SEPARATE OS processes — are
+// configured by known address ahead of time. (newPersistentNetworkNode passes
+// "127.0.0.1:0" to keep the ephemeral in-process path.)
+//
 // On ANY error after a resource is opened, it closes what it opened (bolt store
 // and/or TCP listener) so nothing leaks on the failure path.
-func newPersistentNetworkNode(id, dataDir string, base *hraft.Config) (nc *nodeConfig, boltStore *raftboltdb.BoltStore, tcpAddr *net.TCPAddr, alreadyInit bool, err error) {
+func newPersistentNetworkNodeAt(id, dataDir, bindAddr string, base *hraft.Config) (nc *nodeConfig, boltStore *raftboltdb.BoltStore, tcpAddr *net.TCPAddr, alreadyInit bool, err error) {
 	if id == "" {
 		return nil, nil, nil, false, fmt.Errorf("raft: persistent network node needs a non-empty id")
 	}
@@ -103,8 +147,9 @@ func newPersistentNetworkNode(id, dataDir string, base *hraft.Config) (nc *nodeC
 		return nil, nil, nil, false, err
 	}
 
-	// REAL TCP transport (reused from tcp.go wiring via openTCPTransport).
-	trans, addr, err := openTCPTransport(id, base)
+	// REAL TCP transport bound at the requested address (shared tcp.go wiring via
+	// openTCPTransportAt — NOT duplicated).
+	trans, addr, err := openTCPTransportAt(id, bindAddr, base)
 	if err != nil {
 		_ = store.Close()
 		return nil, nil, nil, false, err
@@ -167,7 +212,33 @@ func (p *PersistentNetworkNode) LogStore() hraft.LogStore { return p.boltStore }
 // transport (releasing the listener), and closes the BoltDB (flushing files so
 // the dataDir can be reopened) — in that order.
 func NewPersistentNetworkNode(id, dataDir string, base *hraft.Config, servers []hraft.Server) (*PersistentNetworkNode, error) {
-	nc, boltStore, tcpAddr, alreadyInit, err := newPersistentNetworkNode(id, dataDir, base)
+	return NewPersistentNetworkNodeAt(id, dataDir, "127.0.0.1:0", base, servers)
+}
+
+// NewPersistentNetworkNodeAt is the fixed-bind-address variant of
+// NewPersistentNetworkNode: it creates and starts a single Raft Node backed by
+// BOTH a real TCP transport bound at the CALLER-SPECIFIED bindAddr AND a real
+// on-disk BoltStore+FileSnapshotStore at dataDir.
+//
+// This is the multi-PROCESS building block. Because the transport binds a known
+// fixed address (e.g. "127.0.0.1:7001") rather than an ephemeral one, the FULL
+// initial cluster membership (servers — every node's id=addr, INCLUDING self) can
+// be configured ahead of time across SEPARATE OS processes. Each daemon process
+// calls this with the SAME servers list and its own id/bindAddr/dataDir.
+//
+// First boot (fresh dataDir): bootstraps the given servers membership into the
+// durable stores. Reopen (same dataDir, after a prior Shutdown OR an abrupt
+// process kill): re-opens the durable stores and does NOT re-bootstrap — raft
+// recovers the persisted log/snapshot from disk and rejoins the live cluster —
+// using the SAME fixed bindAddr so peers reconnect by the address they already
+// know. Reopen detection is identical to store.go (openPersistentStores).
+//
+// servers is ignored on reopen (the durable on-disk configuration wins); if empty
+// on first boot a single-server config keyed by this node's bound address is
+// synthesized. The caller MUST call Node.Shutdown when done (stops raft, closes
+// the TCP transport, then closes the BoltDB — in that order).
+func NewPersistentNetworkNodeAt(id, dataDir, bindAddr string, base *hraft.Config, servers []hraft.Server) (*PersistentNetworkNode, error) {
+	nc, boltStore, tcpAddr, alreadyInit, err := newPersistentNetworkNodeAt(id, dataDir, bindAddr, base)
 	if err != nil {
 		return nil, err
 	}
