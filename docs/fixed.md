@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 55
-**Last modified:** 2026-06-13T10:11:27Z
+**Revision:** 57
+**Last modified:** 2026-06-13T10:22:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **292**.
+Total completed: **294**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -302,3 +302,5 @@ Total completed: **292**.
 | HXC-948 | Bug | P2 | Fix api/v1 module path /v1-suffix blocking out-of-workspace require/replace | 42d38fb |
 | HXC-950 | Bug | P1 | sidecarutil HealthProbe load-robustness (WaitDelay + transient retry) | b081dad |
 | HXC-951 | Research | P2 | TLA+ spec for SWIM membership/failure-detection (TLC-verified safety) | 3fedcbe |
+| HXC-952 | Feature | P2 | Unified hardware-inventory engine (CPU+memory+GPU+NPU aggregation) | 7011255 |
+| HXC-953 | Feature | P2 | Real Raft-backed leader-election service (pkg/raftleader adapting pkg/raft) | 7011255 |
