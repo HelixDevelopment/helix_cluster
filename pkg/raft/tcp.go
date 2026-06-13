@@ -52,33 +52,15 @@ func (t *tcpStreamLayer) Dial(address hraft.ServerAddress, timeout time.Duration
 // *net.TCPAddr the listener bound to, so the caller can interconnect peers by
 // real address and assert on the real port.
 func newTCPNode(id string, base *hraft.Config) (*nodeConfig, *net.TCPAddr, error) {
-	// Bind a real loopback listener on an OS-assigned ephemeral port. The kernel
-	// guarantees the resulting *net.TCPAddr has a unique, non-zero port.
-	resolved, err := net.ResolveTCPAddr("tcp", "127.0.0.1:0")
+	// Bind a real loopback listener on an OS-assigned ephemeral port and wrap it
+	// in a hashicorp/raft NetworkTransport. This is the single shared TCP-transport
+	// wiring (openTCPTransport, in persistnet.go) — reused here AND by the
+	// persistent+networked builder so the listener/StreamLayer/NetworkTransport
+	// config (MaxPool, Timeout) lives in exactly one place and cannot drift.
+	trans, tcpAddr, err := openTCPTransport(id, base)
 	if err != nil {
-		return nil, nil, fmt.Errorf("raft: resolve loopback addr for %s: %w", id, err)
+		return nil, nil, err
 	}
-	listener, err := net.ListenTCP("tcp", resolved)
-	if err != nil {
-		return nil, nil, fmt.Errorf("raft: listen tcp for %s: %w", id, err)
-	}
-	tcpAddr, ok := listener.Addr().(*net.TCPAddr)
-	if !ok {
-		_ = listener.Close()
-		return nil, nil, fmt.Errorf("raft: listener for %s did not yield *net.TCPAddr (got %T)", id, listener.Addr())
-	}
-
-	stream := &tcpStreamLayer{listener: listener}
-
-	transCfg := &hraft.NetworkTransportConfig{
-		Stream:  stream,
-		MaxPool: 3,
-		Timeout: 5 * time.Second,
-	}
-	if base != nil && base.Logger != nil {
-		transCfg.Logger = base.Logger
-	}
-	trans := hraft.NewNetworkTransportWithConfig(transCfg)
 
 	conf := hraft.DefaultConfig()
 	conf.LocalID = hraft.ServerID(id)
