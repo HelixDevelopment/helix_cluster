@@ -14,7 +14,10 @@
 // of admitted Requests never exceeds Quota.Total.
 package jobadmit
 
-import "sort"
+import (
+	"sort"
+	"sync"
+)
 
 // Tier ranks a job's class of service. Higher numeric value == higher
 // precedence at admission time (Paid outranks Free).
@@ -69,7 +72,14 @@ type Quota struct {
 // Manager tracks submitted jobs and runs admission passes against a Quota.
 //
 // The zero value is not usable; construct one with NewManager.
+//
+// Manager is safe for concurrent use by multiple goroutines: writers
+// (Submit/Admit/Complete) take the write lock, readers (State/Used) take the
+// read lock. This matches the controller's concurrent-by-role usage where jobs
+// are admitted while the controller is looked up / queried from many
+// goroutines.
 type Manager struct {
+	mu      sync.RWMutex
 	quota   Quota
 	nextSeq int
 	used    int
@@ -91,6 +101,8 @@ func NewManager(q Quota) *Manager {
 // SubmitSeq in monotonic submission order. Submitting a duplicate ID or a
 // negative Request is a no-op that returns false.
 func (m *Manager) Submit(j Job) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	if _, dup := m.jobs[j.ID]; dup {
 		return false
 	}
@@ -111,6 +123,8 @@ func (m *Manager) Submit(j Job) bool {
 // do not fit remain SUSPENDED. It returns the IDs newly admitted in this pass,
 // in admission order.
 func (m *Manager) Admit() []string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	pending := make([]*Job, 0, len(m.jobs))
 	for id, st := range m.state {
 		if st == StateSuspended {
@@ -142,6 +156,8 @@ func (m *Manager) Admit() []string {
 // Complete marks an ADMITTED job as completed and releases its reserved quota.
 // It returns false if the job is unknown or is not currently admitted.
 func (m *Manager) Complete(id string) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	st, ok := m.state[id]
 	if !ok || st != StateAdmitted {
 		return false
@@ -153,10 +169,16 @@ func (m *Manager) Complete(id string) bool {
 
 // State returns the current state of a job and whether it is known.
 func (m *Manager) State(id string) (State, bool) {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
 	st, ok := m.state[id]
 	return st, ok
 }
 
 // Used returns the total resources currently reserved by admitted jobs. It is
 // an invariant that Used() <= Quota.Total at all times.
-func (m *Manager) Used() int { return m.used }
+func (m *Manager) Used() int {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	return m.used
+}
