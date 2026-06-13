@@ -187,6 +187,29 @@ func applySnapshotTuning(conf, base *hraft.Config) {
 	}
 }
 
+// applyBasePreVote copies hashicorp/raft's PreVoteDisabled field from an optional
+// base *hraft.Config onto conf. PreVote (pre-election) is a boolean OPT-IN/OPT-OUT:
+// its zero value (false) means PreVote is ENABLED, which is the library default in
+// v1.7.3 and the UNCHANGED production behavior. Because this helper unconditionally
+// copies the bool when base is non-nil, a caller that does not set it (leaves it
+// false) — or passes nil base — gets conf.PreVoteDisabled=false, i.e. PreVote ON,
+// exactly as before this helper existed. Only a caller that EXPLICITLY sets
+// base.PreVoteDisabled=true flips it off. It touches ONLY this one field — no timers,
+// ids, or other behavior — so it cannot affect any production path that does not opt
+// out. The PreVote integration test (prevote_test.go) uses it to build one PreVote-ON
+// cluster and one PreVote-OFF cluster and compare disruption on partition rejoin.
+//
+// Safety note on defaults: every EXISTING caller passes either nil or a base whose
+// PreVoteDisabled is the zero value false; for all of them the assignment below sets
+// the field to the same false the DefaultConfig already carries, so configuration is
+// byte-for-byte unchanged and no existing election/replication behavior shifts.
+func applyBasePreVote(conf, base *hraft.Config) {
+	if base == nil {
+		return
+	}
+	conf.PreVoteDisabled = base.PreVoteDisabled
+}
+
 // nodeConfig holds the wiring for a single in-memory Raft node.
 type nodeConfig struct {
 	id        string
@@ -236,6 +259,10 @@ func newInmemNode(id string, base *hraft.Config) (*nodeConfig, error) {
 	// base config; defaults are preserved. The snapshot integration test uses it to
 	// force real auto-snapshot + log truncation.
 	applySnapshotTuning(conf, base)
+	// PreVote is opt-out via base.PreVoteDisabled (default false = PreVote ON =
+	// unchanged production behavior). The PreVote integration test sets it true to
+	// build a no-prevote cluster; every other caller leaves it false.
+	applyBasePreVote(conf, base)
 
 	return &nodeConfig{
 		id:        id,
