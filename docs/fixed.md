@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 80
-**Last modified:** 2026-06-13T16:28:53Z
+**Revision:** 81
+**Last modified:** 2026-06-13T16:33:06Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **317**.
+Total completed: **319**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -327,3 +327,5 @@ Total completed: **317**.
 | HXC-966 | Research | P2 | TLA+ spec for Chandy-Lamport distributed snapshot (TLC-verified) | ea0c6a7 |
 | HXC-967 | Research | P2 | TLA+ spec for Lamport distributed mutual exclusion (TLC-verified) | 6d34c9b |
 | HXC-968 | Research | P2 | TLA+ spec for Dynamo-style quorum consistency R+W>N (TLC-verified) | c9fc6dd |
+| HXC-969 | Feature | P1 | clusternode real-WebSocket transport: cross-node messaging over real TCP | c9fc6dd |
+| HXC-970 | Research | P2 | TLA+ spec for Hybrid Logical Clock (TLC-verified) | d1bba72 |
