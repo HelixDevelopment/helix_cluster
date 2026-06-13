@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 122
-**Last modified:** 2026-06-13T20:35:20Z
+**Revision:** 123
+**Last modified:** 2026-06-13T20:36:17Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **558**.
+Total completed: **559**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -489,6 +489,7 @@ Total completed: **558**.
 | HXC-1662 | Feature | P1 | pkg/budgetcap concurrent over-spend test (cap never exceeded) | 72b254c |
 | HXC-1663 | Feature | P1 | pkg/billingfsm adversarial money-safety test (transition matrix, no double-bill, conservation) | 13686ac |
 | HXC-1664 | Feature | P1 | pkg/informer cache-coherence test (latest-delta-wins, delete coherence, no resurrection) | f2afc09 |
+| HXC-1665 | Feature | P1 | pkg/rebalance adversarial minimal-disruption test (sticky, balance, idempotence) | a3c6a49 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
