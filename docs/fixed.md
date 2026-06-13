@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 82
-**Last modified:** 2026-06-13T17:23:03Z
+**Revision:** 83
+**Last modified:** 2026-06-13T17:25:45Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **320**.
+Total completed: **321**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -330,3 +330,4 @@ Total completed: **320**.
 | HXC-969 | Feature | P1 | clusternode real-WebSocket transport: cross-node messaging over real TCP | c9fc6dd |
 | HXC-970 | Research | P2 | TLA+ spec for Hybrid Logical Clock (TLC-verified) | d1bba72 |
 | HXC-971 | Research | P2 | TLA+ spec for Raft ReadIndex linearizable reads (TLC-verified) | 5eb06fe |
+| HXC-972 | Research | P2 | TLA+ spec for STONITH fencing safety / no dual-active (TLC-verified) | 19d676c |
