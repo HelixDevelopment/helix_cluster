@@ -19,7 +19,10 @@
 // Clock. Nothing here calls time.Now().
 package thermalwarm
 
-import "time"
+import (
+	"sync"
+	"time"
+)
 
 // State is a backend's thermal state.
 type State int
@@ -92,10 +95,19 @@ func (b *backend) currentState(now time.Time, coldStart time.Duration) State {
 }
 
 // Controller drives thermal pre-warming for a set of backends.
+//
+// A Controller is safe for concurrent use by multiple goroutines. In a
+// scale-from-zero dispatcher, request goroutines call Dispatch/State while a
+// warmer goroutine calls PreWarm/Register against the SAME controller; all
+// access to the shared backends map and per-backend thermal state is guarded by
+// mu. Note that several read-looking methods (State, Dispatch) also persist a
+// completed warm-up (b.state = Hot) and so take the write lock.
 type Controller struct {
 	clock     Clock
 	coldStart time.Duration
-	backends  map[string]*backend
+
+	mu       sync.Mutex
+	backends map[string]*backend
 }
 
 // NewController constructs a Controller with the given injected clock and a
@@ -111,6 +123,8 @@ func NewController(clock Clock, coldStart time.Duration) *Controller {
 // ColdStartDuration reports the configured cold-start duration.
 func (c *Controller) ColdStartDuration() time.Duration { return c.coldStart }
 
+// ensure returns the backend for id, creating it Cold if absent. The caller
+// MUST hold c.mu.
 func (c *Controller) ensure(id string) *backend {
 	b, ok := c.backends[id]
 	if !ok {
@@ -120,12 +134,18 @@ func (c *Controller) ensure(id string) *backend {
 	return b
 }
 
-// Register adds a backend (initially Cold). Idempotent.
-func (c *Controller) Register(id string) { c.ensure(id) }
+// Register adds a backend (initially Cold). Idempotent. Safe for concurrent use.
+func (c *Controller) Register(id string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.ensure(id)
+}
 
 // State returns the current thermal state of a backend, reconciled against the
 // clock (so an expired warm-up reads Hot even before the next Dispatch/Tick).
 func (c *Controller) State(id string) State {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	b := c.ensure(id)
 	now := c.clock.Now()
 	s := b.currentState(now, c.coldStart)
@@ -144,6 +164,8 @@ func (c *Controller) State(id string) State {
 // PreWarm on an already-Hot backend is a no-op (stays Hot). PreWarm on a backend
 // that is already Warming does not restart the timer.
 func (c *Controller) PreWarm(id string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	b := c.ensure(id)
 	now := c.clock.Now()
 	switch b.currentState(now, c.coldStart) {
@@ -160,6 +182,13 @@ func (c *Controller) PreWarm(id string) {
 // Tick advances the injected ManualClock (if that is what backs this controller)
 // by d. It is a convenience wrapper; if the clock is not a *ManualClock it is a
 // no-op and callers should advance their own clock.
+//
+// Tick mutates only the injected clock, never the backends map, so it does NOT
+// take c.mu; this also lets Dispatch call it while already holding the lock
+// (sync.Mutex is not reentrant). Advancing a *ManualClock concurrently with
+// Dispatch from another goroutine is the clock's own concern — production
+// callers use a real (already concurrency-safe) clock; ManualClock is for
+// single-threaded deterministic tests.
 func (c *Controller) Tick(d time.Duration) {
 	if mc, ok := c.clock.(*ManualClock); ok {
 		mc.Advance(d)
@@ -200,6 +229,8 @@ type DispatchResult struct {
 //     the REMAINING warm-up time, the clock is advanced by that remainder, the
 //     backend ends Hot, and ColdStart is that remainder.
 func (c *Controller) Dispatch(id string) DispatchResult {
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	b := c.ensure(id)
 	now := c.clock.Now()
 	s := b.currentState(now, c.coldStart)
