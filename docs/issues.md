@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 53
-**Last modified:** 2026-06-13T10:00:02Z
+**Revision:** 54
+**Last modified:** 2026-06-13T10:08:26Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **417**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **416**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -55,7 +55,7 @@ Total active items: **417**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 | HXC-931 | Task | P3 | Queued | Reconcile internal/console linux_boot.go (BootMachine) with boot_coordinator.go (BootCoordinator) |
 
-## Phase 3 (37 active)
+## Phase 3 (36 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -67,7 +67,6 @@ Total active items: **417**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1184 | Feature | P0 | Completed | Implement edge node registration for all tiers (T3-T8) |
 | HXC-1197 | Feature | P0 | Completed | Implement edge output verification (LLMsVerifier/redundant/checksum) |
 | HXC-1205 | Feature | P0 | Queued | Build edge setup wizard for device onboarding |
-| HXC-1207 | Task | P0 | Queued | Implement edge device chaos test suite |
 | HXC-1208 | Task | P0 | Queued | Implement battery/thermal stress testing for edge devices |
 | HXC-1169 | Feature | P1 | Queued | Implement SBCAdapter for SBC-specific hardware monitoring |
 | HXC-1170 | Feature | P1 | Queued | Integrate RK3588 NPU via RKNN Toolkit2 C API |

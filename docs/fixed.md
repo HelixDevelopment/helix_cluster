@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 53
-**Last modified:** 2026-06-13T10:00:02Z
+**Revision:** 54
+**Last modified:** 2026-06-13T10:08:26Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **290**.
+Total completed: **291**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -192,6 +192,7 @@ Total completed: **290**.
 | HXC-1196 | Feature | P0 | Enforce workload restriction matrix by trust level | 7718c20 |
 | HXC-1198 | Feature | P1 | Implement offline sync protocol with delta compression | 203c42a |
 | HXC-1199 | Feature | P1 | Implement edge sensor-fusion framework and stream workload type | 75f076f |
+| HXC-1207 | Task | P0 | Implement edge device chaos test suite | 646b1ad |
 | HXC-1210 | Bug | P0 | Wire EtcdBackend into the node agent for cluster-wide discovery | 203c42a |
 | HXC-1211 | Bug | P0 | Make internal/scheduler.StreamJobEvents a real event stream | 7718c20 |
 | HXC-1212 | Feature | P0 | Connect pkg/classads to scheduler Filter/Score stages | 7718c20 |
