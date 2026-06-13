@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 112
-**Last modified:** 2026-06-13T19:47:07Z
+**Revision:** 113
+**Last modified:** 2026-06-13T19:54:24Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **545**.
+Total completed: **547**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -476,6 +476,8 @@ Total completed: **545**.
 | HXC-1649 | Bug | P0 | FIX pkg/heartbeatcoalescer Receiver data race (unsynchronized lastSeen) | 0bc06ee |
 | HXC-1650 | Bug | P1 | harden EtcdLocker fire-once release guard (follow-up to HXC-1648) | 85397fb |
 | HXC-1651 | Feature | P1 | pkg/flowcontrol concurrent credit-conservation test (never over-admit) | 916e8cf |
+| HXC-1652 | Feature | P1 | pkg/ratelimit UserLimiter adversarial over-admission test (dual-bucket, frozen clock) | af8455d |
+| HXC-1653 | Feature | P1 | pkg/pool GPU-instance-pool adversarial concurrency test (no double-issue, capacity bound) | 916ea58 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
