@@ -1,0 +1,3 @@
+# Local standalone Go workspace files are dev-only; the root go.work is canonical.
+/go.work
+/go.work.sum

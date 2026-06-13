@@ -9,11 +9,13 @@ use (
 	./api/v1
 	./challenges
 	./chaos/netfault
+	./clusternode
 	./cmd/hxc-registry
 	./config
 	./containers
 	./devicedetect
 	./discovery
+	./discovery/p2p
 	./edge/gateway
 	./edge/mqttclient
 	./fpgadetect
