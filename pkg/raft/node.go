@@ -22,6 +22,9 @@ type Node struct {
 	raft  *hraft.Raft
 	fsm   *KVFSM
 	trans *hraft.InmemTransport
+	// netTransport is set instead of trans for nodes built on a REAL TCP
+	// NetworkTransport (see tcp.go). Exactly one of trans/netTransport is non-nil.
+	netTransport *hraft.NetworkTransport
 }
 
 // ID returns the node's server ID.
@@ -85,6 +88,14 @@ func (n *Node) Shutdown() error {
 	if err := n.raft.Shutdown().Error(); err != nil {
 		return fmt.Errorf("raft: shutdown node %s: %w", n.id, err)
 	}
+	// For TCP-backed nodes, also close the underlying NetworkTransport so its
+	// listener socket is released. After this the node is fully off the network,
+	// which is exactly what the kill-the-leader test relies on.
+	if n.netTransport != nil {
+		if err := n.netTransport.Close(); err != nil {
+			return fmt.Errorf("raft: close tcp transport for node %s: %w", n.id, err)
+		}
+	}
 	return nil
 }
 
@@ -98,6 +109,9 @@ type nodeConfig struct {
 	addr      hraft.ServerAddress
 	fsm       *KVFSM
 	conf      *hraft.Config
+	// netTransport is the REAL TCP transport for TCP-backed nodes (see tcp.go);
+	// nil for in-mem nodes, which use the transport field above instead.
+	netTransport *hraft.NetworkTransport
 }
 
 // newInmemNode builds a single Raft node backed entirely by in-memory stores and
