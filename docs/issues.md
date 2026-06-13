@@ -1,14 +1,14 @@
 # Issues
 
-**Revision:** 45
-**Last modified:** 2026-06-13T09:08:11Z
+**Revision:** 46
+**Last modified:** 2026-06-13T09:19:57Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **423**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (14 active)
+## Foundation (anti-bluff) (13 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -25,7 +25,6 @@ Total active items: **424**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-939 | Docs | P2 | Completed | Refresh stale per-phase GAP_AUDIT.md files (CLAUDE-3) |
 | HXC-940 | Task | P2 | Completed | Wire the orphaned gate packages (covgate/archlint/etcdlint/qualitygate/phasegate) |
 | HXC-946 | Task | P2 | Completed | Triage trivy misconfig HIGH (50) + suppress QA-sentinel secret false-positives |
-| HXC-948 | Bug | P2 | Queued | Fix api/v1 module path /v1-suffix blocking out-of-workspace require/replace |
 
 ## MVP (9 active)
 
