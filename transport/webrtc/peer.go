@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	pion "github.com/pion/webrtc/v4"
 )
@@ -13,9 +14,70 @@ import (
 // channel created between two Helix edge peers.
 const DataChannelLabel = "helix-dispatch"
 
+// Security/DoS hardening bounds. These cap the resources a single hostile or
+// misbehaving remote peer can pin or grow on this side of the data channel.
+const (
+	// maxInboundMessageBytes is the hard cap on the size of a single inbound
+	// data-channel message we will accept before decoding. A frame larger than
+	// this is rejected (and the channel closed) rather than handed to the codec,
+	// so a hostile peer cannot drive an out-of-memory by announcing a giant
+	// length prefix / payload. It is set above the codec's per-field cap
+	// (maxFieldLen, 16 MiB) plus header/framing overhead so any legitimately
+	// encodable WorkEnvelope still fits, while a 4x-or-more oversize frame is
+	// refused.
+	maxInboundMessageBytes = maxFieldLen + (1 << 20) // 16 MiB + 1 MiB framing slack
+
+	// sctpMaxMessageSize bounds the largest message the SCTP/data-channel layer
+	// will reassemble before delivering it to OnMessage. This is the real
+	// allocation guard at the transport layer: without it, pion buffers up to
+	// its default before our handler ever runs. We pin it to our application
+	// inbound cap so the transport refuses oversize reassembly itself.
+	sctpMaxMessageSize uint32 = maxInboundMessageBytes
+
+	// sctpMaxReceiveBufferSize bounds total SCTP receive-buffer memory per
+	// association, capping how much unread inbound data can accumulate when the
+	// consumer is slow.
+	sctpMaxReceiveBufferSize uint32 = 4 << 20 // 4 MiB
+
+	// recvQueueDepth bounds the number of decoded, not-yet-consumed envelopes
+	// held in memory. Past this depth the non-blocking OnMessage handler drops
+	// (and surfaces an error) rather than growing without bound or blocking the
+	// pion read callback.
+	recvQueueDepth = 64
+
+	// iceDisconnectedTimeout / iceFailedTimeout reap half-open or stalled
+	// ICE/DTLS handshakes instead of pinning goroutines indefinitely. A peer
+	// that never completes the handshake transitions to failed within
+	// iceFailedTimeout and its resources can be released.
+	iceDisconnectedTimeout = 5 * time.Second
+	iceFailedTimeout       = 10 * time.Second
+	iceKeepAliveInterval   = 2 * time.Second
+
+	// stunGatherTimeout bounds how long ICE candidate gathering blocks, so a
+	// peer that cannot gather candidates does not pin the connection open.
+	stunGatherTimeout = 5 * time.Second
+)
+
 // ErrChannelNotOpen is returned by Send when the data channel has not yet
 // reached the open state.
 var ErrChannelNotOpen = errors.New("webrtc: data channel not open")
+
+// ErrMessageTooLarge is surfaced via Receive when an inbound data-channel
+// message exceeds maxInboundMessageBytes. The offending channel is closed.
+var ErrMessageTooLarge = errors.New("webrtc: inbound message exceeds max size")
+
+// hardenedAPI builds a pion API whose SettingEngine applies the security/DoS
+// bounds above (SCTP message + receive-buffer caps, ICE/DTLS reaping timeouts,
+// bounded STUN gathering). All Peers are constructed through it so the limits
+// are enforced uniformly and out of the box.
+func hardenedAPI() *pion.API {
+	var se pion.SettingEngine
+	se.SetSCTPMaxMessageSize(sctpMaxMessageSize)
+	se.SetSCTPMaxReceiveBufferSize(sctpMaxReceiveBufferSize)
+	se.SetICETimeouts(iceDisconnectedTimeout, iceFailedTimeout, iceKeepAliveInterval)
+	se.SetSTUNGatherTimeout(stunGatherTimeout)
+	return pion.NewAPI(pion.WithSettingEngine(se))
+}
 
 // Peer wraps a pion RTCPeerConnection together with a single reliable, ordered
 // work-dispatch DataChannel. The offerer constructs its channel eagerly via
@@ -42,7 +104,9 @@ type Peer struct {
 func NewPeer(offerer bool) (*Peer, error) {
 	// No ICE servers: loopback host candidates are sufficient for in-process
 	// peering. STUN/TURN for real-internet NAT traversal is deferred (HXC-1202).
-	pc, err := pion.NewPeerConnection(pion.Configuration{})
+	// The PeerConnection is built through a hardened API so SCTP message/buffer
+	// caps and ICE/DTLS reaping timeouts are enforced from creation.
+	pc, err := hardenedAPI().NewPeerConnection(pion.Configuration{})
 	if err != nil {
 		return nil, fmt.Errorf("webrtc: new peer connection: %w", err)
 	}
@@ -50,7 +114,7 @@ func NewPeer(offerer bool) (*Peer, error) {
 	p := &Peer{
 		pc:      pc,
 		openCh:  make(chan struct{}),
-		recvCh:  make(chan WorkEnvelope, 64),
+		recvCh:  make(chan WorkEnvelope, recvQueueDepth),
 		recvErr: make(chan error, 1),
 	}
 
@@ -98,25 +162,56 @@ func (p *Peer) bindChannel(dc *pion.DataChannel) {
 	})
 
 	dc.OnMessage(func(msg pion.DataChannelMessage) {
-		env, err := DecodeEnvelope(msg.Data)
-		if err != nil {
-			select {
-			case p.recvErr <- fmt.Errorf("webrtc: decode received envelope: %w", err):
-			default:
-			}
-			return
-		}
-		select {
-		case p.recvCh <- env:
-		default:
-			// Receive queue full: surface as an error rather than silently drop
-			// (CLAUDE-1: no silent loss of dispatched work).
-			select {
-			case p.recvErr <- errors.New("webrtc: receive queue overflow"):
-			default:
-			}
+		// The pion read callback must never block, so handleInbound is fully
+		// non-blocking (bounded select/default sends only). If it reports the
+		// frame should close the channel (oversize DoS guard), tear it down off
+		// the callback goroutine.
+		if closeChannel := p.handleInbound(msg.Data); closeChannel {
+			go func() { _ = dc.Close() }()
 		}
 	})
+}
+
+// handleInbound processes one inbound data-channel frame. It is the exact body
+// invoked by the data channel's OnMessage handler, factored out so the
+// security guards (inbound size cap, bounded non-blocking receive queue) are
+// directly exercisable. It MUST NOT block: every channel send is non-blocking.
+//
+// It returns true iff the caller should close the data channel (used for the
+// oversize-frame DoS guard, where the offending peer is dropped rather than
+// retried).
+func (p *Peer) handleInbound(data []byte) (closeChannel bool) {
+	// Inbound size cap (DoS guard): refuse a frame larger than our hard limit
+	// BEFORE decoding/allocating envelope fields, so a hostile peer cannot drive
+	// OOM with a giant message. Surface an error and signal channel close so the
+	// offending peer is dropped rather than retried forever.
+	if len(data) > maxInboundMessageBytes {
+		select {
+		case p.recvErr <- fmt.Errorf("%w: %d bytes", ErrMessageTooLarge, len(data)):
+		default:
+		}
+		return true
+	}
+	env, err := DecodeEnvelope(data)
+	if err != nil {
+		select {
+		case p.recvErr <- fmt.Errorf("webrtc: decode received envelope: %w", err):
+		default:
+		}
+		return false
+	}
+	select {
+	case p.recvCh <- env:
+	default:
+		// Receive queue full: surface as an error rather than silently drop
+		// (CLAUDE-1: no silent loss of dispatched work) and rather than block the
+		// pion read callback (which would stall the whole data channel).
+		select {
+		case p.recvErr <- errors.New("webrtc: receive queue overflow"):
+		default:
+		}
+	}
+	return false
 }
 
 // PeerConnection exposes the underlying pion PeerConnection for signaling
