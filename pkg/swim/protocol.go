@@ -606,20 +606,31 @@ func (p *Protocol) probeRandomMember() {
 	// Send ping and wait for ack with timeout. The waiter is tracked by p.wg and
 	// honours p.ctx so it does not outlive Stop(): on shutdown the wait aborts
 	// immediately instead of blocking for the full probeTimeout.
+	//
+	// Ack correlation: we snapshot the target's LastSeen timestamp at the instant
+	// the ping is sent, then after probeTimeout check whether LastSeen has advanced
+	// strictly past that instant. handleAck/handlePing call m.Touch() (lastSeen =
+	// now) for any message from the target, so a real ack landing within the window
+	// reliably moves LastSeen past sentAt. The previous heuristic compared
+	// TimeSinceLastSeen() *durations* across the wait, which mis-fired on healthy
+	// peers whenever lastSeen had just been touched before the probe (oldSeen ~ 0),
+	// causing spurious suspicion of a perfectly alive node. Snapshotting the
+	// absolute send instant removes that race: a healthy, acking peer is never
+	// falsely reported as a missed ack.
 	ackCh := make(chan bool, 1)
+	sentAt := time.Now()
 	p.wg.Add(1)
 	go func() {
 		defer p.wg.Done()
-		// In a real implementation, we'd correlate acks with pings.
-		// Here we just wait for any ack handler to touch the member.
-		oldSeen := target.TimeSinceLastSeen()
 		select {
 		case <-time.After(p.probeTimeout):
 		case <-p.ctx.Done():
 			ackCh <- false
 			return
 		}
-		if target.TimeSinceLastSeen() < oldSeen {
+		// A real ack (handleAck -> Touch) sets lastSeen = now, which is after
+		// sentAt. If lastSeen never advanced past sentAt, no ack was observed.
+		if target.LastSeen().After(sentAt) {
 			ackCh <- true
 		} else {
 			ackCh <- false
@@ -643,7 +654,27 @@ func (p *Protocol) probeRandomMember() {
 			Timestamp:   time.Now(),
 		})
 
-		// Broadcast suspicion
+		// Notify the SUSPECTED target directly so it can refute. This is the
+		// crux of SWIM's suspicion mechanism: a still-alive node that is wrongly
+		// suspected (e.g. a probe ack was lost or arrived just after the probe
+		// timeout) must learn it is suspected so it can increment its incarnation
+		// and broadcast Alive, cancelling every suspector's death timer via
+		// handleAlive -> fd.Refute. Without this, a transient missed ack against a
+		// perfectly healthy peer escalates all the way to StateDead when the
+		// suspicion timer fires, because the target never hears the suspicion and
+		// never refutes (handleSuspect's self-refute branch is otherwise
+		// unreachable). The target's handleSuspect(self) path then runs
+		// broadcastAlive(inc), refuting the suspicion cluster-wide.
+		if taddr, err := net.ResolveUDPAddr("udp", target.Address); err == nil {
+			p.transport.Send(&Message{
+				Type:        MsgSuspect,
+				SourceID:    p.localID,
+				TargetID:    target.ID,
+				Incarnation: inc,
+			}, *taddr)
+		}
+
+		// Broadcast suspicion to the OTHER healthy members (gossip dissemination).
 		for _, m := range p.HealthyMembers() {
 			if m.ID == p.localID || m.ID == target.ID {
 				continue
