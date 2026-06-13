@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 61
-**Last modified:** 2026-06-13T11:15:56Z
+**Revision:** 62
+**Last modified:** 2026-06-13T11:18:25Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **415**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **414**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -55,7 +55,7 @@ Total active items: **415**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 | HXC-931 | Task | P3 | Queued | Reconcile internal/console linux_boot.go (BootMachine) with boot_coordinator.go (BootCoordinator) |
 
-## Phase 3 (36 active)
+## Phase 3 (35 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -86,7 +86,6 @@ Total active items: **415**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-926 | Task | P1 | Queued | Wire pkg/powergater CanAcceptWork into edge/agent work-acceptance path |
 | HXC-1181 | Feature | P2 | Queued | Implement iOS CoreML / Neural Engine inference engine |
 | HXC-1183 | Feature | P2 | Queued | Implement HarmonyOS Agent (ArkTS) with Da Vinci NPU inference |
-| HXC-1201 | Feature | P2 | Queued | Implement low-bandwidth protocol optimizations (CoAP option) |
 | HXC-1217 | Feature | P2 | Queued | Implement internal/gpu cgo vendor backends (CUDA/ROCm/oneAPI/MLX) |
 | HXC-1218 | Feature | P2 | Queued | Implement session live migration (CRIU/DMTCP) |
 | HXC-1219 | Feature | P2 | Queued | Implement WireGuard UPnP/NAT-PMP NAT traversal |
