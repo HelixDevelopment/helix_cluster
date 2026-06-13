@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 62
-**Last modified:** 2026-06-13T11:18:25Z
+**Revision:** 63
+**Last modified:** 2026-06-13T11:20:54Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **299**.
+Total completed: **300**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -193,6 +193,7 @@ Total completed: **299**.
 | HXC-1198 | Feature | P1 | Implement offline sync protocol with delta compression | 203c42a |
 | HXC-1199 | Feature | P1 | Implement edge sensor-fusion framework and stream workload type | 75f076f |
 | HXC-1201 | Feature | P2 | Implement low-bandwidth protocol optimizations (CoAP option) | 5ebb093 |
+| HXC-1202 | Research | P3 | Implement WebRTC P2P data-channel transport for edge devices | 4261d34 |
 | HXC-1207 | Task | P0 | Implement edge device chaos test suite | 646b1ad |
 | HXC-1210 | Bug | P0 | Wire EtcdBackend into the node agent for cluster-wide discovery | 203c42a |
 | HXC-1211 | Bug | P0 | Make internal/scheduler.StreamJobEvents a real event stream | 7718c20 |

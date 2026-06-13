@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 62
-**Last modified:** 2026-06-13T11:18:25Z
+**Revision:** 63
+**Last modified:** 2026-06-13T11:20:54Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **414**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **413**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -55,7 +55,7 @@ Total active items: **414**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 | HXC-931 | Task | P3 | Queued | Reconcile internal/console linux_boot.go (BootMachine) with boot_coordinator.go (BootCoordinator) |
 
-## Phase 3 (35 active)
+## Phase 3 (34 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -93,7 +93,6 @@ Total active items: **414**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1622 | Feature | P2 | Queued | HXC-1167 follow-up: CGO-enabled aarch64 cross-build via zig cc / aarch64-linux-gnu-gcc |
 | HXC-1623 | Task | P2 | Queued | HXC-1167 follow-up: validate cross-compiled helix-agent on real Orange Pi 5 Max (aarch64) execution |
 | HXC-1624 | Feature | P2 | Queued | HXC-1158 follow-up: add positive non-console SoC-match labels (RK3588/RPi/x86 server) to internal/console detector |
-| HXC-1202 | Research | P3 | Queued | Implement WebRTC P2P data-channel transport for edge devices |
 
 ## Phase 4 (48 active)
 
