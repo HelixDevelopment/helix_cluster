@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 103
-**Last modified:** 2026-06-13T18:58:01Z
+**Revision:** 104
+**Last modified:** 2026-06-13T19:00:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **526**.
+Total completed: **527**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -536,3 +536,4 @@ Total completed: **526**.
 | HXC-990 | Feature | P1 | pkg/raft PreVote runtime disruption test (runtime pairing of HXC-986) | 03a9cea |
 | HXC-991 | Feature | P2 | helix-raftctl CLI client for helix-raftd admin API (live-cluster proven) | 8c8922a |
 | HXC-992 | Feature | P1 | pkg/scheduler Omega optimistic-concurrency barrier-race test (no double-booking) | 8a3f499 |
+| HXC-993 | Task | P2 | gofmt hygiene: format 125 unformatted committed Go files across pkg/ + cmd/ | a709acb |
