@@ -19,6 +19,38 @@ const DefaultKeepAlivePeriod = 15 * time.Second
 // closed when no packets are exchanged.
 const DefaultMaxIdleTimeout = 30 * time.Second
 
+// DefaultHandshakeIdleTimeout bounds the resources a half-open (handshaking)
+// connection may hold: if the peer sends no packet within this window the
+// connection attempt is aborted, and quic-go also aborts if the handshake does
+// not complete within twice this value. Matches quic-go's own default but is
+// pinned explicitly so it cannot silently widen.
+const DefaultHandshakeIdleTimeout = 5 * time.Second
+
+// Default{MaxIncomingStreams,MaxIncomingUniStreams} cap how many concurrent
+// streams a single peer may open against us. quic-go defaults to 100 each;
+// we pin an explicit (slightly higher but still bounded) value so the cap is
+// part of this package's contract and provable by test rather than an implicit
+// upstream default that could change between quic-go releases.
+const (
+	DefaultMaxIncomingStreams    = 256
+	DefaultMaxIncomingUniStreams = 256
+)
+
+// DefaultMaxMessageBytes bounds a single length-prefixed inbound message read
+// off a stream (see framing.go). A hostile/corrupt length prefix advertising a
+// huge size must not make the reader allocate unbounded memory. 8 MiB matches
+// the edge/gateway quicFrameMaxLen so framing is parity-consistent across the
+// Helix QUIC transports.
+const DefaultMaxMessageBytes = 8 << 20 // 8 MiB
+
+// DefaultMaxConns bounds the number of concurrently live accepted connections a
+// QUICServer will hold. An unauthenticated peer (or many) opening connections
+// without bound is a memory/goroutine-exhaustion vector; past this cap Accept
+// refuses (closes) the excess connection instead of returning it. Zero in the
+// Config means "no extra cap" (rely on OS/quic-go limits); the server defaults
+// it to this value so the guard is on out of the box.
+const DefaultMaxConns = 1024
+
 // Config holds the tunable parameters for both the QUIC server and client.
 //
 // Zero values fall back to the Default* constants where a non-zero value is
@@ -39,8 +71,31 @@ type Config struct {
 	// MaxIdleTimeout is the idle timeout. Zero -> DefaultMaxIdleTimeout.
 	MaxIdleTimeout time.Duration
 
+	// HandshakeIdleTimeout bounds half-open/handshaking connections.
+	// Zero -> DefaultHandshakeIdleTimeout.
+	HandshakeIdleTimeout time.Duration
+
 	// KeepAlivePeriod is the keep-alive PING period. Zero -> DefaultKeepAlivePeriod.
 	KeepAlivePeriod time.Duration
+
+	// MaxIncomingStreams caps concurrent bidirectional streams a peer may open.
+	// Zero -> DefaultMaxIncomingStreams. A negative value disallows bidi streams
+	// entirely (quic-go semantics) and is honored verbatim.
+	MaxIncomingStreams int64
+
+	// MaxIncomingUniStreams caps concurrent unidirectional streams a peer may
+	// open. Zero -> DefaultMaxIncomingUniStreams. Negative disallows uni streams.
+	MaxIncomingUniStreams int64
+
+	// MaxMessageBytes caps a single length-prefixed message read off a stream
+	// (framing.go). Zero -> DefaultMaxMessageBytes. A value <= 0 after defaulting
+	// is treated as the default; there is no "unlimited" escape hatch.
+	MaxMessageBytes int
+
+	// MaxConns caps concurrently live accepted server connections. Zero ->
+	// DefaultMaxConns (applied by the server). A negative value disables the
+	// extra accept-side cap (rely solely on OS/quic-go limits).
+	MaxConns int
 
 	// TLSConfig is the base TLS config. The transport clones it and forces
 	// NextProtos + (for the client) a ClientSessionCache so 0-RTT can resume.
@@ -75,17 +130,66 @@ func (c *Config) maxIdle() time.Duration {
 	return DefaultMaxIdleTimeout
 }
 
+func (c *Config) handshakeIdle() time.Duration {
+	if c.HandshakeIdleTimeout > 0 {
+		return c.HandshakeIdleTimeout
+	}
+	return DefaultHandshakeIdleTimeout
+}
+
+// maxIncomingStreams resolves the bidi stream cap. A negative configured value
+// is honored (quic-go reads it as "disallow"), only the zero value defaults.
+func (c *Config) maxIncomingStreams() int64 {
+	if c.MaxIncomingStreams != 0 {
+		return c.MaxIncomingStreams
+	}
+	return DefaultMaxIncomingStreams
+}
+
+func (c *Config) maxIncomingUniStreams() int64 {
+	if c.MaxIncomingUniStreams != 0 {
+		return c.MaxIncomingUniStreams
+	}
+	return DefaultMaxIncomingUniStreams
+}
+
+// maxMessageBytes resolves the framed-message cap. There is deliberately no
+// "unlimited" option: a non-positive value falls back to the default.
+func (c *Config) maxMessageBytes() int {
+	if c.MaxMessageBytes > 0 {
+		return c.MaxMessageBytes
+	}
+	return DefaultMaxMessageBytes
+}
+
+// maxConns resolves the accept-side concurrent-connection cap. A negative value
+// disables the extra cap (returns 0, meaning "unlimited" to the gate); zero
+// defaults to DefaultMaxConns.
+func (c *Config) maxConns() int {
+	switch {
+	case c.MaxConns < 0:
+		return 0
+	case c.MaxConns == 0:
+		return DefaultMaxConns
+	default:
+		return c.MaxConns
+	}
+}
+
 // quicConfig builds the *quic.Config shared by server and client.
 //
 // DisablePathMigration is deliberately left false so the connection migration
 // path (Conn.AddPath/Path.Switch) is exercisable.
 func (c *Config) quicConfig() *quicgo.Config {
 	return &quicgo.Config{
-		MaxIdleTimeout:  c.maxIdle(),
-		KeepAlivePeriod: c.keepAlive(),
-		EnableDatagrams: c.EnableDatagrams,
-		Allow0RTT:       c.Allow0RTT,
-		TokenStore:      c.TokenStore,
+		MaxIdleTimeout:        c.maxIdle(),
+		HandshakeIdleTimeout:  c.handshakeIdle(),
+		KeepAlivePeriod:       c.keepAlive(),
+		EnableDatagrams:       c.EnableDatagrams,
+		Allow0RTT:             c.Allow0RTT,
+		TokenStore:            c.TokenStore,
+		MaxIncomingStreams:    c.maxIncomingStreams(),
+		MaxIncomingUniStreams: c.maxIncomingUniStreams(),
 	}
 }
 

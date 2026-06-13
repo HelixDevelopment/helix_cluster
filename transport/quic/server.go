@@ -3,11 +3,23 @@ package quic
 import (
 	"context"
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
+	"sync/atomic"
 
 	quicgo "github.com/quic-go/quic-go"
 )
+
+// ErrMaxConnsReached is returned by Accept when the number of concurrently live
+// accepted connections is already at the server's MaxConns cap. The offending
+// connection is closed (CONNECTION_REFUSED) before Accept returns this error,
+// so a peer flooding new connections cannot grow server memory past the cap.
+var ErrMaxConnsReached = errors.New("quic server: max concurrent connections reached")
+
+// connRefusedCode is the QUIC application error code sent when a connection is
+// refused because the server is at its MaxConns cap.
+const connRefusedCode quicgo.ApplicationErrorCode = 0x1
 
 // QUICServer is a Helix federation QUIC listener bound to a single UDP socket.
 //
@@ -20,7 +32,20 @@ type QUICServer struct {
 	listener  *quicgo.EarlyListener
 	udpConn   *net.UDPConn
 	Stats     *ConnectionMigrationStats
+
+	// maxConns is the resolved concurrent-connection cap (0 == unlimited).
+	maxConns int
+	// liveConns counts connections handed out by Accept and not yet torn down.
+	// It is decremented automatically when a connection's context is cancelled.
+	liveConns atomic.Int64
 }
+
+// LiveConns returns the number of accepted connections currently counted as
+// live (handed out by Accept, not yet torn down). Exposed for tests/metrics.
+func (s *QUICServer) LiveConns() int64 { return s.liveConns.Load() }
+
+// MaxConns returns the resolved concurrent-connection cap (0 == unlimited).
+func (s *QUICServer) MaxConns() int { return s.maxConns }
 
 // NewQUICServer binds a UDP socket on addr (e.g. "127.0.0.1:0" for an
 // ephemeral loopback port) and starts an early (0-RTT-capable) QUIC listener.
@@ -56,6 +81,7 @@ func NewQUICServer(addr string, cfg Config) (*QUICServer, error) {
 		listener:  ln,
 		udpConn:   udpConn,
 		Stats:     stats,
+		maxConns:  cfg.maxConns(),
 	}, nil
 }
 
@@ -75,6 +101,25 @@ func (s *QUICServer) Accept(ctx context.Context) (*quicgo.Conn, error) {
 	if err != nil {
 		return nil, fmt.Errorf("accept: %w", err)
 	}
+
+	// Concurrent-connection cap (backpressure against goroutine/memory growth):
+	// reserve a slot before handing the connection to the caller. If we are at
+	// the cap, refuse and close the connection so a flood of new connections
+	// cannot grow server-side resources without bound. Reserve optimistically
+	// then roll back if over the cap, so the count never exceeds maxConns.
+	if s.maxConns > 0 {
+		if s.liveConns.Add(1) > int64(s.maxConns) {
+			s.liveConns.Add(-1)
+			_ = conn.CloseWithError(connRefusedCode, "server at max connections")
+			return nil, ErrMaxConnsReached
+		}
+		// Release the reserved slot when the connection is torn down.
+		go func(c *quicgo.Conn) {
+			<-c.Context().Done()
+			s.liveConns.Add(-1)
+		}(conn)
+	}
+
 	// Wait for the handshake to complete so ConnectionState() is authoritative.
 	select {
 	case <-conn.HandshakeComplete():
@@ -82,6 +127,11 @@ func (s *QUICServer) Accept(ctx context.Context) (*quicgo.Conn, error) {
 			s.Stats.Record0RTTResume()
 		}
 	case <-ctx.Done():
+		// The decrement goroutine (if any) will fire when the conn context is
+		// cancelled; ensure that happens by closing the connection here.
+		if s.maxConns > 0 {
+			_ = conn.CloseWithError(connRefusedCode, "accept context cancelled")
+		}
 		return nil, ctx.Err()
 	}
 	return conn, nil
