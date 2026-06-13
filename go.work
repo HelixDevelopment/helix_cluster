@@ -12,6 +12,7 @@ use (
 	./config
 	./containers
 	./discovery
+	./edge/gateway
 	./edge/mqttclient
 	./pkg/build
 	./pkg/hxcregistry
