@@ -15,6 +15,7 @@ use (
 	./discovery
 	./edge/gateway
 	./edge/mqttclient
+	./npudetect
 	./pkg/build
 	./pkg/hxcregistry
 	./recovery
