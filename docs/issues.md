@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 75
-**Last modified:** 2026-06-13T14:35:02Z
+**Revision:** 76
+**Last modified:** 2026-06-13T14:36:40Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **409**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **408**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -94,7 +94,7 @@ Total active items: **409**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1623 | Task | P2 | Queued | HXC-1167 follow-up: validate cross-compiled helix-agent on real Orange Pi 5 Max (aarch64) execution |
 | HXC-1624 | Feature | P2 | Queued | HXC-1158 follow-up: add positive non-console SoC-match labels (RK3588/RPi/x86 server) to internal/console detector |
 
-## Phase 4 (46 active)
+## Phase 4 (45 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -115,7 +115,6 @@ Total active items: **409**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1245 | Feature | P1 | Completed | Implement 3 time fault injectors (clock skew, clock freeze, monotonic drift) |
 | HXC-1250 | Feature | P1 | Queued | Integrate Chaos Mesh CRDs (NetworkChaos, TimeChaos, StressChaos, DNSChaos) |
 | HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |
-| HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
 | HXC-1263 | Feature | P1 | In progress | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
 | HXC-1269 | Feature | P1 | Queued | Build cmd/helix-testd daemon as OTP controller node entrypoint |

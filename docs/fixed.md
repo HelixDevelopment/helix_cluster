@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 75
-**Last modified:** 2026-06-13T14:35:02Z
+**Revision:** 76
+**Last modified:** 2026-06-13T14:36:40Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **312**.
+Total completed: **313**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -221,6 +221,7 @@ Total completed: **312**.
 | HXC-1254 | Feature | P1 | Implement TestRunner with parallel suite execution and result collection | aba565b |
 | HXC-1255 | Feature | P1 | Implement session test state machine (IDLE→SETUP→RUNNING→CHAOS_INJECT→VERIFY→RECOVERY→REPORT) | aba565b |
 | HXC-1258 | Feature | P1 | Implement MetricsCollector exporting 15+ chaos Prometheus metric series with OpenTelemetry tracing | c642583 |
+| HXC-1259 | Feature | P1 | Implement HelixQA automatic challenge generation from test outcomes | 58ae8b1 |
 | HXC-1260 | Feature | P1 | Implement metrics validation against baseline KPI table with severity gating | 553a043 |
 | HXC-1261 | Feature | P1 | Implement Welch's t-test statistical regression detector for HelixQA | 1c0d943 |
 | HXC-1264 | Task | P1 | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter | 765236d |
