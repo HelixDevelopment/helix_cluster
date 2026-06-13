@@ -1,0 +1,5 @@
+# Local-only workspace file for standalone builds (GOWORK isolation).
+# The parent maintainer folds this module into the root go.work; keep this
+# local file out of the commit so it does not conflict with that fold.
+/go.work
+/go.work.sum

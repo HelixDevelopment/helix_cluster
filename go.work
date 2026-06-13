@@ -26,4 +26,5 @@ use (
 	./security
 	./transport/coap
 	./transport/quic
+	./transport/webrtc
 )
