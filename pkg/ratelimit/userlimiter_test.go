@@ -11,9 +11,9 @@ import (
 // All tests use FakeClock so there are no real sleeps.
 
 // TestUserLimiter_Allow_UserBucketDeny proves:
-//  - Requests succeed while the per-user bucket has capacity.
-//  - The (cap+1)th request is denied with remaining==0.
-//  - No token is consumed on denial (bucket stays at 0 — not negative).
+//   - Requests succeed while the per-user bucket has capacity.
+//   - The (cap+1)th request is denied with remaining==0.
+//   - No token is consumed on denial (bucket stays at 0 — not negative).
 //
 // §1.1 mutation target (recorded in mutation_proof): removing the `ub.tokens < 1.0`
 // guard in Allow allows the over-limit request through and this test fails.
@@ -153,9 +153,9 @@ func TestUserLimiter_TokenCountsBeforeAndAfter(t *testing.T) {
 func TestUserLimiter_GlobalBucketDeny(t *testing.T) {
 	clk := NewFakeClock(1_000_000_000)
 	ul := NewUserLimiterWithClock(UserLimiterConfig{
-		UserCapacity:       100,  // plenty of per-user capacity
+		UserCapacity:       100, // plenty of per-user capacity
 		UserRefillPerSec:   0,
-		GlobalCapacity:     2,    // global bucket runs out fast
+		GlobalCapacity:     2, // global bucket runs out fast
 		GlobalRefillPerSec: 0,
 	}, clk)
 

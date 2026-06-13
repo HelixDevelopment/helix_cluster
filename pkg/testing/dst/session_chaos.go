@@ -41,9 +41,9 @@ import (
 type TimelineEventKind string
 
 const (
-	TimelineKillNode    TimelineEventKind = "kill"
-	TimelineReschedule  TimelineEventKind = "reschedule"
-	TimelineReconverge  TimelineEventKind = "reconverge"
+	TimelineKillNode     TimelineEventKind = "kill"
+	TimelineReschedule   TimelineEventKind = "reschedule"
+	TimelineReconverge   TimelineEventKind = "reconverge"
 	TimelineSessionStart TimelineEventKind = "session_start"
 )
 
@@ -126,7 +126,7 @@ type SimCluster struct {
 	timeline *RecoveryTimeline
 
 	mu       sync.RWMutex
-	members  map[string]*SimNode // nodeID -> SimNode
+	members  map[string]*SimNode    // nodeID -> SimNode
 	sessions map[string]*SimSession // sessionID -> SimSession
 
 	// reschedulingEnabled controls whether the scheduler tries to move sessions
@@ -348,9 +348,9 @@ type ChaosScenarioConfig struct {
 
 // ChaosScenarioResult is the result of RunChaosScenario.
 type ChaosScenarioResult struct {
-	Timeline        *RecoveryTimeline
+	Timeline         *RecoveryTimeline
 	FinalMemberCount int
-	Session         *SimSession
+	Session          *SimSession
 }
 
 // RunChaosScenario runs the full kill-reschedule-reconverge chaos scenario on
@@ -412,9 +412,9 @@ func RunChaosScenario(cfg ChaosScenarioConfig) (*ChaosScenarioResult, error) {
 	eng.Run(100)
 
 	return &ChaosScenarioResult{
-		Timeline:        tl,
+		Timeline:         tl,
 		FinalMemberCount: cluster.MemberCount(),
-		Session:         cluster.GetSession(cfg.SessionID),
+		Session:          cluster.GetSession(cfg.SessionID),
 	}, nil
 }
 

@@ -35,7 +35,9 @@ const applyTimeout = 2 * time.Second
 // leader while serving reads from any replica's replicated FSM.
 //
 // Write path  (Put): caller -> leader's Raft.Apply -> replicated to majority ->
-//                     applied to EVERY replica's KVFSM in identical order.
+//
+//	applied to EVERY replica's KVFSM in identical order.
+//
 // Read path   (Get): caller -> chosen replica's KVFSM.Get (already-replicated).
 //
 // Because writes traverse the Raft log and reads come from the FSM, the service

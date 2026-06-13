@@ -1,10 +1,11 @@
 // Package storage — Redis-backed store for Helix Cluster OS.
 //
 // Key schema:
-//   clusteros:cache:{k}             – generic cache entries
-//   clusteros:routing:{sessionID}   – session routing hash (HSET)
-//   clusteros:ratelimit:{subject}   – rate-limit counter (user or "global")
-//   clusteros:events:nodes          – pub/sub channel for NodeEvent messages
+//
+//	clusteros:cache:{k}             – generic cache entries
+//	clusteros:routing:{sessionID}   – session routing hash (HSET)
+//	clusteros:ratelimit:{subject}   – rate-limit counter (user or "global")
+//	clusteros:events:nodes          – pub/sub channel for NodeEvent messages
 package storage
 
 import (

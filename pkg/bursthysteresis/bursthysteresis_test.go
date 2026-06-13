@@ -278,7 +278,10 @@ func TestFeedAllHelper(t *testing.T) {
 
 // TestStateString verifies human-readable State names (sink-side observability).
 func TestStateString(t *testing.T) {
-	cases := []struct{ s State; want string }{
+	cases := []struct {
+		s    State
+		want string
+	}{
 		{StateMonitor, "MONITOR"},
 		{StateSpill, "SPILL"},
 		{StateRecover, "RECOVER"},

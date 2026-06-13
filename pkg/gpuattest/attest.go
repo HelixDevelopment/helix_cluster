@@ -71,8 +71,8 @@ func Fingerprint(d Descriptor) [32]byte {
 // Challenge is issued by a Verifier. The device must echo the nonce and sign a
 // message bound to the issuing tick and the device fingerprint.
 type Challenge struct {
-	Nonce     [32]byte
-	IssueTick int64
+	Nonce      [32]byte
+	IssueTick  int64
 	ExpiryTick int64
 }
 

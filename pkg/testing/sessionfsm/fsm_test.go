@@ -87,10 +87,10 @@ func TestHappyPath(t *testing.T) {
 // catch the mutation.
 func TestIllegalTransitions(t *testing.T) {
 	cases := []struct {
-		name   string
-		setup  func(*FSM) // drives the FSM to the desired starting state
-		to     State
-		from   State // expected From in error
+		name  string
+		setup func(*FSM) // drives the FSM to the desired starting state
+		to    State
+		from  State // expected From in error
 	}{
 		{
 			name:  "Idle->Verify (skip ahead)",
@@ -108,13 +108,13 @@ func TestIllegalTransitions(t *testing.T) {
 			from: StateRunning,
 		},
 		{
-			name: "Idle->Done (skip ahead to terminal)",
+			name:  "Idle->Done (skip ahead to terminal)",
 			setup: func(f *FSM) {},
 			to:    StateDone,
 			from:  StateIdle,
 		},
 		{
-			name: "Idle->ChaosInject (skip ahead)",
+			name:  "Idle->ChaosInject (skip ahead)",
 			setup: func(f *FSM) {},
 			to:    StateChaosInject,
 			from:  StateIdle,

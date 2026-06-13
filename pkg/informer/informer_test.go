@@ -19,10 +19,10 @@ func newFakeSource(initial []Object) *fakeSource {
 	return &fakeSource{initial: initial, ch: make(chan Event, 64)}
 }
 
-func (f *fakeSource) List() []Object        { return f.initial }
-func (f *fakeSource) Watch() <-chan Event   { return f.ch }
-func (f *fakeSource) emit(ev Event)         { f.ch <- ev }
-func (f *fakeSource) Close()                { close(f.ch) }
+func (f *fakeSource) List() []Object      { return f.initial }
+func (f *fakeSource) Watch() <-chan Event { return f.ch }
+func (f *fakeSource) emit(ev Event)       { f.ch <- ev }
+func (f *fakeSource) Close()              { close(f.ch) }
 
 func keysOf(objs []Object) []string {
 	out := make([]string, 0, len(objs))

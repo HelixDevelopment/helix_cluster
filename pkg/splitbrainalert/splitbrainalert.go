@@ -154,8 +154,8 @@ type promRuleFile struct {
 
 // promGroup is a single Prometheus rule group.
 type promGroup struct {
-	Name  string      `yaml:"name"`
-	Rules []promRule  `yaml:"rules"`
+	Name  string     `yaml:"name"`
+	Rules []promRule `yaml:"rules"`
 }
 
 // promRule is the YAML representation of one Prometheus alerting rule.

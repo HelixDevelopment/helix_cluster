@@ -75,11 +75,11 @@ type UserLimiterConfig struct {
 // The Clock is injectable so deterministic unit tests can advance time without
 // sleeping.
 type UserLimiter struct {
-	mu      sync.Mutex
-	cfg     UserLimiterConfig
-	clock   Clock
-	users   map[string]*userBucket // keyed by canonical user key
-	global  *userBucket
+	mu     sync.Mutex
+	cfg    UserLimiterConfig
+	clock  Clock
+	users  map[string]*userBucket // keyed by canonical user key
+	global *userBucket
 }
 
 // NewUserLimiter creates a UserLimiter with the given config and a real clock.

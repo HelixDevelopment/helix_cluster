@@ -371,8 +371,8 @@ func TestStreamChannelClosesReader(t *testing.T) {
 // sentinel — the exact scenario that previously deadlocked StreamChannel when
 // neither r.Close() nor pipeR.Close() was called on the [DONE] exit path.
 type trailingReadCloser struct {
-	base    io.Reader
-	br      *blockingReader // unblocked by Close()
+	base     io.Reader
+	br       *blockingReader // unblocked by Close()
 	usedBase bool
 	mu       sync.Mutex
 	closed   bool

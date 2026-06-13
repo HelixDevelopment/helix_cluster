@@ -104,11 +104,11 @@ func TestGPUTFLOPSFromCatalog(t *testing.T) {
 		model string
 		want  float64
 	}{
-		{"0x10de:0x2330", 67.0},        // H100
-		{"0x10de:0x2684", 82.6},        // RTX 4090
-		{"0x10de:0x2684 x 2", 82.6},    // " x N" suffix resolves to leading card
-		{"0x1002:0x73bf", 23.0},        // RX 6900 XT
-		{"0x8086:0x9a60", 2.1},         // Intel iGPU
+		{"0x10de:0x2330", 67.0},     // H100
+		{"0x10de:0x2684", 82.6},     // RTX 4090
+		{"0x10de:0x2684 x 2", 82.6}, // " x N" suffix resolves to leading card
+		{"0x1002:0x73bf", 23.0},     // RX 6900 XT
+		{"0x8086:0x9a60", 2.1},      // Intel iGPU
 	}
 	for _, tc := range cases {
 		got, ok := gpuTFLOPSFromCatalog(GPUInfo{Model: tc.model})

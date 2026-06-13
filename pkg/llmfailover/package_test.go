@@ -51,6 +51,7 @@ func newClassifier() *Classifier {
 //   - Timeout[0]  == ActionReduceTokenCount (unique — kills any swap with the above two)
 //   - AuthError   == [ActionAbort] (terminal, length==1)
 //   - ContentFiltered == [ActionAbort] (terminal, length==1)
+//
 // ---------------------------------------------------------------------------
 func TestFallbackPathPerClass(t *testing.T) {
 	const runID = "run-fallback-per-class"

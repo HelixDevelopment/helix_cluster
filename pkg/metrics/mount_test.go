@@ -10,13 +10,13 @@ import (
 
 // TestMount_CounterValueInScrape is the authoritative anti-bluff scrape test
 // for HXC-1110.  It:
-//   1. Creates a registry via NewServiceRegistry.
-//   2. Registers a counter, increments it twice so the value is 2.
-//   3. Mounts the registry on a fresh ServeMux via Mount.
-//   4. Starts a real httptest.Server backed by that mux.
-//   5. Issues a real HTTP GET /metrics over the loopback TCP connection.
-//   6. Asserts status 200 AND that the body contains the counter line with
-//      the exact value 2 (not merely the name appearing somewhere).
+//  1. Creates a registry via NewServiceRegistry.
+//  2. Registers a counter, increments it twice so the value is 2.
+//  3. Mounts the registry on a fresh ServeMux via Mount.
+//  4. Starts a real httptest.Server backed by that mux.
+//  5. Issues a real HTTP GET /metrics over the loopback TCP connection.
+//  6. Asserts status 200 AND that the body contains the counter line with
+//     the exact value 2 (not merely the name appearing somewhere).
 //
 // A stub handler that returns "" or only 200-OK would fail step 6.
 // A stub that returns the name but not the value would also fail.

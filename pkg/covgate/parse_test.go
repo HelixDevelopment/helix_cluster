@@ -41,7 +41,7 @@ func TestParseCoverProfile_MultiPkg(t *testing.T) {
 	}
 
 	// Statement counts — computed from parsing, not hardcoded totals.
-	wantTotal := 11 // 4+1+3+3
+	wantTotal := 11  // 4+1+3+3
 	wantCovered := 7 // 4+3
 	if report.TotalStatements != wantTotal {
 		t.Errorf("TotalStatements = %d, want %d", report.TotalStatements, wantTotal)

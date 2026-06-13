@@ -264,4 +264,3 @@ func Negotiate(m CapabilityManifest, r Requirement) MatchResult {
 	}
 	return MatchResult{OK: false, Unmet: unmet}
 }
-

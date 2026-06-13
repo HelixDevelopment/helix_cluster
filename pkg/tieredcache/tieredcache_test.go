@@ -223,7 +223,9 @@ func TestHotKeysServedFromMemory(t *testing.T) {
 // from Cold (counting a ColdHit) and from Warm (counting a WarmHit).
 //
 // Mutation guard (MUST make this test FAIL if mutated):
-//   rec.lastAccess.Before(deadline)   in RunMaintenance
+//
+//	rec.lastAccess.Before(deadline)   in RunMaintenance
+//
 // If this guard is inverted (Before -> After, or threshold negated), an idle
 // key will NEVER be demoted: c.HotCount() will remain 1 after the first
 // maintenance pass, and the assertions on WarmHits / ColdHits will FAIL.

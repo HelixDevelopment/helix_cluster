@@ -127,7 +127,7 @@ func TestVerify_AllAgreeAccepted(t *testing.T) {
 func TestVerify_ChecksumSensitivity(t *testing.T) {
 	t.Logf("run=%s clause=3 start", runUUID)
 
-	base := []byte("0123456789ABCDEF0123456789ABCDEF")        // 32 bytes
+	base := []byte("0123456789ABCDEF0123456789ABCDEF") // 32 bytes
 	altered := append([]byte(nil), base...)
 	altered[17] ^= 0x01 // flip one bit in one byte; length unchanged
 

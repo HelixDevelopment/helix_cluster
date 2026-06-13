@@ -79,6 +79,6 @@ type Placement map[string]string
 
 // Result is the engine output: a Placement plus a valid start Order.
 type Result struct {
-	Placement Placement
+	Placement  Placement
 	StartOrder []string
 }

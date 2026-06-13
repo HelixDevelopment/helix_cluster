@@ -30,10 +30,10 @@ func TestSanitize_ForgedManagedHeadersOverwritten(t *testing.T) {
 
 	// Client forges its source IP and tenant; X-Real-IP also forged.
 	headers := map[string]string{
-		"X-Forwarded-For":  "10.0.0.66",      // forged: claims a different source
-		"x-trusted-tenant": "tenant-evil",     // forged + lower-case to test canonicalization
-		"X-Real-IP":        "10.0.0.66",      // forged
-		"User-Agent":       "curl/8.0",       // non-managed, must survive
+		"X-Forwarded-For":  "10.0.0.66",   // forged: claims a different source
+		"x-trusted-tenant": "tenant-evil", // forged + lower-case to test canonicalization
+		"X-Real-IP":        "10.0.0.66",   // forged
+		"User-Agent":       "curl/8.0",    // non-managed, must survive
 	}
 
 	// before observable: prove the forged values are actually present.

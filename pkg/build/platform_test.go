@@ -6,11 +6,11 @@ import (
 
 func TestParsePlatform(t *testing.T) {
 	cases := []struct {
-		input         string
-		wantOS        string
-		wantArch      string
-		wantVariant   string
-		wantErr       bool
+		input       string
+		wantOS      string
+		wantArch    string
+		wantVariant string
+		wantErr     bool
 	}{
 		{"linux/amd64", "linux", "amd64", "", false},
 		{"linux/arm64/v8", "linux", "arm64", "v8", false},

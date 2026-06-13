@@ -94,8 +94,8 @@ func (f *fakeClock) advance(d time.Duration) {
 func TestRollup_LivenessReadinessSeparation(t *testing.T) {
 	r := NewRollup()
 	r.Register(Dependency{
-		Name: "process",
-		Kind: Liveness,
+		Name:  "process",
+		Kind:  Liveness,
 		Check: func(ctx context.Context) error { return nil },
 	})
 	r.Register(Dependency{

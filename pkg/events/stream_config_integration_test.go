@@ -8,10 +8,11 @@
 // (CLAUDE-1 §7.1).
 //
 // Per-run UUID discipline (§7.1 anti-bluff anchor):
-//   Every test embeds a fresh uuid.New().String() as a per-run marker.
-//   The publish-and-count assertion requires that ONLY the message published
-//   in THIS run is counted (by publishing to a UUID-derived subject and
-//   measuring the per-stream message count delta).
+//
+//	Every test embeds a fresh uuid.New().String() as a per-run marker.
+//	The publish-and-count assertion requires that ONLY the message published
+//	in THIS run is counted (by publishing to a UUID-derived subject and
+//	measuring the per-stream message count delta).
 package events
 
 import (
@@ -106,10 +107,11 @@ func TestEnsureStreams_RealBroker_AllFiveStreamsExist(t *testing.T) {
 // message count increments by exactly 1 for each publish.
 //
 // Mutation proof (integration tier):
-//   If a subject were wrong (e.g. "helix.nodes.*"), the publish would land
-//   outside the stream's wildcard and the count would NOT increment.
-//   The assertion `got == before+1` would FAIL — exactly the intended mutation
-//   detection for the subject config.
+//
+//	If a subject were wrong (e.g. "helix.nodes.*"), the publish would land
+//	outside the stream's wildcard and the count would NOT increment.
+//	The assertion `got == before+1` would FAIL — exactly the intended mutation
+//	detection for the subject config.
 func TestEnsureStreams_RealBroker_PublishIncrementsMsgCount(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
 	defer cancel()

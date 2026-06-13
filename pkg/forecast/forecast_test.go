@@ -124,7 +124,7 @@ func TestClause2_FlatNoFalsePositive(t *testing.T) {
 		above bool
 		trace [][2]float64
 	}{
-		{"flat", false, risingTrace(30, 0.30, 0.0)}, // constant 0.30, slope 0
+		{"flat", false, risingTrace(30, 0.30, 0.0)},        // constant 0.30, slope 0
 		{"declining", false, risingTrace(30, 0.50, -0.01)}, // 0.50 -> falling, slope < 0
 		// high-but-flat: sits AT/above threshold yet slope==0. Only the
 		// rising-trend guard prevents a fire here. A "fire regardless of

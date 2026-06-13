@@ -64,7 +64,7 @@ func TestRoundTripExactBytesAndOrder(t *testing.T) {
 
 	msgs := [][]byte{
 		[]byte("hello"),
-		[]byte(""),                          // empty payload must round-trip
+		[]byte(""), // empty payload must round-trip
 		[]byte("validator-block-#42"),
 		bytes.Repeat([]byte{0xAB, 0x00, 0xFF}, 1000), // binary, with NULs
 		[]byte("final"),

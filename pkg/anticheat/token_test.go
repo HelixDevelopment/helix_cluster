@@ -178,6 +178,7 @@ func TestMalformedAndEmptySecret(t *testing.T) {
 // therefore pinned where it is actually testable:
 //   - completion bound into the MAC -> TestForgedCompletionRejected
 //   - revision   bound into the MAC -> TestWrongRevisionAndTamperedTokenRejected
+//
 // This test pins the remaining property: the PAIR encoding is injective across
 // the field boundary in both directions (completion-side and revision-side
 // shifts), which a total loss of length framing would violate.

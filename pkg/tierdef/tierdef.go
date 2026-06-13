@@ -24,11 +24,11 @@ type TierDef struct {
 // DeviceCaps describes the measured capabilities of a physical device. All
 // fields are in the same units as the corresponding TierDef min_* fields.
 type DeviceCaps struct {
-	CPUCores    int
-	MemoryMB    int
-	GPUCount    int
-	GPUVRAMMB   int
-	NetworkMbps int
+	CPUCores     int
+	MemoryMB     int
+	GPUCount     int
+	GPUVRAMMB    int
+	NetworkMbps  int
 	PowerBudgetW float64
 }
 

@@ -79,10 +79,11 @@ func TestManager_NilBackend_StatusRunning_IsDocumentedBehavior(t *testing.T) {
 // TestManager_CreateWithRealBackend_MutationGate is the §1.1 mutation gate.
 //
 // The mutation we prove catches: if manager.go's Create is changed to skip the
-//   `if m.tmuxBackend != nil { m.tmuxBackend.CreateSession(...) }` block and
-//   unconditionally set StatusRunning, then mock.sessions stays empty and
-//   mock.SessionExists returns false — causing TestManager_CreateWithRealBackend_SessionExistsInBackend
-//   to FAIL with the "ANTI-BLUFF" message.
+//
+//	`if m.tmuxBackend != nil { m.tmuxBackend.CreateSession(...) }` block and
+//	unconditionally set StatusRunning, then mock.sessions stays empty and
+//	mock.SessionExists returns false — causing TestManager_CreateWithRealBackend_SessionExistsInBackend
+//	to FAIL with the "ANTI-BLUFF" message.
 //
 // This companion test drives the same proof from a different angle: it checks
 // that at least one "create:" call was recorded by the mock's call log.

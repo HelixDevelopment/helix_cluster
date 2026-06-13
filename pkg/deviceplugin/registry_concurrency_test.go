@@ -219,7 +219,10 @@ func TestRegistry_ConcurrentAllocateNeverOversubscribes(t *testing.T) {
 			t.Fatalf("cycle %d ApplyFingerprint: %v", cycle, err)
 		}
 
-		type result struct{ ok bool; ids []string }
+		type result struct {
+			ok  bool
+			ids []string
+		}
 		results := make(chan result, numRacers)
 
 		var start sync.WaitGroup

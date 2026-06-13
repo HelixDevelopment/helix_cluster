@@ -38,7 +38,7 @@ func TestWelchTTest_Integration_LargeSeparation(t *testing.T) {
 	}
 
 	const (
-		wantT = -41.60251471689218
+		wantT  = -41.60251471689218
 		wantDF = 8.0
 		wantP  = 1.2275835846451172e-10
 	)

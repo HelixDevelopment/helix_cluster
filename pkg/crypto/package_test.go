@@ -196,9 +196,9 @@ func TestEncryptDecryptKeySizes(t *testing.T) {
 		name string
 		key  []byte
 	}{
-		{"AES-128", []byte("0123456789abcdef")},                                 // 16 bytes
-		{"AES-192", []byte("0123456789abcdef01234567")},                         // 24 bytes
-		{"AES-256", []byte("0123456789abcdef0123456789abcdef")},                 // 32 bytes
+		{"AES-128", []byte("0123456789abcdef")},                 // 16 bytes
+		{"AES-192", []byte("0123456789abcdef01234567")},         // 24 bytes
+		{"AES-256", []byte("0123456789abcdef0123456789abcdef")}, // 32 bytes
 	}
 	plaintext := []byte("secret helix data across key sizes")
 	for _, c := range cases {

@@ -24,8 +24,8 @@ import (
 func TestChaosScenarioKillRescheduleMembership(t *testing.T) {
 	const N = 3
 	result, err := RunChaosScenario(ChaosScenarioConfig{
-		Seed:      42,
-		NodeCount: N,
+		Seed:       42,
+		NodeCount:  N,
 		KillNodeID: "node-1",
 		SessionID:  "sess-A",
 	})
@@ -124,8 +124,8 @@ func TestChaosScenarioDisabledRescheduleFails(t *testing.T) {
 // the positions and fail the index-order assertion.
 func TestChaosScenarioTimelineOrder(t *testing.T) {
 	result, err := RunChaosScenario(ChaosScenarioConfig{
-		Seed:      7,
-		NodeCount: 3,
+		Seed:       7,
+		NodeCount:  3,
 		KillNodeID: "node-2",
 		SessionID:  "work-B",
 	})
@@ -176,8 +176,8 @@ func TestChaosScenarioTimelineOrder(t *testing.T) {
 // the assigned node's Online flag would be false and this test would catch it.
 func TestChaosScenarioSessionOnSurvivingNode(t *testing.T) {
 	result, err := RunChaosScenario(ChaosScenarioConfig{
-		Seed:      123,
-		NodeCount: 4,
+		Seed:       123,
+		NodeCount:  4,
 		KillNodeID: "node-1",
 		SessionID:  "sess-C",
 	})
@@ -284,4 +284,3 @@ func TestRecoveryTimelineContainsRunID(t *testing.T) {
 		t.Errorf("RunID = %q; expected 36-char UUID", tl.RunID)
 	}
 }
-

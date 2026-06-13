@@ -52,12 +52,12 @@ func (np *NetworkPartition) Restore() error {
 
 // PacketLoss drops a percentage of packets between nodes.
 type PacketLoss struct {
-	From      string
-	To        string
-	Percent   float64
-	rng       *rand.Rand
-	mu        sync.Mutex
-	applied   bool
+	From    string
+	To      string
+	Percent float64
+	rng     *rand.Rand
+	mu      sync.Mutex
+	applied bool
 }
 
 // NewPacketLoss creates a new packet-loss fault.

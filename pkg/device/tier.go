@@ -93,7 +93,7 @@ const (
 const (
 	// T8: server-class accelerated.
 	t8MinCores = 128
-	t8MultiGPU = 4    // OR: 4+ GPUs regardless of core count
+	t8MultiGPU = 4 // OR: 4+ GPUs regardless of core count
 	// T7: server.
 	t7MinCores   = 64
 	t7MinGPUVRAM = 16 * gib

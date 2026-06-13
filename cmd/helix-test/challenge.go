@@ -38,15 +38,15 @@ type ChallengeConfig struct {
 
 // ChallengeResult is written to the evidence file as JSON.
 type ChallengeResult struct {
-	RunID        string    `json:"run_id"`
-	ChallengeName string   `json:"challenge_name"`
-	URL          string    `json:"url"`
-	Status       string    `json:"status"`   // "PASS" or "FAIL"
-	SinkLine     string    `json:"sink_line"` // captured response body (first 4096 bytes)
-	ExpectedSink string    `json:"expected_sink"`
-	HTTPStatus   int       `json:"http_status"`
-	FailReason   string    `json:"fail_reason,omitempty"`
-	Timestamp    time.Time `json:"timestamp"`
+	RunID         string    `json:"run_id"`
+	ChallengeName string    `json:"challenge_name"`
+	URL           string    `json:"url"`
+	Status        string    `json:"status"`    // "PASS" or "FAIL"
+	SinkLine      string    `json:"sink_line"` // captured response body (first 4096 bytes)
+	ExpectedSink  string    `json:"expected_sink"`
+	HTTPStatus    int       `json:"http_status"`
+	FailReason    string    `json:"fail_reason,omitempty"`
+	Timestamp     time.Time `json:"timestamp"`
 }
 
 // RunChallenge executes the challenge, writes the evidence file, and returns

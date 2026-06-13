@@ -585,4 +585,3 @@ func TestPairPrioritySymmetry(t *testing.T) {
 		}
 	}
 }
-

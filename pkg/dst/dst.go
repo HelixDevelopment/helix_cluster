@@ -222,8 +222,9 @@ type Simulation struct {
 // randomness; constructing with the same seed and issuing the same registration
 // calls yields byte-for-byte identical execution.
 //
-//nolint:gosec // math/rand is REQUIRED here: determinism, not cryptographic
 // security, is the goal. crypto/rand would defeat the entire purpose.
+//
+//nolint:gosec // math/rand is REQUIRED here: determinism, not cryptographic
 func New(seed int64) *Simulation {
 	return &Simulation{
 		seed:      seed,

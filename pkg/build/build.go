@@ -11,11 +11,11 @@ import (
 type State string
 
 const (
-	StateQueued     State = "queued"
-	StateRunning    State = "running"
-	StateSucceeded  State = "succeeded"
-	StateFailed     State = "failed"
-	StateCancelled  State = "cancelled"
+	StateQueued    State = "queued"
+	StateRunning   State = "running"
+	StateSucceeded State = "succeeded"
+	StateFailed    State = "failed"
+	StateCancelled State = "cancelled"
 )
 
 // Job represents a single build request.

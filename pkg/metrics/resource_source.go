@@ -16,9 +16,9 @@ import (
 // Callers that do not have a gpu.Manager (or run on a node without GPUs) may
 // pass nil; in that case HasGPU will be false and GPUPct will be zero.
 type ResourcesSource struct {
-	reader  resources.Reader
-	gpuMgr  *gpu.Manager
-	nodeID  string
+	reader resources.Reader
+	gpuMgr *gpu.Manager
+	nodeID string
 }
 
 // NewResourcesSource creates a production ResourceSource.

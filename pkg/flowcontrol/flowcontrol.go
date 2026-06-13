@@ -74,14 +74,14 @@ func (d AdmissionDecision) String() string {
 
 // Errors returned by Controller configuration methods.
 var (
-	ErrLevelExists     = errors.New("flowcontrol: priority level already registered")
-	ErrUnknownLevel    = errors.New("flowcontrol: priority level not registered")
-	ErrSchemaExists    = errors.New("flowcontrol: flow schema already registered")
-	ErrBadConcurrency  = errors.New("flowcontrol: concurrency limit must be >= 1")
-	ErrBadQueueLength  = errors.New("flowcontrol: queue length limit must be >= 1")
-	ErrNilClassifier   = errors.New("flowcontrol: flow schema classifier must not be nil")
-	ErrNoMatchingFlow  = errors.New("flowcontrol: no flow schema matched request")
-	ErrUnknownRequest  = errors.New("flowcontrol: request id not in flight")
+	ErrLevelExists    = errors.New("flowcontrol: priority level already registered")
+	ErrUnknownLevel   = errors.New("flowcontrol: priority level not registered")
+	ErrSchemaExists   = errors.New("flowcontrol: flow schema already registered")
+	ErrBadConcurrency = errors.New("flowcontrol: concurrency limit must be >= 1")
+	ErrBadQueueLength = errors.New("flowcontrol: queue length limit must be >= 1")
+	ErrNilClassifier  = errors.New("flowcontrol: flow schema classifier must not be nil")
+	ErrNoMatchingFlow = errors.New("flowcontrol: no flow schema matched request")
+	ErrUnknownRequest = errors.New("flowcontrol: request id not in flight")
 )
 
 // Request is an incoming unit of work to be admitted/queued/dispatched.

@@ -57,10 +57,10 @@ func TestHXC1115_KeyNamespace_PutGetRoundTripAllPrefixes(t *testing.T) {
 	//   - the exact expected key string (cross-checked against the builder)
 	//   - a value embedding the run token
 	type testCase struct {
-		label    string
-		key      string
-		wantKey  string
-		value    string
+		label   string
+		key     string
+		wantKey string
+		value   string
 	}
 
 	suffix := runToken

@@ -155,7 +155,7 @@ func TestPodmanBuilder_SuccessPath_ExactArgv(t *testing.T) {
 func TestPodmanBuilder_BuildArgs_ExactArgv(t *testing.T) {
 	runner := &fakeRunner{
 		responses: []fakeResponse{
-			{stdout: []byte("ok\n"), err: nil},                              // build
+			{stdout: []byte("ok\n"), err: nil},                             // build
 			{stdout: []byte("[{\"Id\":\"sha256:deadbeef\"}]\n"), err: nil}, // inspect
 		},
 	}
@@ -261,7 +261,7 @@ func TestPodmanBuilder_InspectFails_DriveStateFailed(t *testing.T) {
 	inspectErr := errors.New("exit status 125")
 	runner := &fakeRunner{
 		responses: []fakeResponse{
-			{stdout: []byte("ok\n"), err: nil},                                           // build succeeds
+			{stdout: []byte("ok\n"), err: nil},                          // build succeeds
 			{stderr: []byte("Error: no such image\n"), err: inspectErr}, // inspect fails
 		},
 	}

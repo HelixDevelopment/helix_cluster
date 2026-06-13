@@ -57,11 +57,11 @@ type admissionRecord struct {
 //
 // All methods are safe for concurrent use.
 type ModeManager struct {
-	mu        sync.Mutex
-	slots     int                        // total pool capacity
-	running   map[string]*admissionRecord // jobID -> record
-	evicted   map[string]Job             // eviction ledger: jobID -> final Job state
-	admitSeq  uint64                     // counter; incremented on each successful admission
+	mu       sync.Mutex
+	slots    int                         // total pool capacity
+	running  map[string]*admissionRecord // jobID -> record
+	evicted  map[string]Job              // eviction ledger: jobID -> final Job state
+	admitSeq uint64                      // counter; incremented on each successful admission
 }
 
 // NewModeManager creates a ModeManager with the given fixed pool capacity.

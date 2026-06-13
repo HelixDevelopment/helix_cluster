@@ -36,16 +36,16 @@ func requireViolation(t *testing.T, r Report, metric, severity string) Violation
 // with the correct metric and severity flagged.
 func TestValidate_CriticalBreach_TasksUnscheduled(t *testing.T) {
 	metrics := map[string]float64{
-		"helix_nodes_healthy":       5,
-		"helix_nodes_total":         6,
-		"helix_tasks_unscheduled":   2,   // BREACH: must be 0
+		"helix_nodes_healthy":          5,
+		"helix_nodes_total":            6,
+		"helix_tasks_unscheduled":      2, // BREACH: must be 0
 		"helix_tasks_unscheduled_rate": 0, // ok
-		"schedule_latency_p99":      500,
-		"consensus_rounds_rate":     5,
-		"test_duration_p95":         200,
-		"firecracker_vcpu":          50,
-		"chaos_faults_injected":     1,
-		"recovery_time_p99":         20000,
+		"schedule_latency_p99":         500,
+		"consensus_rounds_rate":        5,
+		"test_duration_p95":            200,
+		"firecracker_vcpu":             50,
+		"chaos_faults_injected":        1,
+		"recovery_time_p99":            20000,
 	}
 
 	r := Validate(metrics)
@@ -114,24 +114,24 @@ func allPassMetrics() map[string]float64 {
 	return map[string]float64{
 		// Rule 1: helix_nodes_healthy >= floor(helix_nodes_total*0.5)+1
 		// With total=6 => threshold=4; we supply 5 (ok).
-		"helix_nodes_healthy":          5,
-		"helix_nodes_total":            6,
+		"helix_nodes_healthy": 5,
+		"helix_nodes_total":   6,
 		// Rule 2a: helix_tasks_unscheduled == 0
-		"helix_tasks_unscheduled":      0,
+		"helix_tasks_unscheduled": 0,
 		// Rule 2b: helix_tasks_unscheduled rate < 1
 		"helix_tasks_unscheduled_rate": 0.5,
 		// Rule 3: schedule_latency_p99 < 1000
-		"schedule_latency_p99":         800,
+		"schedule_latency_p99": 800,
 		// Rule 4: consensus_rounds_rate < 10
-		"consensus_rounds_rate":        7,
+		"consensus_rounds_rate": 7,
 		// Rule 5: test_duration_p95 < 300
-		"test_duration_p95":            250,
+		"test_duration_p95": 250,
 		// Rule 6: firecracker_vcpu < 80
-		"firecracker_vcpu":             60,
+		"firecracker_vcpu": 60,
 		// Rule 7: chaos_faults_injected >= 1
-		"chaos_faults_injected":        1,
+		"chaos_faults_injected": 1,
 		// Rule 8: recovery_time_p99 < 30000
-		"recovery_time_p99":            20000,
+		"recovery_time_p99": 20000,
 	}
 }
 
@@ -167,7 +167,7 @@ func TestValidate_Rule2a_TasksUnscheduled_Breach(t *testing.T) {
 // produce a WARNING violation.
 func TestValidate_Rule2b_TasksRate_Breach(t *testing.T) {
 	m := allPassMetrics()
-	m["helix_tasks_unscheduled"] = 0 // pass rule 2a
+	m["helix_tasks_unscheduled"] = 0        // pass rule 2a
 	m["helix_tasks_unscheduled_rate"] = 1.5 // >= 1 → WARNING
 
 	r := Validate(m)

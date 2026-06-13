@@ -9,11 +9,12 @@ import (
 
 // TestMeasureHandshakeLatency_RealAndUnderBudget is the primary KPI test for
 // HXC-1556. It asserts that:
-//   (a) MedianNanos > 0 — a REAL measurement, not a hardcoded constant/zero,
-//   (b) every iteration's two derived keys AGREED (no error from the
-//       load-bearing key-equality guard), and
-//   (c) the median is under the <1ms target budget (with a slower-host fallback
-//       that still t.Logf's the real median so the <1ms KPI stays visible).
+//
+//	(a) MedianNanos > 0 — a REAL measurement, not a hardcoded constant/zero,
+//	(b) every iteration's two derived keys AGREED (no error from the
+//	    load-bearing key-equality guard), and
+//	(c) the median is under the <1ms target budget (with a slower-host fallback
+//	    that still t.Logf's the real median so the <1ms KPI stays visible).
 func TestMeasureHandshakeLatency_RealAndUnderBudget(t *testing.T) {
 	const runUUID = "e2eebench-RUN-1f3a9c20-5556-4b71-9e1d-aa11bb22cc33"
 	const iterations = 200

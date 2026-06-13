@@ -116,8 +116,8 @@ type latencyKey struct{ from, to string }
 type Simulation struct {
 	eng        *dst.Engine
 	clusters   map[string]map[string]struct{} // clusterID → set of nodeIDs
-	partitions map[partitionKey]struct{}       // symmetric blocked pairs
-	latencies  map[latencyKey]int64            // directional extra ticks
+	partitions map[partitionKey]struct{}      // symmetric blocked pairs
+	latencies  map[latencyKey]int64           // directional extra ticks
 	log        []DeliveryEvent
 }
 

@@ -47,7 +47,7 @@ type fakePTY struct {
 	closed bool
 
 	outCh  chan []byte   // never closed — guaranteed no send-on-closed race
-	doneCh chan struct{}  // closed exactly once by Close(); signals EOF
+	doneCh chan struct{} // closed exactly once by Close(); signals EOF
 
 	resizeMu    sync.Mutex
 	resizeCalls []struct{ rows, cols uint16 }

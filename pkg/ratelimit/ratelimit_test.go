@@ -76,7 +76,10 @@ func TestSlidingWindowAllowN(t *testing.T) {
 }
 
 func TestPerKeyLimiter(t *testing.T) {
-	p := NewPerKeyLimiter(func() interface{ Allow() bool; AllowN(int) bool } {
+	p := NewPerKeyLimiter(func() interface {
+		Allow() bool
+		AllowN(int) bool
+	} {
 		return NewTokenBucket(2, 1)
 	})
 	if !p.Allow("key1") {
@@ -94,7 +97,10 @@ func TestPerKeyLimiter(t *testing.T) {
 }
 
 func TestPerKeyLimiterAllowN(t *testing.T) {
-	p := NewPerKeyLimiter(func() interface{ Allow() bool; AllowN(int) bool } {
+	p := NewPerKeyLimiter(func() interface {
+		Allow() bool
+		AllowN(int) bool
+	} {
 		return NewTokenBucket(5, 1)
 	})
 	if !p.AllowN("a", 3) {
@@ -112,7 +118,7 @@ func TestPerKeyLimiterAllowN(t *testing.T) {
 
 func TestTokenBucket_MaxCap_Mutation(t *testing.T) {
 	l := NewTokenBucket(1, 1000)
-	l.Allow() // consume the single token
+	l.Allow()                         // consume the single token
 	time.Sleep(10 * time.Millisecond) // accumulate many tokens
 	count := 0
 	for l.Allow() {
@@ -299,7 +305,10 @@ func TestSlidingWindow_Slides_Mutation(t *testing.T) {
 }
 
 func TestPerKeyLimiter_Isolated_Mutation(t *testing.T) {
-	p := NewPerKeyLimiter(func() interface{ Allow() bool; AllowN(int) bool } {
+	p := NewPerKeyLimiter(func() interface {
+		Allow() bool
+		AllowN(int) bool
+	} {
 		return NewTokenBucket(1, 1)
 	})
 	p.Allow("x")

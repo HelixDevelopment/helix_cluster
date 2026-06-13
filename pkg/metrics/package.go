@@ -114,10 +114,10 @@ func (h *Histogram) Snapshot() (buckets []float64, counts []uint64, sum float64,
 
 // metric holds a named metric instance.
 type metric struct {
-	name   string
-	help   string
-	mtype  string
-	value  interface{}
+	name  string
+	help  string
+	mtype string
+	value interface{}
 }
 
 // Registry collects and exposes metrics in Prometheus text format.

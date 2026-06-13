@@ -42,7 +42,9 @@ func sortedKeys(m map[string]string) []string {
 // with the higher timestamp ("b" at ts=200) is visible on both sides.
 //
 // ANTI-BLUFF mutation: in Merge, replace  s.regs[key] = merged  with
-//   s.regs[key] = local          (keep local register, ignore other)
+//
+//	s.regs[key] = local          (keep local register, ignore other)
+//
 // → A.Merge(B) still returns "a" → test fails.
 func TestConvergence_HigherTimestampWins(t *testing.T) {
 	t.Parallel()
@@ -82,10 +84,13 @@ func TestConvergence_HigherTimestampWins(t *testing.T) {
 // produces the same snapshot as merging B into A.
 //
 // ANTI-BLUFF mutation: in Merge, skip updating s.liveKeys  (comment out the
-//   s.liveKeys = s.liveKeys.Merge(otherLive) line)
+//
+//	s.liveKeys = s.liveKeys.Merge(otherLive) line)
+//
 // → the live-key ORSet is not merged, so keys added only on the other side
-//   are absent from the snapshot → snapshot comparison fails for asymmetric
-//   key sets.
+//
+//	are absent from the snapshot → snapshot comparison fails for asymmetric
+//	key sets.
 func TestCommutativity_MergeOrderIndependent(t *testing.T) {
 	t.Parallel()
 	a := newStore("A")
@@ -134,13 +139,17 @@ func TestCommutativity_MergeOrderIndependent(t *testing.T) {
 // ts=30 > B, ts=20) is preserved.
 //
 // ANTI-BLUFF mutation: in Merge, replace  s.regs[key] = merged  with
-//   s.regs[key] = otherReg.Clone()
-//   (configsync.go: the line inside the otherRegs range loop that stores the
-//   merged register back into s.regs).
+//
+//	s.regs[key] = otherReg.Clone()
+//	(configsync.go: the line inside the otherRegs range loop that stores the
+//	merged register back into s.regs).
+//
 // → the mutated Merge always blindly adopts the other replica's register,
-//   ignoring the LWW timestamp comparison; the first merge overwrites A's
-//   winning value "v1" (ts=30) with B's lower-timestamped "v2" (ts=20) →
-//   snap1["k"] == "v2" instead of "v1" → concrete assertion fails.
+//
+//	ignoring the LWW timestamp comparison; the first merge overwrites A's
+//	winning value "v1" (ts=30) with B's lower-timestamped "v2" (ts=20) →
+//	snap1["k"] == "v2" instead of "v1" → concrete assertion fails.
+//
 // The mutation still compiles; both snap1 and snap2 equal the wrong value
 // with the mutation, so the idempotence check passes vacuously — but the
 // concrete value check catches the bluff.
@@ -184,7 +193,9 @@ func TestIdempotence_DoubleMergeEqualsOnce(t *testing.T) {
 // Concretely: "replicaZ" > "replicaA" → "replicaZ"'s value wins.
 //
 // ANTI-BLUFF mutation: swap the tiebreak sense inside LWWRegister.dominates
-//   from  r.replica >= id  to  r.replica <= id .
+//
+//	from  r.replica >= id  to  r.replica <= id .
+//
 // We don't own crdt, but the equivalent observable mutation here is: assert
 // the winner is "va" (the lexicographically smaller replica). If crdt tiebreak
 // ever changes direction this assertion catches it.
@@ -237,7 +248,9 @@ func TestEqualTimestampTiebreak_DeterministicWinner(t *testing.T) {
 // and then deleted is invisible via Get.
 //
 // ANTI-BLUFF mutation: in Get, remove the  if !s.liveKeys.Contains(key)  guard
-//   (always proceed to read the register regardless of live-set membership).
+//
+//	(always proceed to read the register regardless of live-set membership).
+//
 // → Get returns the stale value from the register → ok==true → test fails.
 func TestDelete_SetThenDelete_KeyAbsent(t *testing.T) {
 	t.Parallel()
@@ -261,12 +274,15 @@ func TestDelete_SetThenDelete_KeyAbsent(t *testing.T) {
 // Snapshot() exclude deleted keys.
 //
 // ANTI-BLUFF mutation: in Keys(), replace  raw := s.liveKeys.Elements()  with
-//   a direct range over s.regs:
-//     var raw []string; for k := range s.regs { raw = append(raw, k) }
-//   (configsync.go line that initialises raw via liveKeys.Elements()).
+//
+//	a direct range over s.regs:
+//	  var raw []string; for k := range s.regs { raw = append(raw, k) }
+//	(configsync.go line that initialises raw via liveKeys.Elements()).
+//
 // → deleted key "foo" is still present in s.regs (Delete only tombstones the
-//   ORSet tag; it never removes the LWWRegister entry), so "foo" reappears in
-//   Keys() → len(keys)==2 and keys[0]=="baz", keys[1]=="foo" → test fails.
+//
+//	ORSet tag; it never removes the LWWRegister entry), so "foo" reappears in
+//	Keys() → len(keys)==2 and keys[0]=="baz", keys[1]=="foo" → test fails.
 func TestDelete_DeletedKeyAbsentInKeysAndSnapshot(t *testing.T) {
 	t.Parallel()
 	s := newStore("A")
@@ -303,9 +319,12 @@ func TestDelete_DeletedKeyAbsentInKeysAndSnapshot(t *testing.T) {
 // timestamp wins).
 //
 // ANTI-BLUFF mutation: in Merge, replace  s.liveKeys = s.liveKeys.Merge(otherLive)
-//   with  s.liveKeys = otherLive.Clone()  (last-writer-wins the live-set itself).
+//
+//	with  s.liveKeys = otherLive.Clone()  (last-writer-wins the live-set itself).
+//
 // → the ORSet merge is bypassed; Add-wins semantics are lost; the result
-//   depends on merge order and the test's directional assertions fail.
+//
+//	depends on merge order and the test's directional assertions fail.
 func TestConcurrentDeleteAndSet_ConvergesAfterMerge(t *testing.T) {
 	t.Parallel()
 	a := newStore("A")
@@ -348,8 +367,9 @@ func TestConcurrentDeleteAndSet_ConvergesAfterMerge(t *testing.T) {
 //
 // ANTI-BLUFF mutation: in Get, bypass the liveKeys.Contains check entirely.
 // → the deleted snapshot leaks through on the side that only ran Delete without
-//   the concurrent Set, making the pre-merge assertions pass vacuously and
-//   breaking the post-merge identity check.
+//
+//	the concurrent Set, making the pre-merge assertions pass vacuously and
+//	breaking the post-merge identity check.
 func TestConcurrentDeleteAndHigherTsSet_Symmetric(t *testing.T) {
 	t.Parallel()
 	a := newStore("A")
@@ -393,7 +413,8 @@ func TestConcurrentDeleteAndHigherTsSet_Symmetric(t *testing.T) {
 //
 // ANTI-BLUFF mutation: in Keys(), remove the  sort.Strings(out)  call.
 // → key order is map-iteration order (non-deterministic) → slice-equality
-//   check against a sorted reference fails when iteration happens to differ.
+//
+//	check against a sorted reference fails when iteration happens to differ.
 func TestKeys_Sorted(t *testing.T) {
 	t.Parallel()
 	s := newStore("R")
@@ -420,9 +441,12 @@ func TestKeys_Sorted(t *testing.T) {
 // set, get, delete, merge.
 //
 // ANTI-BLUFF mutation: in Snapshot(), enumerate s.regs directly instead of
-//   s.liveKeys.Elements().
+//
+//	s.liveKeys.Elements().
+//
 // → deleted key "d" reappears in the snapshot → test fails on the concrete map
-//   comparison.
+//
+//	comparison.
 func TestSnapshot_ContentsCorrect(t *testing.T) {
 	t.Parallel()
 	a := newStore("A")
@@ -460,11 +484,14 @@ func TestSnapshot_ContentsCorrect(t *testing.T) {
 // TestAssociativity_ThreeWayMerge verifies the CRDT associativity law.
 //
 // ANTI-BLUFF mutation: in Merge, for the register merge replace
-//   s.regs[key] = merged  with  s.regs[key] = otherReg.Clone()
-//   (always take the other's value without LWW resolution).
+//
+//	s.regs[key] = merged  with  s.regs[key] = otherReg.Clone()
+//	(always take the other's value without LWW resolution).
+//
 // → applying that operation left- vs right-associatively gives different results
-//   because each step overwrites with the "other" side → both directions no
-//   longer converge to the same snapshot.
+//
+//	because each step overwrites with the "other" side → both directions no
+//	longer converge to the same snapshot.
 func TestAssociativity_ThreeWayMerge(t *testing.T) {
 	t.Parallel()
 	mkA := func() *configsync.ConfigStore {
@@ -514,8 +541,10 @@ func TestAssociativity_ThreeWayMerge(t *testing.T) {
 // TestGet_UnknownKey verifies that querying a key never set returns (_, false).
 //
 // ANTI-BLUFF mutation: in Get, remove the  if !s.liveKeys.Contains(key)  guard
-//   and instead always do  reg, ok := s.regs[key]  followed by
-//   returning ("", true) when !ok (i.e. flip the sentinel).
+//
+//	and instead always do  reg, ok := s.regs[key]  followed by
+//	returning ("", true) when !ok (i.e. flip the sentinel).
+//
 // → ok becomes true for a missing key → assertion fails.
 func TestGet_UnknownKey(t *testing.T) {
 	t.Parallel()

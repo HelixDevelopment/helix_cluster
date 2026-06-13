@@ -19,8 +19,8 @@ import (
 type Recorder struct {
 	clock int64 // atomic logical clock; ticks on every Begin and End.
 
-	mu   sync.Mutex
-	ops  []Operation
+	mu  sync.Mutex
+	ops []Operation
 	// pending maps a token to the partially built operation between Begin/End.
 	pending map[int64]*Operation
 	nextTok int64

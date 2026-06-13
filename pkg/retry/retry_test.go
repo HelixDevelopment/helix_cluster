@@ -527,9 +527,9 @@ func TestJitter_TinyDelay_NoNegativeOrPanic(t *testing.T) {
 // one row fail.
 func TestComputeDelay_Table(t *testing.T) {
 	type row struct {
-		name     string
-		r        *Retry
-		attempt  int
+		name      string
+		r         *Retry
+		attempt   int
 		wantExact time.Duration
 	}
 	base := 10 * time.Millisecond
@@ -541,18 +541,18 @@ func TestComputeDelay_Table(t *testing.T) {
 		{"Fixed/attempt5", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Fixed}, 5, base},
 
 		// Linear: base*(attempt+1).
-		{"Linear/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 0, base * 1},      // 10ms
-		{"Linear/attempt1", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 1, base * 2},      // 20ms
-		{"Linear/attempt2", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 2, base * 3},      // 30ms
-		{"Linear/attempt4", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 4, base * 5},      // 50ms clamped
+		{"Linear/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 0, base * 1}, // 10ms
+		{"Linear/attempt1", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 1, base * 2}, // 20ms
+		{"Linear/attempt2", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 2, base * 3}, // 30ms
+		{"Linear/attempt4", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 4, base * 5}, // 50ms clamped
 		// Linear/attempt4: base*(4+1)=50ms == max → clamped to max.
-		{"Linear/attempt5", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 5, max},           // 60ms clamped to 50ms
+		{"Linear/attempt5", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Linear}, 5, max}, // 60ms clamped to 50ms
 
 		// Exponential: base*2^attempt.
-		{"Exponential/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 0, base},      // 10ms
+		{"Exponential/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 0, base},                  // 10ms
 		{"Exponential/attempt1", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 1, 20 * time.Millisecond}, // 20ms
 		{"Exponential/attempt2", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 2, 40 * time.Millisecond}, // 40ms
-		{"Exponential/attempt3", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 3, max},                  // 80ms clamped to 50ms
+		{"Exponential/attempt3", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: Exponential}, 3, max},                   // 80ms clamped to 50ms
 
 		// Default/unknown strategy: treated as Fixed.
 		{"Default/attempt0", &Retry{Delay: base, MaxDelay: max, Jitter: false, BackoffStrategy: BackoffStrategy(99)}, 0, base},

@@ -77,13 +77,13 @@ var (
 // claimed by the (unauthenticated) advertiser and MUST be validated by SPIFFE
 // attestation before use.
 type DiscoveredPeer struct {
-	CellID         string
-	NodeID         string
-	Version        string
+	CellID          string
+	NodeID          string
+	Version         string
 	WireGuardPubKey string
-	ClusterAddr    string
-	IP             net.IP
-	Port           int
+	ClusterAddr     string
+	IP              net.IP
+	Port            int
 	// TTL is the advertised record lifetime; a browser may evict the peer when
 	// it elapses without a refresh.
 	TTL time.Duration

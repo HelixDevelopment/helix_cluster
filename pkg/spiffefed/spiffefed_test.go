@@ -365,13 +365,13 @@ func TestExchange_Idempotent(t *testing.T) {
 // assertion fails → test fails.
 func TestSpiffeID_Constructs(t *testing.T) {
 	cases := []struct {
-		name        string
-		domain      string
-		path        string
-		wantErr     bool
-		wantScheme  string
-		wantHost    string
-		wantPath    string
+		name       string
+		domain     string
+		path       string
+		wantErr    bool
+		wantScheme string
+		wantHost   string
+		wantPath   string
 	}{
 		{
 			name:       "valid",

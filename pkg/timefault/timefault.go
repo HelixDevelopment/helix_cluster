@@ -1,7 +1,7 @@
 // Package timefault provides deterministic time-fault injectors and a
 // clock-skew detector for testing distributed-clock robustness in HelixCluster.
 //
-// Model
+// # Model
 //
 // A shared base clock advances in discrete ticks (seconds). Each node derives
 // its own logical clock from the base tick through a per-node Fault. The base

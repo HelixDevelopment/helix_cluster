@@ -6,11 +6,11 @@ import (
 
 func TestParseSPIFFEID(t *testing.T) {
 	tests := []struct {
-		name    string
-		raw     string
-		wantTD  string
+		name     string
+		raw      string
+		wantTD   string
 		wantPath string
-		wantErr bool
+		wantErr  bool
 	}{
 		{"valid workload", "spiffe://example.org/ns/default/sa/my-sa", "example.org", "/ns/default/sa/my-sa", false},
 		{"valid root path", "spiffe://example.org/", "example.org", "/", false},

@@ -275,8 +275,8 @@ func TestNewTopologyValidation(t *testing.T) {
 			wantErr: true,
 		},
 		{
-			name:  "duplicate link rejected",
-			gpus:  []string{"g0", "g1"},
+			name: "duplicate link rejected",
+			gpus: []string{"g0", "g1"},
 			links: []Link{
 				{A: "g0", B: "g1", Kind: NVLink, BandwidthGBps: 100},
 				{A: "g1", B: "g0", Kind: NVLink, BandwidthGBps: 100}, // same pair, reversed

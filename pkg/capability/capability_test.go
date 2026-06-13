@@ -294,8 +294,8 @@ func TestNegotiate_FPGANotRequired(t *testing.T) {
 // Mutation: always-OK path (return MatchResult{OK:true}) → all sub-assertions fail.
 func TestNegotiate_MultipleGaps(t *testing.T) {
 	m := goodManifest()
-	m.CPUCores = 2    // below 8
-	m.MemoryMB = 512  // below 32768
+	m.CPUCores = 2          // below 8
+	m.MemoryMB = 512        // below 32768
 	m.Features = []string{} // missing avx512, rdma
 
 	r := goodRequirement()

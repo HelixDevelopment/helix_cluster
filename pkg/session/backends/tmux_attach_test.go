@@ -10,14 +10,14 @@ import (
 
 // TestTmuxFunctionalAttach_MarkerRoundTrip is the CLAUDE-1 anti-bluff proof
 // for HXC-1160.  It:
-//   1. Creates a real tmux session running /bin/sh (unique name, leak-free).
-//   2. Calls Attach() to get the functional stream.
-//   3. Writes "echo HELIXMARKER_<unique>\n" via Write().
-//   4. Polls Read() up to 20 times (100 ms apart, max 2 s) until the marker
-//      appears in the accumulated pane output.
-//   5. Asserts the marker IS present — proving Write reached the real tmux
-//      session AND Read returns real pane content.
-//   6. Defers Kill() so zero tmux sessions leak even on failure.
+//  1. Creates a real tmux session running /bin/sh (unique name, leak-free).
+//  2. Calls Attach() to get the functional stream.
+//  3. Writes "echo HELIXMARKER_<unique>\n" via Write().
+//  4. Polls Read() up to 20 times (100 ms apart, max 2 s) until the marker
+//     appears in the accumulated pane output.
+//  5. Asserts the marker IS present — proving Write reached the real tmux
+//     session AND Read returns real pane content.
+//  6. Defers Kill() so zero tmux sessions leak even on failure.
 //
 // Mutation intent: a Write that does not call send-keys, or a Read that
 // returns EOF / fabricated bytes, makes the marker assertion fail.
@@ -68,8 +68,8 @@ func TestTmuxFunctionalAttach_MarkerRoundTrip(t *testing.T) {
 
 	// Bounded poll: up to 20 iterations × 100 ms = 2 s max.
 	const (
-		maxPolls    = 20
-		pollSleep   = 100 * time.Millisecond
+		maxPolls  = 20
+		pollSleep = 100 * time.Millisecond
 	)
 
 	buf := make([]byte, 4096)

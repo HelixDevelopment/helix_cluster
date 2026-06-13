@@ -454,28 +454,28 @@ func TestStrategyInterface_Compliance(t *testing.T) {
 	}
 
 	cases := []struct {
-		strategy      Strategy
-		wantName      string
+		strategy        Strategy
+		wantName        string
 		wantUnsupported bool // Resolve must return ErrUnsupported
-		wantNoPeers   bool  // Resolve must return zero peers
+		wantNoPeers     bool // Resolve must return zero peers
 	}{
 		{
-			strategy:      static,
-			wantName:      "static",
+			strategy:        static,
+			wantName:        "static",
 			wantUnsupported: false,
-			wantNoPeers:   false,
+			wantNoPeers:     false,
 		},
 		{
-			strategy:      NewDNSSRVStrategy("_helix._tcp", "cluster.local"),
-			wantName:      "dns-srv",
+			strategy:        NewDNSSRVStrategy("_helix._tcp", "cluster.local"),
+			wantName:        "dns-srv",
 			wantUnsupported: true,
-			wantNoPeers:   true,
+			wantNoPeers:     true,
 		},
 		{
-			strategy:      NewMDNSStrategy("_helix._tcp"),
-			wantName:      "mdns",
+			strategy:        NewMDNSStrategy("_helix._tcp"),
+			wantName:        "mdns",
 			wantUnsupported: true,
-			wantNoPeers:   true,
+			wantNoPeers:     true,
 		},
 	}
 

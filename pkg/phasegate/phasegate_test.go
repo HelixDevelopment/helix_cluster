@@ -180,7 +180,7 @@ func TestReady_AllMet(t *testing.T) {
 	requireNoError(t, err, "NewGateGraph")
 
 	observed := map[string]float64{
-		"formation_success_rate":       0.995,
+		"formation_success_rate":         0.995,
 		"leader_election_latency_ms_p99": 300,
 	}
 

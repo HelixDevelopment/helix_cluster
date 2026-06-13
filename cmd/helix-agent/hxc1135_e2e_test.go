@@ -231,11 +231,11 @@ func captureEvidence(t *testing.T, runUUID, idA, idB string, formation time.Time
 	}
 
 	ev := struct {
-		RunUUID       string    `json:"run_uuid"`
-		NodeIDA       string    `json:"node_id_a"`
-		NodeIDB       string    `json:"node_id_b"`
-		FormationTime string    `json:"formation_time_utc"`
-		AssertionPass bool      `json:"both_nodes_visible_in_etcd"`
+		RunUUID       string `json:"run_uuid"`
+		NodeIDA       string `json:"node_id_a"`
+		NodeIDB       string `json:"node_id_b"`
+		FormationTime string `json:"formation_time_utc"`
+		AssertionPass bool   `json:"both_nodes_visible_in_etcd"`
 	}{
 		RunUUID:       runUUID,
 		NodeIDA:       idA,

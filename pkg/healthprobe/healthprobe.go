@@ -2,7 +2,7 @@
 // (startup / readiness / liveness) with a startup GRACE PERIOD, in pure,
 // deterministic Go.
 //
-// Model
+// # Model
 //
 // A component is composed of named dependencies, each of which is
 // health-checkable via a CheckFn. There are three probe tiers:
@@ -18,7 +18,7 @@
 //   - CheckLiveness  — "is the component currently alive?" Reflects current
 //     health of dependencies directly, independent of the startup grace.
 //
-// Determinism
+// # Determinism
 //
 // All time-dependent logic flows through an injected Clock. Logic under test
 // never calls time.Now(); advance a ManualClock to model the passage of the

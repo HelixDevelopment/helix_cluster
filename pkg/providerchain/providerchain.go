@@ -141,11 +141,11 @@ func (ae *AggregateError) Is(target error) bool {
 //   - RunID is the caller-supplied identifier threaded through the cascade.
 //   - Elapsed is the wall-clock duration measured with the injected clock.
 type Result struct {
-	WinnerTier   string
-	Output       string
-	CascadePath  []string
-	RunID        string
-	Elapsed      time.Duration
+	WinnerTier  string
+	Output      string
+	CascadePath []string
+	RunID       string
+	Elapsed     time.Duration
 }
 
 // ── Chain ─────────────────────────────────────────────────────────────────────
@@ -276,8 +276,8 @@ func (c *Chain) Execute(ctx context.Context, runID string) (Result, error) {
 	// Every tier exhausted without a winner.
 	elapsed := c.now().Sub(start)
 	ae := &AggregateError{
-		Tiers: tierErrors,
-		RunID: runID,
+		Tiers:  tierErrors,
+		RunID:  runID,
 		Reason: fmt.Sprintf("all %d tier(s) failed (elapsed %v)", len(c.Tiers), elapsed),
 	}
 	return Result{RunID: runID, CascadePath: cascadePath}, ae

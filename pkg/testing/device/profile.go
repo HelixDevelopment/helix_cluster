@@ -10,40 +10,40 @@ import (
 
 // Profile defines the hardware specification of a simulated device.
 type Profile struct {
-	ID      string `yaml:"id"`
-	Tier    string `yaml:"tier"`
-	CPU     CPU    `yaml:"cpu"`
-	RAM     RAM    `yaml:"ram"`
-	GPU     GPU    `yaml:"gpu"`
+	ID      string  `yaml:"id"`
+	Tier    string  `yaml:"tier"`
+	CPU     CPU     `yaml:"cpu"`
+	RAM     RAM     `yaml:"ram"`
+	GPU     GPU     `yaml:"gpu"`
 	Network Network `yaml:"network"`
 }
 
 // CPU holds CPU specifications.
 type CPU struct {
-	Cores       int     `yaml:"cores"`
+	Cores        int     `yaml:"cores"`
 	FrequencyGHz float64 `yaml:"frequency_ghz"`
 	Architecture string  `yaml:"architecture"`
 }
 
 // RAM holds memory specifications.
 type RAM struct {
-	TotalGB int `yaml:"total_gb"`
+	TotalGB int    `yaml:"total_gb"`
 	Type    string `yaml:"type"`
 }
 
 // GPU holds GPU specifications.
 type GPU struct {
-	Count      int    `yaml:"count"`
-	Model      string `yaml:"model"`
-	MemoryGB   int    `yaml:"memory_gb"`
-	Vulkan     bool   `yaml:"vulkan"`
+	Count    int    `yaml:"count"`
+	Model    string `yaml:"model"`
+	MemoryGB int    `yaml:"memory_gb"`
+	Vulkan   bool   `yaml:"vulkan"`
 }
 
 // Network holds network specifications.
 type Network struct {
-	BandwidthMbps int    `yaml:"bandwidth_mbps"`
-	LatencyMs     int    `yaml:"latency_ms"`
-	JitterMs      int    `yaml:"jitter_ms"`
+	BandwidthMbps int `yaml:"bandwidth_mbps"`
+	LatencyMs     int `yaml:"latency_ms"`
+	JitterMs      int `yaml:"jitter_ms"`
 }
 
 // Registry holds a collection of device profiles keyed by tier.
@@ -120,59 +120,59 @@ func (reg *Registry) LoadYAML(path string) error {
 func (reg *Registry) seedDefaults() {
 	defaults := []*Profile{
 		{
-			ID:   "t1-micro", Tier: "T1",
-			CPU: CPU{Cores: 1, FrequencyGHz: 1.0, Architecture: "arm64"},
-			RAM: RAM{TotalGB: 1, Type: "LPDDR4"},
-			GPU: GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
+			ID: "t1-micro", Tier: "T1",
+			CPU:     CPU{Cores: 1, FrequencyGHz: 1.0, Architecture: "arm64"},
+			RAM:     RAM{TotalGB: 1, Type: "LPDDR4"},
+			GPU:     GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
 			Network: Network{BandwidthMbps: 100, LatencyMs: 20, JitterMs: 5},
 		},
 		{
-			ID:   "t2-small", Tier: "T2",
-			CPU: CPU{Cores: 2, FrequencyGHz: 1.5, Architecture: "arm64"},
-			RAM: RAM{TotalGB: 2, Type: "LPDDR4"},
-			GPU: GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
+			ID: "t2-small", Tier: "T2",
+			CPU:     CPU{Cores: 2, FrequencyGHz: 1.5, Architecture: "arm64"},
+			RAM:     RAM{TotalGB: 2, Type: "LPDDR4"},
+			GPU:     GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
 			Network: Network{BandwidthMbps: 250, LatencyMs: 15, JitterMs: 3},
 		},
 		{
-			ID:   "t3-medium", Tier: "T3",
-			CPU: CPU{Cores: 4, FrequencyGHz: 2.0, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 4, Type: "DDR4"},
-			GPU: GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
+			ID: "t3-medium", Tier: "T3",
+			CPU:     CPU{Cores: 4, FrequencyGHz: 2.0, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 4, Type: "DDR4"},
+			GPU:     GPU{Count: 0, Model: "none", MemoryGB: 0, Vulkan: false},
 			Network: Network{BandwidthMbps: 500, LatencyMs: 10, JitterMs: 2},
 		},
 		{
-			ID:   "t4-large", Tier: "T4",
-			CPU: CPU{Cores: 8, FrequencyGHz: 2.5, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 16, Type: "DDR4"},
-			GPU: GPU{Count: 1, Model: "integrated", MemoryGB: 2, Vulkan: true},
+			ID: "t4-large", Tier: "T4",
+			CPU:     CPU{Cores: 8, FrequencyGHz: 2.5, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 16, Type: "DDR4"},
+			GPU:     GPU{Count: 1, Model: "integrated", MemoryGB: 2, Vulkan: true},
 			Network: Network{BandwidthMbps: 1000, LatencyMs: 5, JitterMs: 1},
 		},
 		{
-			ID:   "t5-xlarge", Tier: "T5",
-			CPU: CPU{Cores: 16, FrequencyGHz: 3.0, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 32, Type: "DDR5"},
-			GPU: GPU{Count: 1, Model: "dedicated", MemoryGB: 8, Vulkan: true},
+			ID: "t5-xlarge", Tier: "T5",
+			CPU:     CPU{Cores: 16, FrequencyGHz: 3.0, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 32, Type: "DDR5"},
+			GPU:     GPU{Count: 1, Model: "dedicated", MemoryGB: 8, Vulkan: true},
 			Network: Network{BandwidthMbps: 2500, LatencyMs: 3, JitterMs: 1},
 		},
 		{
-			ID:   "t6-2xlarge", Tier: "T6",
-			CPU: CPU{Cores: 32, FrequencyGHz: 3.5, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 64, Type: "DDR5"},
-			GPU: GPU{Count: 2, Model: "dedicated", MemoryGB: 16, Vulkan: true},
+			ID: "t6-2xlarge", Tier: "T6",
+			CPU:     CPU{Cores: 32, FrequencyGHz: 3.5, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 64, Type: "DDR5"},
+			GPU:     GPU{Count: 2, Model: "dedicated", MemoryGB: 16, Vulkan: true},
 			Network: Network{BandwidthMbps: 5000, LatencyMs: 2, JitterMs: 0},
 		},
 		{
-			ID:   "t7-4xlarge", Tier: "T7",
-			CPU: CPU{Cores: 64, FrequencyGHz: 3.5, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 128, Type: "DDR5"},
-			GPU: GPU{Count: 4, Model: "dedicated", MemoryGB: 32, Vulkan: true},
+			ID: "t7-4xlarge", Tier: "T7",
+			CPU:     CPU{Cores: 64, FrequencyGHz: 3.5, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 128, Type: "DDR5"},
+			GPU:     GPU{Count: 4, Model: "dedicated", MemoryGB: 32, Vulkan: true},
 			Network: Network{BandwidthMbps: 10000, LatencyMs: 1, JitterMs: 0},
 		},
 		{
-			ID:   "t8-8xlarge", Tier: "T8",
-			CPU: CPU{Cores: 128, FrequencyGHz: 4.0, Architecture: "x86_64"},
-			RAM: RAM{TotalGB: 512, Type: "DDR5"},
-			GPU: GPU{Count: 8, Model: "dedicated", MemoryGB: 80, Vulkan: true},
+			ID: "t8-8xlarge", Tier: "T8",
+			CPU:     CPU{Cores: 128, FrequencyGHz: 4.0, Architecture: "x86_64"},
+			RAM:     RAM{TotalGB: 512, Type: "DDR5"},
+			GPU:     GPU{Count: 8, Model: "dedicated", MemoryGB: 80, Vulkan: true},
 			Network: Network{BandwidthMbps: 25000, LatencyMs: 1, JitterMs: 0},
 		},
 	}

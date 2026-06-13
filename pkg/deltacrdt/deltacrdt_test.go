@@ -366,7 +366,7 @@ func TestORSetAddRemoveConvergesReordered(t *testing.T) {
 
 	// Replica A: add "bird", then remove it.
 	replicaA := NewORSet("A")
-	dAddA := replicaA.Add("bird")   // produces tag T_A
+	dAddA := replicaA.Add("bird")    // produces tag T_A
 	dRemA := replicaA.Remove("bird") // tombstones T_A; A now has no "bird"
 
 	// Replica C: independently adds "bird" (a different tag T_C).
@@ -381,9 +381,9 @@ func TestORSetAddRemoveConvergesReordered(t *testing.T) {
 	// Expected convergence: "bird" IS present (T_C survived because dRemA
 	// never observed T_C).
 	replicaB := NewORSet("B")
-	replicaB.Merge(dRemA)  // arrives first (out-of-order); T_A not yet present → no-op
-	replicaB.Merge(dAddC)  // T_C added; not in any remove delta → survives
-	replicaB.Merge(dAddA)  // T_A added; but it is now "observed" by dRemA...
+	replicaB.Merge(dRemA) // arrives first (out-of-order); T_A not yet present → no-op
+	replicaB.Merge(dAddC) // T_C added; not in any remove delta → survives
+	replicaB.Merge(dAddA) // T_A added; but it is now "observed" by dRemA...
 	// Apply dRemA a second time to simulate a re-delivery (idempotent check
 	// and to ensure the remove cancels T_A on B after T_A arrived).
 	replicaB.Merge(dRemA)

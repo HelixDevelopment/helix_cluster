@@ -35,11 +35,11 @@ type PKIIssueParams struct {
 
 // PKICertificate holds the result of a PKI issue/renew operation.
 type PKICertificate struct {
-	Certificate string
-	PrivateKey  string
-	CAChain     []string
-	Serial      string
-	LeaseID     string
+	Certificate   string
+	PrivateKey    string
+	CAChain       []string
+	Serial        string
+	LeaseID       string
 	LeaseDuration time.Duration
 }
 
@@ -87,10 +87,10 @@ func (w *VaultWrapper) RenewCertificate(ctx context.Context, mount, leaseID stri
 
 // MockVaultClient is a test double that records calls and returns canned responses.
 type MockVaultClient struct {
-	ReadFn   func(ctx context.Context, mount, path string) (map[string]interface{}, error)
-	WriteFn  func(ctx context.Context, mount, path string, data map[string]interface{}) error
-	IssueFn  func(ctx context.Context, mount, role string, params PKIIssueParams) (*PKICertificate, error)
-	RenewFn  func(ctx context.Context, mount, leaseID string) (*PKICertificate, error)
+	ReadFn  func(ctx context.Context, mount, path string) (map[string]interface{}, error)
+	WriteFn func(ctx context.Context, mount, path string, data map[string]interface{}) error
+	IssueFn func(ctx context.Context, mount, role string, params PKIIssueParams) (*PKICertificate, error)
+	RenewFn func(ctx context.Context, mount, leaseID string) (*PKICertificate, error)
 }
 
 func (m *MockVaultClient) KVv2Read(ctx context.Context, mount, path string) (map[string]interface{}, error) {

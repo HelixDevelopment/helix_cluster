@@ -44,7 +44,7 @@ func WelchTTest(baseline, candidate []float64) (Result, error) {
 	m1 := mean(baseline)
 	m2 := mean(candidate)
 
-	v1 := variance(baseline, m1) // sample variance s1²
+	v1 := variance(baseline, m1)  // sample variance s1²
 	v2 := variance(candidate, m2) // sample variance s2²
 
 	se2 := v1/n1 + v2/n2 // pooled standard error squared

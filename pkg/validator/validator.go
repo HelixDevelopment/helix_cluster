@@ -17,16 +17,16 @@ var (
 )
 
 var (
-	ErrEmptyValue      = errors.New("value must not be empty")
-	ErrNilStruct       = errors.New("nil struct")
-	ErrNotStruct       = errors.New("expected struct")
+	ErrEmptyValue       = errors.New("value must not be empty")
+	ErrNilStruct        = errors.New("nil struct")
+	ErrNotStruct        = errors.New("expected struct")
 	ErrValidationFailed = errors.New("validation failed")
-	ErrRequired        = errors.New("field is required")
-	ErrInvalidEmail    = errors.New("invalid email")
-	ErrInvalidUUID     = errors.New("invalid UUID")
-	ErrOneOf           = errors.New("value not in allowed set")
-	ErrMinExceeded     = errors.New("minimum exceeded")
-	ErrMaxExceeded     = errors.New("maximum exceeded")
+	ErrRequired         = errors.New("field is required")
+	ErrInvalidEmail     = errors.New("invalid email")
+	ErrInvalidUUID      = errors.New("invalid UUID")
+	ErrOneOf            = errors.New("value not in allowed set")
+	ErrMinExceeded      = errors.New("minimum exceeded")
+	ErrMaxExceeded      = errors.New("maximum exceeded")
 )
 
 // RuleFunc is a custom validation function.

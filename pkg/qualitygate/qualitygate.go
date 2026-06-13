@@ -118,8 +118,8 @@ func (r kpiRule) evalThreshold(metrics map[string]float64) float64 {
 //
 // Rule index → design description:
 //  1. helix_nodes_healthy >= floor(helix_nodes_total*0.5)+1  CRITICAL
-//  2a. helix_tasks_unscheduled == 0                           CRITICAL
-//  2b. helix_tasks_unscheduled rate < 1                       WARNING
+//     2a. helix_tasks_unscheduled == 0                           CRITICAL
+//     2b. helix_tasks_unscheduled rate < 1                       WARNING
 //  3. schedule_latency p99 < 1000 ms                          CRITICAL
 //  4. consensus_rounds rate < 10                              CRITICAL
 //  5. test_duration p95 < 300 s                               CRITICAL

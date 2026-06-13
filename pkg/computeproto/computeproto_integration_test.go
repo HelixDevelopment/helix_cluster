@@ -149,8 +149,8 @@ func TestIntegration_CppConsumerReadsBuffer(t *testing.T) {
 	compileOut, err := exec.Command(
 		"clang++",
 		"-std=c++17",
-		"-I", tmpDir,       // for compute_generated.h
-		"-I", fbInclude,    // for flatbuffers/flatbuffers.h
+		"-I", tmpDir, // for compute_generated.h
+		"-I", fbInclude, // for flatbuffers/flatbuffers.h
 		"-o", binaryPath,
 		srcFile,
 	).CombinedOutput()

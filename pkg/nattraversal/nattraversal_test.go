@@ -259,7 +259,7 @@ func TestDecodeMessageMalformed(t *testing.T) {
 				b := make([]byte, headerLen)
 				binary.BigEndian.PutUint32(b[4:8], magicCookie)
 				binary.BigEndian.PutUint16(b[2:4], 200) // claims 200 bytes of attrs
-				return b                                 // only 0 bytes follow the header
+				return b                                // only 0 bytes follow the header
 			}(),
 			expectFrag: "overruns",
 		},

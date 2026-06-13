@@ -404,8 +404,8 @@ func TestSubscribeNodeEventsMalformedPayloadSkipped(t *testing.T) {
 
 	good, _ := json.Marshal(NodeEvent{Type: "update", NodeID: "node-5"})
 	fake.seedMessages(chanNodeEvents,
-		"{not-json}",          // malformed — must be skipped
-		string(good),          // well-formed — must be delivered
+		"{not-json}", // malformed — must be skipped
+		string(good), // well-formed — must be delivered
 	)
 
 	store := newRedisStoreFromSeam(fake)

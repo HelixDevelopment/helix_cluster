@@ -306,12 +306,12 @@ func TestMultiErrorUnwrapExposesAll(t *testing.T) {
 func TestValidateAllReportsEveryProblemAtOnce(t *testing.T) {
 	// Mutation guard: ALL problems must surface, not just the first.
 	cfg := &Config{
-		AppName:   "",      // required, missing
-		HTTPPort:  99999,   // out of range
-		GRPCPort:  -1,      // out of range
-		LogLevel:  "loud",  // not one-of
-		MaxConns:  0,       // must be positive
-		EtcdEndpoints: nil, // required non-empty
+		AppName:       "",     // required, missing
+		HTTPPort:      99999,  // out of range
+		GRPCPort:      -1,     // out of range
+		LogLevel:      "loud", // not one-of
+		MaxConns:      0,      // must be positive
+		EtcdEndpoints: nil,    // required non-empty
 	}
 	err := cfg.ValidateAll()
 	if err == nil {

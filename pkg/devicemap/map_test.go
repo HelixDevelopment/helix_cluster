@@ -18,7 +18,7 @@ func representativeDescriptor() device.DeviceDescriptor {
 		CPUCores:         16,
 		MemoryBytes:      32 * 1024 * 1024 * 1024, // 32 GiB
 		GPUCount:         2,
-		GPUVRAMBytes:     24 * 1024 * 1024 * 1024, // 24 GiB total across 2 GPUs
+		GPUVRAMBytes:     24 * 1024 * 1024 * 1024,  // 24 GiB total across 2 GPUs
 		NPUTops:          12.5,                     // device-only — no pb.Node equivalent
 		PowerBudgetWatts: 65.0,                     // device-only — no pb.Node equivalent
 		HasBattery:       true,                     // device-only — no pb.Node equivalent

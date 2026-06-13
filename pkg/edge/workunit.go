@@ -148,8 +148,8 @@ func (e *Executor) Run(ctx context.Context, unit EdgeWorkUnit, work func(context
 	}()
 
 	var (
-		workOut []byte
-		workErr error
+		workOut  []byte
+		workErr  error
 		limitHit LimitKind
 		termLog  string
 	)

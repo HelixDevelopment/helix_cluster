@@ -193,8 +193,8 @@ func TestMultiLevelFenceContextCancelled(t *testing.T) {
 // password from argv) without an IPMI BMC.
 type recordingIPMIRunner struct {
 	present   bool
-	calls     [][]string   // public argv per call (no password here)
-	envCalls  [][]string   // env entries per call (password delivered here)
+	calls     [][]string // public argv per call (no password here)
+	envCalls  [][]string // env entries per call (password delivered here)
 	statusOut string
 	runErr    error
 }

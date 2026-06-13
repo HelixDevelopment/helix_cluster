@@ -12,14 +12,14 @@ import (
 type Code string
 
 const (
-	E_UNKNOWN     Code = "E_UNKNOWN"
-	E_NOT_FOUND   Code = "E_NOT_FOUND"
-	E_INVALID     Code = "E_INVALID"
-	E_TIMEOUT     Code = "E_TIMEOUT"
-	E_UNAVAILABLE Code = "E_UNAVAILABLE"
-	E_INTERNAL    Code = "E_INTERNAL"
+	E_UNKNOWN      Code = "E_UNKNOWN"
+	E_NOT_FOUND    Code = "E_NOT_FOUND"
+	E_INVALID      Code = "E_INVALID"
+	E_TIMEOUT      Code = "E_TIMEOUT"
+	E_UNAVAILABLE  Code = "E_UNAVAILABLE"
+	E_INTERNAL     Code = "E_INTERNAL"
 	E_UNAUTHORIZED Code = "E_UNAUTHORIZED"
-	E_CONFLICT    Code = "E_CONFLICT"
+	E_CONFLICT     Code = "E_CONFLICT"
 )
 
 // Error is a structured error with code, fields, and stack trace.

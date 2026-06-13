@@ -86,9 +86,9 @@ func TestChutesMinerConfigValidate_AcceptsTEEEnabled(t *testing.T) {
 // that is the load-bearing mutation guard.
 func TestChutesMinerConfigValidate_InvalidFields(t *testing.T) {
 	cases := []struct {
-		name      string
-		mutate    func(*ChutesMinerConfig)
-		wantErr   error
+		name    string
+		mutate  func(*ChutesMinerConfig)
+		wantErr error
 	}{
 		{
 			name:    "empty NodeID",
@@ -210,8 +210,8 @@ func TestValidatorConfigValidate_InvalidFields(t *testing.T) {
 // make this test observe ErrConfigGPUCount instead of ErrConfigNodeID and fail.
 func TestChutesMinerConfigValidate_SentinelOrdering(t *testing.T) {
 	cfg := validMinerConfig()
-	cfg.NodeID = ""     // violates NodeID rule
-	cfg.GPUCount = -99  // would also violate GPUCount rule
+	cfg.NodeID = ""    // violates NodeID rule
+	cfg.GPUCount = -99 // would also violate GPUCount rule
 	err := cfg.Validate()
 	if err == nil {
 		t.Fatal("expected non-nil error")

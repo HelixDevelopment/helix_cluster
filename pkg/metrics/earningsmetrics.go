@@ -92,11 +92,11 @@ func (e *EarningsMetrics) SetGPUUtilization(gpuID string, v float64) {
 // snapshot returns a locked-copy of the mutable state so the mutex can be
 // released before the (potentially slow) string formatting pass.
 type earningsSnapshot struct {
-	taoEarnings    map[string]float64
-	gravalStatus   map[string]float64
+	taoEarnings     map[string]float64
+	gravalStatus    map[string]float64
 	tokenThroughput float64
-	tokenSet       bool
-	gpuUtilization map[string]float64
+	tokenSet        bool
+	gpuUtilization  map[string]float64
 }
 
 func (e *EarningsMetrics) snapshot() earningsSnapshot {

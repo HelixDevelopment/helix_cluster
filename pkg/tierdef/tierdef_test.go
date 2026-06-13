@@ -409,8 +409,8 @@ func TestMeets_WeakDeviceDoesNotMeetT15(t *testing.T) {
 	}
 
 	weakDevice := tierdef.DeviceCaps{
-		CPUCores:    oracleT1CPUCores,  // 1
-		MemoryMB:    oracleT1MemoryMB,  // 256
+		CPUCores:    oracleT1CPUCores, // 1
+		MemoryMB:    oracleT1MemoryMB, // 256
 		GPUCount:    0,
 		GPUVRAMMB:   0,
 		NetworkMbps: oracleT1NetworkMbps, // 10

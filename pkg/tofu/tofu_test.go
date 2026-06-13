@@ -136,9 +136,10 @@ func TestSpoofDetectionRejectsDifferentKey(t *testing.T) {
 }
 
 // TestReconnectAcceptedAndBadSigFirstContactRejected covers CLOSURE clause 3:
-//   (a) the SAME genuine key on reconnect is ACCEPTED (matches pin), and
-//   (b) a tampered/invalid self-signature on FIRST contact is rejected with
-//       ErrBadSignature and NOTHING is pinned.
+//
+//	(a) the SAME genuine key on reconnect is ACCEPTED (matches pin), and
+//	(b) a tampered/invalid self-signature on FIRST contact is rejected with
+//	    ErrBadSignature and NOTHING is pinned.
 //
 // Mutation: if VerifyAndPin skips ed25519.Verify (signature check), the bad-sig
 // first contact in part (b) would wrongly succeed and pin the key — making the

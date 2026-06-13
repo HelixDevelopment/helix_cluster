@@ -32,10 +32,10 @@ type wantSpec struct {
 // expectedCatalog mirrors topicCatalog for assertion; kept separate so a
 // mutation to topicCatalog is caught by the test rather than silently mirrored.
 var expectedCatalog = map[string]wantSpec{
-	"helix.nodes":     {partitions: 6, replication: 1, retentionMs: 604_800_000},  // 7 days
-	"helix.sessions":  {partitions: 4, replication: 1, retentionMs: 86_400_000},   // 1 day
-	"helix.scheduler": {partitions: 8, replication: 1, retentionMs: 259_200_000},  // 3 days
-	"helix.health":    {partitions: 4, replication: 1, retentionMs: 21_600_000},   // 6 hours
+	"helix.nodes":     {partitions: 6, replication: 1, retentionMs: 604_800_000},   // 7 days
+	"helix.sessions":  {partitions: 4, replication: 1, retentionMs: 86_400_000},    // 1 day
+	"helix.scheduler": {partitions: 8, replication: 1, retentionMs: 259_200_000},   // 3 days
+	"helix.health":    {partitions: 4, replication: 1, retentionMs: 21_600_000},    // 6 hours
 	"helix.alerts":    {partitions: 2, replication: 1, retentionMs: 2_592_000_000}, // 30 days
 }
 
@@ -52,7 +52,7 @@ var expectedCatalog = map[string]wantSpec{
 //     "helix.nodes: NumPartitions=5, want 6".
 //   - Changing "helix.scheduler".NumPartitions from 8 to 4 → test fails.
 //   - Changing "helix.alerts".RetentionMs from 2592000000 to 0 → test fails.
-//   (All mutations verified manually; byte-for-byte restore confirmed.)
+//     (All mutations verified manually; byte-for-byte restore confirmed.)
 func TestTopicCatalog_ExactValues(t *testing.T) {
 	catalog := TopicCatalog()
 
@@ -174,7 +174,7 @@ func (f *fakeAdmin) Close() error { return nil }
 //   - Passing NumPartitions=0 for helix.nodes → assertion fires.
 //   - Omitting retention.ms ConfigEntry → "helix.nodes: missing retention.ms
 //     ConfigEntry" fires.
-//   (All three mutations verified manually; byte-for-byte restore confirmed.)
+//     (All three mutations verified manually; byte-for-byte restore confirmed.)
 func TestEnsureTopicsWithSeam_CallsCreateTopics_ExactTopicConfigs(t *testing.T) {
 	fa := &fakeAdmin{}
 	err := EnsureTopicsWithSeam(context.Background(), fa)
@@ -339,4 +339,3 @@ func findSubstring(s, sub string) bool {
 	}
 	return false
 }
-

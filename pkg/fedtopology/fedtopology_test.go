@@ -424,9 +424,10 @@ func TestTree_ExactEdgesSmall(t *testing.T) {
 //
 // n=7, k=branchingFactor(7)=ceil(sqrt(7))=3.
 // order=[root,n1,n2,n3,n4,n5,n6]; parent=(i-1)/3:
-//   i=1(n1),2(n2),3(n3): parent=0=root → root has 3 children (degree 3).
-//   i=4(n4),5(n5): parent=1=n1; i=6(n6): parent=1=n1.
-//   Wait: (6-1)/3 = 5/3 = 1 → n1 gets n4,n5,n6 (3 grandchildren).
+//
+//	i=1(n1),2(n2),3(n3): parent=0=root → root has 3 children (degree 3).
+//	i=4(n4),5(n5): parent=1=n1; i=6(n6): parent=1=n1.
+//	Wait: (6-1)/3 = 5/3 = 1 → n1 gets n4,n5,n6 (3 grandchildren).
 //
 // EXACT MUTATION THAT MAKES THIS TEST FAIL:
 //
@@ -486,8 +487,10 @@ func TestHierarchical_InvariantsLarger(t *testing.T) {
 // n=7, k=branchingFactor(7)=ceil(sqrt(7))=3.
 // treeOrder puts root first: [root, n1, n2, n3, n4, n5, n6].
 // Parent assignment (i-1)/3:
-//   i=1(n1): parent=0=root; i=2(n2): parent=0=root; i=3(n3): parent=0=root.
-//   i=4(n4): parent=1=n1;   i=5(n5): parent=1=n1;   i=6(n6): parent=1=n1.
+//
+//	i=1(n1): parent=0=root; i=2(n2): parent=0=root; i=3(n3): parent=0=root.
+//	i=4(n4): parent=1=n1;   i=5(n5): parent=1=n1;   i=6(n6): parent=1=n1.
+//
 // Result: root → {n1,n2,n3}, n1 → {n4,n5,n6}, n2/n3/n4/n5/n6 are leaves.
 //
 // EXACT MUTATION: in buildKAryTree, change `parent := order[(i-1)/k]` to

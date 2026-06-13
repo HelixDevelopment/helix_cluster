@@ -62,7 +62,7 @@ func TestLatencySpotPolicy_Score_LowerLatencyScoresHigher(t *testing.T) {
 	p := &LatencySpotPolicy{}
 	job := newLatencyJob("j-batch", "false") // non-sensitive to isolate latency term
 
-	lowLatNode := newLatencyNode("low", "5", "false")   // 5 ms
+	lowLatNode := newLatencyNode("low", "5", "false")     // 5 ms
 	highLatNode := newLatencyNode("high", "100", "false") // 100 ms
 
 	scoreLow := p.Score(job, lowLatNode)

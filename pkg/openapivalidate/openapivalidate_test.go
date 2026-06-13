@@ -149,9 +149,9 @@ func TestEachRuleIndependentlyLoadBearing(t *testing.T) {
 	fields := []string{"name", "age", "active"}
 	// Wrong-type substitute per field: pick a value of a type the field rejects.
 	wrongVal := map[string]any{
-		"name":   123,     // string field, number value
-		"age":    "x",     // number field, string value
-		"active": "yes",   // bool field, string value
+		"name":   123,   // string field, number value
+		"age":    "x",   // number field, string value
+		"active": "yes", // bool field, string value
 	}
 
 	for _, f := range fields {

@@ -147,7 +147,7 @@ func parseScreenList(output string) []SessionInfo {
 		if len(fields) < 2 {
 			continue
 		}
-		socket := fields[0] // e.g. "41319.hxc-fmt-41316"
+		socket := fields[0]     // e.g. "41319.hxc-fmt-41316"
 		stateField := fields[1] // e.g. "(Detached)"
 
 		dotIdx := strings.Index(socket, ".")

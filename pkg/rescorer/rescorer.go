@@ -3,7 +3,7 @@
 // an injected logical clock and advanced via Tick. No wall-clock time, network,
 // or host access is used.
 //
-// Model
+// # Model
 //
 // Each provider carries a price. A score is derived from that price (lower
 // price => better score). A re-scoring CYCLE happens on a cycle boundary

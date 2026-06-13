@@ -45,7 +45,7 @@ type Reading struct {
 
 // Event is a structured audit record written to the Monitor's in-process log.
 type Event struct {
-	Kind    string  // "reading" or "low_balance_warning"
+	Kind    string // "reading" or "low_balance_warning"
 	RunID   string
 	Balance float64
 	At      time.Time

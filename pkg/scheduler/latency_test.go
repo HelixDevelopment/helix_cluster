@@ -38,10 +38,10 @@ type slowPlugin struct {
 	delay time.Duration
 }
 
-func (s *slowPlugin) Name() string                     { return "SlowPlugin" }
-func (s *slowPlugin) Filter(_ *Job, _ *Node) bool      { return true }
-func (s *slowPlugin) Score(_ *Job, _ *Node) int        { time.Sleep(s.delay); return 0 }
-func (s *slowPlugin) Bind(_ *Job, _ *Node) bool        { return true }
+func (s *slowPlugin) Name() string                { return "SlowPlugin" }
+func (s *slowPlugin) Filter(_ *Job, _ *Node) bool { return true }
+func (s *slowPlugin) Score(_ *Job, _ *Node) int   { time.Sleep(s.delay); return 0 }
+func (s *slowPlugin) Bind(_ *Job, _ *Node) bool   { return true }
 
 // ---------- helper: latency histogram ----------
 
@@ -223,7 +223,11 @@ func TestHXC1137SchedulerDecisionLatencyUnder100ms(t *testing.T) {
 	}
 
 	// ---- track CPU/Memory/GPU consumed per node ----
-	type consumed struct{ cpu float64; mem uint64; gpu int }
+	type consumed struct {
+		cpu float64
+		mem uint64
+		gpu int
+	}
 	consumedByNode := make(map[string]consumed)
 
 	latencies := make([]time.Duration, 0, 10)

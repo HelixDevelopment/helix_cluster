@@ -101,7 +101,7 @@ func TestRegistry_LoadYAML_NotFound(t *testing.T) {
 
 func TestProfile_Struct(t *testing.T) {
 	p := &Profile{
-		ID:   "test", Tier: "TX",
+		ID: "test", Tier: "TX",
 		CPU:     CPU{Cores: 4, FrequencyGHz: 2.5, Architecture: "arm64"},
 		RAM:     RAM{TotalGB: 8, Type: "DDR4"},
 		GPU:     GPU{Count: 1, Model: "test-gpu", MemoryGB: 4, Vulkan: true},

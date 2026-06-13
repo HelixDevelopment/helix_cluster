@@ -24,8 +24,8 @@ func recordingAttempt(outputs map[string]string, calls *[]string) Attempt {
 func TestPrimaryEmptyFallbackWins(t *testing.T) {
 	var calls []string
 	outputs := map[string]string{
-		"primary":  "",            // primary returns an empty completion
-		"backup-a": "",            // first fallback also empty
+		"primary":  "",              // primary returns an empty completion
+		"backup-a": "",              // first fallback also empty
 		"backup-b": "ANSWER-FROM-B", // second fallback has the real answer
 	}
 	chain := Chain{Providers: []string{"primary", "backup-a", "backup-b"}}
@@ -63,7 +63,7 @@ func TestPrimaryEmptyFallbackWins(t *testing.T) {
 func TestDedupAttemptsProviderOnce(t *testing.T) {
 	var calls []string
 	outputs := map[string]string{
-		"primary": "",        // always empty so we exhaust the chain
+		"primary": "", // always empty so we exhaust the chain
 		"backup":  "FROM-BACKUP",
 	}
 	// "primary" listed twice; must be tried only once.

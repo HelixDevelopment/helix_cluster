@@ -82,14 +82,14 @@ func newLeaf(t *testing.T, cn string, isServer bool, ca *certBundle, serial int6
 		extUsage = x509.ExtKeyUsageServerAuth
 	}
 	tmpl := &x509.Certificate{
-		SerialNumber:          big.NewInt(serial),
-		Subject:               pkix.Name{CommonName: cn},
-		NotBefore:             time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
-		NotAfter:              time.Date(2035, 1, 1, 0, 0, 0, 0, time.UTC),
-		KeyUsage:              x509.KeyUsageDigitalSignature,
-		ExtKeyUsage:           []x509.ExtKeyUsage{extUsage},
-		DNSNames:              []string{"localhost"},
-		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1")},
+		SerialNumber: big.NewInt(serial),
+		Subject:      pkix.Name{CommonName: cn},
+		NotBefore:    time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+		NotAfter:     time.Date(2035, 1, 1, 0, 0, 0, 0, time.UTC),
+		KeyUsage:     x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:  []x509.ExtKeyUsage{extUsage},
+		DNSNames:     []string{"localhost"},
+		IPAddresses:  []net.IP{net.ParseIP("127.0.0.1")},
 	}
 	der, err := x509.CreateCertificate(rand.Reader, tmpl, ca.Cert, &key.PublicKey, ca.Key)
 	if err != nil {

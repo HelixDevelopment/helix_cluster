@@ -46,11 +46,11 @@ type Result struct {
 // the workers that returned that value (sorted for determinism); AgreeCount and
 // TotalCount describe the quorum margin.
 type Validated struct {
-	TaskID         string
-	Value          any
+	TaskID          string
+	Value           any
 	AgreeingWorkers []string
-	AgreeCount     int
-	TotalCount     int
+	AgreeCount      int
+	TotalCount      int
 }
 
 // Trust reward/penalty deltas and clamp bounds. Trust is a bounded reputation:

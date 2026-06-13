@@ -11,7 +11,8 @@ import (
 func round4(v float64) float64 { return math.Round(v*1e4) / 1e4 }
 
 // canonicalGPU is the worked example from the spec:
-//   $30000 / (5yr * 8760h * 0.7 util) + 700W * $0.12/kWh.
+//
+//	$30000 / (5yr * 8760h * 0.7 util) + 700W * $0.12/kWh.
 func canonicalGPU() GPU {
 	return GPU{
 		ID:             "h100-0",

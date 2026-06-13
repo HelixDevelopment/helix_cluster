@@ -420,4 +420,3 @@ func DefaultPhase6Gates() []Gate {
 		},
 	}
 }
-

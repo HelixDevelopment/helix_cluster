@@ -12,7 +12,7 @@
 //     This guard makes TestCostPicksCheapest fail when inverted.            (guard C)
 //   - TEE restricts to TEE-capable models then picks the cheapest among them.
 //   - Balanced computes a weighted score:
-//       score = w_ttft*(1/TTFTMillis) + w_tput*ThroughputTokS + w_cost*(1/CostPerMTokens)
+//     score = w_ttft*(1/TTFTMillis) + w_tput*ThroughputTokS + w_cost*(1/CostPerMTokens)
 //     with weights 0.4 / 0.3 / 0.3 respectively; higher is better.
 //
 // Every routing decision is appended to an internal Decision log accessible

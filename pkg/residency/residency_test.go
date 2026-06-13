@@ -266,7 +266,7 @@ func TestTableDriven(t *testing.T) {
 			AllowedRegions: []string{"eu-west", "eu-central"},
 			DeniedRegions:  []string{"eu-central"}, // eu-central is allowed but also denied → deny wins
 		},
-		{DataClass: ClassPublic},               // open allowlist
+		{DataClass: ClassPublic}, // open allowlist
 		{DataClass: ClassPHI, AllowedRegions: []string{"us-east"}},
 	}, false)
 
@@ -283,38 +283,38 @@ func TestTableDriven(t *testing.T) {
 
 	cases := []tc{
 		{
-			name: "pii_eu-west_allow",
+			name:  "pii_eu-west_allow",
 			class: ClassPII, region: "eu-west", cell: "c1",
 			wantAllow: true, wantRuleID: "allowed-region", wantInReason: "eu-west",
 			wantCellInReason: true,
 		},
 		{
 			// eu-central is in AllowedRegions but also in DeniedRegions → deny wins
-			name: "pii_eu-central_denied",
+			name:  "pii_eu-central_denied",
 			class: ClassPII, region: "eu-central", cell: "c2",
 			wantAllow: false, wantRuleID: "denied-region", wantInReason: "eu-central",
 			wantCellInReason: true,
 		},
 		{
-			name: "pii_us-east_not_allowed",
+			name:  "pii_us-east_not_allowed",
 			class: ClassPII, region: "us-east", cell: "c3",
 			wantAllow: false, wantRuleID: "region-not-allowed", wantInReason: "us-east",
 			wantCellInReason: true,
 		},
 		{
-			name: "public_anywhere",
+			name:  "public_anywhere",
 			class: ClassPublic, region: "ap-southeast", cell: "c4",
 			wantAllow: true, wantRuleID: "open-allowlist", wantInReason: "no region restriction",
 			wantCellInReason: true,
 		},
 		{
-			name: "phi_us-east_allow",
+			name:  "phi_us-east_allow",
 			class: ClassPHI, region: "us-east", cell: "c5",
 			wantAllow: true, wantRuleID: "allowed-region", wantInReason: "us-east",
 			wantCellInReason: true,
 		},
 		{
-			name: "phi_eu-west_deny",
+			name:  "phi_eu-west_deny",
 			class: ClassPHI, region: "eu-west", cell: "c6",
 			wantAllow: false, wantRuleID: "region-not-allowed", wantInReason: "eu-west",
 			wantCellInReason: true,
@@ -322,7 +322,7 @@ func TestTableDriven(t *testing.T) {
 		{
 			// default-deny branch: no rule matches, so targetCell is NOT embedded
 			// in the Reason (design choice — class and policy stance are reported).
-			name: "unknown_default_deny",
+			name:  "unknown_default_deny",
 			class: "classified", region: "eu-west", cell: "c7",
 			wantAllow: false, wantRuleID: "default-deny", wantInReason: "no rule",
 			wantCellInReason: false,

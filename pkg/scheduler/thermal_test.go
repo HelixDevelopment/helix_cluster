@@ -82,8 +82,8 @@ func TestThermalAware_MutationInvertComparison(t *testing.T) {
 	hotTemp := 71.0
 	threshold := 70.0
 
-	correct := hotTemp > threshold    // true  → filter returns !true = false (REJECTED)
-	mutated := hotTemp <= threshold   // false → filter would return !false = true (ADMITTED)
+	correct := hotTemp > threshold  // true  → filter returns !true = false (REJECTED)
+	mutated := hotTemp <= threshold // false → filter would return !false = true (ADMITTED)
 
 	// Confirm mutation produces opposite result.
 	if correct == mutated {
@@ -119,10 +119,10 @@ func TestThermalAwareRisingTempFilteredOut(t *testing.T) {
 		{60.0, true},
 		{70.0, true},
 		{74.9, true},
-		{75.0, true},   // at threshold: admitted (comparison is >, not >=)
-		{75.1, false},  // just above: rejected
-		{85.0, false},  // well above: rejected
-		{95.0, false},  // severely overheated: rejected
+		{75.0, true},  // at threshold: admitted (comparison is >, not >=)
+		{75.1, false}, // just above: rejected
+		{85.0, false}, // well above: rejected
+		{95.0, false}, // severely overheated: rejected
 	}
 
 	for _, tc := range temps {

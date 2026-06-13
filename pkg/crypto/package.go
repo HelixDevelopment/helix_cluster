@@ -16,8 +16,8 @@ import (
 )
 
 var (
-	ErrInvalidKey       = errors.New("invalid key")
-	ErrVerifyFailed     = errors.New("signature verification failed")
+	ErrInvalidKey        = errors.New("invalid key")
+	ErrVerifyFailed      = errors.New("signature verification failed")
 	ErrInvalidCiphertext = errors.New("invalid ciphertext")
 )
 

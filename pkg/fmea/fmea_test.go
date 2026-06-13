@@ -371,8 +371,8 @@ func TestHighRisk_ExactIDOrder(t *testing.T) {
 // Mutation: change ">=" in HighRisk to ">" → entries at exactly threshold excluded → test fails.
 func TestHighRisk_ThresholdExclusion(t *testing.T) {
 	catalog := []fmea.FailureMode{
-		makeEntry("FM-HI", "Comp", 9, 4, 7), // RPN=252
-		makeEntry("FM-LO", "Comp", 3, 2, 2), // RPN=12
+		makeEntry("FM-HI", "Comp", 9, 4, 7),  // RPN=252
+		makeEntry("FM-LO", "Comp", 3, 2, 2),  // RPN=12
 		makeEntry("FM-MID", "Comp", 5, 5, 5), // RPN=125
 	}
 

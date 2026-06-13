@@ -89,9 +89,9 @@ type Instance struct {
 
 	mu         sync.RWMutex
 	state      State
-	trace      []State        // ordered sequence of states entered (sink-side)
-	readyAt    time.Time      // set when booting->ready transition fires
-	bootAt     time.Time      // virtual time at which Boot() was called
+	trace      []State              // ordered sequence of states entered (sink-side)
+	readyAt    time.Time            // set when booting->ready transition fires
+	bootAt     time.Time            // virtual time at which Boot() was called
 	rejectSink func(from, to State) // called on every rejected transition (set by provisioner)
 }
 
@@ -229,10 +229,10 @@ const defaultBootTime = 100 * time.Millisecond
 // under test control. It also records every rejected illegal transition so
 // tests can assert the rejection log.
 type FakeProvisioner struct {
-	clk     *VirtualClock
-	mu      sync.Mutex
-	seq     int
-	runID   string
+	clk      *VirtualClock
+	mu       sync.Mutex
+	seq      int
+	runID    string
 	rejected []RejectionRecord
 }
 

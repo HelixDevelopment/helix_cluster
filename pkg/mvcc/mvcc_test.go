@@ -133,7 +133,7 @@ func TestCompactPrunesSupersededHistory(t *testing.T) {
 	r3 := s.Put(key, []byte("mid3")) // rev 3
 	midRev := r3
 	r4 := s.Put(key, []byte("post4")) // rev 4 (post-compaction history)
-	r5 := s.Put(key, []byte("last5"))  // rev 5, latest
+	r5 := s.Put(key, []byte("last5")) // rev 5, latest
 	t.Logf("run=%s revs r1..r5 = %d,%d,%d,%d,%d midRev=%d", runUUID, r1, r2, r3, r4, r5, midRev)
 
 	// Before compaction every historical read works.

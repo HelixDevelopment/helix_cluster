@@ -33,9 +33,9 @@ import (
 
 func main() {
 	var (
-		seeds = flag.Int("seeds", 1000, "number of seeds to run (seeds start..start+seeds-1)")
-		start = flag.Int64("start", 0, "first seed (inclusive)")
-		steps = flag.Int("steps", 4000, "max scheduler steps per simulation")
+		seeds   = flag.Int("seeds", 1000, "number of seeds to run (seeds start..start+seeds-1)")
+		start   = flag.Int64("start", 0, "first seed (inclusive)")
+		steps   = flag.Int("steps", 4000, "max scheduler steps per simulation")
 		verbose = flag.Bool("v", false, "print per-seed PASS lines (noisy)")
 	)
 	flag.Parse()

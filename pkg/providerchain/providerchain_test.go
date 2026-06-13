@@ -379,13 +379,13 @@ func TestFourTierCascade(t *testing.T) {
 // TestEmptyOutputRetriable verifies that a tier returning ("", nil) is treated as
 // a retriable failure and the chain advances to the next tier.
 //
-// Mutation guard (empty-output path): if the branch at "err == nil but out == ''"
+// Mutation guard (empty-output path): if the branch at "err == nil but out == ”"
 // is removed (so an empty result is treated as a success), then:
 //   - res.WinnerTier would be "empty-provider" (the first tier) not "fallback"
 //   - res.Output would be "" not "fallback-result"
 //   - the WinnerTier assertion fails.
 //
-// Pinned by: the "err == nil but out == ''" block in Execute.
+// Pinned by: the "err == nil but out == ”" block in Execute.
 func TestEmptyOutputRetriable(t *testing.T) {
 	emptyAttempt := func(_ context.Context) (string, error) {
 		return "", nil // success-shaped but empty — must be treated as retriable

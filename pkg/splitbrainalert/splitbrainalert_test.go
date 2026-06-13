@@ -114,8 +114,8 @@ func TestDefaultSplitBrainRules_TieExpr(t *testing.T) {
 func TestDefaultSplitBrainRules_Severities(t *testing.T) {
 	rules := splitbrainalert.DefaultSplitBrainRules()
 	cases := []struct {
-		name     string
-		wantSev  string
+		name    string
+		wantSev string
 	}{
 		{"HelixQuorumLoss", "critical"},
 		{"HelixTotalIsolation", "critical"},

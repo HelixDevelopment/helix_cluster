@@ -20,10 +20,10 @@ type fakeKVEntry struct {
 // fakeKV is an in-process VaultKV implementation used by unit tests only.
 // It is goroutine-safe and tracks version numbers faithfully.
 type fakeKV struct {
-	mu      sync.Mutex
-	store   map[string]*fakeKVEntry // key: "mount/path"
-	getErr  error                   // if non-nil, KVGet always returns this
-	putErr  error                   // if non-nil, KVPut always returns this
+	mu     sync.Mutex
+	store  map[string]*fakeKVEntry // key: "mount/path"
+	getErr error                   // if non-nil, KVGet always returns this
+	putErr error                   // if non-nil, KVPut always returns this
 }
 
 func newFakeKV() *fakeKV {

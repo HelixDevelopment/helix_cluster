@@ -9,8 +9,8 @@ import (
 
 // Manifest maps platforms to content digests for multi-arch image manifests.
 type Manifest struct {
-	mu       sync.RWMutex
-	entries  map[string]string // platform string -> digest
+	mu      sync.RWMutex
+	entries map[string]string // platform string -> digest
 }
 
 // NewManifest creates an empty manifest.

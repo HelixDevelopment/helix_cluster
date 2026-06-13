@@ -21,9 +21,9 @@ type Pool struct {
 	prov Provisioner
 	cap  int
 
-	mu    sync.Mutex
-	cond  *sync.Cond
-	live  map[string]*Device // currently checked-out devices, keyed by ID
+	mu   sync.Mutex
+	cond *sync.Cond
+	live map[string]*Device // currently checked-out devices, keyed by ID
 }
 
 // NewPool builds a Pool of capacity cap backed by prov. cap must be > 0.

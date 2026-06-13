@@ -35,7 +35,9 @@ const model70BWeightBytes = int64(70_000_000_000 * 2) // ~140 GiB fp16
 // decision.
 //
 // CLAUDE-1 evidence: this exercises the full path
-//   NewPodFormatAdvisor → Advise → SelectFormat → DefaultServeFormat
+//
+//	NewPodFormatAdvisor → Advise → SelectFormat → DefaultServeFormat
+//
 // as a real pod controller would, asserting sink-side behavior (the returned
 // Format is AWQ-4bit and the estimated VRAM is below the budget).
 //

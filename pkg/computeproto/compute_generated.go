@@ -101,6 +101,7 @@ func TensorAddDtype(builder *flatbuffers.Builder, dtype flatbuffers.UOffsetT) {
 func TensorEnd(builder *flatbuffers.Builder) flatbuffers.UOffsetT {
 	return builder.EndObject()
 }
+
 type ComputeTask struct {
 	_tab flatbuffers.Table
 }

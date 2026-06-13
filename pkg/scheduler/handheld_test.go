@@ -139,8 +139,8 @@ func TestHandheldFilter_ThermalAtThresholdAdmitted(t *testing.T) {
 // With that mutation a 25 % not-charging node would be admitted → FAIL.
 func TestHandheldFilter_NotChargingBelowFloor(t *testing.T) {
 	h := &HandheldPolicy{
-		BatteryMin:  10,  // absolute gate: 25 % passes
-		ChargeFloor: 30,  // floor gate: 25 % NOT charging → reject
+		BatteryMin:  10, // absolute gate: 25 % passes
+		ChargeFloor: 30, // floor gate: 25 % NOT charging → reject
 	}
 	node := nodeLabeled(map[string]string{
 		LabelBatteryPct:  "25",
@@ -161,7 +161,7 @@ func TestHandheldFilter_NotChargingAboveFloorAdmitted(t *testing.T) {
 		ChargeFloor: 30,
 	}
 	node := nodeLabeled(map[string]string{
-		LabelBatteryPct:  "60",   // above charge floor (30)
+		LabelBatteryPct:  "60", // above charge floor (30)
 		LabelCharging:    "false",
 		LabelNodeTempC:   "40.0",
 		LabelDeviceState: DeviceStateAvailable,
@@ -211,8 +211,8 @@ func TestHandheldFilter_AbsentBatteryLabelAssumesSafe(t *testing.T) {
 func TestHandheldFilter_AbsentTempLabelAssumesSafe(t *testing.T) {
 	h := &HandheldPolicy{}
 	node := nodeLabeled(map[string]string{
-		LabelBatteryPct:  "80",
-		LabelCharging:    "true",
+		LabelBatteryPct: "80",
+		LabelCharging:   "true",
 		// LabelNodeTempC intentionally absent
 		LabelDeviceState: DeviceStateAvailable,
 	})
@@ -419,7 +419,8 @@ func TestHandheldScore_DeterministicRepeat(t *testing.T) {
 // formula change (even one that preserves ordering) is detected.
 //
 // Node: battery=80%, charging=true, temp=40°C
-//   Expected: 80/5 + 15 (temp<50) + 25 (charging) = 16 + 15 + 25 = 56
+//
+//	Expected: 80/5 + 15 (temp<50) + 25 (charging) = 16 + 15 + 25 = 56
 func TestHandheldScore_ExactValues(t *testing.T) {
 	h := &HandheldPolicy{}
 	node := nodeLabeled(map[string]string{

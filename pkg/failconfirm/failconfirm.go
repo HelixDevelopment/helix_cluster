@@ -81,13 +81,13 @@ type suspicion struct {
 // Detector is not safe for concurrent use; callers must serialize access. This
 // is intentional for deterministic, single-goroutine simulation/testing.
 type Detector struct {
-	members  map[NodeID]struct{}
-	quorum   int
-	clock    Clock
-	ttl      int64 // logical ticks; <=0 or nil clock means no expiry
-	onDead   func(NodeID)
-	susp     map[NodeID]*suspicion
-	dead     map[NodeID]struct{} // targets already promoted (fired exactly once)
+	members map[NodeID]struct{}
+	quorum  int
+	clock   Clock
+	ttl     int64 // logical ticks; <=0 or nil clock means no expiry
+	onDead  func(NodeID)
+	susp    map[NodeID]*suspicion
+	dead    map[NodeID]struct{} // targets already promoted (fired exactly once)
 }
 
 // Option configures a Detector.

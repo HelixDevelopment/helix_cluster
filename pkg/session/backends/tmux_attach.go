@@ -11,12 +11,16 @@ import (
 // live tmux session.
 //
 // Write(p): delivers p as real keystrokes to the session via
-//   tmux send-keys -t <id> -l <literal-text>
+//
+//	tmux send-keys -t <id> -l <literal-text>
+//
 // followed by a separate tmux send-keys -t <id> Enter for each trailing '\n',
 // so that command lines are actually executed by the shell.
 //
 // Read(p): returns REAL pane content by calling
-//   tmux capture-pane -t <id> -p
+//
+//	tmux capture-pane -t <id> -p
+//
 // on each call.  To avoid returning the same bytes on every call, we track how
 // many bytes of the captured output have already been returned and only hand
 // back new bytes.  When the capture has grown beyond what was previously seen,

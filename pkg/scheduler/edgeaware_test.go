@@ -27,11 +27,11 @@ func TestEdgeAwareFilterAdmitsTierBelow6(t *testing.T) {
 		node := &Node{
 			ID: "n",
 			Labels: map[string]string{
-				LabelNodeTier:   strings.ToUpper("t") + strings.ToLower(string(rune('0'+tier))),
+				LabelNodeTier:    strings.ToUpper("t") + strings.ToLower(string(rune('0'+tier))),
 				LabelDeviceState: DeviceStateOffline,
-				LabelCharging:   "false",
-				LabelBatteryPct: "0",
-				LabelNodeTempC:  "99.0",
+				LabelCharging:    "false",
+				LabelBatteryPct:  "0",
+				LabelNodeTempC:   "99.0",
 			},
 		}
 		// Even worst-case conditions: offline, low battery, hot — tier<6 must still pass.
@@ -167,8 +167,8 @@ func TestEdgeAware_MutationFlipTierGuard(t *testing.T) {
 	// Better mutation target: change 'tier < 6' to 'tier <= 6', which would admit T6 unconditionally.
 	tier := 6
 
-	correct := tier < 6   // false → proceeds to edge checks (session gets rejected)
-	mutated := tier <= 6  // true  → returns schedulable immediately (session NOT checked)
+	correct := tier < 6  // false → proceeds to edge checks (session gets rejected)
+	mutated := tier <= 6 // true  → returns schedulable immediately (session NOT checked)
 
 	if correct == mutated {
 		t.Fatal("tier < 6 and tier <= 6 must differ for tier==6")
@@ -359,7 +359,8 @@ func TestEdgeAwareFilterT7NoBatteryCheck(t *testing.T) {
 
 // TestEdgeAwareScoreInferenceJobRankingAcrossTiers is the PRIMARY SINK-SIDE test for HXC-1190.
 // An inference job scored across one device per tier T3..T8 must rank:
-//   T7 >= T3 >= T8 > T4 (NPU/inference tiers outrank batch SBC).
+//
+//	T7 >= T3 >= T8 > T4 (NPU/inference tiers outrank batch SBC).
 //
 // Thermal headroom: a cooler node must outrank an otherwise-equal hot node.
 func TestEdgeAwareScoreInferenceJobRankingAcrossTiers(t *testing.T) {
@@ -659,12 +660,12 @@ func TestIsWorkUnitHelper(t *testing.T) {
 	}{
 		{"work_unit", true},
 		{"WORK_UNIT", true},
-		{"inference", true},     // non-session → work unit
+		{"inference", true}, // non-session → work unit
 		{"data_processing", true},
 		{"session", false},
 		{"interactive_session", false},
 		{"InteractiveSession", false},
-		{"", true},              // absent → work unit
+		{"", true}, // absent → work unit
 	}
 	for _, tc := range cases {
 		var job *Job

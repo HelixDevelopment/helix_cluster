@@ -66,10 +66,10 @@ func (l *TokenBucket) AllowKeyN(key string, n int) bool {
 
 // SlidingWindow implements a sliding window rate limiter.
 type SlidingWindow struct {
-	mu       sync.Mutex
-	window   time.Duration
-	limit    int
-	events   []time.Time
+	mu     sync.Mutex
+	window time.Duration
+	limit  int
+	events []time.Time
 }
 
 // NewSlidingWindow creates a sliding window limiter.
@@ -121,16 +121,28 @@ func (s *SlidingWindow) AllowKeyN(key string, n int) bool {
 
 // PerKeyLimiter manages a map of limiters keyed by string.
 type PerKeyLimiter struct {
-	mu       sync.Mutex
-	factory  func() interface{ Allow() bool; AllowN(int) bool }
-	limiters map[string]interface{ Allow() bool; AllowN(int) bool }
+	mu      sync.Mutex
+	factory func() interface {
+		Allow() bool
+		AllowN(int) bool
+	}
+	limiters map[string]interface {
+		Allow() bool
+		AllowN(int) bool
+	}
 }
 
 // NewPerKeyLimiter creates a per-key limiter using the given factory.
-func NewPerKeyLimiter(factory func() interface{ Allow() bool; AllowN(int) bool }) *PerKeyLimiter {
+func NewPerKeyLimiter(factory func() interface {
+	Allow() bool
+	AllowN(int) bool
+}) *PerKeyLimiter {
 	return &PerKeyLimiter{
-		factory:  factory,
-		limiters: make(map[string]interface{ Allow() bool; AllowN(int) bool }),
+		factory: factory,
+		limiters: make(map[string]interface {
+			Allow() bool
+			AllowN(int) bool
+		}),
 	}
 }
 

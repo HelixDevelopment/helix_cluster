@@ -221,7 +221,7 @@ func TestAssignTier_SelectedTiersExact(t *testing.T) {
 	t.Run("T1_exact", func(t *testing.T) {
 		td, _ := reg.Get("T1")
 		d := DeviceDescriptor{
-			CPUCores:    td.MinCPUCores, // 1
+			CPUCores:    td.MinCPUCores,            // 1
 			MemoryBytes: mbToBytes(td.MinMemoryMB), // 256 MB
 		}
 		got := AssignTier(d, reg)
@@ -236,10 +236,10 @@ func TestAssignTier_SelectedTiersExact(t *testing.T) {
 		td8, _ := reg.Get("T8")
 		td9, _ := reg.Get("T9")
 		d := DeviceDescriptor{
-			CPUCores:     td8.MinCPUCores,              // 32 — below T9's 48
-			MemoryBytes:  mbToBytes(td8.MinMemoryMB),   // 128 GiB
-			GPUCount:     td8.MinGPU,                   // 2
-			GPUVRAMBytes: mbToBytes(td8.MinGPUVRAMMB),  // 16384 MB
+			CPUCores:     td8.MinCPUCores,             // 32 — below T9's 48
+			MemoryBytes:  mbToBytes(td8.MinMemoryMB),  // 128 GiB
+			GPUCount:     td8.MinGPU,                  // 2
+			GPUVRAMBytes: mbToBytes(td8.MinGPUVRAMMB), // 16384 MB
 		}
 		// Verify our understanding: T9 requires more cores than this descriptor.
 		if td9.MinCPUCores <= td8.MinCPUCores {
@@ -260,7 +260,7 @@ func TestAssignTier_SelectedTiersExact(t *testing.T) {
 		d := DeviceDescriptor{
 			CPUCores:     td12.MinCPUCores,
 			MemoryBytes:  mbToBytes(td12.MinMemoryMB),
-			GPUCount:     td12.MinGPU,              // 4
+			GPUCount:     td12.MinGPU, // 4
 			GPUVRAMBytes: mbToBytes(td12.MinGPUVRAMMB),
 		}
 		// Verify fixture: T13 needs more GPUs.
@@ -299,7 +299,7 @@ func TestAssignTier_Monotonic(t *testing.T) {
 	d := DeviceDescriptor{
 		CPUCores:     td10.MinCPUCores, // 64
 		MemoryBytes:  mbToBytes(td10.MinMemoryMB),
-		GPUCount:     td10.MinGPU,      // 4
+		GPUCount:     td10.MinGPU, // 4
 		GPUVRAMBytes: mbToBytes(td10.MinGPUVRAMMB),
 	}
 	// The descriptor must fail T11 (which needs more cores or memory or VRAM).

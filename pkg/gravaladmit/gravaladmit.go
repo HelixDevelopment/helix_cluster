@@ -148,8 +148,8 @@ func (d Decision) Schedulable() bool { return d.Admitted }
 // All methods are safe for concurrent use.
 type Admitter struct {
 	mu      sync.Mutex
-	secret  []byte                // HMAC key, never zero-length after construction
-	pending map[string]Challenge  // nonce → Challenge; single-use store
+	secret  []byte               // HMAC key, never zero-length after construction
+	pending map[string]Challenge // nonce → Challenge; single-use store
 }
 
 // NewAdmitter creates an Admitter using secret as the HMAC-SHA256 key for

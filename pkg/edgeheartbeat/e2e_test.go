@@ -156,12 +156,12 @@ func TestEndToEndLoopbackChurn(t *testing.T) {
 		t.Fatalf("mkdir evidence: %v", err)
 	}
 	evidence := map[string]any{
-		"run_id":         runID,
-		"device_id":      "edge-e2e",
-		"transport":      "loopback-tcp",
-		"timeout_secs":   3,
-		"final_offline":  !collector.Online("edge-e2e"),
-		"timeseries":     series,
+		"run_id":        runID,
+		"device_id":     "edge-e2e",
+		"transport":     "loopback-tcp",
+		"timeout_secs":  3,
+		"final_offline": !collector.Online("edge-e2e"),
+		"timeseries":    series,
 	}
 	b, _ := json.MarshalIndent(evidence, "", "  ")
 	path := filepath.Join(dir, "timeseries.json")

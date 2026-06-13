@@ -14,24 +14,24 @@ import (
 
 // Config holds application configuration for Helix Cluster services.
 type Config struct {
-	AppName      string        `yaml:"app_name" json:"app_name"`
-	Version      string        `yaml:"version" json:"version"`
-	Debug        bool          `yaml:"debug" json:"debug"`
-	BindAddr     string        `yaml:"bind_addr" json:"bind_addr"`
-	HTTPPort     int           `yaml:"http_port" json:"http_port"`
-	GRPCPort     int           `yaml:"grpc_port" json:"grpc_port"`
-	EtcdEndpoints []string     `yaml:"etcd_endpoints" json:"etcd_endpoints"`
-	LogLevel     string        `yaml:"log_level" json:"log_level"`
-	DataDir      string        `yaml:"data_dir" json:"data_dir"`
-	TLSCertPath  string        `yaml:"tls_cert_path" json:"tls_cert_path"`
-	TLSKeyPath   string        `yaml:"tls_key_path" json:"tls_key_path"`
-	TLSCAPath    string        `yaml:"tls_ca_path" json:"tls_ca_path"`
-	MetricsAddr  string        `yaml:"metrics_addr" json:"metrics_addr"`
-	ReadTimeout  time.Duration `yaml:"read_timeout" json:"read_timeout"`
-	WriteTimeout time.Duration `yaml:"write_timeout" json:"write_timeout"`
-	MaxConns     int           `yaml:"max_conns" json:"max_conns"`
-	MaxBodyBytes int64         `yaml:"max_body_bytes" json:"max_body_bytes"`
-	Labels       map[string]string `yaml:"labels" json:"labels"`
+	AppName       string            `yaml:"app_name" json:"app_name"`
+	Version       string            `yaml:"version" json:"version"`
+	Debug         bool              `yaml:"debug" json:"debug"`
+	BindAddr      string            `yaml:"bind_addr" json:"bind_addr"`
+	HTTPPort      int               `yaml:"http_port" json:"http_port"`
+	GRPCPort      int               `yaml:"grpc_port" json:"grpc_port"`
+	EtcdEndpoints []string          `yaml:"etcd_endpoints" json:"etcd_endpoints"`
+	LogLevel      string            `yaml:"log_level" json:"log_level"`
+	DataDir       string            `yaml:"data_dir" json:"data_dir"`
+	TLSCertPath   string            `yaml:"tls_cert_path" json:"tls_cert_path"`
+	TLSKeyPath    string            `yaml:"tls_key_path" json:"tls_key_path"`
+	TLSCAPath     string            `yaml:"tls_ca_path" json:"tls_ca_path"`
+	MetricsAddr   string            `yaml:"metrics_addr" json:"metrics_addr"`
+	ReadTimeout   time.Duration     `yaml:"read_timeout" json:"read_timeout"`
+	WriteTimeout  time.Duration     `yaml:"write_timeout" json:"write_timeout"`
+	MaxConns      int               `yaml:"max_conns" json:"max_conns"`
+	MaxBodyBytes  int64             `yaml:"max_body_bytes" json:"max_body_bytes"`
+	Labels        map[string]string `yaml:"labels" json:"labels"`
 }
 
 // Load loads configuration from environment variables with sensible defaults.

@@ -23,8 +23,8 @@ func TestPlace_PrefersLowCarbon(t *testing.T) {
 	const runUUID = "b1f0c4d2-7a3e-4e91-9c2a-0480c0de1480"
 
 	regions := []Region{
-		{Name: "Fast", CarbonIntensity: 800, LatencyMS: 10},  // first + lowest latency, dirty grid
-		{Name: "Clean", CarbonIntensity: 50, LatencyMS: 80},  // slower but still eligible, clean grid
+		{Name: "Fast", CarbonIntensity: 800, LatencyMS: 10}, // first + lowest latency, dirty grid
+		{Name: "Clean", CarbonIntensity: 50, LatencyMS: 80}, // slower but still eligible, clean grid
 	}
 	job := Job{ID: "j-carbon", PowerWatts: 500, DurationHours: 4, MaxLatencyMS: 100}
 
