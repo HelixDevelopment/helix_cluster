@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 106
-**Last modified:** 2026-06-13T19:14:44Z
+**Revision:** 107
+**Last modified:** 2026-06-13T19:17:24Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **531**.
+Total completed: **532**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -541,3 +541,4 @@ Total completed: **531**.
 | HXC-995 | Feature | P1 | pkg/antientropy end-to-end Merkle reconciliation test (only-differences-transferred) | feab638 |
 | HXC-996 | Feature | P1 | pkg/mvcc snapshot-isolation + race-safety test (consistent point-in-time reads) | 934cdec |
 | HXC-997 | Feature | P1 | pkg/deltacrdt adversarial convergence tests + characterizes a real ORSet SEC defect | f2eee0d |
+| HXC-999 | Feature | P1 | pkg/splitbrain partition-safety test (at-most-one-authoritative across all cuts) | 93e61a2 |
