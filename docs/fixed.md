@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 133
-**Last modified:** 2026-06-13T21:06:36Z
+**Revision:** 134
+**Last modified:** 2026-06-13T21:30:25Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **571**.
+Total completed: **572**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -502,6 +502,7 @@ Total completed: **571**.
 | HXC-1675 | Bug | P1 | FIX pkg/rescorer concurrent ranking/map race (Tick rerank raced Top/Ranking) | 46c06d5 |
 | HXC-1676 | Feature | P1 | pkg/fedtrust concurrent trust-policy test (immutable-after-build, deny-never-permitted) | 8a1413d |
 | HXC-1677 | Bug | P1 | FIX pkg/thermalwarm concurrent-map + state-field race (dispatch/state raced warming) | 0c820ba |
+| HXC-1678 | Feature | P1 | pkg/phasegate concurrent read-safety + gating-correctness test (immutable-after-build) | 79db281 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
