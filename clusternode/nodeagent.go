@@ -98,6 +98,14 @@ type NodeAgent struct {
 	bootstrap []peer.AddrInfo
 	logger    p2p.Logger
 
+	// durable is the agent's OPTIONAL durable-consensus seat: a real
+	// persistent+networked raft node (pkg/raft) with its own on-disk BoltDB data
+	// dir and its own loopback TCP bind. It is non-nil ONLY for agents created via
+	// the durable-consensus constructor (see durable.go); a plain NodeAgent leaves
+	// it nil and behaves exactly as before. When set, Put/Get/IsDurableLeader/
+	// WaitForDurableLeader operate on this replicated state machine.
+	durable *durableSeat
+
 	mu      sync.Mutex
 	started bool
 	stopped bool
@@ -172,12 +180,29 @@ func (a *NodeAgent) Start(ctx context.Context) error {
 func (a *NodeAgent) Stop() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	if !a.started || a.stopped {
+	if a.stopped {
+		return nil
+	}
+
+	var errs []error
+
+	// Always tear down the durable raft node (if any), even when the per-node
+	// discovery/gateway subsystems were never Started: a durable agent's raft node
+	// is live from construction, and shutting it down is the prerequisite for its
+	// on-disk BoltDB files to flush so the SAME data dir can be reopened on
+	// restart. shutdownDurable is a no-op for a non-durable agent.
+	if err := a.shutdownDurable(); err != nil {
+		errs = append(errs, fmt.Errorf("shutdown durable raft node: %w", err))
+	}
+
+	if !a.started {
+		a.stopped = true
+		if len(errs) > 0 {
+			return fmt.Errorf("clusternode: agent %q stop: %v", a.id, errs)
+		}
 		return nil
 	}
 	a.stopped = true
-
-	var errs []error
 	// Tear the real-network gateway server down first (close sink sockets, shut
 	// the http.Server, free the listener) before the gateway Close below closes
 	// the WebSocket transport's upgraded sockets. Ordering keeps shutdown clean

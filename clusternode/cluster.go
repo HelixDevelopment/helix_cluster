@@ -35,6 +35,13 @@ type NodeCluster struct {
 	// safely repeatable.
 	mu     sync.Mutex
 	routes map[string]map[string]*gateway.LoopbackConn
+
+	// durableBind holds, in id order, the fixed loopback TCP binds the durable
+	// raft nodes use when this cluster was built via the durable-consensus
+	// constructor (durable.go). It is nil for a plain in-memory cluster. The binds
+	// are stable across a restart so the persisted raft configuration's peer
+	// addresses stay valid — see RecreateDurableCluster.
+	durableBind []string
 }
 
 // NewNodeCluster builds an N-node in-process cluster. It creates ONE shared raft
