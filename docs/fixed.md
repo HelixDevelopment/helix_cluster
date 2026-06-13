@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 84
-**Last modified:** 2026-06-13T17:37:35Z
+**Revision:** 86
+**Last modified:** 2026-06-13T17:42:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **322**.
+Total completed: **325**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -332,3 +332,6 @@ Total completed: **322**.
 | HXC-971 | Research | P2 | TLA+ spec for Raft ReadIndex linearizable reads (TLC-verified) | 5eb06fe |
 | HXC-972 | Research | P2 | TLA+ spec for STONITH fencing safety / no dual-active (TLC-verified) | 19d676c |
 | HXC-973 | Research | P2 | TLA+ spec for gossip/epidemic dissemination convergence (TLC-verified) | 7c05953 |
+| HXC-974 | Feature | P1 | Real TCP-networked Raft for pkg/raft (network transport + leak-safe cluster) | 33de5cc |
+| HXC-975 | Research | P2 | TLA+ spec for PN-Counter CRDT convergence (TLC-verified) | 46805f7 |
+| HXC-976 | Feature | P1 | Real BoltDB persistence for pkg/raft (durable on-disk store + recovery) | 426b213 |
