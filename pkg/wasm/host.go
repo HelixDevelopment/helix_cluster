@@ -54,22 +54,57 @@ var (
 // source is internally mutex-guarded to prevent a data race on the RNG itself,
 // but Wasmtime's store and the captured log records are not — use a separate
 // Host per goroutine for concurrent execution.
+// Limits bound the resources a single WASM plugin may consume, so a hostile or
+// buggy plugin cannot wedge the host (CPU spin) or exhaust its memory (DoS).
+type Limits struct {
+	// Fuel is the per-Call CPU budget in Wasmtime fuel units. Fuel is consumed
+	// per executed instruction; when it runs out the call traps instead of
+	// looping forever. 0 disables the CPU bound (unbounded execution).
+	Fuel uint64
+	// MemoryBytes caps the linear memory the instance may grow to. A memory.grow
+	// past this fails inside the guest. <= 0 disables the memory bound.
+	MemoryBytes int64
+}
+
+// DefaultLimits is a generous-but-bounded default: 200M fuel (ample for real
+// plugin work, but a tight infinite loop is interrupted in well under a second)
+// and a 64 MiB memory cap.
+func DefaultLimits() Limits {
+	return Limits{Fuel: 200_000_000, MemoryBytes: 64 << 20}
+}
+
 type Host struct {
 	engine  *wasmtime.Engine
 	store   *wasmtime.Store
 	module  *wasmtime.Module
 	inst    *wasmtime.Instance
 	sandbox *sandbox
+	limits  Limits
 }
 
-// NewHost creates a new Wasmtime host with default configuration. The host
-// starts with a deny-everything capability sandbox, preserving the historical
-// behavior in which modules only touched WASI and their own linear memory. Use
-// SetCapabilities to grant gated host capabilities before Instantiate.
+// NewHost creates a new Wasmtime host with DefaultLimits and a deny-everything
+// capability sandbox, preserving the historical behavior in which modules only
+// touched WASI and their own linear memory. Use SetCapabilities to grant gated
+// host capabilities before Instantiate.
 func NewHost() (*Host, error) {
-	engine := wasmtime.NewEngine()
+	return NewHostWithLimits(DefaultLimits())
+}
+
+// NewHostWithLimits creates a host with explicit resource limits. Fuel (CPU)
+// and a linear-memory cap bound a plugin's resource use; pass a zero Limits
+// (Fuel=0, MemoryBytes=0) to disable both bounds.
+func NewHostWithLimits(limits Limits) (*Host, error) {
+	cfg := wasmtime.NewConfig()
+	if limits.Fuel > 0 {
+		cfg.SetConsumeFuel(true)
+	}
+	engine := wasmtime.NewEngineWithConfig(cfg)
 	store := wasmtime.NewStore(engine)
-	return &Host{engine: engine, store: store, sandbox: defaultSandbox()}, nil
+	if limits.MemoryBytes > 0 {
+		// memorySize cap; -1 leaves tables/instances/tables/memories unbounded.
+		store.Limiter(limits.MemoryBytes, -1, -1, -1, -1)
+	}
+	return &Host{engine: engine, store: store, sandbox: defaultSandbox(), limits: limits}, nil
 }
 
 // SetCapabilities replaces the host's capability grant set. It must be called
@@ -146,6 +181,13 @@ func (h *Host) Call(funcName string, args ...int64) (int64, error) {
 	fn := h.inst.GetExport(h.store, funcName)
 	if fn == nil {
 		return 0, fmt.Errorf("function %q not found: %w", funcName, ErrFunctionNotFound)
+	}
+	// Refresh the CPU (fuel) budget so each call gets a fresh allowance; a call
+	// that spins past the budget traps instead of hanging the host.
+	if h.limits.Fuel > 0 {
+		if err := h.store.SetFuel(h.limits.Fuel); err != nil {
+			return 0, fmt.Errorf("set fuel: %w", err)
+		}
 	}
 	wasmArgs := make([]interface{}, len(args))
 	for i, v := range args {
