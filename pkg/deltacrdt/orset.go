@@ -7,38 +7,79 @@ import (
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
-// ORSet — observed-remove set.
+// ORSet — observed-remove set (ORSWOT — observed-remove set without tombstone
+// resurrection; here implemented with an explicit per-element tombstone set).
 //
 // Each Add generates a unique *tag* (a deterministic hash of nodeID + element +
-// a monotonically-increasing per-node sequence number). The set state is a map
-// from element → set-of-tags. Remove(e) only cancels tags that the removing
-// replica has *observed* for e (the observed set at the time of the remove
-// call). New adds arriving after the remove carry new tags and therefore
-// survive — add-wins semantics on concurrent add/remove.
+// a monotonically-increasing per-node sequence number). The per-element state is
+// TWO tag sets: the add-tags it has observed and the removed-tags (tombstones)
+// it has observed. An element is PRESENT iff it has at least one add-tag that is
+// NOT in the removed-tags set:  present(e) ⇔ (adds(e) \ removes(e)) ≠ ∅.
 //
-// Convergence rule:
-//   - Merge of Add delta: union the tag sets.
-//   - Merge of Remove delta: subtract ONLY the tags named in the delta
-//     (the observed tags at remove time) from the local tag set.
+// Remove(e) records — as durable tombstones — the specific tags it observed for
+// e. Crucially these tombstones are kept even if the corresponding Add has not
+// yet been delivered to a peer, so a Remove delivered BEFORE its target Add does
+// NOT become a silent no-op: when the Add later arrives its tag is already
+// tombstoned and is therefore suppressed (it never re-introduces the element).
+// New adds carry NEW, never-before-seen tags that are absent from the tombstone
+// set and therefore survive — preserving add-wins on a genuinely concurrent
+// add/remove, and preserving legitimate RE-ADD after remove (a fresh op yields a
+// fresh tag).
 //
-// MUTATION GUARD — TestORSetAddRemoveConvergesReordered pins this:
-//   In mergeRemoveDelta, the loop intersects the incoming "removed tags" with
-//   the locally-present tags BEFORE deletion.  If that intersection guard is
-//   dropped (unconditional delete of all tags in the remove delta regardless
-//   of whether they are present locally), a remove delta arriving before the
-//   corresponding add delta will erase tags that were never seen, and the final
-//   set on both replicas will diverge from the expected result.
+// Convergence rule (a join on the semilattice of (adds, removes) tag-set pairs):
+//   - Merge of Add delta:    adds(e) ← adds(e) ∪ delta.added(e)
+//   - Merge of Remove delta: removes(e) ← removes(e) ∪ delta.removed(e)
+//
+// Both operations are set unions, so Merge is commutative, associative, and
+// idempotent regardless of delivery order or duplicate delivery — including the
+// remove-before-add case. (TestORSetRemoveBeforeAddConverges pins this.)
+//
+// TOMBSTONE GROWTH TRADEOFF: the removed-tags set is monotonically growing and
+// is never garbage-collected here. That is the standard correctness-first
+// tradeoff for a tombstone OR-Set; a production deployment would add causal-
+// context compaction (e.g. an ORSWOT version vector that lets a dotted-version
+// vector subsume individual tombstones once all replicas have observed them).
+// We deliberately do NOT implement that compaction here — correctness first,
+// without over-engineering — and call out the unbounded-growth caveat honestly.
 // ─────────────────────────────────────────────────────────────────────────────
 
 // tag is an opaque unique identifier for a single Add operation.
 type tag string
 
+// elementState holds the observed add-tags and the observed removed-tags
+// (tombstones) for a single element.
+type elementState struct {
+	adds    map[tag]struct{}
+	removes map[tag]struct{}
+}
+
+// live reports whether at least one add-tag is not tombstoned.
+func (s *elementState) live() bool {
+	for t := range s.adds {
+		if _, removed := s.removes[t]; !removed {
+			return true
+		}
+	}
+	return false
+}
+
+// liveTags returns the set of add-tags not cancelled by a tombstone.
+func (s *elementState) liveTags() map[tag]struct{} {
+	out := make(map[tag]struct{}, len(s.adds))
+	for t := range s.adds {
+		if _, removed := s.removes[t]; !removed {
+			out[t] = struct{}{}
+		}
+	}
+	return out
+}
+
 // ORSet is an observed-remove set whose elements are strings.
 type ORSet struct {
 	nodeID string
 	seq    uint64 // monotonic per-node sequence; deterministic, never time.Now()
-	// elements maps element → set of live add-tags.
-	elements map[string]map[tag]struct{}
+	// elements maps element → its (add-tags, removed-tags) state.
+	elements map[string]*elementState
 }
 
 // ORSetDelta represents a small delta produced by Add or Remove.
@@ -53,8 +94,21 @@ type ORSetDelta struct {
 func NewORSet(nodeID string) *ORSet {
 	return &ORSet{
 		nodeID:   nodeID,
-		elements: make(map[string]map[tag]struct{}),
+		elements: make(map[string]*elementState),
 	}
+}
+
+// stateFor returns (creating if necessary) the elementState for elem.
+func (o *ORSet) stateFor(elem string) *elementState {
+	s := o.elements[elem]
+	if s == nil {
+		s = &elementState{
+			adds:    make(map[tag]struct{}),
+			removes: make(map[tag]struct{}),
+		}
+		o.elements[elem] = s
+	}
+	return s
 }
 
 // makeTag builds a deterministic tag from (nodeID, element, seq).
@@ -73,93 +127,94 @@ func makeTag(nodeID, elem string, seq uint64) tag {
 
 // Add adds elem to the set, returning the delta. The tag is deterministic given
 // (nodeID, elem, seq) so tests with a fixed seq are fully reproducible.
+//
+// Because every Add increments the per-node seq, each Add produces a FRESH tag
+// that has never appeared in any tombstone set. This is what makes legitimate
+// RE-ADD after a remove work: re-adding an element generates a new tag not in
+// removes(e), so present(e) becomes true again (add-wins re-add).
 func (o *ORSet) Add(elem string) ORSetDelta {
 	o.seq++
 	t := makeTag(o.nodeID, elem, o.seq)
-	if o.elements[elem] == nil {
-		o.elements[elem] = make(map[tag]struct{})
-	}
-	o.elements[elem][t] = struct{}{}
+	s := o.stateFor(elem)
+	s.adds[t] = struct{}{}
 	return ORSetDelta{
 		added:   map[string]map[tag]struct{}{elem: {t: {}}},
 		removed: nil,
 	}
 }
 
-// Remove removes elem from the set by tombstoning all currently-observed tags
-// for elem on this replica. Returns the delta. If elem is not present the
-// delta is empty (no-op).
+// Remove removes elem from the set by tombstoning all currently-LIVE tags for
+// elem on this replica. Returns the delta. If elem has no live tags the delta is
+// empty (no-op). The observed live tags are recorded durably as tombstones both
+// locally and in the delta, so that the removal converges even when delivered
+// before the add it cancels.
 func (o *ORSet) Remove(elem string) ORSetDelta {
-	observed := o.elements[elem]
-	if len(observed) == 0 {
+	s := o.elements[elem]
+	if s == nil {
 		return ORSetDelta{}
 	}
-	// Snapshot the observed tags into the delta.
-	tombstones := make(map[tag]struct{}, len(observed))
-	for t := range observed {
-		tombstones[t] = struct{}{}
+	live := s.liveTags()
+	if len(live) == 0 {
+		return ORSetDelta{}
 	}
-	// Apply locally: remove all observed tags.
-	delete(o.elements, elem)
+	// Tombstone the observed live tags durably (do NOT delete the add-tags;
+	// they must stay so idempotent re-delivery and structural convergence hold).
+	for t := range live {
+		s.removes[t] = struct{}{}
+	}
 	return ORSetDelta{
 		added:   nil,
-		removed: map[string]map[tag]struct{}{elem: tombstones},
+		removed: map[string]map[tag]struct{}{elem: live},
 	}
 }
 
 // Merge integrates a delta into the receiver.
 //
-// For Add deltas: union tags into local element maps.
-// For Remove deltas: remove ONLY the named tags that are locally present
-// (observed-remove intersection guard — the mutation-killable line).
+// Both halves are pure set unions on the per-element (adds, removes) tag sets,
+// making Merge commutative, associative, and idempotent. A Remove delta's tags
+// are unioned into removes(e) UNCONDITIONALLY — even if the corresponding add is
+// not yet present — so a remove delivered before its add is durably recorded and
+// suppresses that add when it later arrives (no resurrection). This is the fix
+// for the former remove-before-add divergence (the old code deleted tags only if
+// locally present, silently dropping early removes).
 func (o *ORSet) Merge(d ORSetDelta) {
-	// Integrate additions first.
+	// Integrate additions: union add-tags. A tag already tombstoned in
+	// removes(e) stays suppressed (present() filters it out), so an add whose
+	// tag was previously removed does NOT resurrect the element.
 	for elem, newTags := range d.added {
-		if o.elements[elem] == nil {
-			o.elements[elem] = make(map[tag]struct{})
+		if len(newTags) == 0 {
+			continue
 		}
+		s := o.stateFor(elem)
 		for t := range newTags {
-			o.elements[elem][t] = struct{}{}
-		}
-		// Clean up: if tag set ended up empty, remove the key.
-		if len(o.elements[elem]) == 0 {
-			delete(o.elements, elem)
+			s.adds[t] = struct{}{}
 		}
 	}
 
-	// Integrate removals: only cancel tags that are present locally.
-	// MUTATION GUARD — TestORSetAddRemoveConvergesReordered pins the "if _, ok" check below.
-	// Removing that guard (deleting unconditionally from o.elements[elem]) breaks
-	// convergence when a remove delta arrives before the add delta it observed.
+	// Integrate removals: union tombstones unconditionally (observed-remove,
+	// durable — the SEC-critical change from the previous intersection guard).
 	for elem, removedTags := range d.removed {
-		local := o.elements[elem]
-		if local == nil {
-			// The element is not present locally — nothing to remove.
-			// Without this (and the per-tag guard below), a remove arriving
-			// before the add would create a phantom deletion.
+		if len(removedTags) == 0 {
 			continue
 		}
+		s := o.stateFor(elem)
 		for t := range removedTags {
-			if _, ok := local[t]; ok { // ← mutation-killable guard (observed-remove intersection)
-				delete(local, t)
-			}
-		}
-		if len(local) == 0 {
-			delete(o.elements, elem)
+			s.removes[t] = struct{}{}
 		}
 	}
 }
 
-// Contains reports whether elem is in the set.
+// Contains reports whether elem is in the set (has ≥1 non-tombstoned add-tag).
 func (o *ORSet) Contains(elem string) bool {
-	return len(o.elements[elem]) > 0
+	s := o.elements[elem]
+	return s != nil && s.live()
 }
 
 // Elements returns a sorted slice of all elements currently in the set.
 func (o *ORSet) Elements() []string {
 	out := make([]string, 0, len(o.elements))
-	for elem, tags := range o.elements {
-		if len(tags) > 0 {
+	for elem, s := range o.elements {
+		if s.live() {
 			out = append(out, elem)
 		}
 	}
@@ -167,15 +222,19 @@ func (o *ORSet) Elements() []string {
 	return out
 }
 
-// State returns a full-state delta for convergence tests.
+// State returns a full-state delta for convergence tests. It materialises the
+// LIVE tag set per present element (add-tags minus tombstones). Two replicas
+// that have observed the same delta multiset therefore have structurally equal
+// State() regardless of delivery order — the strong-eventual-consistency
+// guarantee that orsetStateEqual checks.
 func (o *ORSet) State() ORSetDelta {
 	added := make(map[string]map[tag]struct{}, len(o.elements))
-	for elem, tags := range o.elements {
-		cp := make(map[tag]struct{}, len(tags))
-		for t := range tags {
-			cp[t] = struct{}{}
+	for elem, s := range o.elements {
+		live := s.liveTags()
+		if len(live) == 0 {
+			continue
 		}
-		added[elem] = cp
+		added[elem] = live
 	}
 	return ORSetDelta{added: added}
 }

@@ -353,23 +353,24 @@ func TestAdversarialConvergenceORSet(t *testing.T) {
 	if !receivers[0].Contains("alpha") {
 		t.Errorf("RunID=%s ORSet add-wins violated: 'alpha' absent despite an unobserved concurrent add", runID)
 	}
-	t.Logf("RunID=%s ORSet: all %d replicas converged on MATERIALISED VALUE to %v (oracle live=%v) — CONVERGED (add-wins). "+
-		"Caveat: this seed/op-mix did not place a value-changing remove strictly before its add; the order-sensitivity hazard "+
-		"is isolated in TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT.", runID, N, first, oracleElems)
+	t.Logf("RunID=%s ORSet: all %d replicas converged on MATERIALISED VALUE to %v (oracle live=%v) — CONVERGED (add-wins).",
+		runID, N, first, oracleElems)
 
-	// NOTE — deliberately we assert convergence on the MATERIALISED VALUE
-	// (Elements/Contains vs the independent oracle), NOT byte-for-byte internal
-	// tag-state. A byte-for-byte orsetStateEqual assertion across orders does
-	// NOT hold for this delta-state ORSet implementation: a Remove delta is
-	// applied as a difference against locally-present tags only (the
-	// observed-remove intersection guard in orset.go), so a remove delta
-	// delivered BEFORE the add it tombstones is silently lost and the tag
-	// survives — making internal state order-dependent. This is a real defect
-	// in the implementation's advertised "converge regardless of delivery
-	// order" contract; it is reproduced and documented by
-	// TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT below. We do not patch
-	// production here (out of scope) and we do not bluff a passing byte-for-byte
-	// claim the code cannot honour.
+	// Byte-for-byte order independence now HOLDS. Since the orset.go tombstone fix
+	// (Remove records durable observed-removed tags; Merge unions tombstones
+	// unconditionally; present(e) ⇔ adds(e)\removes(e) ≠ ∅), every receiver that
+	// observed the same delta multiset materialises the SAME live-tag State()
+	// regardless of delivery order — including the remove-before-add case that
+	// previously diverged. State() exposes the live tag set, so orsetStateEqual is
+	// a genuine, non-vacuous structural convergence proof. The former order-
+	// sensitivity defect is now a passing regression test
+	// (TestORSetRemoveBeforeAddConverges).
+	for i := 1; i < N; i++ {
+		if !orsetStateEqual(receivers[0].State(), receivers[i].State()) {
+			t.Errorf("RunID=%s ORSet states not structurally identical across orders: recv-0=%v recv-%d=%v",
+				runID, receivers[0].Elements(), i, receivers[i].Elements())
+		}
+	}
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -605,44 +606,31 @@ func TestNaiveOverwriteWouldDiverge(t *testing.T) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT  (CHARACTERIZATION)
+// TestORSetRemoveBeforeAddConverges  (REGRESSION — FIXED DEFECT)
 //
-// **REAL CONVERGENCE DEFECT — DOCUMENTED, NOT PATCHED (out of scope).**
+// This test previously characterized a REAL strong-eventual-consistency defect
+// (TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT): the identical two-delta set
+// {Add(x@T), Remove observing T} diverged by delivery order — Add→Remove ended
+// with "x" ABSENT, but Remove→Add (no redelivery) ended with "x" PRESENT,
+// because a Remove was applied as a set difference against only locally-present
+// tags and the cancelled tag was deleted rather than tombstoned, so an early
+// Remove was a silent no-op and the later Add resurrected the tag.
 //
-// The package doc (gcounter.go) claims merges converge "regardless of delivery
-// order or duplicate delivery". That claim is FALSE for the delta-state ORSet
-// when a Remove delta is delivered BEFORE the Add delta whose tag it cancels,
-// with NO subsequent redelivery of the Remove.
+// THE DEFECT IS NOW FIXED in orset.go: Remove records its observed tags as
+// DURABLE TOMBSTONES (removes(e)), Merge unions tombstones unconditionally, and
+// present(e) ⇔ (adds(e) \ removes(e)) ≠ ∅. An Add whose tag is already
+// tombstoned is therefore suppressed. This makes {Add, Remove} converge to
+// ABSENT in BOTH delivery orders:
+//   - Add→Remove: add T, then tombstone T → absent.
+//   - Remove→Add: tombstone T first, then Add(T) is suppressed → absent.
 //
-// Root cause (orset.go Merge, ~lines 134-150): a Remove delta is applied as a
-// set DIFFERENCE against only the tags PRESENT LOCALLY at merge time (the
-// observed-remove intersection guard `if _, ok := local[t]; ok`). The cancelled
-// tag is `delete`d, NOT recorded as a tombstone. So if the Remove arrives first
-// its target tag is absent → the Remove is a silent no-op → the later Add
-// re-introduces the tag permanently. The same {Add, Remove} delta set therefore
-// yields DIFFERENT observable values depending on delivery order.
-//
-// Minimal reproduction (proven): receiver R1 delivered Add→Remove ends with the
-// element ABSENT; receiver R2 delivered Remove→Add (same two deltas, reversed,
-// no redelivery) ends with the element PRESENT. That is a strong-eventual-
-// consistency violation at the VALUE level, not merely internal bookkeeping.
-//
-// Why the rest of the suite still passes: the production tests
-// (TestORSetAddRemoveConvergesReordered) and the adversarial value test above
-// only converge because they REDELIVER the Remove after the Add (at-least-once
-// delivery) or never place a value-changing remove strictly before its add.
-// The implementation's true contract is therefore "converges under causal OR
-// at-least-once redelivery", NOT "regardless of order" as documented.
-//
-// This test is SKIPPED (with this written justification, per CLAUDE-2 §3) so the
-// suite stays green while the defect is preserved in-tree as executable
-// evidence. Flip the t.Skip to a hard failure once orset.go is fixed (e.g. by
-// retaining tombstones / shipping a causal context with remove deltas) and the
-// package doc's order-independence claim is made true — or amended.
+// This test is now a POSITIVE convergence assertion: both replicas, fed the same
+// two deltas in OPPOSITE orders with no redelivery, must agree that "x" is
+// ABSENT (the remove observed the only add tag, so the element is gone).
 // ─────────────────────────────────────────────────────────────────────────────
 
-func TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT(t *testing.T) {
-	const runID = "orset-remove-before-add-DEFECT-001"
+func TestORSetRemoveBeforeAddConverges(t *testing.T) {
+	const runID = "orset-remove-before-add-CONVERGES-001"
 
 	// Emitter produces an Add (tag T) then a Remove that observes T.
 	emit := NewORSet("E")
@@ -655,25 +643,89 @@ func TestORSetRemoveBeforeAddDivergence_KNOWN_DEFECT(t *testing.T) {
 	r1.Merge(dRem)
 
 	// R2: reversed Remove → Add, NO redelivery of Remove. Same two deltas.
+	// With the tombstone fix, the early Remove durably tombstones T, so the
+	// later Add of T is suppressed and "x" stays ABSENT.
 	r2 := NewORSet("r2")
-	r2.Merge(dRem) // no-op: T not present locally yet
-	r2.Merge(dAdd) // T added, never cancelled → survives
+	r2.Merge(dRem) // tombstone T durably (T not yet added — recorded anyway)
+	r2.Merge(dAdd) // T added, but already tombstoned → suppressed
 
 	r1Has := r1.Contains("x")
 	r2Has := r2.Contains("x")
-	t.Logf("RunID=%s remove-before-add: r1.Contains(x)=%v  r2.Contains(x)=%v", runID, r1Has, r2Has)
+	t.Logf("RunID=%s remove-before-add: r1(Add→Remove).Contains(x)=%v  r2(Remove→Add).Contains(x)=%v",
+		runID, r1Has, r2Has)
 
-	// Prove the defect is real and still present (this is the characterization).
-	if r1Has == r2Has {
-		t.Fatalf("RunID=%s characterization stale: ORSet now converges under remove-before-add "+
-			"(r1=%v r2=%v). The defect appears FIXED — update orset.go's doc claim and convert "+
-			"this test into a positive convergence assertion.", runID, r1Has, r2Has)
+	// Convergence: both orders agree.
+	if r1Has != r2Has {
+		t.Fatalf("RunID=%s SEC VIOLATED: identical {Add,Remove} delta set diverged by order "+
+			"(r1=%v r2=%v) — the remove-before-add tombstone fix regressed.", runID, r1Has, r2Has)
+	}
+	// Correct converged value: ABSENT (the only add tag was observed-removed).
+	if r1Has {
+		t.Fatalf("RunID=%s wrong converged value: 'x' PRESENT but its only add tag was "+
+			"observed-removed; expected ABSENT in both orders.", runID)
 	}
 
-	t.Logf("RunID=%s CONFIRMED REAL DEFECT: identical {Add,Remove} delta set diverges by order "+
-		"(r1 absent, r2 present). Strong-eventual-consistency VIOLATED for delta-ORSet under "+
-		"remove-before-add without redelivery. Production NOT patched (out of scope).", runID)
+	// Structural (byte-for-byte) order independence: the two replicas' live-tag
+	// State() must be identical now that the fix holds it. This is the strongest
+	// honest convergence claim — equal materialised value AND equal internal
+	// live-tag state regardless of order.
+	if !orsetStateEqual(r1.State(), r2.State()) {
+		t.Fatalf("RunID=%s states not structurally identical across orders: r1=%v r2=%v",
+			runID, r1.Elements(), r2.Elements())
+	}
 
-	t.Skip("KNOWN DEFECT documented and reproduced above; skipped to keep suite green per CLAUDE-2 §3 " +
-		"(written justification). Remove this Skip when orset.go is fixed.")
+	t.Logf("RunID=%s CONVERGED: identical {Add,Remove} delta set yields 'x' ABSENT in BOTH "+
+		"delivery orders (Add→Remove and Remove→Add, no redelivery). Strong-eventual-consistency "+
+		"HOLDS for delta-ORSet under remove-before-add — tombstone fix verified.", runID)
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TestORSetReAddAfterRemoveStillWorks  (ADD-WINS RE-ADD — guards the fix)
+//
+// The tombstone fix must NOT break legitimate re-adds. Removing an element
+// tombstones its current tags; RE-ADDING it issues a FRESH tag (new per-node
+// seq) that is not in the tombstone set, so the element becomes present again.
+// We prove this both locally and across replicas under reversed delivery.
+// ─────────────────────────────────────────────────────────────────────────────
+
+func TestORSetReAddAfterRemoveStillWorks(t *testing.T) {
+	const runID = "orset-readd-after-remove-001"
+
+	// Emitter: Add(y@T1) → Remove(tombstone T1) → Add(y@T2, a FRESH tag).
+	emit := NewORSet("E")
+	dAdd1 := emit.Add("y")   // tag T1
+	dRem := emit.Remove("y") // tombstones T1
+	dAdd2 := emit.Add("y")   // tag T2 (fresh — not tombstoned)
+
+	// Local emitter must show "y" present (re-add wins).
+	if !emit.Contains("y") {
+		t.Fatalf("RunID=%s local re-add failed: 'y' absent after Add→Remove→Add", runID)
+	}
+
+	// Replica fed in causal order.
+	rc := NewORSet("rc")
+	rc.Merge(dAdd1)
+	rc.Merge(dRem)
+	rc.Merge(dAdd2)
+
+	// Replica fed in an adversarial reversed order: Remove, then both Adds.
+	// The Remove tombstones only T1; T2 is a different tag, so re-add survives.
+	rr := NewORSet("rr")
+	rr.Merge(dRem)  // tombstone T1
+	rr.Merge(dAdd2) // T2 — never tombstoned → present
+	rr.Merge(dAdd1) // T1 — tombstoned → suppressed
+
+	if !rc.Contains("y") {
+		t.Fatalf("RunID=%s causal-order replica lost the re-add: 'y' absent", runID)
+	}
+	if !rr.Contains("y") {
+		t.Fatalf("RunID=%s reversed-order replica lost the re-add: 'y' absent (fresh tag T2 "+
+			"must survive — tombstone only cancels T1)", runID)
+	}
+	if !orsetStateEqual(rc.State(), rr.State()) {
+		t.Fatalf("RunID=%s re-add states diverged across orders: rc=%v rr=%v",
+			runID, rc.Elements(), rr.Elements())
+	}
+	t.Logf("RunID=%s ADD-WINS RE-ADD verified: 'y' PRESENT after Add→Remove→Add in both causal "+
+		"and reversed delivery orders (fresh tag escapes the tombstone). Convergent.", runID)
 }

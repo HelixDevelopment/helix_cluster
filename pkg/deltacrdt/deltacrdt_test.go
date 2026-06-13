@@ -13,9 +13,10 @@ package deltacrdt
 // NAMED TESTS that pin mutation guards:
 //   - TestMergeCommutativeAssociativeIdempotent — pins gcounterEqual/pncounterEqual/
 //     lwwmapEqual and the max-join guard in GCounter.Merge / PNCounter.Merge.
-//   - TestORSetAddRemoveConvergesReordered — pins the observed-remove tag
-//     intersection guard in ORSet.Merge (the "if _, ok := local[t]; ok" line).
-//     Removing that guard makes this test fail.
+//   - TestORSetAddRemoveConvergesReordered — pins the observed-remove tombstone
+//     semantics of ORSet.Merge (a Remove tombstones only the tags in
+//     delta.removed, via the adds/removes semilattice). Over-tombstoning makes
+//     this test fail.
 
 import (
 	"encoding/json"
@@ -339,25 +340,22 @@ func TestMergeCommutativeAssociativeIdempotent(t *testing.T) {
 // After receiving both deltas both replicas must converge to the same final
 // state: "bird" is absent (the remove observed the add tag, so it wins).
 //
-// MUTATION GUARD: the observed-remove tag intersection guard in ORSet.Merge
-// (the "if _, ok := local[t]; ok" check). If that guard is removed so that
-// the remove delta deletes tags unconditionally, then when dAdd arrives after
-// dRem on replica B, the add tag is deleted even though dRem never observed it,
-// and B will show "bird" absent correctly — but when a concurrent add arrives
-// on a fresh third replica C that receives dAdd then dRem in order, the tag
-// set may be mishandled in other orderings. To make the guard visibly
-// killable under EXACTLY this test, we add a concurrent add from a third
-// replica C to ensure B must distinguish "was this tag observed by the remove?"
+// MUTATION GUARD: the observed-remove semantics of ORSet.Merge — a Remove
+// delta tombstones ONLY the tags it actually observed (delta.removed), never
+// every tag of the element. Concretely, Merge unions delta.removed into the
+// element's `removes` (tombstone) set; an element is present iff (adds \
+// removes) is non-empty. If that observed-set discipline were broken so a
+// Remove tombstoned tags it never saw (e.g. tombstoning the whole element, or
+// every add-tag regardless of what delta.removed lists), then dRemA — which
+// observed only A's tag T_A — would also suppress replica C's independent tag
+// T_C, and "bird" would wrongly vanish.
 //
-// With the guard removed: after receiving dRem (which lists the tag from A's
-// add), then dAdd from A, replica B will erase the tag unconditionally and
-// "bird" will be absent on B — which accidentally matches the expected result.
-// To make the guard visibly killable we structure the test so that replica B
-// ALSO receives a concurrent add from replica C (with a DIFFERENT tag that
-// the remove from A never saw). Without the intersection guard, B would
-// delete BOTH tags (A's and C's), leaving "bird" absent, which is wrong
-// because the remove from A never observed C's add. We assert that "bird"
-// IS present on B after the convergence (C's add survives the remove from A).
+// We make that mutation visibly killable by giving replica B a concurrent add
+// from a third replica C (tag T_C, which the remove from A never observed).
+// The correct tombstone model keeps "bird" PRESENT via T_C after convergence
+// (only T_A is tombstoned); a broken Merge that over-tombstoned would drop T_C
+// too and the assertion below would fail. We assert "bird" IS present on B
+// after convergence (C's add survives the remove from A).
 // ─────────────────────────────────────────────────────────────────────────────
 
 func TestORSetAddRemoveConvergesReordered(t *testing.T) {
@@ -381,7 +379,7 @@ func TestORSetAddRemoveConvergesReordered(t *testing.T) {
 	// Expected convergence: "bird" IS present (T_C survived because dRemA
 	// never observed T_C).
 	replicaB := NewORSet("B")
-	replicaB.Merge(dRemA) // arrives first (out-of-order); T_A not yet present → no-op
+	replicaB.Merge(dRemA) // arrives first (out-of-order); durably tombstones T_A even though T_A's add hasn't arrived yet
 	replicaB.Merge(dAddC) // T_C added; not in any remove delta → survives
 	replicaB.Merge(dAddA) // T_A added; but it is now "observed" by dRemA...
 	// Apply dRemA a second time to simulate a re-delivery (idempotent check
@@ -419,11 +417,12 @@ func TestORSetAddRemoveConvergesReordered(t *testing.T) {
 			runID, replicaA.Elements(), replicaB.Elements())
 	}
 
-	// "bird" must be present: T_C was never observed by the remove from A.
-	// MUTATION GUARD: removing the "if _, ok := local[t]; ok" intersection
-	// guard in ORSet.Merge causes T_C to be deleted unconditionally when
-	// dRemA is re-merged on B, so replicaB.Contains("bird") returns false
-	// and this assertion fails.
+	// "bird" must be present: T_C was never observed by the remove from A, so
+	// it is not in dRemA.removed and is never tombstoned.
+	// MUTATION GUARD: if ORSet.Merge tombstoned tags beyond the observed
+	// delta.removed set (over-tombstoning), T_C would be suppressed when dRemA
+	// is merged on B, so replicaB.Contains("bird") would return false and this
+	// assertion would fail.
 	if !replicaA.Contains("bird") {
 		t.Errorf("RunID=%s A: expected 'bird' present (T_C add survived remove from A)", runID)
 	}
