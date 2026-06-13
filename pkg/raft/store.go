@@ -63,10 +63,17 @@ const snapshotRetain = 2
 // against an already-bootstrapped dataDir must NOT bootstrap again (raft refuses
 // to bootstrap over existing state). newPersistentNode reports whether the
 // stores were already initialized so the caller can skip bootstrap on reopen.
-func newPersistentNode(id, dataDir string, base *hraft.Config) (nc *nodeConfig, boltStore *raftboltdb.BoltStore, alreadyInit bool, err error) {
-	if id == "" {
-		return nil, nil, false, fmt.Errorf("raft: persistent node needs a non-empty id")
-	}
+// openPersistentStores opens the REAL on-disk storage for a node rooted at
+// dataDir: a single bbolt BoltStore that satisfies BOTH raft.LogStore and
+// raft.StableStore, plus a FileSnapshotStore for FSM snapshots. It reports
+// whether the data dir ALREADY held raft state (so the caller can skip
+// re-bootstrap on reopen). On failure it closes any store it already opened.
+//
+// This is the storage half shared by BOTH the in-mem-transport persistent node
+// (newPersistentNode) and the TCP-transport persistent node
+// (newPersistentNetworkNode), so the BoltDB/snapshot wiring lives in exactly one
+// place and the two cannot drift.
+func openPersistentStores(dataDir string, base *hraft.Config) (boltStore *raftboltdb.BoltStore, snaps hraft.SnapshotStore, alreadyInit bool, err error) {
 	if dataDir == "" {
 		return nil, nil, false, fmt.Errorf("raft: persistent node needs a non-empty data dir")
 	}
@@ -105,10 +112,24 @@ func newPersistentNode(id, dataDir string, base *hraft.Config) (nc *nodeConfig, 
 	if base != nil && base.LogOutput != nil {
 		snapOut = base.LogOutput
 	}
-	snaps, err := hraft.NewFileSnapshotStore(snapDir, snapshotRetain, snapOut)
+	fileSnaps, err := hraft.NewFileSnapshotStore(snapDir, snapshotRetain, snapOut)
 	if err != nil {
 		_ = store.Close()
 		return nil, nil, false, fmt.Errorf("raft: open file snapshot store %q: %w", snapDir, err)
+	}
+
+	return store, fileSnaps, alreadyInit, nil
+}
+
+func newPersistentNode(id, dataDir string, base *hraft.Config) (nc *nodeConfig, boltStore *raftboltdb.BoltStore, alreadyInit bool, err error) {
+	if id == "" {
+		return nil, nil, false, fmt.Errorf("raft: persistent node needs a non-empty id")
+	}
+
+	// REAL on-disk stores (shared wiring with the TCP-persistent node).
+	store, snaps, alreadyInit, err := openPersistentStores(dataDir, base)
+	if err != nil {
+		return nil, nil, false, err
 	}
 
 	// In-mem transport: single-node raft is trivially leader; storage durability

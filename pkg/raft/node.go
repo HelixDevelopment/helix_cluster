@@ -154,7 +154,16 @@ type nodeConfig struct {
 	// netTransport is the REAL TCP transport for TCP-backed nodes (see tcp.go);
 	// nil for in-mem nodes, which use the transport field above instead.
 	netTransport *hraft.NetworkTransport
+	// dataDirPath is the on-disk directory backing a PERSISTENT node's BoltStore
+	// (see store.go / persistnet.go); empty for nodes whose stores live in memory.
+	// It is carried onto the live Node.dataDir when the node is wrapped.
+	dataDirPath string
 }
+
+// dataDir returns the persistent data directory for this node config, or "" if
+// the node's stores are in-memory. Used by the cluster wrap phase to populate the
+// live Node's dataDir for a persistent+networked node.
+func (c *nodeConfig) dataDir() string { return c.dataDirPath }
 
 // newInmemNode builds a single Raft node backed entirely by in-memory stores and
 // an in-memory transport. Real production deployments would swap these for
