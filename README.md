@@ -122,6 +122,7 @@ cd web && npm install && npm run dev
 - [`Constitution.md`](Constitution.md) / [`HelixConstitution/`](HelixConstitution/) — project governance
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — hardened L0–L7 architecture diagram + component map (lint-enforced by [`pkg/archlint`](pkg/archlint))
 - [`docs/MVP_ARCHITECTURE.md`](docs/MVP_ARCHITECTURE.md) — living MVP seven-layer overview + service-communication Mermaid grounded in real packages, with a Go drift-validator that fails the build on doc/codebase drift (HXC-1145)
+- [`docs/consensus.md`](docs/consensus.md) — Raft consensus subsystem (`pkg/raft` + `helix-raftd`): the `KVFSM`/`Node`/`Cluster` contract and the transport/storage ladder (in-mem → real TCP → on-disk BoltDB → combined persistent+networked → fixed-address multi-process daemon), with the multi-process kill+restart-from-disk E2E and the TLC-verified snapshot/log-compaction safety spec (HXC-974/976/978/979/982)
 - [`docs/FOUNDATION_PACKAGES.md`](docs/FOUNDATION_PACKAGES.md) — full catalogue of `pkg/` packages
 - [`docs/HXC_REGISTRY.md`](docs/HXC_REGISTRY.md) — the work-item registry model
 - [`docs/NODE_PROVISIONING_BOUNDARY.md`](docs/NODE_PROVISIONING_BOUNDARY.md) — node-provisioning boundary: Helix provisions operator-controlled nodes; it does **not** jailbreak/root/unlock or bypass any device security (HXC-1146)

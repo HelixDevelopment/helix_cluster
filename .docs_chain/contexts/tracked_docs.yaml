@@ -44,6 +44,11 @@ nodes:
   chlog_html: { kind: html,     path: docs/export/CHANGELOG.html }
   chlog_pdf:  { kind: pdf,      path: docs/export/CHANGELOG.pdf }
   chlog_docx: { kind: docx,     path: docs/export/CHANGELOG.docx }
+  # --- Raft consensus subsystem (pkg/raft + helix-raftd; HXC-974/976/978/979/982) ---
+  consensus_md:   { kind: markdown, path: docs/consensus.md }
+  consensus_html: { kind: html,     path: docs/export/consensus.html }
+  consensus_pdf:  { kind: pdf,      path: docs/export/consensus.pdf }
+  consensus_docx: { kind: docx,     path: docs/export/consensus.docx }
   # --- foundation-package catalogue (kept in sync as packages are added) ---
   found_md:   { kind: markdown, path: docs/FOUNDATION_PACKAGES.md }
   found_html: { kind: html,     path: docs/export/FOUNDATION_PACKAGES.html }
@@ -151,6 +156,9 @@ edges:
   - { type: derive-from, from: chlog_md,   to: chlog_html, transform: md2html }
   - { type: derive-from, from: chlog_html, to: chlog_pdf,  transform: html2pdf }
   - { type: derive-from, from: chlog_md,   to: chlog_docx, transform: md2docx }
+  - { type: derive-from, from: consensus_md,   to: consensus_html, transform: md2html }
+  - { type: derive-from, from: consensus_html, to: consensus_pdf,  transform: html2pdf }
+  - { type: derive-from, from: consensus_md,   to: consensus_docx, transform: md2docx }
   - { type: derive-from, from: found_md,   to: found_html, transform: md2html }
   - { type: derive-from, from: found_html, to: found_pdf,  transform: html2pdf }
   - { type: derive-from, from: found_md,   to: found_docx, transform: md2docx }
