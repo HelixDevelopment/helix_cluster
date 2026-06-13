@@ -8,6 +8,7 @@ use (
 	./Messaging
 	./api/v1
 	./challenges
+	./chaos/netfault
 	./cmd/hxc-registry
 	./config
 	./containers
