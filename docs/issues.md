@@ -1,7 +1,7 @@
 # Issues
 
-**Revision:** 65
-**Last modified:** 2026-06-13T12:00:33Z
+**Revision:** 66
+**Last modified:** 2026-06-13T13:17:16Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
@@ -118,7 +118,7 @@ Total active items: **413**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1257 | Feature | P1 | Queued | Build Phoenix LiveView real-time test dashboard |
 | HXC-1259 | Feature | P1 | Queued | Implement HelixQA automatic challenge generation from test outcomes |
 | HXC-1262 | Feature | P1 | Queued | Integrate CI/CD quality gates for GitHub Actions / GitLab CI / Jenkins |
-| HXC-1263 | Feature | P1 | Queued | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
+| HXC-1263 | Feature | P1 | In progress | Build WebAssembly plugin host on Wasmtime Component Model with WIT bindings |
 | HXC-1264 | Task | P1 | Queued | Define WIT interfaces for device-simulator, workload-generator, fault-injector, metrics-exporter |
 | HXC-1269 | Feature | P1 | Queued | Build cmd/helix-testd daemon as OTP controller node entrypoint |
 | HXC-1273 | Feature | P1 | Queued | Implement vsock host-guest control channel for chaos-resilient telemetry |

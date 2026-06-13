@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 65
-**Last modified:** 2026-06-13T12:00:33Z
+**Revision:** 66
+**Last modified:** 2026-06-13T13:17:16Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **302**.
+Total completed: **303**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -312,3 +312,4 @@ Total completed: **302**.
 | HXC-956 | Feature | P2 | OpenTelemetry single-runtime tracing foundation (observability/tracing) | a2a4c01 |
 | HXC-957 | Research | P2 | TLA+ spec for WireGuard/Noise-IK handshake (TLC-verified safety) | 462baaf |
 | HXC-958 | Research | P2 | TLA+ spec for OR-Set CRDT convergence (TLC-verified, add-wins) | be574fe |
+| HXC-959 | Research | P2 | TLA+ spec for Two-Phase Commit atomicity (TLC-verified) | dac5022 |
