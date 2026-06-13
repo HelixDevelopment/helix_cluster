@@ -4,6 +4,7 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -181,7 +182,14 @@ type keyEntry struct {
 // (key id). It supports HMAC secrets and RSA public keys, enabling key
 // rotation and multi-issuer verification where the token header selects the
 // key via its `kid`.
+//
+// KeySet is safe for concurrent use: tokens are verified (map read via the
+// lookup method) concurrently with runtime key rotation (map write via AddHMAC /
+// AddRSAPublicKey). Reads take a shared lock, writes an exclusive one, so a
+// verify never races a rotation. Without this an unsynchronized map read during
+// a write is a fatal "concurrent map read and map write" crash on the auth path.
 type KeySet struct {
+	mu   sync.RWMutex
 	keys map[string]keyEntry
 }
 
@@ -201,7 +209,9 @@ func (ks *KeySet) AddHMAC(kid string, secret []byte) error {
 	}
 	cp := make([]byte, len(secret))
 	copy(cp, secret)
+	ks.mu.Lock()
 	ks.keys[kid] = keyEntry{kind: keyHMAC, secret: cp}
+	ks.mu.Unlock()
 	return nil
 }
 
@@ -214,8 +224,19 @@ func (ks *KeySet) AddRSAPublicKey(kid string, pub *rsa.PublicKey) error {
 	if pub == nil {
 		return fmt.Errorf("%w: nil RSA public key", ErrInvalidKey)
 	}
+	ks.mu.Lock()
 	ks.keys[kid] = keyEntry{kind: keyRSA, rsaPub: pub}
+	ks.mu.Unlock()
 	return nil
+}
+
+// lookup returns the key entry registered under kid, taking a shared read lock
+// so concurrent verifications never race a rotation write.
+func (ks *KeySet) lookup(kid string) (keyEntry, bool) {
+	ks.mu.RLock()
+	entry, ok := ks.keys[kid]
+	ks.mu.RUnlock()
+	return entry, ok
 }
 
 // ValidateKeySet parses the token, selects the verification key whose kid
@@ -231,7 +252,7 @@ func (v *Validator) ValidateKeySet(token string, ks *KeySet) error {
 	if kid == "" {
 		return fmt.Errorf("%w: header has no kid", ErrUnknownKid)
 	}
-	entry, ok := ks.keys[kid]
+	entry, ok := ks.lookup(kid)
 	if !ok {
 		return fmt.Errorf("%w: %q", ErrUnknownKid, kid)
 	}
