@@ -40,7 +40,12 @@ func (s *Server) Reconcile(records []CompletedJob) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	for _, rec := range records {
-		if _, exists := s.jobs[rec.JobID]; !exists {
+		// Idempotent, order-independent merge: keep the record with the LOWER
+		// Seq for a given JobID (the documented tie-break for a duplicate that
+		// disagrees on Seq). Selecting by min(Seq) — rather than by arrival
+		// order — makes the winner deterministic regardless of the order in
+		// which records appear in the batch or across re-syncs.
+		if existing, exists := s.jobs[rec.JobID]; !exists || rec.Seq < existing.Seq {
 			s.jobs[rec.JobID] = rec
 		}
 		if rec.Seq > s.hwm {
