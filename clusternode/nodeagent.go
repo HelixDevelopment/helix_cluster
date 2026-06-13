@@ -89,6 +89,12 @@ type NodeAgent struct {
 	loop *gateway.LoopbackTransport
 	self *gateway.LoopbackConn
 
+	// net holds the agent's REAL WebSocket gateway-server state when
+	// StartGatewayServer has been called (an http.Server on a loopback TCP
+	// listener carrying an edge/gateway WebSocketTransport). It is nil for an
+	// agent that only uses the in-process loopback path. See network.go.
+	net *nodeNetwork
+
 	bootstrap []peer.AddrInfo
 	logger    p2p.Logger
 
@@ -172,6 +178,11 @@ func (a *NodeAgent) Stop() error {
 	a.stopped = true
 
 	var errs []error
+	// Tear the real-network gateway server down first (close sink sockets, shut
+	// the http.Server, free the listener) before the gateway Close below closes
+	// the WebSocket transport's upgraded sockets. Ordering keeps shutdown clean
+	// and the ephemeral port released.
+	a.stopGatewayServer()
 	if a.gw != nil {
 		if err := a.gw.Close(); err != nil {
 			errs = append(errs, fmt.Errorf("close gateway: %w", err))

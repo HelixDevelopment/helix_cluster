@@ -109,6 +109,31 @@ func run() error {
 	fmt.Printf("      payload delivered byte-exact: %v (%q)\n",
 		string(got.Payload) == string(payload), string(got.Payload))
 
-	fmt.Println("\n=== cluster-demo complete: discovery + leader election + capabilities + routing all composed ===")
+	// --- 5. The SAME route, now over a REAL WebSocket (real TCP + WS handshake).
+	// Each node runs its gateway's real edge/gateway WebSocketTransport on a
+	// loopback TCP port; node-a dials node-c's gateway over ws:// and the message
+	// crosses an actual socket, not the in-process loopback above.
+	fmt.Println("\n      routing the same message node-a -> node-c OVER A REAL WEBSOCKET...")
+	urls, err := cluster.StartGatewayServers(ctx)
+	if err != nil {
+		return err
+	}
+	for _, a := range cluster.Agents() {
+		fmt.Printf("      %s gateway WS server: %s\n", a.ID(), urls[a.ID()])
+	}
+	// Valid-JSON payload: the WS wire codec carries Payload as a json.RawMessage.
+	wsPayload := []byte(fmt.Sprintf(`{"msg":"hello-over-ws","ts":%d}`, time.Now().UnixNano()))
+	wsGot, proof, err := cluster.RouteOverNetwork(ctx, "node-a", "node-c", wsPayload)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("      node-c received OVER WS: id=%q source=%s dest=%s\n",
+		wsGot.ID, wsGot.Source, wsGot.Dest)
+	fmt.Printf("      delivered byte-exact over the wire: %v (%q)\n",
+		string(wsGot.Payload) == string(wsPayload), string(wsGot.Payload))
+	fmt.Printf("      real-TCP proof: transport=%s dst-listen-addr=%v (real kernel socket) url=%s\n",
+		proof.TransportName, proof.DstListenAddr, proof.DstGatewayURL)
+
+	fmt.Println("\n=== cluster-demo complete: discovery + leader election + capabilities + loopback routing + REAL-WEBSOCKET routing all composed ===")
 	return nil
 }
