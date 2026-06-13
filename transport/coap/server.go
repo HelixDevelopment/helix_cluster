@@ -3,6 +3,7 @@ package coap
 import (
 	"bytes"
 	"context"
+	"encoding/hex"
 	"fmt"
 	"sync"
 	"time"
@@ -20,13 +21,33 @@ import (
 // error makes the server respond 4.00 Bad Request.
 type DispatchHandler func(ctx context.Context, env WorkEnvelope) error
 
+// Observer-registry bounds. CoAP/UDP has no transport-level authentication, so
+// a spoofed-source Observe registration is a UDP reflection/amplification
+// vector. These caps bound the damage; for untrusted networks the server MUST
+// be run over DTLS (go-coap supports it) — see the SECURITY note on NewServer.
+const (
+	// maxObservers caps the total number of concurrent Observe subscriptions.
+	maxObservers = 1024
+	// maxObserversPerSource caps subscriptions from a single remote address so
+	// one (possibly spoofed) peer cannot fill the whole registry or be used to
+	// amplify traffic to a victim address.
+	maxObserversPerSource = 8
+)
+
 // Server is a CoAP/UDP server exposing the Helix edge resources /dispatch and
 // /status over real UDP sockets.
+//
+// SECURITY: CoAP/UDP is unauthenticated. This server bounds the Observe
+// registry (maxObservers / maxObserversPerSource) and caps inbound body size
+// (MaxEnvelopeBytes) to limit DoS and reflection/amplification, but it does NOT
+// authenticate peers. On untrusted networks run it over DTLS (go-coap's
+// dtls/server) or behind an authenticated tunnel (e.g. the WireGuard mesh).
 type Server struct {
-	mu       sync.Mutex
-	dispatch DispatchHandler
-	status   StatusReport // current status served by GET /status and Observe
-	observers map[*observer]struct{}
+	mu        sync.Mutex
+	dispatch  DispatchHandler
+	status    StatusReport // current status served by GET /status and Observe
+	observers map[string]*observer
+	bySource  map[string]int // active observer count per remote source address
 
 	srv      *udpServer.Server
 	listener *coapNet.UDPConn
@@ -35,9 +56,11 @@ type Server struct {
 
 // observer is a single active Observe subscription on /status.
 type observer struct {
-	conn  mux.Conn
-	token []byte
-	seq   uint32 // CoAP Observe option sequence (must increase per notification)
+	conn   mux.Conn
+	token  []byte
+	seq    uint32 // CoAP Observe option sequence (must increase per notification)
+	key    string // registry key (source|token); identity for coalesce/delete
+	source string // remote address, for per-source accounting
 }
 
 // NewServer creates a CoAP server bound to addr (e.g. "127.0.0.1:0" for an
@@ -55,7 +78,8 @@ func NewServer(addr string, dispatch DispatchHandler, initial StatusReport) (*Se
 	s := &Server{
 		dispatch:  dispatch,
 		status:    initial,
-		observers: make(map[*observer]struct{}),
+		observers: make(map[string]*observer),
+		bySource:  make(map[string]int),
 		listener:  l,
 		servErr:   make(chan error, 1),
 	}
@@ -105,6 +129,13 @@ func (s *Server) handleDispatch(w mux.ResponseWriter, r *mux.Message) {
 			bytes.NewReader([]byte("read body: "+err.Error())))
 		return
 	}
+	// Reject oversized bodies before decoding (DoS / unbounded deserialization).
+	// This also catches blockwise-assembled bodies, which arrive fully here.
+	if len(body) > MaxEnvelopeBytes {
+		_ = w.SetResponse(codes.RequestEntityTooLarge, message.TextPlain,
+			bytes.NewReader([]byte("body too large")))
+		return
+	}
 	env, err := DecodeEnvelope(body)
 	if err != nil {
 		_ = w.SetResponse(codes.BadRequest, message.TextPlain,
@@ -136,10 +167,13 @@ func (s *Server) handleStatus(w mux.ResponseWriter, r *mux.Message) {
 	s.mu.Unlock()
 
 	obs, obsErr := r.Options().Observe()
+	registered := false
 	if obsErr == nil && obs == 0 {
 		// Register an observer; the first notification carries Observe seq 1
 		// (per RFC 7641 the initial response also carries an Observe option).
-		s.registerObserver(w.Conn(), r.Token())
+		// If the registry is at capacity the registration is declined and the
+		// request is answered as a plain (non-observed) GET.
+		registered = s.registerObserver(w.Conn(), r.Token())
 	}
 
 	payload, err := EncodeStatus(cur)
@@ -150,7 +184,7 @@ func (s *Server) handleStatus(w mux.ResponseWriter, r *mux.Message) {
 	}
 
 	var opts []message.Option
-	if obsErr == nil && obs == 0 {
+	if registered {
 		// Initial Observe response carries Observe sequence 1.
 		opts = append(opts, message.Option{ID: message.Observe, Value: encodeUint(1)})
 	}
@@ -158,12 +192,42 @@ func (s *Server) handleStatus(w mux.ResponseWriter, r *mux.Message) {
 }
 
 // registerObserver records an Observe subscription so PublishStatus can push to
-// it. Duplicate (conn, token) pairs are coalesced.
-func (s *Server) registerObserver(conn mux.Conn, token []byte) {
+// it, keyed by (source-address, token) so a re-registration from the same peer
+// coalesces instead of growing the registry unboundedly. It enforces a global
+// cap (maxObservers) and a per-source cap (maxObserversPerSource) and reports
+// whether the subscription is active. Returns false when a cap is hit.
+func (s *Server) registerObserver(conn mux.Conn, token []byte) bool {
 	tok := append([]byte(nil), token...)
+	source := conn.RemoteAddr().String()
+	key := source + "|" + hex.EncodeToString(tok)
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.observers[&observer{conn: conn, token: tok, seq: 1}] = struct{}{}
+
+	if existing, ok := s.observers[key]; ok {
+		existing.conn = conn // refresh the connection; keep the running seq
+		return true
+	}
+	if len(s.observers) >= maxObservers || s.bySource[source] >= maxObserversPerSource {
+		return false
+	}
+	s.observers[key] = &observer{conn: conn, token: tok, seq: 1, key: key, source: source}
+	s.bySource[source]++
+	return true
+}
+
+// removeObserver deletes an observer from the registry and decrements its
+// per-source count. Caller must hold s.mu.
+func (s *Server) removeObserver(o *observer) {
+	if _, ok := s.observers[o.key]; !ok {
+		return
+	}
+	delete(s.observers, o.key)
+	if s.bySource[o.source] <= 1 {
+		delete(s.bySource, o.source)
+	} else {
+		s.bySource[o.source]--
+	}
 }
 
 // PublishStatus updates the current status and pushes a CoAP Observe
@@ -173,7 +237,7 @@ func (s *Server) PublishStatus(report StatusReport) int {
 	s.mu.Lock()
 	s.status = report
 	obs := make([]*observer, 0, len(s.observers))
-	for o := range s.observers {
+	for _, o := range s.observers {
 		obs = append(obs, o)
 	}
 	s.mu.Unlock()
@@ -189,9 +253,10 @@ func (s *Server) PublishStatus(report StatusReport) int {
 		if s.notify(o, payload) {
 			sent++
 		} else {
-			// Drop dead observers (connection closed).
+			// Drop dead observers (connection closed / unreachable), reaping the
+			// registry so peers that have gone away don't accumulate.
 			s.mu.Lock()
-			delete(s.observers, o)
+			s.removeObserver(o)
 			s.mu.Unlock()
 		}
 	}
