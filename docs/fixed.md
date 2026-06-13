@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 64
-**Last modified:** 2026-06-13T11:23:27Z
+**Revision:** 65
+**Last modified:** 2026-06-13T12:00:33Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **301**.
+Total completed: **302**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -311,3 +311,4 @@ Total completed: **301**.
 | HXC-955 | Feature | P2 | Distributed KV demo over Raft (cmd/raftkv-demo) — building blocks composed | c52eee8 |
 | HXC-956 | Feature | P2 | OpenTelemetry single-runtime tracing foundation (observability/tracing) | a2a4c01 |
 | HXC-957 | Research | P2 | TLA+ spec for WireGuard/Noise-IK handshake (TLC-verified safety) | 462baaf |
+| HXC-958 | Research | P2 | TLA+ spec for OR-Set CRDT convergence (TLC-verified, add-wins) | be574fe |
