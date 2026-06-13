@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 68
-**Last modified:** 2026-06-13T13:23:20Z
+**Revision:** 69
+**Last modified:** 2026-06-13T13:28:14Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **305**.
+Total completed: **306**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -315,3 +315,4 @@ Total completed: **305**.
 | HXC-957 | Research | P2 | TLA+ spec for WireGuard/Noise-IK handshake (TLC-verified safety) | 462baaf |
 | HXC-958 | Research | P2 | TLA+ spec for OR-Set CRDT convergence (TLC-verified, add-wins) | be574fe |
 | HXC-959 | Research | P2 | TLA+ spec for Two-Phase Commit atomicity (TLC-verified) | dac5022 |
+| HXC-960 | Research | P2 | TLA+ spec for Saga compensation atomicity (TLC-verified) | de127fc |
