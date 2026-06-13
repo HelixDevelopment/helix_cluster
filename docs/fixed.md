@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 108
-**Last modified:** 2026-06-13T19:24:03Z
+**Revision:** 109
+**Last modified:** 2026-06-13T19:30:41Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **535**.
+Total completed: **538**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -466,6 +466,9 @@ Total completed: **535**.
 | HXC-1639 | Bug | P2 | SQL schema drift: 0001_primary_schema.sql diverges from the golang-migrate chain (001-015) | 9fef232 |
 | HXC-1640 | Feature | P1 | pkg/stonith fencing-safety test (positive confirmation + fenced node cannot act) | 4cff5ea |
 | HXC-1641 | Bug | P1 | FIX registry NextHXCID lexical-vs-numeric id-allocation bug | 34482ee |
+| HXC-1642 | Feature | P1 | pkg/epochresolve adversarial fencing test (stale epoch rejected, at-most-one owner) | fa82504 |
+| HXC-1643 | Bug | P0 | FIX pkg/idempotent concurrency bug (data race + double-commit broke exactly-once) | c48a8c0 |
+| HXC-1644 | Feature | P1 | pkg/workclaim concurrent mutual-exclusion test (exactly-one claimant) | 2ecd5f2 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
