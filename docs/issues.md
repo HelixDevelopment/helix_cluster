@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 49
-**Last modified:** 2026-06-13T09:46:57Z
+**Revision:** 51
+**Last modified:** 2026-06-13T09:52:47Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **420**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **418**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -55,7 +55,7 @@ Total active items: **420**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1166 | Research | P3 | Queued | CRIU/DMTCP live process migration (research + spike) |
 | HXC-931 | Task | P3 | Queued | Reconcile internal/console linux_boot.go (BootMachine) with boot_coordinator.go (BootCoordinator) |
 
-## Phase 3 (38 active)
+## Phase 3 (37 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -65,7 +65,6 @@ Total active items: **420**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1173 | Feature | P0 | Queued | Implement Android foreground service framework with START_STICKY |
 | HXC-1174 | Feature | P0 | Queued | Integrate Android BatteryManager monitoring |
 | HXC-1184 | Feature | P0 | Completed | Implement edge node registration for all tiers (T3-T8) |
-| HXC-1186 | Feature | P0 | Queued | Implement edge protocol gateway (MQTT/QUIC/WebSocket) |
 | HXC-1197 | Feature | P0 | Completed | Implement edge output verification (LLMsVerifier/redundant/checksum) |
 | HXC-1205 | Feature | P0 | Queued | Build edge setup wizard for device onboarding |
 | HXC-1207 | Task | P0 | Queued | Implement edge device chaos test suite |
@@ -151,12 +150,11 @@ Total active items: **420**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1281 | Research | P3 | Queued | Evaluate VirGL/Venus virtual GPU for OpenGL/Vulkan workload functional testing |
 | HXC-1282 | Research | P3 | Queued | Integrate Tart OCI-native macOS/Linux VMs for iOS/macOS CI build-and-test |
 
-## Phase 5 (31 active)
+## Phase 5 (30 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
 | HXC-1314 | Feature | P0 | Queued | Implement pkg/handheld Steam Deck agent (Vulkan compute, battery, thermal) (DEFERRED hw) |
-| HXC-1305 | Feature | P1 | Queued | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) |
 | HXC-1306 | Feature | P1 | Queued | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) |
 | HXC-1309 | Feature | P1 | Completed | Implement capability manifest generation + control-plane negotiation |
 | HXC-1312 | Feature | P1 | Queued | Build multi-arch universal agent container (amd64/arm64/riscv64) via buildx + distroless |

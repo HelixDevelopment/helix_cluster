@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 49
-**Last modified:** 2026-06-13T09:46:57Z
+**Revision:** 51
+**Last modified:** 2026-06-13T09:52:47Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **286**.
+Total completed: **288**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -182,6 +182,7 @@ Total completed: **286**.
 | HXC-1175 | Feature | P0 | Implement charging-gated PowerGater scheduling guard | 2a90f56 |
 | HXC-1178 | Feature | P0 | Implement MQTT client for edge work dispatch and status | cd8bb86 |
 | HXC-1185 | Feature | P0 | Implement edge heartbeat with battery/thermal/network telemetry | 2a90f56 |
+| HXC-1186 | Feature | P0 | Implement edge protocol gateway (MQTT/QUIC/WebSocket) | a4c9bf7 |
 | HXC-1187 | Feature | P0 | Define EdgeWorkUnit and EdgeWorkResult protobuf schemas | af16635 |
 | HXC-1188 | Feature | P0 | Enforce work-unit resource limits (duration/memory/CPU) on edge devices | 7718c20 |
 | HXC-1189 | Feature | P0 | Implement EdgeAwarePlugin scheduler Filter stage | 203c42a |
@@ -237,6 +238,7 @@ Total completed: **286**.
 | HXC-1302 | Feature | P1 | Extend pkg/wireguard with preemption-safe teardown / spot-drain hook | e4f0b03 |
 | HXC-1303 | Feature | P1 | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router | d4829d1 |
 | HXC-1304 | Feature | P1 | Implement pkg/inference LocalBackend wrapping internal/llm manager | 0346e1c |
+| HXC-1305 | Feature | P1 | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) | e3099cf |
 | HXC-1308 | Feature | P2 | Implement micro-benchmarker producing normalized per-compute-class scores | f4d8da9 |
 | HXC-1310 | Feature | P0 | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) | 441c7fe |
 | HXC-1311 | Docs | P1 | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints | d4829d1 |
