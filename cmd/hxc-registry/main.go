@@ -67,6 +67,8 @@ func run(args []string, getenv func(string) string, stdout, stderr io.Writer) in
 		return cmdUpdate(dbPath, rest, stdout, stderr)
 	case "next":
 		return cmdNext(dbPath, stdout, stderr)
+	case "reconcile":
+		return cmdReconcile(dbPath, stdout, stderr)
 	case "help", "-h", "--help":
 		usage(stdout)
 		return exitOK
@@ -89,6 +91,7 @@ Commands:
   show <HXC-XXX>      Show item details
   update <HXC-XXX>    Update an item
   next                Show next available HXC ID
+  reconcile           Set every item's location to the canonical one for its status
 
 Environment:
   HXC_DB              Path to SQLite database (default: data/hxc_registry.db)
@@ -99,7 +102,9 @@ Examples:
   hxc-registry list
   hxc-registry list --status "In progress"
   hxc-registry show HXC-904
-  hxc-registry update HXC-904 --status Completed --commit abc123`)
+  hxc-registry update HXC-904 --status Completed --commit abc123
+  hxc-registry update HXC-904 --location Issues
+  hxc-registry reconcile`)
 }
 
 // openRegistry centralises the open/error path so every subcommand reports a
@@ -269,7 +274,16 @@ func cmdUpdate(dbPath string, args []string, stdout, stderr io.Writer) int {
 	status := fs.String("status", "", "New status")
 	commit := fs.String("commit", "", "Commit SHA")
 	priority := fs.String("priority", "", "New priority")
+	location := fs.String("location", "", "Document location: Issues or Fixed (overrides the auto-derived location)")
 	if err := parseFlags(fs, args[1:], stderr); err != nil {
+		return exitUsage
+	}
+
+	// Validate -location up front so a bad value is a usage error, not a DB
+	// CHECK-constraint error surfaced later. Empty means "not set".
+	if *location != "" && *location != hxcregistry.LocationIssues && *location != hxcregistry.LocationFixed {
+		fmt.Fprintf(stderr, "Error: invalid -location %q (want %s or %s)\n",
+			*location, hxcregistry.LocationIssues, hxcregistry.LocationFixed)
 		return exitUsage
 	}
 
@@ -287,12 +301,22 @@ func cmdUpdate(dbPath string, args []string, stdout, stderr io.Writer) int {
 
 	if *status != "" {
 		item.Status = *status
+		// Auto-move on status change so the renderer (which splits issues.md vs
+		// fixed.md by current_location, not status) files the item correctly: a
+		// Completed item must land in Fixed, and a re-opened item back in Issues.
+		// An explicit -location below wins, so this only sets the default.
+		item.CurrentLocation = hxcregistry.CanonicalLocation(item.Status)
 	}
 	if *commit != "" {
 		item.CommitSHA = *commit
 	}
 	if *priority != "" {
 		item.Priority = *priority
+	}
+	// Explicit -location overrides the auto-derived location (operator escape
+	// hatch). Applied last so it wins over the status-derived default above.
+	if *location != "" {
+		item.CurrentLocation = *location
 	}
 
 	if err := reg.UpdateItem(item); err != nil {
@@ -316,5 +340,25 @@ func cmdNext(dbPath string, stdout, stderr io.Writer) int {
 		return exitError
 	}
 	fmt.Fprintln(stdout, next)
+	return exitOK
+}
+
+// cmdReconcile sets every item's current_location to the canonical location for
+// its status (terminal -> Fixed, active -> Issues), backfilling rows whose
+// location drifted from their status. It reports how many rows were moved and is
+// idempotent: a second run reports "moved 0 item(s)".
+func cmdReconcile(dbPath string, stdout, stderr io.Writer) int {
+	reg, code := openRegistry(dbPath, stderr)
+	if reg == nil {
+		return code
+	}
+	defer reg.Close()
+
+	moved, err := reg.Reconcile()
+	if err != nil {
+		fmt.Fprintf(stderr, "Error: %v\n", err)
+		return exitError
+	}
+	fmt.Fprintf(stdout, "Reconciled: moved %d item(s) to their canonical location\n", moved)
 	return exitOK
 }

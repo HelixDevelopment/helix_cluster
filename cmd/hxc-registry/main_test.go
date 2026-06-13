@@ -288,6 +288,143 @@ func TestBadDBPathErrors(t *testing.T) {
 	}
 }
 
+// showLocation runs `show` and returns the value after "Location:" for id.
+func showLocation(t *testing.T, env func(string) string, id string) string {
+	t.Helper()
+	_, out, _ := invoke(t, env, "show", id)
+	for _, line := range strings.Split(out, "\n") {
+		if strings.HasPrefix(line, "Location:") {
+			return strings.TrimSpace(strings.TrimPrefix(line, "Location:"))
+		}
+	}
+	t.Fatalf("show %s had no Location line:\n%s", id, out)
+	return ""
+}
+
+// TestUpdateCompletedMovesToFixed is the core doc-sync truthfulness proof and the
+// ANTI-BLUFF test: marking an Issues item Completed MUST move current_location to
+// Fixed, because the renderer files items into fixed.md by location, not status.
+// Mutation that kills it: remove the
+// `item.CurrentLocation = hxcregistry.CanonicalLocation(item.Status)` line in
+// cmdUpdate (or make CanonicalLocation always return "Issues") -> location stays
+// Issues -> the Fixed assertion FAILs. Verified by reverting the fix (see report).
+func TestUpdateCompletedMovesToFixed(t *testing.T) {
+	env := newEnv(t)
+	mustOK(t, env, "add", "--id", "HXC-100", "--title", "Done work")
+
+	// Sanity: a freshly-added item starts in Issues.
+	if loc := showLocation(t, env, "HXC-100"); loc != "Issues" {
+		t.Fatalf("pre-update location = %q, want Issues", loc)
+	}
+
+	mustOK(t, env, "update", "HXC-100", "--status", "Completed")
+
+	if loc := showLocation(t, env, "HXC-100"); loc != "Fixed" {
+		t.Fatalf("after Completed, location = %q, want Fixed (auto-move broken)", loc)
+	}
+}
+
+// TestUpdateObsoleteMovesToFixed proves Obsolete is treated as terminal and also
+// moves to Fixed (it is no longer an active issue).
+func TestUpdateObsoleteMovesToFixed(t *testing.T) {
+	env := newEnv(t)
+	mustOK(t, env, "add", "--id", "HXC-101", "--title", "Wont do")
+	mustOK(t, env, "update", "HXC-101", "--status", "Obsolete")
+	if loc := showLocation(t, env, "HXC-101"); loc != "Fixed" {
+		t.Fatalf("after Obsolete, location = %q, want Fixed", loc)
+	}
+}
+
+// TestUpdateExplicitLocationWins proves an explicit -location overrides the
+// status-derived default: a Completed item with -location Issues stays in Issues.
+// Mutation: apply the -location override BEFORE the status auto-move (so status
+// clobbers it) -> location becomes Fixed -> FAIL.
+func TestUpdateExplicitLocationWins(t *testing.T) {
+	env := newEnv(t)
+	mustOK(t, env, "add", "--id", "HXC-102", "--title", "Pinned active")
+	mustOK(t, env, "update", "HXC-102", "--status", "Completed", "--location", "Issues")
+	if loc := showLocation(t, env, "HXC-102"); loc != "Issues" {
+		t.Fatalf("explicit -location Issues lost to auto-move: location = %q, want Issues", loc)
+	}
+}
+
+// TestUpdateInvalidLocationRejected proves -location is validated: a bogus value
+// is a usage error (exit 2) and nothing changes.
+func TestUpdateInvalidLocationRejected(t *testing.T) {
+	env := newEnv(t)
+	mustOK(t, env, "add", "--id", "HXC-103", "--title", "Thing")
+	code, _, errOut := invoke(t, env, "update", "HXC-103", "--location", "Nowhere")
+	if code != exitUsage {
+		t.Fatalf("exit=%d, want %d", code, exitUsage)
+	}
+	if !strings.Contains(errOut, "invalid -location") {
+		t.Fatalf("stderr = %q, want invalid -location", errOut)
+	}
+	if loc := showLocation(t, env, "HXC-103"); loc != "Issues" {
+		t.Fatalf("location changed despite invalid flag: %q", loc)
+	}
+}
+
+// TestUpdateReopenReturnsToIssues proves the reverse mapping: moving a Completed
+// (Fixed) item back to a non-terminal status (Queued) returns it to Issues.
+// Mutation: only move on terminal statuses (skip the else/active branch in
+// CanonicalLocation) -> a re-opened item stays in Fixed -> FAIL.
+func TestUpdateReopenReturnsToIssues(t *testing.T) {
+	env := newEnv(t)
+	mustOK(t, env, "add", "--id", "HXC-104", "--title", "Reopened work")
+	mustOK(t, env, "update", "HXC-104", "--status", "Completed")
+	if loc := showLocation(t, env, "HXC-104"); loc != "Fixed" {
+		t.Fatalf("setup: expected Fixed, got %q", loc)
+	}
+	mustOK(t, env, "update", "HXC-104", "--status", "Queued")
+	if loc := showLocation(t, env, "HXC-104"); loc != "Issues" {
+		t.Fatalf("after reopen, location = %q, want Issues", loc)
+	}
+}
+
+// TestReconcileMovesStrandedAndIsIdempotent proves the backfill path: a stranded
+// Completed-in-Issues row is moved to Fixed by reconcile, and a second reconcile
+// moves 0 (idempotent). The stranded state is created the way the historical bug
+// did — by writing status=Completed while forcing location=Issues via -location.
+// Mutation: drop the `current_location <> ?` guard in Reconcile -> the second run
+// re-touches every terminal row -> "moved 0" assertion FAILs.
+func TestReconcileMovesStrandedAndIsIdempotent(t *testing.T) {
+	env := newEnv(t)
+	// Strand two Completed items in Issues and leave one active item in Issues.
+	mustOK(t, env, "add", "--id", "HXC-200", "--title", "Stranded A")
+	mustOK(t, env, "add", "--id", "HXC-201", "--title", "Stranded B")
+	mustOK(t, env, "add", "--id", "HXC-202", "--title", "Active C")
+	mustOK(t, env, "update", "HXC-200", "--status", "Completed", "--location", "Issues")
+	mustOK(t, env, "update", "HXC-201", "--status", "Completed", "--location", "Issues")
+
+	for _, id := range []string{"HXC-200", "HXC-201"} {
+		if loc := showLocation(t, env, id); loc != "Issues" {
+			t.Fatalf("setup: %s should be stranded in Issues, got %q", id, loc)
+		}
+	}
+
+	// First reconcile moves the two stranded rows; the active one stays.
+	_, out, _ := invoke(t, env, "reconcile")
+	if !strings.Contains(out, "moved 2 item(s)") {
+		t.Fatalf("first reconcile = %q, want moved 2", out)
+	}
+	if loc := showLocation(t, env, "HXC-200"); loc != "Fixed" {
+		t.Fatalf("HXC-200 not reconciled to Fixed: %q", loc)
+	}
+	if loc := showLocation(t, env, "HXC-201"); loc != "Fixed" {
+		t.Fatalf("HXC-201 not reconciled to Fixed: %q", loc)
+	}
+	if loc := showLocation(t, env, "HXC-202"); loc != "Issues" {
+		t.Fatalf("HXC-202 active item should stay Issues: %q", loc)
+	}
+
+	// Second reconcile is a no-op.
+	_, out, _ = invoke(t, env, "reconcile")
+	if !strings.Contains(out, "moved 0 item(s)") {
+		t.Fatalf("second reconcile = %q, want moved 0 (idempotent)", out)
+	}
+}
+
 func mustOK(t *testing.T, env func(string) string, args ...string) string {
 	t.Helper()
 	code, out, errOut := invoke(t, env, args...)

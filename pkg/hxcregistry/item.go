@@ -52,6 +52,42 @@ func (i *HXCItem) Validate() error {
 	return nil
 }
 
+// Canonical document locations. The renderer (scripts/docs/db_to_md.py) splits
+// items into docs/issues.md vs docs/fixed.md purely by current_location, NOT by
+// status, so location MUST track status or completed work silently under-reports
+// in fixed.md (a CLAUDE-1 / §11.4.93 doc-sync truthfulness defect).
+const (
+	LocationIssues = "Issues"
+	LocationFixed  = "Fixed"
+)
+
+// terminalStatuses are the end-state statuses whose items belong in the "Fixed"
+// document location. An item in any of these is done (Completed) or closed
+// won't-do (Obsolete); either way it is no longer an active issue, so the
+// renderer must place it in fixed.md, not issues.md.
+var terminalStatuses = map[string]bool{
+	"Completed": true,
+	"Obsolete":  true,
+}
+
+// IsTerminalStatus reports whether status is an end-state status that maps to
+// the "Fixed" document location.
+func IsTerminalStatus(status string) bool {
+	return terminalStatuses[status]
+}
+
+// CanonicalLocation returns the document location an item with the given status
+// MUST live in for the renderer to file it correctly: "Fixed" for terminal
+// (done/obsolete) statuses, "Issues" for every active status. This is the single
+// source of the status->location mapping used by both the update path and the
+// reconcile path.
+func CanonicalLocation(status string) string {
+	if IsTerminalStatus(status) {
+		return LocationFixed
+	}
+	return LocationIssues
+}
+
 // ComputeHeadingHash generates a stable hash from the title for re-sync binding.
 func (i *HXCItem) ComputeHeadingHash() string {
 	h := sha256.New()

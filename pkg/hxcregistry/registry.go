@@ -332,6 +332,47 @@ func (r *Registry) UpdateItem(item *HXCItem) error {
 	return nil
 }
 
+// Reconcile sets current_location to the canonical location for every item's
+// status (see CanonicalLocation): terminal statuses (Completed/Obsolete) -> Fixed,
+// all active statuses -> Issues. It is the backfill path for rows whose location
+// drifted from their status (e.g. items marked Completed before the update path
+// auto-moved location). It returns the number of rows actually moved.
+//
+// Reconcile is idempotent: a second run over already-canonical data moves 0 rows,
+// because it only updates rows whose current_location differs from the canonical
+// location for their status. last_modified is bumped only for moved rows.
+func (r *Registry) Reconcile() (int, error) {
+	now := time.Now().UTC().Format(time.RFC3339)
+	var moved int
+	// One UPDATE per terminal/active partition keeps the mapping single-sourced
+	// via CanonicalLocation while staying a set-based operation (no per-row Go
+	// round-trips). Only rows whose location is wrong are touched, so re-running
+	// moves nothing.
+	res, err := r.db.Exec(r.rebind(`
+		UPDATE items SET current_location = ?, last_modified = ?
+		WHERE status IN ('Completed', 'Obsolete') AND current_location <> ?`),
+		LocationFixed, now, LocationFixed)
+	if err != nil {
+		return 0, fmt.Errorf("reconcile to fixed: %w", err)
+	}
+	if n, affErr := res.RowsAffected(); affErr == nil {
+		moved += int(n)
+	}
+
+	res, err = r.db.Exec(r.rebind(`
+		UPDATE items SET current_location = ?, last_modified = ?
+		WHERE status NOT IN ('Completed', 'Obsolete') AND current_location <> ?`),
+		LocationIssues, now, LocationIssues)
+	if err != nil {
+		return 0, fmt.Errorf("reconcile to issues: %w", err)
+	}
+	if n, affErr := res.RowsAffected(); affErr == nil {
+		moved += int(n)
+	}
+
+	return moved, nil
+}
+
 // ListItems returns items filtered by status (empty = all).
 func (r *Registry) ListItems(status string) ([]*HXCItem, error) {
 	var rows *sql.Rows

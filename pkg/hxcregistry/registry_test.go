@@ -188,3 +188,116 @@ func TestRegistryConcurrentAccess(t *testing.T) {
 		<-done
 	}
 }
+
+// TestCanonicalLocationMapping pins the status->location mapping that both the
+// update path and Reconcile depend on. If this table drifts, doc-sync breaks.
+func TestCanonicalLocationMapping(t *testing.T) {
+	cases := []struct {
+		status   string
+		wantLoc  string
+		terminal bool
+	}{
+		{"Queued", LocationIssues, false},
+		{"In progress", LocationIssues, false},
+		{"Ready for testing", LocationIssues, false},
+		{"In testing", LocationIssues, false},
+		{"Completed", LocationFixed, true},
+		{"Obsolete", LocationFixed, true},
+	}
+	for _, c := range cases {
+		if got := CanonicalLocation(c.status); got != c.wantLoc {
+			t.Errorf("CanonicalLocation(%q) = %q, want %q", c.status, got, c.wantLoc)
+		}
+		if got := IsTerminalStatus(c.status); got != c.terminal {
+			t.Errorf("IsTerminalStatus(%q) = %v, want %v", c.status, got, c.terminal)
+		}
+	}
+}
+
+// seedItem creates a row with an explicitly chosen status+location so a test can
+// reproduce the historical "stranded" state (Completed yet still in Issues).
+func seedItem(t *testing.T, reg *Registry, id, status, loc string) {
+	t.Helper()
+	it := &HXCItem{
+		HXCID: id, Type: "Task", Status: status, Priority: "P1", Phase: 0,
+		Title: id + " title", Description: "desc", CurrentLocation: loc,
+	}
+	if err := reg.CreateItem(it); err != nil {
+		t.Fatalf("seed %s: %v", id, err)
+	}
+}
+
+func locOf(t *testing.T, reg *Registry, id string) string {
+	t.Helper()
+	it, err := reg.GetItem(id)
+	if err != nil {
+		t.Fatalf("get %s: %v", id, err)
+	}
+	return it.CurrentLocation
+}
+
+// TestReconcileMovesStrandedRowsAndIsIdempotent proves Reconcile fixes rows whose
+// location drifted from their status and that a second run moves nothing. This is
+// the registry-level anti-bluff proof for the backfill path.
+func TestReconcileMovesStrandedRowsAndIsIdempotent(t *testing.T) {
+	reg, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer reg.Close()
+
+	// Two Completed rows stranded in Issues, one Obsolete stranded in Issues,
+	// one already-correct Completed-in-Fixed, and one correct active row.
+	seedItem(t, reg, "HXC-001", "Completed", LocationIssues)
+	seedItem(t, reg, "HXC-002", "Completed", LocationIssues)
+	seedItem(t, reg, "HXC-003", "Obsolete", LocationIssues)
+	seedItem(t, reg, "HXC-004", "Completed", LocationFixed)
+	seedItem(t, reg, "HXC-005", "Queued", LocationIssues)
+
+	moved, err := reg.Reconcile()
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if moved != 3 {
+		t.Fatalf("first reconcile moved %d, want 3", moved)
+	}
+	for _, id := range []string{"HXC-001", "HXC-002", "HXC-003", "HXC-004"} {
+		if loc := locOf(t, reg, id); loc != LocationFixed {
+			t.Errorf("%s location = %q, want Fixed", id, loc)
+		}
+	}
+	if loc := locOf(t, reg, "HXC-005"); loc != LocationIssues {
+		t.Errorf("HXC-005 location = %q, want Issues", loc)
+	}
+
+	// Idempotent: second run moves nothing.
+	moved, err = reg.Reconcile()
+	if err != nil {
+		t.Fatalf("reconcile 2: %v", err)
+	}
+	if moved != 0 {
+		t.Fatalf("second reconcile moved %d, want 0 (idempotent)", moved)
+	}
+}
+
+// TestReconcileReopensFixedToIssues proves the reverse direction: a row whose
+// status is active but is wrongly in Fixed is moved back to Issues.
+func TestReconcileReopensFixedToIssues(t *testing.T) {
+	reg, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer reg.Close()
+
+	seedItem(t, reg, "HXC-010", "In progress", LocationFixed)
+	moved, err := reg.Reconcile()
+	if err != nil {
+		t.Fatalf("reconcile: %v", err)
+	}
+	if moved != 1 {
+		t.Fatalf("moved %d, want 1", moved)
+	}
+	if loc := locOf(t, reg, "HXC-010"); loc != LocationIssues {
+		t.Fatalf("location = %q, want Issues", loc)
+	}
+}
