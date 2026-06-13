@@ -19,7 +19,7 @@ import (
 	"syscall"
 	"time"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	"github.com/HelixDevelopment/helix_cluster/internal/advisory"
 	"github.com/HelixDevelopment/helix_cluster/pkg/health"
 	"github.com/HelixDevelopment/helix_cluster/pkg/metrics"

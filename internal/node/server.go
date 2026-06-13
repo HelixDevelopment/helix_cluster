@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/HelixDevelopment/helix_cluster/api/v1"
+	"github.com/HelixDevelopment/helix_cluster/apiv1"
 )
 
 // nowFunc is the clock used for heartbeat/last-seen tracking. It is a package

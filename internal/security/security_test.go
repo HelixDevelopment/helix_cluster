@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	"github.com/HelixDevelopment/helix_cluster/pkg/security"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

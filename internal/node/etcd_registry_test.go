@@ -17,7 +17,7 @@ import (
 	"github.com/stretchr/testify/require"
 	clientv3 "go.etcd.io/etcd/client/v3"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	hxetcd "github.com/HelixDevelopment/helix_cluster/pkg/etcd"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	"github.com/HelixDevelopment/helix_cluster/pkg/discovery"
 	pkgscheduler "github.com/HelixDevelopment/helix_cluster/pkg/scheduler"
 	"github.com/HelixDevelopment/helix_cluster/pkg/session"

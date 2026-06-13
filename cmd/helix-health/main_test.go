@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	ihealth "github.com/HelixDevelopment/helix_cluster/internal/health"
 	pkghealth "github.com/HelixDevelopment/helix_cluster/pkg/health"
 	"google.golang.org/grpc"

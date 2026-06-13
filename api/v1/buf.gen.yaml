@@ -2,7 +2,7 @@ version: v1
 managed:
   enabled: true
   go_package_prefix:
-    default: github.com/HelixDevelopment/helix_cluster/api/v1
+    default: github.com/HelixDevelopment/helix_cluster/apiv1
 plugins:
   - plugin: go
     out: .

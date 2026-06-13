@@ -1,6 +1,6 @@
 syntax = "proto3";
 package helix.v1;
-option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+option go_package = "github.com/HelixDevelopment/helix_cluster/apiv1;helixv1";
 
 service SecurityService {
     rpc Authenticate(AuthenticateRequest) returns (AuthenticateResponse);

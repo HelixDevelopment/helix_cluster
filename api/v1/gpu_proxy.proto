@@ -1,6 +1,6 @@
 syntax = "proto3";
 package helix.v1;
-option go_package = "github.com/HelixDevelopment/helix_cluster/api/v1;helixv1";
+option go_package = "github.com/HelixDevelopment/helix_cluster/apiv1;helixv1";
 
 // GPUProvider (HXC-1527) is the kernel-dispatch service exposed by a GPU proxy:
 // a caller submits a compute kernel plus its input buffers to a target device and

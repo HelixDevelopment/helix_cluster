@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	helixv1 "github.com/HelixDevelopment/helix_cluster/api/v1"
+	helixv1 "github.com/HelixDevelopment/helix_cluster/apiv1"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
