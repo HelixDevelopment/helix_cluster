@@ -181,6 +181,32 @@ func (a *NodeAgent) ensureSink(ctx context.Context, nodeID string) (*gateway.WSC
 	return client, nil
 }
 
+// evictSink removes the cached sink for nodeID from THIS agent's sink cache and
+// closes its socket, but only if it is still the SAME client instance the caller
+// observed (passed as want). This makes the sink cache self-healing: after a
+// failed Recv on a reused sink the cached connection is left at an undefined read
+// offset (the prior route's envelope may still be buffered or arrive late), so
+// the next route to the same id would Recv the WRONG envelope — a payload shift.
+// Evicting+closing the stale sink forces ensureSink to re-register a clean one on
+// the next route. The want guard prevents racing a concurrent re-registration:
+// if another goroutine already replaced the sink, we leave the new one intact.
+func (a *NodeAgent) evictSink(nodeID string, want *gateway.WSClient) {
+	a.mu.Lock()
+	netw := a.net
+	a.mu.Unlock()
+	if netw == nil {
+		return
+	}
+	netw.mu.Lock()
+	if c := netw.sinks[nodeID]; c == want {
+		delete(netw.sinks, nodeID)
+		netw.mu.Unlock()
+		_ = want.Close()
+		return
+	}
+	netw.mu.Unlock()
+}
+
 // stopGatewayServer shuts the agent's gateway WS server down: it closes every
 // sink client, shuts the http.Server (which closes the listener), and closes the
 // WebSocket transport. It is invoked from NodeAgent.Stop while the agent lock is
@@ -208,19 +234,57 @@ func (a *NodeAgent) stopGatewayServer() {
 	a.net = nil
 }
 
+// stopGatewayServerLocked acquires the agent lock and tears the gateway WS server
+// down (via stopGatewayServer). Unlike NodeAgent.Stop it touches ONLY the gateway
+// server, leaving the rest of the agent (discovery, raft seat) running. It is the
+// partial-failure rollback used by NodeCluster.StartGatewayServers: if a later
+// agent's gateway server fails to start, the gateway servers already brought up
+// in that call are closed again so the error path leaks no http.Server/listener.
+// It is a no-op if this agent's gateway server is not running.
+func (a *NodeAgent) stopGatewayServerLocked() {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.stopGatewayServer()
+}
+
 // StartGatewayServers brings up every agent's REAL WebSocket gateway server (see
 // NodeAgent.StartGatewayServer), so the cluster can route messages between nodes
 // over real TCP sockets via RouteOverNetwork. The cluster must already be
 // started. It returns the per-agent ws:// URLs keyed by node id.
 func (c *NodeCluster) StartGatewayServers(ctx context.Context) (map[string]string, error) {
 	urls := make(map[string]string, len(c.agents))
+
+	// Track which agents this call actually brought a gateway server up on, so any
+	// error path tears that subset back down before returning — StartGatewayServers
+	// must leave no http.Server/listener leaked when it reports failure. This
+	// mirrors the cleanup discipline in NodeCluster.Start. StartGatewayServer is
+	// idempotent (a second call returns the existing URL without re-binding), so an
+	// agent whose server was already running before this call is NOT rolled back:
+	// we only stop the ones we started here.
+	var started []*NodeAgent
+	ok := false
+	defer func() {
+		if ok {
+			return
+		}
+		for i := len(started) - 1; i >= 0; i-- {
+			started[i].stopGatewayServerLocked()
+		}
+	}()
+
 	for _, a := range c.agents {
+		alreadyUp := a.GatewayWSURL() != ""
 		url, err := a.StartGatewayServer(ctx)
 		if err != nil {
 			return nil, fmt.Errorf("clusternode: start gateway server for %q: %w", a.ID(), err)
 		}
+		if !alreadyUp {
+			started = append(started, a)
+		}
 		urls[a.ID()] = url
 	}
+
+	ok = true
 	return urls, nil
 }
 
@@ -295,6 +359,13 @@ func (c *NodeCluster) RouteOverNetwork(ctx context.Context, srcID, dstID string,
 	}
 	got, err := sink.Recv(timeout)
 	if err != nil {
+		// The reused sink is now at an undefined read offset: this route's
+		// envelope may still be buffered on the socket or arrive after the
+		// deadline, so a SUBSEQUENT route to the same dst could Recv THIS call's
+		// stale envelope instead of its own (a payload shift). Evict and close the
+		// cached sink so the next route re-registers a clean one. Self-healing
+		// cache: a failed Recv removes the conn before we return the error.
+		dst.evictSink(dstID, sink)
 		return gateway.Envelope{}, zero, fmt.Errorf("clusternode: net-route %q->%q: recv over ws: %w", srcID, dstID, err)
 	}
 
