@@ -1,0 +1,41 @@
+# Prometheus scrape config for the helix-raftd daemon (HXC-987).
+#
+# helix-raftd serves its Prometheus /metrics endpoint on the node's --admin
+# HTTP address (cmd/helix-raftd/admin.go registers GET /metrics on the same mux
+# as /status, /get, /put). The metrics port is therefore the ADMIN port, NOT the
+# raft TCP --bind port.
+#
+# Example three-node launch (each node a separate OS process):
+#
+#   helix-raftd --id n1 --bind 127.0.0.1:7001 --admin 127.0.0.1:8001 \
+#       --data-dir /var/lib/helix-raftd/n1 \
+#       --peers n1=127.0.0.1:7001,n2=127.0.0.1:7002,n3=127.0.0.1:7003
+#   helix-raftd --id n2 --bind 127.0.0.1:7002 --admin 127.0.0.1:8002 ...
+#   helix-raftd --id n3 --bind 127.0.0.1:7003 --admin 127.0.0.1:8003 ...
+#
+# So the scrape targets below are the --admin host:port of each node. Replace the
+# 127.0.0.1:800x placeholders with the real admin addresses of your cluster.
+#
+# Each scraped sample already carries a {node_id="..."} label emitted by the
+# daemon (the node's --id). The static_configs `node_id` label below is an
+# OPTIONAL convenience that mirrors it from the scrape side; drop it if you prefer
+# to rely solely on the daemon-emitted label.
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'helix-raftd'
+    metrics_path: '/metrics'
+    scheme: http
+    static_configs:
+      - targets: ['127.0.0.1:8001']
+        labels:
+          node_id: 'n1'
+      - targets: ['127.0.0.1:8002']
+        labels:
+          node_id: 'n2'
+      - targets: ['127.0.0.1:8003']
+        labels:
+          node_id: 'n3'

@@ -364,5 +364,6 @@ disk on restart.
 | Combined persistent+networked node, fixed-address builder | `pkg/raft/persistnet.go` |
 | Daemon (flags, lifecycle) | `cmd/helix-raftd/main.go` |
 | Daemon admin HTTP API | `cmd/helix-raftd/admin.go` |
+| Prometheus `/metrics` endpoint + observability ([docs](observability.md)) | `cmd/helix-raftd/metrics.go` |
 | Multi-process kill+restart E2E | `cmd/helix-raftd/e2e_test.go` |
 | Snapshot/compaction safety spec | `specs/RaftSnapshot.tla`, `specs/RaftSnapshot.cfg` |
