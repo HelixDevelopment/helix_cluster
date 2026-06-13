@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 76
-**Last modified:** 2026-06-13T14:36:40Z
+**Revision:** 77
+**Last modified:** 2026-06-13T14:58:44Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **313**.
+Total completed: **314**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -323,3 +323,4 @@ Total completed: **313**.
 | HXC-962 | Research | P2 | TLA+ spec for Raft single-server membership change safety (TLC-verified) | d8d39e9 |
 | HXC-963 | Research | P2 | TLA+ spec for leader-lease leaseholder reads / no-stale-read (TLC-verified) | e7dc5a4 |
 | HXC-964 | Research | P2 | TLA+ spec for phi-accrual failure-detector accuracy (TLC-verified) | 70824c5 |
+| HXC-965 | Feature | P1 | End-to-end cluster node-agent: compose discovery+raft+capabilities+gateway (clusternode) | 03b7162 |
