@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 109
-**Last modified:** 2026-06-13T19:30:41Z
+**Revision:** 110
+**Last modified:** 2026-06-13T19:36:15Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **538**.
+Total completed: **541**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -469,6 +469,9 @@ Total completed: **538**.
 | HXC-1642 | Feature | P1 | pkg/epochresolve adversarial fencing test (stale epoch rejected, at-most-one owner) | fa82504 |
 | HXC-1643 | Bug | P0 | FIX pkg/idempotent concurrency bug (data race + double-commit broke exactly-once) | c48a8c0 |
 | HXC-1644 | Feature | P1 | pkg/workclaim concurrent mutual-exclusion test (exactly-one claimant) | 2ecd5f2 |
+| HXC-1645 | Feature | P1 | pkg/voting exhaustive at-most-one-authoritative test (split-brain invariant) | f74ce34 |
+| HXC-1646 | Feature | P1 | pkg/semaphore adversarial bounded-concurrency test (never exceed N, reaches N) | 0a0caac |
+| HXC-1647 | Feature | P1 | pkg/lru adversarial eviction + capacity test (true LRU not FIFO, exact bound) | 771c77f |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
