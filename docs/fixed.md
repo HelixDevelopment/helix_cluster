@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 48
-**Last modified:** 2026-06-13T09:31:35Z
+**Revision:** 49
+**Last modified:** 2026-06-13T09:46:57Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **284**.
+Total completed: **286**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -252,7 +252,9 @@ Total completed: **284**.
 | HXC-1342 | Feature | P1 | Implement pkg/federation federated API aggregation with partial failure | 0c8b4ca |
 | HXC-1343 | Feature | P1 | Implement Phi-accrual failure detector in pkg/swim | 37c2a9a |
 | HXC-1347 | Feature | P1 | Implement mDNS/DNS-SD local cell discovery advertiser and browser | e5f963b |
+| HXC-1351 | Feature | P1 | Implement QUIC fallback transport with 0-RTT and connection migration | d9718e8 |
 | HXC-1353 | Feature | P1 | Implement WireGuard zero-downtime key rotation with overlap window | 0c8b4ca |
+| HXC-1356 | Feature | P2 | Integrate libp2p DHT discovery, GossipSub and circuit relay | 8b0bb7a |
 | HXC-1364 | Feature | P1 | Implement internal/federation Karmada PropagationPolicy engine | e5f963b |
 | HXC-1365 | Feature | P1 | Extend pkg/scheduler with latency-aware spot/preemptible scoring | 0c8b4ca |
 | HXC-1367 | Feature | P1 | Implement pkg/gitops ArgoCD ApplicationSet federation client | e5f963b |

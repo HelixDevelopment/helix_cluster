@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 48
-**Last modified:** 2026-06-13T09:31:35Z
+**Revision:** 49
+**Last modified:** 2026-06-13T09:46:57Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **420**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -187,7 +187,7 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1330 | Docs | P3 | Queued | Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k) |
 | HXC-1620 | Bug | P3 | Queued | Harden tierdetect linux cpuinfoIsARM64 multi-digit CPU-architecture parsing |
 
-## Phase 6 (42 active)
+## Phase 6 (40 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -201,7 +201,6 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1345 | Feature | P1 | Completed | Implement gateway-relayed cross-cell suspicion propagation |
 | HXC-1346 | Feature | P1 | Completed | Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT, cloud, mDNS) |
 | HXC-1350 | Feature | P1 | Queued | Implement TURN relay allocation and fallback chain |
-| HXC-1351 | Feature | P1 | Queued | Implement QUIC fallback transport with 0-RTT and connection migration |
 | HXC-1357 | Feature | P1 | Completed | Implement pkg/spiffe/federation trust-bundle exchange across cells |
 | HXC-1361 | Feature | P1 | Completed | Implement double-encryption (WireGuard L3 + mTLS L7) data path |
 | HXC-1362 | Feature | P1 | Queued | Implement pkg/cilium Cluster Mesh client and global-service propagation |
@@ -214,7 +213,6 @@ Total active items: **422**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-937 | Task | P1 | Completed | Add e2e + chaos test types for consensus/federation/marketplace |
 | HXC-1354 | Feature | P2 | Queued | Implement SSH tunnel bridge fallback for control-plane bootstrap |
 | HXC-1355 | Feature | P2 | Queued | Implement cloud VPN bridge with provider-specific endpoint discovery |
-| HXC-1356 | Feature | P2 | Queued | Integrate libp2p DHT discovery, GossipSub and circuit relay |
 | HXC-1358 | Feature | P2 | Completed | Implement OPA/Gatekeeper cross-cluster federated-trust admission |
 | HXC-1359 | Feature | P2 | Completed | Implement OPA data-residency / data-sovereignty admission policy |
 | HXC-1360 | Feature | P2 | Queued | Integrate External Secrets Operator + Vault for federation secrets |

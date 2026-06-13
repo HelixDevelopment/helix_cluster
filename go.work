@@ -1,6 +1,4 @@
-go 1.26
-
-toolchain go1.26.4
+go 1.26.4
 
 use (
 	.
@@ -19,4 +17,5 @@ use (
 	./pkg/hxcregistry
 	./recovery
 	./security
+	./transport/quic
 )
