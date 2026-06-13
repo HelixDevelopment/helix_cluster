@@ -1,12 +1,12 @@
 # Issues
 
-**Revision:** 67
-**Last modified:** 2026-06-13T13:18:12Z
+**Revision:** 68
+**Last modified:** 2026-06-13T13:23:20Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **412**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **411**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
 ## Foundation (anti-bluff) (14 active)
 
@@ -179,7 +179,7 @@ Total active items: **412**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-1330 | Docs | P3 | Queued | Define and validate 5 reference cluster build recipes ($250/$500/$1k/$2k/$5k) |
 | HXC-1620 | Bug | P3 | Queued | Harden tierdetect linux cpuinfoIsARM64 multi-digit CPU-architecture parsing |
 
-## Phase 6 (40 active)
+## Phase 6 (39 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -192,7 +192,6 @@ Total active items: **412**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-933 | Feature | P0 | Queued | Build cmd/helix-federation and wire Phase 6 packages (federation/crdt/hlc/spiffefed/gitops) |
 | HXC-1345 | Feature | P1 | Completed | Implement gateway-relayed cross-cell suspicion propagation |
 | HXC-1346 | Feature | P1 | Completed | Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT, cloud, mDNS) |
-| HXC-1350 | Feature | P1 | Queued | Implement TURN relay allocation and fallback chain |
 | HXC-1357 | Feature | P1 | Completed | Implement pkg/spiffe/federation trust-bundle exchange across cells |
 | HXC-1361 | Feature | P1 | Completed | Implement double-encryption (WireGuard L3 + mTLS L7) data path |
 | HXC-1362 | Feature | P1 | Queued | Implement pkg/cilium Cluster Mesh client and global-service propagation |

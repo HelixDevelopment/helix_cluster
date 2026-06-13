@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 67
-**Last modified:** 2026-06-13T13:18:12Z
+**Revision:** 68
+**Last modified:** 2026-06-13T13:23:20Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **304**.
+Total completed: **305**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -260,6 +260,7 @@ Total completed: **304**.
 | HXC-1342 | Feature | P1 | Implement pkg/federation federated API aggregation with partial failure | 0c8b4ca |
 | HXC-1343 | Feature | P1 | Implement Phi-accrual failure detector in pkg/swim | 37c2a9a |
 | HXC-1347 | Feature | P1 | Implement mDNS/DNS-SD local cell discovery advertiser and browser | e5f963b |
+| HXC-1350 | Feature | P1 | Implement TURN relay allocation and fallback chain | 48e13fe |
 | HXC-1351 | Feature | P1 | Implement QUIC fallback transport with 0-RTT and connection migration | d9718e8 |
 | HXC-1353 | Feature | P1 | Implement WireGuard zero-downtime key rotation with overlap window | 0c8b4ca |
 | HXC-1356 | Feature | P2 | Integrate libp2p DHT discovery, GossipSub and circuit relay | 8b0bb7a |
