@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 118
-**Last modified:** 2026-06-13T20:21:09Z
+**Revision:** 119
+**Last modified:** 2026-06-13T20:22:19Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **553**.
+Total completed: **554**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -484,6 +484,7 @@ Total completed: **553**.
 | HXC-1657 | Feature | P1 | pkg/tieredcache coherence test (re-Put shadows stale lower tier, no contamination) | 57a2a75 |
 | HXC-1658 | Feature | P1 | pkg/session adversarial concurrent FSM test (at-most-once terminal transition) | 5f070a5 |
 | HXC-1659 | Bug | P1 | FIX pkg/offlinesync Reconcile conflict winner non-deterministic (violated documented lower-Seq policy) | 681c24b |
+| HXC-1660 | Feature | P1 | pkg/workqueue adversarial concurrency test (no double-processing, dedup three-set safety) | fab2305 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
