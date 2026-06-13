@@ -27,5 +27,6 @@ use (
 	./storage/qcow2
 	./transport/coap
 	./transport/quic
+	./transport/turn
 	./transport/webrtc
 )
