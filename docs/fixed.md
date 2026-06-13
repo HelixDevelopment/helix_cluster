@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 52
-**Last modified:** 2026-06-13T09:56:12Z
+**Revision:** 53
+**Last modified:** 2026-06-13T10:00:02Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **289**.
+Total completed: **290**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -239,6 +239,7 @@ Total completed: **289**.
 | HXC-1303 | Feature | P1 | Implement pkg/inference provider-agnostic Backend interface + capability/tier Router | d4829d1 |
 | HXC-1304 | Feature | P1 | Implement pkg/inference LocalBackend wrapping internal/llm manager | 0346e1c |
 | HXC-1305 | Feature | P1 | Implement device discovery engine: GPU detection (Vulkan/CUDA/ROCm/Mali strategies) | e3099cf |
+| HXC-1306 | Feature | P1 | Implement device discovery engine: NPU detection (Rockchip/NVIDIA DLA/Qualcomm/Apple) | 583c6ca |
 | HXC-1308 | Feature | P2 | Implement micro-benchmarker producing normalized per-compute-class scores | f4d8da9 |
 | HXC-1310 | Feature | P0 | Implement per-tier security model enforcement (sandbox + data/network policy by trust level) | 441c7fe |
 | HXC-1311 | Docs | P1 | Author complete YAML tier definitions (T1-T15) with min_requirements and constraints | d4829d1 |
