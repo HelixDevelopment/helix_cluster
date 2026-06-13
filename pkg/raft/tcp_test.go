@@ -5,6 +5,8 @@ import (
 	"net"
 	"testing"
 	"time"
+
+	hraft "github.com/hashicorp/raft"
 )
 
 // TestRaftThreeNodeTCPLeaderKillReelection is a REAL integration test of
@@ -189,6 +191,110 @@ func TestRaftSingleNodeTCPBootstrap(t *testing.T) {
 	}
 	if v, ok := leader.FSM().Get("k"); !ok || v != "v" {
 		t.Fatalf("fsm did not apply entry over TCP: got %q ok=%v", v, ok)
+	}
+}
+
+// TestNewNetworkClusterWrapFailureClosesAllListeners proves the partial-failure
+// cleanup of the wrap phase (wrapNetworkNodes, the second loop of
+// NewNetworkCluster): when a node mid-loop fails to bootstrap/NewRaft, the
+// function must leave NOTHING running — every already-opened TCP listener must
+// be closed (the started node's, the failing node's, and every un-wrapped
+// node's) so no listener socket leaks.
+//
+// It exercises the real cleanup path deterministically: three TCP node configs
+// are built with REAL loopback listeners, then node index 1's config is
+// corrupted with a sub-minimum HeartbeatTimeout so hashicorp/raft's
+// ValidateConfig (invoked first inside BootstrapCluster/NewRaft) rejects it,
+// forcing a mid-second-loop failure. We then assert wrapNetworkNodes returns an
+// error AND that ALL THREE originally-bound ports are free afterward (re-listen
+// succeeds), which can only hold if every transport's listener was closed.
+//
+// Pre-fix (when the second loop did `return nil, err` with no cleanup) this test
+// FAILS: node 0's started raft keeps its TCP listener bound, and node 2's
+// un-wrapped transport listener is never closed — so re-listening on those ports
+// errors with "address already in use", failing the assertions below.
+func TestNewNetworkClusterWrapFailureClosesAllListeners(t *testing.T) {
+	const n = 3
+
+	cfgs := make([]*nodeConfig, 0, n)
+	servers := make([]hraft.Server, 0, n)
+	ports := make([]int, 0, n)
+	for i := 0; i < n; i++ {
+		id := fmt.Sprintf("wrapfail-%d", i)
+		nc, tcpAddr, err := newTCPNode(id, nil)
+		if err != nil {
+			t.Fatalf("newTCPNode(%s): %v", id, err)
+		}
+		// Safety net: if the cleanup-under-test fails to close a transport, make
+		// sure the test itself does not leak it.
+		t.Cleanup(func() { _ = nc.netTransport.Close() })
+
+		cfgs = append(cfgs, nc)
+		servers = append(servers, hraft.Server{
+			Suffrage: hraft.Voter,
+			ID:       hraft.ServerID(nc.id),
+			Address:  nc.addr,
+		})
+		if tcpAddr.Port == 0 {
+			t.Fatalf("node %s bound to port 0 — not a real listener", id)
+		}
+		ports = append(ports, tcpAddr.Port)
+	}
+
+	// Corrupt the MIDDLE node so the wrap loop fails AFTER node 0 is fully
+	// started (raft goroutine + listener live) but BEFORE node 2 is wrapped
+	// (its transport listener still open). A HeartbeatTimeout below the 5ms
+	// minimum makes hashicorp/raft's ValidateConfig reject it deterministically.
+	cfgs[1].conf.HeartbeatTimeout = time.Nanosecond
+
+	bootstrapCfg := hraft.Configuration{Servers: servers}
+
+	nodes, err := wrapNetworkNodes(cfgs, bootstrapCfg)
+	if err == nil {
+		// Should never happen; if it did, the returned nodes are live — stop them.
+		for _, nd := range nodes {
+			_ = nd.Shutdown()
+		}
+		t.Fatalf("expected wrapNetworkNodes to fail on corrupted middle node, got nil error")
+	}
+	if nodes != nil {
+		t.Fatalf("expected nil nodes on failure, got %d nodes", len(nodes))
+	}
+	t.Logf("[wrap-fail] wrapNetworkNodes failed as expected: %v", err)
+
+	// The cleanup MUST have closed every listener: node 0's (started then
+	// Shutdown), node 1's (un-wrapped, the failing one), and node 2's
+	// (un-wrapped). Prove each port is free by binding to it again. A short
+	// bounded retry absorbs the OS releasing the listening socket, but it must
+	// succeed well within the budget if the port was truly closed.
+	for i, port := range ports {
+		if err := assertPortFree(port); err != nil {
+			t.Fatalf("LISTENER LEAK: node wrapfail-%d port %d still bound after wrap failure: %v", i, port, err)
+		}
+		t.Logf("[wrap-fail] port %d (node wrapfail-%d) freed by cleanup", port, i)
+	}
+	t.Logf("[wrap-fail] PASS: all %d listeners closed after mid-loop wrap failure — no leak", n)
+}
+
+// assertPortFree returns nil if a fresh TCP listener can bind 127.0.0.1:port,
+// proving nothing is still listening there. It retries briefly to absorb the
+// kernel releasing a just-closed listening socket, but fails fast if the port
+// stays bound (the leak signature this test guards against).
+func assertPortFree(port int) error {
+	addr := &net.TCPAddr{IP: net.ParseIP("127.0.0.1"), Port: port}
+	deadline := time.Now().Add(2 * time.Second)
+	var lastErr error
+	for {
+		l, err := net.ListenTCP("tcp", addr)
+		if err == nil {
+			_ = l.Close()
+			return nil
+		}
+		lastErr = err
+		if time.Now().After(deadline) {
+			return lastErr
+		}
+		time.Sleep(20 * time.Millisecond)
 	}
 }
 

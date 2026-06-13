@@ -91,17 +91,7 @@ func newTCPNode(id string, base *hraft.Config) (*nodeConfig, *net.TCPAddr, error
 	conf.LeaderLeaseTimeout = 200 * time.Millisecond
 	conf.CommitTimeout = 50 * time.Millisecond
 	conf.LogLevel = "ERROR"
-	if base != nil {
-		if base.LogOutput != nil {
-			conf.LogOutput = base.LogOutput
-		}
-		if base.Logger != nil {
-			conf.Logger = base.Logger
-		}
-		if base.LogLevel != "" {
-			conf.LogLevel = base.LogLevel
-		}
-	}
+	applyBaseLogging(conf, base)
 
 	return &nodeConfig{
 		id:       id,
@@ -166,19 +156,58 @@ func NewNetworkCluster(base *hraft.Config, ids ...string) (*Cluster, error) {
 	// other by dialing the real TCP addresses recorded in the bootstrap config.
 	bootstrapCfg := hraft.Configuration{Servers: servers}
 
+	nodes, err := wrapNetworkNodes(cfgs, bootstrapCfg)
+	if err != nil {
+		return nil, err
+	}
+	return &Cluster{nodes: nodes}, nil
+}
+
+// wrapNetworkNodes runs the "wrap" phase of NewNetworkCluster: it bootstraps and
+// starts (NewRaft) each already-transport-opened nodeConfig in cfgs, returning
+// the live *Node slice. It owns the partial-failure cleanup discipline for this
+// phase: on ANY error it leaves NOTHING running before returning — it
+// Shutdown()s every Node it already started (which stops that node's raft
+// goroutine AND closes its TCP transport/listener, because Node.Shutdown closes
+// netTransport) and then Close()s the netTransport of every cfg NOT yet wrapped
+// in a Node (cfgs[i:], which includes the one that just failed), so no TCP
+// listener socket and no raft goroutine is leaked. This mirrors the
+// transport-open loop's existing cleanup discipline.
+//
+// It is a package-internal helper (not just an inline loop) so the cleanup path
+// can be exercised deterministically by a test that injects an invalid cfg.
+func wrapNetworkNodes(cfgs []*nodeConfig, bootstrapCfg hraft.Configuration) ([]*Node, error) {
 	nodes := make([]*Node, 0, len(cfgs))
-	for _, nc := range cfgs {
+
+	// cleanupPartial undoes everything this phase has started so far when the
+	// node at index failedFrom fails. nodes[*] are already-wrapped (Shutdown
+	// stops raft + closes their transport); cfgs[failedFrom:] are un-wrapped, so
+	// their transports are still open and must be Closed directly.
+	cleanupPartial := func(failedFrom int) {
+		for _, n := range nodes {
+			_ = n.Shutdown()
+		}
+		for _, nc := range cfgs[failedFrom:] {
+			if nc.netTransport != nil {
+				_ = nc.netTransport.Close()
+			}
+		}
+	}
+
+	for i, nc := range cfgs {
 		if err := hraft.BootstrapCluster(nc.conf, nc.logStore, nc.stable, nc.snaps, nc.netTransport, cloneConfiguration(bootstrapCfg)); err != nil {
+			cleanupPartial(i)
 			return nil, fmt.Errorf("raft: bootstrap node %s: %w", nc.id, err)
 		}
 		r, err := hraft.NewRaft(nc.conf, nc.fsm, nc.logStore, nc.stable, nc.snaps, nc.netTransport)
 		if err != nil {
+			cleanupPartial(i)
 			return nil, fmt.Errorf("raft: start node %s: %w", nc.id, err)
 		}
 		nodes = append(nodes, &Node{id: nc.id, raft: r, fsm: nc.fsm, netTransport: nc.netTransport})
 	}
 
-	return &Cluster{nodes: nodes}, nil
+	return nodes, nil
 }
 
 // NetTransport returns the node's real TCP NetworkTransport, or nil for in-mem

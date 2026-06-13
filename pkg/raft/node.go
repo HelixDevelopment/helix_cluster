@@ -25,7 +25,18 @@ type Node struct {
 	// netTransport is set instead of trans for nodes built on a REAL TCP
 	// NetworkTransport (see tcp.go). Exactly one of trans/netTransport is non-nil.
 	netTransport *hraft.NetworkTransport
+	// dataDir is the on-disk directory backing a PERSISTENT node (see store.go);
+	// empty for the in-mem and TCP nodes whose stores live only in memory.
+	dataDir string
+	// closeStore releases the on-disk BoltDB handle for a persistent node so the
+	// files are flushed and can be re-opened by a fresh Node. It is nil for
+	// in-mem/TCP nodes. Shutdown invokes it after stopping raft.
+	closeStore func() error
 }
+
+// DataDir returns the on-disk directory backing this node's persistent stores,
+// or "" if the node is in-mem/TCP backed (no disk persistence).
+func (n *Node) DataDir() string { return n.dataDir }
 
 // ID returns the node's server ID.
 func (n *Node) ID() string { return n.id }
@@ -96,7 +107,38 @@ func (n *Node) Shutdown() error {
 			return fmt.Errorf("raft: close tcp transport for node %s: %w", n.id, err)
 		}
 	}
+	// For PERSISTENT (BoltDB-backed) nodes, close the on-disk store LAST so its
+	// files are flushed and the file handle is released — the prerequisite for a
+	// fresh Node to re-open the SAME data dir and recover committed state.
+	if n.closeStore != nil {
+		if err := n.closeStore(); err != nil {
+			return fmt.Errorf("raft: close bolt store for node %s: %w", n.id, err)
+		}
+	}
 	return nil
+}
+
+// applyBaseLogging copies the logging-related fields (LogOutput, Logger,
+// LogLevel) from an optional base *hraft.Config onto conf, but ONLY for fields
+// the caller actually set on base. A nil base, or an unset field, leaves conf's
+// existing value untouched. This is the single shared merge used by both the
+// in-mem (newInmemNode) and TCP (newTCPNode) builders so the two cannot drift.
+//
+// It deliberately touches ONLY logging fields — it does not alter timers, IDs,
+// or any other behavior — so the in-mem and TCP election semantics are unchanged.
+func applyBaseLogging(conf, base *hraft.Config) {
+	if base == nil {
+		return
+	}
+	if base.LogOutput != nil {
+		conf.LogOutput = base.LogOutput
+	}
+	if base.Logger != nil {
+		conf.Logger = base.Logger
+	}
+	if base.LogLevel != "" {
+		conf.LogLevel = base.LogLevel
+	}
 }
 
 // nodeConfig holds the wiring for a single in-memory Raft node.
@@ -133,17 +175,7 @@ func newInmemNode(id string, base *hraft.Config) (*nodeConfig, error) {
 	conf.CommitTimeout = 20 * time.Millisecond
 	// Silence library logs by default; the test can override via base.
 	conf.LogLevel = "ERROR"
-	if base != nil {
-		if base.LogOutput != nil {
-			conf.LogOutput = base.LogOutput
-		}
-		if base.Logger != nil {
-			conf.Logger = base.Logger
-		}
-		if base.LogLevel != "" {
-			conf.LogLevel = base.LogLevel
-		}
-	}
+	applyBaseLogging(conf, base)
 
 	return &nodeConfig{
 		id:        id,
