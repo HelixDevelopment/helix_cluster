@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 187
-**Last modified:** 2026-06-14T13:52:57Z
+**Revision:** 188
+**Last modified:** 2026-06-14T14:04:33Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **691**.
+Total completed: **695**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -622,6 +622,10 @@ Total completed: **691**.
 | HXC-1795 | Bug | P1 | admissioncontrol: int64 reserve-sum overflow bypasses N+K capacity cap | 14a8267 |
 | HXC-1796 | Task | P3 | auctionplace: adversarial test, FCFS board contract pinned (no bug) | 14a8267 |
 | HXC-1797 | Task | P3 | flowcontrol: adversarial test, APF round-robin cursor survives resort (no bug) | 14a8267 |
+| HXC-1798 | Bug | P2 | forecast: non-finite sample poisons OLS prediction and suppresses PreWarm (missed scaling) | 2c1b6d3 |
+| HXC-1799 | Task | P3 | gravaladmit: adversarial test, single-use nonce gate K=1 over-commit-proof (no bug) | 2c1b6d3 |
+| HXC-1800 | Task | P3 | balancemonitor: adversarial test, wire NaN/Inf rejected by stdlib JSON (no bug) | 2c1b6d3 |
+| HXC-1801 | Task | P3 | fedtrust: adversarial test, deny branches fail-CLOSED (no bug) | 2c1b6d3 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
