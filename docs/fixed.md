@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 198
-**Last modified:** 2026-06-14T18:55:59Z
+**Revision:** 199
+**Last modified:** 2026-06-14T19:23:28Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **728**.
+Total completed: **732**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -659,6 +659,10 @@ Total completed: **728**.
 | HXC-1832 | Bug | P2 | retry: exponential/linear backoff overflows time.Duration -> negative delay bypasses MaxDelay cap (hot loop) | 4e6af81 |
 | HXC-1833 | Task | P3 | crypto: adversarial test, Ed25519/AES-GCM/PBKDF2 wrapper rejects tampered (no bug) | 4e6af81 |
 | HXC-1834 | Task | P3 | workerpool: adversarial test, bounded pool correct (no bug) | 4e6af81 |
+| HXC-1835 | Bug | P1 | tiersec: tierRank Sscanf admits malformed tier names -> fail-open clearance grant | f898048 |
+| HXC-1836 | Task | P3 | tieredcache: adversarial test, LRU bound/eviction/recency correct (no bug) | f898048 |
+| HXC-1837 | Task | P3 | doublecrypt: adversarial test, mTLS-over-WireGuard tamper/auth enforced (no bug) | f898048 |
+| HXC-1838 | Task | P3 | covgate: adversarial test, threshold >= boundary + NaN fail-closed (no bug) | f898048 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
