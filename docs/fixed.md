@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 175
-**Last modified:** 2026-06-14T10:30:12Z
+**Revision:** 176
+**Last modified:** 2026-06-14T10:42:37Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **651**.
+Total completed: **655**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -582,6 +582,10 @@ Total completed: **651**.
 | HXC-1755 | Task | P1 | mvcc snapshot-isolation adversarial tests | 78c3cdb |
 | HXC-1756 | Task | P1 | stats Welch-t-test adversarial tests | 78c3cdb |
 | HXC-1757 | Task | P1 | ringavg moving-average adversarial tests | 78c3cdb |
+| HXC-1758 | Task | P1 | crdt semilattice-law adversarial tests | c0cd240 |
+| HXC-1759 | Bug | P1 | antientropy equal-version conflict never converges (permanent split-brain) — FIXED | c0cd240 |
+| HXC-1760 | Task | P1 | splitbrain quorum-classification adversarial tests | c0cd240 |
+| HXC-1761 | Task | P1 | porcupine linearizability-checker adversarial tests | c0cd240 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
