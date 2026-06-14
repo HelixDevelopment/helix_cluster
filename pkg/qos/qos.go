@@ -5,12 +5,21 @@
 // candidate placements:
 //
 //   - RealTime    -> the LOWEST-LATENCY candidate (latency is paramount).
-//   - Interactive -> low-latency but cost-aware (latency-dominant, cost
-//     breaks near-ties so an absurdly expensive fastest node loses to a
-//     comparably-fast cheaper one).
-//   - Batch       -> throughput/cost balanced (cost-dominant, latency only
-//     breaks near-ties).
+//   - Interactive -> low-latency but cost-aware (latency-dominant): among the
+//     candidates whose latency is within the near-tie band of the fleet's BEST
+//     (minimum) latency, the cheapest wins, so an absurdly expensive fastest
+//     node loses to a comparably-fast cheaper one.
+//   - Batch       -> throughput/cost balanced (cost-dominant): among the
+//     candidates whose cost is within the near-tie band of the fleet's BEST
+//     (minimum) cost, the fastest wins.
 //   - BestEffort  -> the CHEAPEST candidate, preferring spot capacity.
+//
+// The near-tie band is anchored to the fleet-global best of the primary metric
+// (not evaluated pairwise), which makes the "near-best" set a fixed set and the
+// resulting class comparator a total order; consequently the chosen target is
+// independent of the input ordering. Anchoring is required for correctness: a
+// pairwise band is intransitive and would make the sort's winner depend on the
+// candidate order.
 //
 // The package is pure Go and fully deterministic: Route is a total function of
 // (class, candidates) with a stable tie-break, no clocks, randomness, network,
@@ -92,18 +101,18 @@ const (
 	nearTieFloor = 1e-9
 )
 
-// within reports whether a and b are within the near-tie band of each other.
-func within(a, b float64) bool {
-	lo := a
-	if b < lo {
-		lo = b
+// minBy returns the minimum of key(c) over a non-empty candidate slice. It is
+// used to anchor the near-tie band to the fleet's best value of the primary
+// metric, which makes the "near-best" set fixed (independent of comparison
+// order) and the resulting comparator a total order.
+func minBy(cs []Candidate, key func(Candidate) float64) float64 {
+	m := key(cs[0])
+	for _, c := range cs[1:] {
+		if v := key(c); v < m {
+			m = v
+		}
 	}
-	band := lo*nearTieFrac + nearTieFloor
-	d := a - b
-	if d < 0 {
-		d = -d
-	}
-	return d <= band
+	return m
 }
 
 // Route selects the candidate that best satisfies the objective of class over
@@ -137,12 +146,29 @@ func Route(class QoSClass, candidates []Candidate) (Decision, error) {
 			return a.ID < b.ID
 		}
 	case Interactive:
-		// Latency-dominant, cost-aware. Latency decides unless the two are
-		// within the near-tie band, in which case the cheaper one wins.
+		// Latency-dominant, cost-aware. The near-tie band is anchored to the
+		// fleet's *minimum* latency (computed once), so "near-best" is a fixed
+		// set rather than a pairwise relation: candidates whose latency is
+		// within the band of the best latency are mutually cost-ranked; nodes
+		// outside the band lose on latency. A pairwise within() here would be
+		// intransitive and make sort.SliceStable's winner depend on input
+		// order (a determinism defect). See lat anchor below.
+		anchor := minBy(cs, func(c Candidate) float64 { return c.LatencyMs })
+		band := anchor*nearTieFrac + nearTieFloor
+		near := func(c Candidate) bool { return c.LatencyMs <= anchor+band }
 		less = func(a, b Candidate) bool {
-			if !within(a.LatencyMs, b.LatencyMs) {
-				return a.LatencyMs < b.LatencyMs
+			an, bn := near(a), near(b)
+			if an != bn {
+				return an // an anchored (near-best) node beats a non-anchored one
 			}
+			if !an {
+				// Neither is near-best: pure latency, then ID.
+				if a.LatencyMs != b.LatencyMs {
+					return a.LatencyMs < b.LatencyMs
+				}
+				return a.ID < b.ID
+			}
+			// Both near-best: cheaper wins, then faster, then ID.
 			if a.CostPerHour != b.CostPerHour {
 				return a.CostPerHour < b.CostPerHour
 			}
@@ -152,11 +178,24 @@ func Route(class QoSClass, candidates []Candidate) (Decision, error) {
 			return a.ID < b.ID
 		}
 	case Batch:
-		// Cost-dominant, latency-aware. Cost decides unless within the
-		// near-tie band, then the faster one wins.
+		// Cost-dominant, latency-aware. Symmetric to Interactive but anchored
+		// to the fleet's *minimum* cost: candidates within the band of the
+		// cheapest are mutually latency-ranked; the rest lose on cost. Anchoring
+		// (vs a pairwise within()) keeps the comparator a total order so the
+		// chosen target is order-independent.
+		anchor := minBy(cs, func(c Candidate) float64 { return c.CostPerHour })
+		band := anchor*nearTieFrac + nearTieFloor
+		near := func(c Candidate) bool { return c.CostPerHour <= anchor+band }
 		less = func(a, b Candidate) bool {
-			if !within(a.CostPerHour, b.CostPerHour) {
-				return a.CostPerHour < b.CostPerHour
+			an, bn := near(a), near(b)
+			if an != bn {
+				return an
+			}
+			if !an {
+				if a.CostPerHour != b.CostPerHour {
+					return a.CostPerHour < b.CostPerHour
+				}
+				return a.ID < b.ID
 			}
 			if a.LatencyMs != b.LatencyMs {
 				return a.LatencyMs < b.LatencyMs
