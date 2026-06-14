@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 199 <strong>Last modified:</strong>
-2026-06-14T19:23:28Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 204 <strong>Last modified:</strong>
+2026-06-14T20:17:40Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>732</strong>.</p>
+<p>Total completed: <strong>752</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5183,6 +5183,164 @@ enforced (no bug)</td>
 <td>covgate: adversarial test, threshold &gt;= boundary + NaN
 fail-closed (no bug)</td>
 <td>f898048</td>
+</tr>
+<tr>
+<td>HXC-1839</td>
+<td>Bug</td>
+<td>P1</td>
+<td>qualitygate: NaN metric/threshold records no breach -&gt; CRITICAL
+gate PASSES on poisoned metric (fail-open, CLAUDE-1)</td>
+<td>6866352</td>
+</tr>
+<tr>
+<td>HXC-1840</td>
+<td>Bug</td>
+<td>P2</td>
+<td>inference: 2 stale tests fail on main (encode retired internal/llm
+synthetic stub) -&gt; pkg suite RED</td>
+<td>6866352</td>
+</tr>
+<tr>
+<td>HXC-1841</td>
+<td>Task</td>
+<td>P3</td>
+<td>pool: adversarial test, mutex-guarded pool no
+over-commit/double-handout (no bug)</td>
+<td>6866352</td>
+</tr>
+<tr>
+<td>HXC-1842</td>
+<td>Task</td>
+<td>P3</td>
+<td>quantization: adversarial test, int-only VRAM estimate (no bug)</td>
+<td>6866352</td>
+</tr>
+<tr>
+<td>HXC-1843</td>
+<td>Task</td>
+<td>P3</td>
+<td>raft: adversarial test, hashicorp/raft wrapper + local FSM safety
+pinned (no bug)</td>
+<td>386489c</td>
+</tr>
+<tr>
+<td>HXC-1844</td>
+<td>Task</td>
+<td>P3</td>
+<td>device: adversarial test, deterministic classifier + real per-OS
+probe, CLAUDE-2 verified (no bug)</td>
+<td>386489c</td>
+</tr>
+<tr>
+<td>HXC-1845</td>
+<td>Task</td>
+<td>P3</td>
+<td>dst: adversarial test, deterministic-simulation harness is genuinely
+deterministic (no bug)</td>
+<td>386489c</td>
+</tr>
+<tr>
+<td>HXC-1846</td>
+<td>Task</td>
+<td>P3</td>
+<td>provider: adversarial test, pure HTTP adapter no selector/registry
+(no bug)</td>
+<td>386489c</td>
+</tr>
+<tr>
+<td>HXC-1847</td>
+<td>Bug</td>
+<td>P2</td>
+<td>timefault: abs64(MinInt64) overflow misses max-skew detection -&gt;
+grants lease to faulty clock (split-brain)</td>
+<td>1eabe72</td>
+</tr>
+<tr>
+<td>HXC-1848</td>
+<td>Task</td>
+<td>P3</td>
+<td>devicemap: adversarial concurrency test, pure stateless conversion
+(no bug)</td>
+<td>1eabe72</td>
+</tr>
+<tr>
+<td>HXC-1849</td>
+<td>Task</td>
+<td>P3</td>
+<td>fedtopology: adversarial test, deterministic immutable topology (no
+bug)</td>
+<td>1eabe72</td>
+</tr>
+<tr>
+<td>HXC-1850</td>
+<td>Task</td>
+<td>P3</td>
+<td>thermalwarm: adversarial test, duration-based warm-up boundary
+correct (no bug)</td>
+<td>1eabe72</td>
+</tr>
+<tr>
+<td>HXC-1851</td>
+<td>Bug</td>
+<td>P2</td>
+<td>tracing: Span.Duration() ignores endTime -&gt; finished span
+duration grows with wall-clock (wrong latency)</td>
+<td>204f871</td>
+</tr>
+<tr>
+<td>HXC-1852</td>
+<td>Bug</td>
+<td>P2</td>
+<td>agentprovision: ModeManager.Submit no duplicate-ID guard -&gt;
+double-provision + silent live-job eviction</td>
+<td>204f871</td>
+</tr>
+<tr>
+<td>HXC-1853</td>
+<td>Task</td>
+<td>P3</td>
+<td>chaosexp: adversarial test, conservation + determinism (no bug)</td>
+<td>204f871</td>
+</tr>
+<tr>
+<td>HXC-1854</td>
+<td>Task</td>
+<td>P3</td>
+<td>errors: adversarial test, Is/As wrap-chain + Wrap(nil)==nil (no
+bug)</td>
+<td>204f871</td>
+</tr>
+<tr>
+<td>HXC-1855</td>
+<td>Bug</td>
+<td>P1</td>
+<td>swim: handleDead lacks self-target guard -&gt; node accepts death
+rumour about itself (self-denial of liveness)</td>
+<td>442090c</td>
+</tr>
+<tr>
+<td>HXC-1856</td>
+<td>Bug</td>
+<td>P2</td>
+<td>build: Job.clone() aliases BuildArgs map despite documented
+deep-copy -&gt; snapshot mutation corrupts canonical job</td>
+<td>442090c</td>
+</tr>
+<tr>
+<td>HXC-1857</td>
+<td>Task</td>
+<td>P3</td>
+<td>log: adversarial test, slog shared-mutex concurrent integrity (no
+bug)</td>
+<td>442090c</td>
+</tr>
+<tr>
+<td>HXC-1858</td>
+<td>Task</td>
+<td>P3</td>
+<td>bootstrap: adversarial test, peer-rendezvous deterministic + no
+fail-open (no bug)</td>
+<td>442090c</td>
 </tr>
 <tr>
 <td>HXC-902</td>
