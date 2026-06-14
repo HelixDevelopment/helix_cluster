@@ -35,9 +35,26 @@ type VersionedValue struct {
 	Version uint64
 }
 
-// newer reports whether v is strictly newer than other (higher version wins).
+// newer reports whether v should win over other under last-write-wins.
+//
+// Higher version wins. On a version TIE with a DIFFERING value, the
+// lexicographically-greater value wins as a deterministic tie-break. This makes
+// (version, value) a TOTAL order, which is load-bearing for convergence: the
+// caller-injected version counters are only per-replica monotonic (the package
+// doc), so two replicas can independently stamp the same version on different
+// values. The Merkle diff correctly flags such a pair as divergent; without a
+// tie-break, neither side is "newer", apply is a no-op on both, and the
+// replicas stay permanently split-brained — an anti-entropy system failing to
+// heal a divergence it detects. The value tie-break (the classic Cassandra
+// last-write-wins rule, mirroring pkg/crdt's LWWRegister replica-id tie-break)
+// guarantees both reconcile and read-repair converge equal-version conflicts to
+// the same winner. Equal version AND equal value yields false (already
+// identical — preserves idempotent re-delivery of hints/read-repair).
 func (v VersionedValue) newer(other VersionedValue) bool {
-	return v.Version > other.Version
+	if v.Version != other.Version {
+		return v.Version > other.Version
+	}
+	return v.Value > other.Value
 }
 
 // Replica is an in-memory key/value store with a per-key version, plus an up/down
