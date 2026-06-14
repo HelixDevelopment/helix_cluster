@@ -272,16 +272,10 @@ func TestAdversarial_WrongSecret_Rejected(t *testing.T) {
 // NOT interoperable — it rejects every real-world RS256 token (fail-closed
 // interop defect). Marked clearly; reported to the coordinator.
 func TestAdversarial_RS256_RFC7518Compliant_MustVerify(t *testing.T) {
-	// KNOWN OPEN DEFECT — HXC-1825 (latent, fail-CLOSED, zero prod reachability:
-	// only the HMAC/HS256 path is wired via internal/gateway/auth.go). verifyRSA
-	// passes raw crypto.Hash 0/1/2 to rsa.VerifyPKCS1v15 instead of
-	// crypto.SHA256/384/512, so it rejects every standards-compliant RS256 token.
-	// Fix is coordinated (verifyRSA + the package's own crypto.Hash(0) test
-	// vectors in package_test.go and temporal_keyset_test.go). Skipped so the
-	// default suite stays green while the reproducer ships as evidence; remove the
-	// Skip when HXC-1825 lands.
-	t.Skip("HXC-1825: RSA verify uses crypto.Hash(0); RS256 interop fix pending coordinated test-vector update")
-
+	// REGRESSION GUARD — HXC-1825 (FIXED): verifyRSA now passes crypto.SHA256/384/
+	// 512 to rsa.VerifyPKCS1v15, so a standards-compliant RFC-7518 RS256 token
+	// from any conformant issuer verifies. Runs by default; if verifyRSA reverts
+	// to crypto.Hash(0)/1/2 this FAILS.
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		t.Fatalf("genkey: %v", err)

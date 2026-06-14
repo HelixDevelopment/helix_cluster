@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"crypto"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/rsa"
@@ -291,7 +292,7 @@ func TestKeySet_RSAKidSelected(t *testing.T) {
 	h := base64.RawURLEncoding.EncodeToString(hj)
 	p := base64.RawURLEncoding.EncodeToString(cj)
 	digest := sha256.Sum256([]byte(h + "." + p))
-	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, 0, digest[:])
+	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, digest[:])
 	if err != nil {
 		t.Fatalf("sign: %v", err)
 	}

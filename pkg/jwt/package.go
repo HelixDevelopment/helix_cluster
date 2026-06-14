@@ -2,6 +2,7 @@
 package jwt
 
 import (
+	"crypto"
 	"crypto/hmac"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -150,14 +151,20 @@ func (t *Token) verifyRSA(pub *rsa.PublicKey, h func() hash.Hash, hashType crypt
 	hasher := h()
 	hasher.Write([]byte(t.rawHeader + "." + t.rawBody))
 	hashed := hasher.Sum(nil)
+	// Pass the REAL crypto.Hash constant (SHA256=5, SHA384=6, SHA512=7) so the
+	// PKCS#1 v1.5 verify reconstructs the correct DigestInfo prefix. The local
+	// cryptoHash enum is iota 0/1/2 — passing those raw to VerifyPKCS1v15 means
+	// crypto.Hash(0) ("unknown", no prefix) / MD4 / MD5, which only accepts this
+	// package's own non-conformant self-signed tokens and REJECTS every
+	// standards-compliant RFC-7518 RS256/384/512 token (HXC-1825, fail-closed).
 	var err error
 	switch hashType {
 	case cryptoSHA256:
-		err = rsa.VerifyPKCS1v15(pub, 0, hashed, t.Signature)
+		err = rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed, t.Signature)
 	case cryptoSHA384:
-		err = rsa.VerifyPKCS1v15(pub, 1, hashed, t.Signature)
+		err = rsa.VerifyPKCS1v15(pub, crypto.SHA384, hashed, t.Signature)
 	case cryptoSHA512:
-		err = rsa.VerifyPKCS1v15(pub, 2, hashed, t.Signature)
+		err = rsa.VerifyPKCS1v15(pub, crypto.SHA512, hashed, t.Signature)
 	}
 	if err != nil {
 		return ErrVerifyFailed

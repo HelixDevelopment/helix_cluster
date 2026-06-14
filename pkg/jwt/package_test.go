@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"crypto"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/rsa"
@@ -99,7 +100,7 @@ func TestVerifyRSA(t *testing.T) {
 	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"user1"}`))
 
 	hash := sha256.Sum256([]byte(header + "." + payload))
-	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, 0, hash[:])
+	sigBytes, err := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hash[:])
 	if err != nil {
 		t.Fatalf("failed to sign: %v", err)
 	}
@@ -275,7 +276,7 @@ func TestMutationVerifyRSA(t *testing.T) {
 	payload := base64.RawURLEncoding.EncodeToString([]byte(`{"sub":"user1"}`))
 
 	hash := sha256.Sum256([]byte(header + "." + payload))
-	sigBytes, _ := rsa.SignPKCS1v15(rand.Reader, privKey, 0, hash[:])
+	sigBytes, _ := rsa.SignPKCS1v15(rand.Reader, privKey, crypto.SHA256, hash[:])
 	sig := base64.RawURLEncoding.EncodeToString(sigBytes)
 
 	tok, _ := Parse(header + "." + payload + "." + sig)
