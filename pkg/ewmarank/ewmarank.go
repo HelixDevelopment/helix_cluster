@@ -14,7 +14,10 @@
 // rank.
 package ewmarank
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
 
 // DefaultAlpha is used when a Ranker is constructed with a non-positive or
 // out-of-range alpha. It biases moderately toward recent samples while still
@@ -79,6 +82,17 @@ func (r *Ranker) ensure(id string) *backend {
 //
 // This is a partial move toward the sample, never a replace (for alpha < 1).
 func (r *Ranker) Observe(backendID string, sample float64) {
+	// Drop NaN samples: a NaN would poison the EWMA state permanently (every
+	// subsequent alpha*sample+(1-alpha)*ewma stays NaN), and NaN in Rank's
+	// comparator breaks its strict-weak-ordering (NaN!=x is true but NaN<x and
+	// x<NaN are both false), collapsing the documented least-loaded order to
+	// insertion order — steering traffic to an arbitrary/worst backend. A NaN
+	// utilization sample is meaningless, so we keep the prior EWMA unchanged.
+	// (±Inf is intentionally NOT dropped: it is totally ordered and sorts
+	// deterministically, preserving Rank's contract.)
+	if math.IsNaN(sample) {
+		return
+	}
 	b := r.ensure(backendID)
 	if !b.seeded {
 		b.ewma = sample

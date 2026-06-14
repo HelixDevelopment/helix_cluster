@@ -2,6 +2,7 @@ package admissioncontrol
 
 import (
 	"fmt"
+	"math"
 	"sort"
 	"sync"
 )
@@ -112,6 +113,14 @@ func (c *Controller) reservedHeadroomLocked() int64 {
 	}
 	var reserve int64
 	for i := 0; i < k; i++ {
+		// Saturate instead of overflowing: an int64 wrap would make the reserve
+		// NEGATIVE, which the admission invariant (free-req >= reserve) reads as
+		// "infinite headroom" and admits beyond capacity — a total reserve
+		// bypass. Clamping to MaxInt64 keeps the gate closed (admits nothing)
+		// in the only regime where the K-largest capacities can't be summed.
+		if reserve > math.MaxInt64-live[i].Capacity {
+			return math.MaxInt64
+		}
 		reserve += live[i].Capacity
 	}
 	return reserve
