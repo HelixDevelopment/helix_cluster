@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 157
-**Last modified:** 2026-06-14T08:10:42Z
+**Revision:** 158
+**Last modified:** 2026-06-14T08:18:19Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **595**.
+Total completed: **598**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -526,6 +526,9 @@ Total completed: **595**.
 | HXC-1699 | Feature | P1 | pkg/modelintegrity adversarial tamper/forgery test (SHA-256 content-pinning, path-swap) | 2ba8f10 |
 | HXC-1700 | Feature | P1 | pkg/gpuattest adversarial attestation-forgery test (ed25519, pinned-key trust) | d2c5d33 |
 | HXC-1701 | Feature | P1 | pkg/spiffefed adversarial trust-domain-confusion test (exact host match, no lookalike bypass) | b39ad90 |
+| HXC-1702 | Task | P1 | attestadmit fail-closed adversarial tests | 2a0616f |
+| HXC-1703 | Task | P1 | gravalverify anti-cheat adversarial tests | 2a0616f |
+| HXC-1704 | Task | P1 | exportcontrol embargo/lookalike adversarial tests | 2a0616f |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
