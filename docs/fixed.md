@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 188
-**Last modified:** 2026-06-14T14:04:33Z
+**Revision:** 189
+**Last modified:** 2026-06-14T14:20:47Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **695**.
+Total completed: **699**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -626,6 +626,10 @@ Total completed: **695**.
 | HXC-1799 | Task | P3 | gravaladmit: adversarial test, single-use nonce gate K=1 over-commit-proof (no bug) | 2c1b6d3 |
 | HXC-1800 | Task | P3 | balancemonitor: adversarial test, wire NaN/Inf rejected by stdlib JSON (no bug) | 2c1b6d3 |
 | HXC-1801 | Task | P3 | fedtrust: adversarial test, deny branches fail-CLOSED (no bug) | 2c1b6d3 |
+| HXC-1802 | Bug | P2 | carbonsched: NaN carbon-intensity poisons greenest-region selection + breaks total order | 4bab485 |
+| HXC-1803 | Task | P3 | constraints: adversarial test, flat-struct placement engine (no bug) | 4bab485 |
+| HXC-1804 | Task | P3 | federation: adversarial test, uint32+enum total order, mutex-guarded (no bug) | 4bab485 |
+| HXC-1805 | Task | P3 | discovery: adversarial test, all registries promise+keep concurrency safety (no bug) | 4bab485 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
