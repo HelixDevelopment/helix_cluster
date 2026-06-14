@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 176
-**Last modified:** 2026-06-14T10:42:37Z
+**Revision:** 177
+**Last modified:** 2026-06-14T10:57:25Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **655**.
+Total completed: **658**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -586,6 +586,9 @@ Total completed: **655**.
 | HXC-1759 | Bug | P1 | antientropy equal-version conflict never converges (permanent split-brain) — FIXED | c0cd240 |
 | HXC-1760 | Task | P1 | splitbrain quorum-classification adversarial tests | c0cd240 |
 | HXC-1761 | Task | P1 | porcupine linearizability-checker adversarial tests | c0cd240 |
+| HXC-1762 | Bug | P1 | offlinesync: decompression-bomb DoS + equal-Seq split-brain — BOTH FIXED | 96bb4c5 |
+| HXC-1763 | Task | P1 | heartbeatcoalescer coalescing/concurrency adversarial tests | 96bb4c5 |
+| HXC-1764 | Task | P1 | multiraft durability-safety adversarial tests | 96bb4c5 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
