@@ -99,6 +99,16 @@ func Allowed(level TrustLevel, w WorkloadType) AdmissionDecision {
 		}
 	}
 
+	// Fail closed on an invalid/unknown trust level BEFORE any workload rule.
+	// TrustLevelUnknown (the zero value) is documented as "MUST NOT be admitted
+	// to any workload", and an out-of-range value (negative, or above FULL via a
+	// corrupt/forged level) must never satisfy a `>= STANDARD`/`>= FULL` check or
+	// the unconditional AIInference/DataProcessing/SmallBatch admit. Gating here
+	// makes the whole matrix default-deny for anything not a real, known level.
+	if !level.IsValid() {
+		return decision(false, fmt.Sprintf("invalid/unknown TrustLevel %d (DENIED by default)", int(level)))
+	}
+
 	switch w {
 	case InteractiveSession:
 		// Requires STANDARD or above.
