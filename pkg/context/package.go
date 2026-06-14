@@ -22,3 +22,11 @@ type detached struct {
 
 func (detached) Done() <-chan struct{} { return nil }
 func (detached) Err() error            { return nil }
+
+// Deadline must also be severed: a detached context is "never cancelled", but
+// leaving the parent's Deadline() inherited reports an (often already-past)
+// deadline while Done() never fires and Err() is nil — a self-contradictory
+// fail-open that mis-serves deadline-aware callers (gRPC/net-http read
+// Deadline() to compute the remaining budget). Clear it, like stdlib's
+// context.WithoutCancel.
+func (detached) Deadline() (deadline time.Time, ok bool) { return time.Time{}, false }
