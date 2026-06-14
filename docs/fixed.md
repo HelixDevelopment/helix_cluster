@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 183
-**Last modified:** 2026-06-14T12:44:02Z
+**Revision:** 184
+**Last modified:** 2026-06-14T13:17:02Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **678**.
+Total completed: **681**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -609,6 +609,9 @@ Total completed: **678**.
 | HXC-1782 | Bug | P1 | classads parser/evaluator stack-overflow DoS on deeply-nested expression — FIXED | 33aaaa0 |
 | HXC-1783 | Task | P1 | raftprofile parse/timing-invariant adversarial tests | 33aaaa0 |
 | HXC-1784 | Task | P1 | phasegate gating/concurrency adversarial tests | 33aaaa0 |
+| HXC-1785 | Bug | P1 | costtracker unsynchronized accumulator: data race + cost non-conservation — FIXED | ccab647 |
+| HXC-1786 | Task | P1 | providerchain fallback adversarial tests | ccab647 |
+| HXC-1787 | Task | P1 | modelrouter selection adversarial tests | ccab647 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
