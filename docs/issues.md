@@ -1,14 +1,14 @@
 # Issues
 
-**Revision:** 194
-**Last modified:** 2026-06-14T15:19:48Z
+**Revision:** 195
+**Last modified:** 2026-06-14T15:25:12Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total active items: **224**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
+Total active items: **223**. Canonical source: `data/hxc_registry.db`. Full per-item detail (description, closure criteria, required test types, source refs) lives in the DB and `docs/research/_ledger/*.json`.
 
-## Foundation (anti-bluff) (8 active)
+## Foundation (anti-bluff) (7 active)
 
 | HXC | Type | Pri | Status | Title |
 |---|---|---|---|---|
@@ -19,7 +19,6 @@ Total active items: **224**. Canonical source: `data/hxc_registry.db`. Full per-
 | HXC-019 | Task | P1 | Queued |  |
 | HXC-020 | Task | P1 | Queued |  |
 | HXC-949 | Feature | P2 | Queued | Chaos OTel polyglot trace (Rust/Elixir/Go) + Grafana dashboards (split from HXC-1258) |
-| HXC-1825 | Bug | P3 | In progress | jwt: verifyRSA passes crypto.Hash(0) not SHA256/384/512 -> rejects all standards-compliant RS256 (fail-closed interop) |
 
 ## MVP (5 active)
 
