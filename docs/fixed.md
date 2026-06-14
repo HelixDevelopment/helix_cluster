@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 207
-**Last modified:** 2026-06-14T20:39:30Z
+**Revision:** 208
+**Last modified:** 2026-06-14T20:46:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **764**.
+Total completed: **765**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -695,6 +695,7 @@ Total completed: **764**.
 | HXC-1868 | Task | P3 | benchmark: adversarial test, CoefficientOfVariation Bessel/zero-mean correct (no bug) | f098b4a |
 | HXC-1869 | Task | P3 | compliancedoc: adversarial test, deterministic model card, no fabricated verdict (no bug) | f098b4a |
 | HXC-1870 | Task | P3 | e2eebench: adversarial test, nearest-rank percentile + ML-KEM key-agreement guard (no bug) | f098b4a |
+| HXC-1871 | Task | P3 | resources: adversarial test, CLAUDE-2 darwin parity VERIFIED REAL (no bug) — completes pkg/ 196/196 | 84b13ea |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
