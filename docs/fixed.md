@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 170
-**Last modified:** 2026-06-14T09:31:20Z
+**Revision:** 171
+**Last modified:** 2026-06-14T09:38:34Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **635**.
+Total completed: **638**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -566,6 +566,9 @@ Total completed: **635**.
 | HXC-1739 | Task | P1 | llmadapter translation-fidelity adversarial tests | 75ac469 |
 | HXC-1740 | Task | P1 | passthrough streaming-fidelity adversarial tests | 75ac469 |
 | HXC-1741 | Task | P1 | grpcutil auth-interceptor adversarial tests | 75ac469 |
+| HXC-1742 | Task | P1 | middleware panic-recovery/chain adversarial tests | e534ad3 |
+| HXC-1743 | Task | P1 | llmfailover failover-path/hint adversarial tests | e534ad3 |
+| HXC-1744 | Task | P1 | capability manifest/negotiate adversarial tests | e534ad3 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
