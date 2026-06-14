@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 199
-**Last modified:** 2026-06-14T19:23:28Z
+**Revision:** 200
+**Last modified:** 2026-06-14T19:36:05Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **732**.
+Total completed: **736**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -663,6 +663,10 @@ Total completed: **732**.
 | HXC-1836 | Task | P3 | tieredcache: adversarial test, LRU bound/eviction/recency correct (no bug) | f898048 |
 | HXC-1837 | Task | P3 | doublecrypt: adversarial test, mTLS-over-WireGuard tamper/auth enforced (no bug) | f898048 |
 | HXC-1838 | Task | P3 | covgate: adversarial test, threshold >= boundary + NaN fail-closed (no bug) | f898048 |
+| HXC-1839 | Bug | P1 | qualitygate: NaN metric/threshold records no breach -> CRITICAL gate PASSES on poisoned metric (fail-open, CLAUDE-1) | 6866352 |
+| HXC-1840 | Bug | P2 | inference: 2 stale tests fail on main (encode retired internal/llm synthetic stub) -> pkg suite RED | 6866352 |
+| HXC-1841 | Task | P3 | pool: adversarial test, mutex-guarded pool no over-commit/double-handout (no bug) | 6866352 |
+| HXC-1842 | Task | P3 | quantization: adversarial test, int-only VRAM estimate (no bug) | 6866352 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
