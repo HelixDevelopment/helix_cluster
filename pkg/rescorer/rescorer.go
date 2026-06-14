@@ -30,6 +30,7 @@
 package rescorer
 
 import (
+	"math"
 	"sort"
 	"sync"
 )
@@ -149,6 +150,18 @@ func (r *ReScorer) rerank() {
 	sort.SliceStable(ids, func(a, b int) bool {
 		sa := score(r.providers[ids[a]].scored)
 		sb := score(r.providers[ids[b]].scored)
+		// Sink a NaN score to the worst possible value. score(NaN price)=NaN, and
+		// a raw NaN comparison (sa != sb true, sa > sb false both ways) is NOT a
+		// strict weak ordering — sort.SliceStable would then produce an
+		// insertion-order-dependent ranking, letting a NaN-priced provider seize
+		// the top slot and capture traffic. Mapping NaN -> -Inf makes such a
+		// provider rank last deterministically; finite scores are unaffected.
+		if math.IsNaN(sa) {
+			sa = math.Inf(-1)
+		}
+		if math.IsNaN(sb) {
+			sb = math.Inf(-1)
+		}
 		if sa != sb {
 			return sa > sb // higher score first => cheaper first
 		}
