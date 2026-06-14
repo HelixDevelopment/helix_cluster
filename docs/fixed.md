@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 189
-**Last modified:** 2026-06-14T14:20:47Z
+**Revision:** 190
+**Last modified:** 2026-06-14T14:27:29Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **699**.
+Total completed: **703**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -630,6 +630,10 @@ Total completed: **699**.
 | HXC-1803 | Task | P3 | constraints: adversarial test, flat-struct placement engine (no bug) | 4bab485 |
 | HXC-1804 | Task | P3 | federation: adversarial test, uint32+enum total order, mutex-guarded (no bug) | 4bab485 |
 | HXC-1805 | Task | P3 | discovery: adversarial test, all registries promise+keep concurrency safety (no bug) | 4bab485 |
+| HXC-1806 | Task | P3 | cloudspot: adversarial test, preemption-drain handler deterministic (no bug) | f5e2da9 |
+| HXC-1807 | Task | P3 | gpupool: adversarial test, stateless read-only query pkg (no bug) | f5e2da9 |
+| HXC-1808 | Task | P3 | backfill: adversarial test, pure deterministic scheduler (no bug) | f5e2da9 |
+| HXC-1809 | Task | P3 | health: adversarial test, fail-closed rollup, RWMutex-guarded (no bug) | f5e2da9 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
