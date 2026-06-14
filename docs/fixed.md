@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 190
-**Last modified:** 2026-06-14T14:27:29Z
+**Revision:** 191
+**Last modified:** 2026-06-14T14:43:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **703**.
+Total completed: **707**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -634,6 +634,10 @@ Total completed: **703**.
 | HXC-1807 | Task | P3 | gpupool: adversarial test, stateless read-only query pkg (no bug) | f5e2da9 |
 | HXC-1808 | Task | P3 | backfill: adversarial test, pure deterministic scheduler (no bug) | f5e2da9 |
 | HXC-1809 | Task | P3 | health: adversarial test, fail-closed rollup, RWMutex-guarded (no bug) | f5e2da9 |
+| HXC-1810 | Bug | P2 | rescorer: NaN price breaks rerank comparator -> NaN provider seizes top, mis-routes traffic | a07f860 |
+| HXC-1811 | Task | P3 | idempotent: adversarial test, exactly-once under concurrent first-use (no bug) | a07f860 |
+| HXC-1812 | Task | P3 | events: adversarial test, handler-func Bus race-free, no teardown-race surface (no bug) | a07f860 |
+| HXC-1813 | Task | P3 | anticheat: adversarial test, HMAC token fail-CLOSED on all malformed input (no bug) | a07f860 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
