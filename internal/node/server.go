@@ -7,6 +7,8 @@ import (
 	"sync"
 	"time"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/HelixDevelopment/helix_cluster/apiv1"
 )
 
@@ -114,6 +116,12 @@ func (s *Server) UpdateNodeStatus(ctx context.Context, req *helixv1.UpdateNodeSt
 	}
 
 	if req.Status != "" {
+		// Clone before mutating: registry.Lookup returns the LIVE shared map
+		// pointer, so writing node.Status in place races concurrent
+		// ListNodes/GetNode readers (and other UpdateNodeStatus writers) holding
+		// the same pointer — a data race live in the gRPC server (one goroutine
+		// per RPC). Mutate a private copy and swap it in atomically via Register.
+		node = proto.Clone(node).(*helixv1.Node)
 		node.Status = req.Status
 		// Persist the mutated status back through the registry so the change is
 		// visible to other readers of a shared backend, not just this process.
