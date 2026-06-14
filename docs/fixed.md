@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 177
-**Last modified:** 2026-06-14T10:57:25Z
+**Revision:** 178
+**Last modified:** 2026-06-14T11:09:55Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **658**.
+Total completed: **662**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -589,6 +589,10 @@ Total completed: **658**.
 | HXC-1762 | Bug | P1 | offlinesync: decompression-bomb DoS + equal-Seq split-brain — BOTH FIXED | 96bb4c5 |
 | HXC-1763 | Task | P1 | heartbeatcoalescer coalescing/concurrency adversarial tests | 96bb4c5 |
 | HXC-1764 | Task | P1 | multiraft durability-safety adversarial tests | 96bb4c5 |
+| HXC-1765 | Bug | P2 | computeproto: FlatBuffers decode DoS (panic on hostile bytes) — hardened with ReadComputeTaskSafe | bdf7837 |
+| HXC-1766 | Task | P1 | nattraversal STUN codec adversarial tests | bdf7837 |
+| HXC-1767 | Task | P1 | websocket envelope codec adversarial tests | bdf7837 |
+| HXC-1768 | Task | P1 | fiber framing/admission adversarial tests | bdf7837 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
