@@ -30,6 +30,7 @@ package timefault
 
 import (
 	"fmt"
+	"math"
 	"sort"
 )
 
@@ -199,6 +200,15 @@ type Verdict struct {
 
 func abs64(v int64) int64 {
 	if v < 0 {
+		if v == math.MinInt64 {
+			// -math.MinInt64 is not representable in int64 (it overflows back to
+			// MinInt64, which is still negative). Without this guard a skew of
+			// exactly MinInt64 — reachable via SkewFault{Delta: math.MinInt64} —
+			// would read as "within tolerance", so the maximally-skewed node is
+			// judged Consistent and GRANTED a lease (split-brain). Saturate to
+			// MaxInt64 so an extreme skew correctly exceeds any tolerance.
+			return math.MaxInt64
+		}
 		return -v
 	}
 	return v
