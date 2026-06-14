@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 206
-**Last modified:** 2026-06-14T20:33:37Z
+**Revision:** 207
+**Last modified:** 2026-06-14T20:39:30Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **760**.
+Total completed: **764**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -691,6 +691,10 @@ Total completed: **760**.
 | HXC-1864 | Bug | P2 | infra: containerOrchestrator.Scale no negative-replicas guard -> slice-bounds panic (process crash) | 8f9ff6c |
 | HXC-1865 | Bug | P2 | local: GPU.validate() lets NaN/Inf slip ordered guards -> poisons TCO, pins card local forever | 8f9ff6c |
 | HXC-1866 | Task | P3 | phase7matrix: adversarial test, recompute + boundary correct, fail-closed (no bug) | 8f9ff6c |
+| HXC-1867 | Bug | P2 | context: Detach leaks parent Deadline() despite 'never cancelled' -> self-contradictory fail-open | f098b4a |
+| HXC-1868 | Task | P3 | benchmark: adversarial test, CoefficientOfVariation Bessel/zero-mean correct (no bug) | f098b4a |
+| HXC-1869 | Task | P3 | compliancedoc: adversarial test, deterministic model card, no fabricated verdict (no bug) | f098b4a |
+| HXC-1870 | Task | P3 | e2eebench: adversarial test, nearest-rank percentile + ML-KEM key-agreement guard (no bug) | f098b4a |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
