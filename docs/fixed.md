@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 200
-**Last modified:** 2026-06-14T19:36:05Z
+**Revision:** 201
+**Last modified:** 2026-06-14T19:50:40Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **736**.
+Total completed: **740**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -667,6 +667,10 @@ Total completed: **736**.
 | HXC-1840 | Bug | P2 | inference: 2 stale tests fail on main (encode retired internal/llm synthetic stub) -> pkg suite RED | 6866352 |
 | HXC-1841 | Task | P3 | pool: adversarial test, mutex-guarded pool no over-commit/double-handout (no bug) | 6866352 |
 | HXC-1842 | Task | P3 | quantization: adversarial test, int-only VRAM estimate (no bug) | 6866352 |
+| HXC-1843 | Task | P3 | raft: adversarial test, hashicorp/raft wrapper + local FSM safety pinned (no bug) | 386489c |
+| HXC-1844 | Task | P3 | device: adversarial test, deterministic classifier + real per-OS probe, CLAUDE-2 verified (no bug) | 386489c |
+| HXC-1845 | Task | P3 | dst: adversarial test, deterministic-simulation harness is genuinely deterministic (no bug) | 386489c |
+| HXC-1846 | Task | P3 | provider: adversarial test, pure HTTP adapter no selector/registry (no bug) | 386489c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
