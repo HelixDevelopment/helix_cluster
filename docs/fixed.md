@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 142
-**Last modified:** 2026-06-14T02:33:17Z
+**Revision:** 143
+**Last modified:** 2026-06-14T02:34:45Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **580**.
+Total completed: **581**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -511,6 +511,7 @@ Total completed: **580**.
 | HXC-1684 | Feature | P1 | pkg/preempt 20k-case oracle preemption test (priority-safety, minimality, no false reject) | 1b26424 |
 | HXC-1685 | Feature | P1 | pkg/carbonsched oracle selection test (lowest-carbon argmin, order-independent) | 782b3a0 |
 | HXC-1686 | Feature | P1 | pkg/costsched oracle selection test (lowest-cost, lex tie-break; closes unstable-sort gap) | d6303ed |
+| HXC-1687 | Feature | P1 | pkg/suitability exhaustive placement test (HPC never remote/non-low-latency hard rule) | 39895b8 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
