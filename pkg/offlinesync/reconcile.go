@@ -1,6 +1,7 @@
 package offlinesync
 
 import (
+	"bytes"
 	"sync"
 )
 
@@ -41,11 +42,19 @@ func (s *Server) Reconcile(records []CompletedJob) {
 	defer s.mu.Unlock()
 	for _, rec := range records {
 		// Idempotent, order-independent merge: keep the record with the LOWER
-		// Seq for a given JobID (the documented tie-break for a duplicate that
-		// disagrees on Seq). Selecting by min(Seq) — rather than by arrival
-		// order — makes the winner deterministic regardless of the order in
-		// which records appear in the batch or across re-syncs.
-		if existing, exists := s.jobs[rec.JobID]; !exists || rec.Seq < existing.Seq {
+		// Seq for a given JobID. On an EQUAL-Seq conflict (the same JobID minted
+		// at the same device-local Seq with a DIFFERING Output — reachable when
+		// two devices collide on a JobID), break the tie deterministically by
+		// the lexicographically-lower Output. Without this tie-break the
+		// equal-Seq case kept the first-arrived record, making the winner
+		// order-DEPENDENT (two servers reconciling the same pair in different
+		// orders permanently diverge) — contradicting this merge's own
+		// order-independence guarantee. (Same class as HXC-1759 in
+		// pkg/antientropy.) The full (Seq, Output) key is now a total order, so
+		// the winner is identical regardless of arrival order.
+		if existing, exists := s.jobs[rec.JobID]; !exists ||
+			rec.Seq < existing.Seq ||
+			(rec.Seq == existing.Seq && bytes.Compare(rec.Output, existing.Output) < 0) {
 			s.jobs[rec.JobID] = rec
 		}
 		if rec.Seq > s.hwm {
