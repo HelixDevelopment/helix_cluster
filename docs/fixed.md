@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 151
-**Last modified:** 2026-06-14T07:40:15Z
+**Revision:** 152
+**Last modified:** 2026-06-14T07:41:05Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **589**.
+Total completed: **590**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -520,6 +520,7 @@ Total completed: **589**.
 | HXC-1693 | Feature | P1 | pkg/smartrouter dual audit (comparator transitivity + partial-lock) clean on both | 40ad3c5 |
 | HXC-1694 | Feature | P1 | pkg/bursthysteresis exhaustive hysteresis-boundary test (no flap, inclusive thresholds) | 35fafe3 |
 | HXC-1695 | Feature | P1 | pkg/healthmonitor FSM transition-matrix + concurrency test (edge-triggered, fully guarded) | 7c08ddf |
+| HXC-1696 | Feature | P1 | pkg/balancemonitor event-log conservation + concurrency test (no lost append, strict threshold) | b41a6fe |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
