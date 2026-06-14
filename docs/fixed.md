@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 203
-**Last modified:** 2026-06-14T20:06:56Z
+**Revision:** 204
+**Last modified:** 2026-06-14T20:17:40Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **748**.
+Total completed: **752**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -679,6 +679,10 @@ Total completed: **748**.
 | HXC-1852 | Bug | P2 | agentprovision: ModeManager.Submit no duplicate-ID guard -> double-provision + silent live-job eviction | 204f871 |
 | HXC-1853 | Task | P3 | chaosexp: adversarial test, conservation + determinism (no bug) | 204f871 |
 | HXC-1854 | Task | P3 | errors: adversarial test, Is/As wrap-chain + Wrap(nil)==nil (no bug) | 204f871 |
+| HXC-1855 | Bug | P1 | swim: handleDead lacks self-target guard -> node accepts death rumour about itself (self-denial of liveness) | 442090c |
+| HXC-1856 | Bug | P2 | build: Job.clone() aliases BuildArgs map despite documented deep-copy -> snapshot mutation corrupts canonical job | 442090c |
+| HXC-1857 | Task | P3 | log: adversarial test, slog shared-mutex concurrent integrity (no bug) | 442090c |
+| HXC-1858 | Task | P3 | bootstrap: adversarial test, peer-rendezvous deterministic + no fail-open (no bug) | 442090c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
