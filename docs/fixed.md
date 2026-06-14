@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 137
-**Last modified:** 2026-06-14T02:20:58Z
+**Revision:** 138
+**Last modified:** 2026-06-14T02:27:30Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **575**.
+Total completed: **576**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -506,6 +506,7 @@ Total completed: **575**.
 | HXC-1679 | Feature | P1 | pkg/dataplane partial-lock audit + concurrent race test (Distributor.pending fully guarded) | facc96f |
 | HXC-1680 | Feature | P1 | pkg/inferenceproxy partial-lock audit + concurrent race test (MemAudit fully guarded) | c526da2 |
 | HXC-1681 | Feature | P1 | pkg/timefault concurrency-contract + fault-model test (deterministic single-sequence harness) | 78cd830 |
+| HXC-1682 | Feature | P1 | pkg/auctionplace adversarial clearing test (first-caller-wins, order-independent, single winner) | 34c0b7b |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
