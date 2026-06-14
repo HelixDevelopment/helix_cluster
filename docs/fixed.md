@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 178
-**Last modified:** 2026-06-14T11:09:55Z
+**Revision:** 179
+**Last modified:** 2026-06-14T11:21:57Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **662**.
+Total completed: **666**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -593,6 +593,10 @@ Total completed: **662**.
 | HXC-1766 | Task | P1 | nattraversal STUN codec adversarial tests | bdf7837 |
 | HXC-1767 | Task | P1 | websocket envelope codec adversarial tests | bdf7837 |
 | HXC-1768 | Task | P1 | fiber framing/admission adversarial tests | bdf7837 |
+| HXC-1769 | Task | P1 | ice RFC8445 priority adversarial tests | fe35955 |
+| HXC-1770 | Task | P1 | wasm sandbox-enforcement adversarial tests | fe35955 |
+| HXC-1771 | Bug | P1 | helixnet prod fabric teardown race: send on closed channel panic — FIXED | fe35955 |
+| HXC-1772 | Task | P1 | edgefusion windowed-fusion adversarial tests | fe35955 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
