@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 179
-**Last modified:** 2026-06-14T11:21:57Z
+**Revision:** 180
+**Last modified:** 2026-06-14T11:30:17Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **666**.
+Total completed: **670**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -597,6 +597,10 @@ Total completed: **666**.
 | HXC-1770 | Task | P1 | wasm sandbox-enforcement adversarial tests | fe35955 |
 | HXC-1771 | Bug | P1 | helixnet prod fabric teardown race: send on closed channel panic — FIXED | fe35955 |
 | HXC-1772 | Task | P1 | edgefusion windowed-fusion adversarial tests | fe35955 |
+| HXC-1773 | Task | P1 | watchmanager watch-fanout concurrency adversarial tests | 6260409 |
+| HXC-1774 | Task | P1 | informer cache-coherence adversarial tests | 6260409 |
+| HXC-1775 | Task | P1 | cellmesh overlap-detection adversarial tests | 6260409 |
+| HXC-1776 | Task | P1 | edgeheartbeat liveness/concurrency adversarial tests | 6260409 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
