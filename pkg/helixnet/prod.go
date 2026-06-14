@@ -42,21 +42,39 @@ func (f *prodFabric) register(addr string) (*prodEndpoint, error) {
 	return ep, nil
 }
 
-// deregister marks an endpoint closed and removes it from the fabric.
+// deregister marks an endpoint closed, removes it from the fabric, and closes
+// its channel.
+//
+// The close happens HERE, under the fabric write lock, rather than in
+// ProdNetwork.Close — this is load-bearing for crash safety. deliver holds the
+// fabric READ lock across its channel send (below), so taking the WRITE lock
+// here makes the close mutually exclusive with any in-flight send. Without that
+// ordering, a deliver that had looked up the endpoint and released the lock
+// could send on a channel a concurrent Close had already closed, triggering a
+// process-killing "send on closed channel" panic and a data race (the classic
+// read-by-many/written-by-few teardown race).
 func (f *prodFabric) deregister(addr string) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if ep, ok := f.endpoints[addr]; ok {
 		ep.closed = true
 		delete(f.endpoints, addr)
+		close(ep.ch)
 	}
 }
 
 // deliver puts an envelope onto the destination endpoint's channel.
+//
+// The RLock is held ACROSS the send (not released after the lookup): the send
+// is non-blocking (the select has a default branch), so holding the read lock
+// during it cannot deadlock, and it guarantees the channel cannot be closed by
+// a concurrent deregister (which needs the write lock) while this send is in
+// flight. Once deregister has run, the endpoint is gone from the map, so a later
+// deliver simply returns ErrUnknownAddr — never a send on a closed channel.
 func (f *prodFabric) deliver(dstAddr string, env envelope) error {
 	f.mu.RLock()
+	defer f.mu.RUnlock()
 	ep, ok := f.endpoints[dstAddr]
-	f.mu.RUnlock()
 	if !ok {
 		return ErrUnknownAddr
 	}
@@ -159,8 +177,11 @@ func (p *ProdNetwork) Close() error {
 		return nil
 	}
 	p.isClosed = true
+	// deregister removes the endpoint AND closes its channel under the fabric
+	// write lock, so the close is serialized against any in-flight deliver (which
+	// holds the read lock across its send). Closing here instead would race that
+	// send and panic with "send on closed channel".
 	p.fabric.deregister(p.addr)
-	close(p.ep.ch)
 	return nil
 }
 
