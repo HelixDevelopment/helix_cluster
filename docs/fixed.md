@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 140
-**Last modified:** 2026-06-14T02:28:49Z
+**Revision:** 141
+**Last modified:** 2026-06-14T02:32:44Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **578**.
+Total completed: **579**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -509,6 +509,7 @@ Total completed: **578**.
 | HXC-1682 | Feature | P1 | pkg/auctionplace adversarial clearing test (first-caller-wins, order-independent, single winner) | 34c0b7b |
 | HXC-1683 | Feature | P1 | pkg/constraints Forbidden hard-ban precedence test (closes latent Forbidden>Required gap) | 12fa963 |
 | HXC-1684 | Feature | P1 | pkg/preempt 20k-case oracle preemption test (priority-safety, minimality, no false reject) | 1b26424 |
+| HXC-1685 | Feature | P1 | pkg/carbonsched oracle selection test (lowest-carbon argmin, order-independent) | 782b3a0 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
