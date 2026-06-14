@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 195
-**Last modified:** 2026-06-14T15:25:12Z
+**Revision:** 196
+**Last modified:** 2026-06-14T15:36:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **719**.
+Total completed: **723**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -650,6 +650,10 @@ Total completed: **719**.
 | HXC-1823 | Bug | P2 | smartrouter: NaN/Inf score latched at index 0 mis-routes (breaks all 4 strategies) | c9f397d |
 | HXC-1824 | Task | P3 | voting: adversarial test, strict-majority quorum + dedup + deterministic tiebreak (no bug) | c9f397d |
 | HXC-1825 | Bug | P3 | jwt: verifyRSA passes crypto.Hash(0) not SHA256/384/512 -> rejects all standards-compliant RS256 (fail-closed interop) | 05d79b8 |
+| HXC-1826 | Bug | P1 | security: IsValidTrustDomain admits '/' in SPIFFE trust domain (fail-open identity primitive) | 347c22a |
+| HXC-1827 | Bug | P2 | storage: RedisStore.SetSessionRouting non-atomic -> orphan routing hash with no TTL on Expire failure | 347c22a |
+| HXC-1828 | Bug | P2 | validator: checkMin/checkMax float NaN bypasses range bounds (fail-open validation) | 347c22a |
+| HXC-1829 | Task | P3 | stonith: adversarial test, fencing confirms sink-side (no fail-open) (no bug) | 347c22a |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
