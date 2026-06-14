@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 154
-**Last modified:** 2026-06-14T07:46:48Z
+**Revision:** 155
+**Last modified:** 2026-06-14T08:08:38Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **592**.
+Total completed: **593**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -523,6 +523,7 @@ Total completed: **592**.
 | HXC-1696 | Feature | P1 | pkg/balancemonitor event-log conservation + concurrency test (no lost append, strict threshold) | b41a6fe |
 | HXC-1697 | Feature | P1 | pkg/hybridkex adversarial hybrid-binding test (X25519+ML-KEM-768, both components bind) | c122650 |
 | HXC-1698 | Feature | P1 | pkg/x25519session adversarial key-agreement test (auth, wrong-peer, low-order rejection) | 84a9e64 |
+| HXC-1699 | Feature | P1 | pkg/modelintegrity adversarial tamper/forgery test (SHA-256 content-pinning, path-swap) | 2ba8f10 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
