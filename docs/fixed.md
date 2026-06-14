@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 158
-**Last modified:** 2026-06-14T08:18:19Z
+**Revision:** 159
+**Last modified:** 2026-06-14T08:25:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **598**.
+Total completed: **602**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -529,6 +529,10 @@ Total completed: **598**.
 | HXC-1702 | Task | P1 | attestadmit fail-closed adversarial tests | 2a0616f |
 | HXC-1703 | Task | P1 | gravalverify anti-cheat adversarial tests | 2a0616f |
 | HXC-1704 | Task | P1 | exportcontrol embargo/lookalike adversarial tests | 2a0616f |
+| HXC-1705 | Task | P1 | imagepolicy admission adversarial tests | 470d7fc |
+| HXC-1706 | Task | P1 | headersanitize spoof-proofing adversarial tests | 470d7fc |
+| HXC-1707 | Task | P1 | edgeverify content-hash adversarial tests | 470d7fc |
+| HXC-1708 | Task | P1 | anonymize keyed-hash tokenizer adversarial tests | 470d7fc |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
