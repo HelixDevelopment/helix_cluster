@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 205
-**Last modified:** 2026-06-14T20:25:29Z
+**Revision:** 206
+**Last modified:** 2026-06-14T20:33:37Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **756**.
+Total completed: **760**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -687,6 +687,10 @@ Total completed: **756**.
 | HXC-1860 | Task | P3 | grafanadash: adversarial test, deterministic JSON + escaping safe (no bug) | 53bd7ff |
 | HXC-1861 | Task | P3 | helixtask: adversarial test, pure stateless decorator (no bug) | 53bd7ff |
 | HXC-1862 | Task | P3 | chutesaccount: adversarial test, read-only client no money-mutation surface (no bug) | 53bd7ff |
+| HXC-1863 | Bug | P2 | scheduler: Schedule/ScheduleOptimistic rank over map iteration -> nondeterministic placement on score ties | 8f9ff6c |
+| HXC-1864 | Bug | P2 | infra: containerOrchestrator.Scale no negative-replicas guard -> slice-bounds panic (process crash) | 8f9ff6c |
+| HXC-1865 | Bug | P2 | local: GPU.validate() lets NaN/Inf slip ordered guards -> poisons TCO, pins card local forever | 8f9ff6c |
+| HXC-1866 | Task | P3 | phase7matrix: adversarial test, recompute + boundary correct, fail-closed (no bug) | 8f9ff6c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
