@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 172
-**Last modified:** 2026-06-14T09:44:42Z
+**Revision:** 173
+**Last modified:** 2026-06-14T09:51:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **641**.
+Total completed: **644**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -572,6 +572,9 @@ Total completed: **641**.
 | HXC-1745 | Task | P1 | sandbox capability-isolation adversarial tests | 5cb37ea |
 | HXC-1746 | Task | P1 | splitbrainalert detection adversarial tests | 5cb37ea |
 | HXC-1747 | Task | P1 | serde capnp serialization adversarial tests | 5cb37ea |
+| HXC-1748 | Task | P1 | netutil SSRF-defense adversarial tests | f0dc4a2 |
+| HXC-1749 | Task | P1 | healthmonitor FSM/concurrency adversarial tests | f0dc4a2 |
+| HXC-1750 | Task | P1 | leader fencing split-brain-safety adversarial tests | f0dc4a2 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
