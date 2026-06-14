@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 196
-**Last modified:** 2026-06-14T15:36:51Z
+**Revision:** 197
+**Last modified:** 2026-06-14T18:36:45Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **723**.
+Total completed: **725**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -654,6 +654,8 @@ Total completed: **723**.
 | HXC-1827 | Bug | P2 | storage: RedisStore.SetSessionRouting non-atomic -> orphan routing hash with no TTL on Expire failure | 347c22a |
 | HXC-1828 | Bug | P2 | validator: checkMin/checkMax float NaN bypasses range bounds (fail-open validation) | 347c22a |
 | HXC-1829 | Task | P3 | stonith: adversarial test, fencing confirms sink-side (no fail-open) (no bug) | 347c22a |
+| HXC-1830 | Task | P3 | metrics: adversarial test, atomic counters + mutex histograms conserve under race (no bug) | ad81091 |
+| HXC-1831 | Task | P3 | session: adversarial test, Manager RWMutex-guarded + deep-copy Get + crypto-rand IDs (no bug) | ad81091 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
