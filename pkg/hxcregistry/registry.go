@@ -231,7 +231,18 @@ func (r *Registry) CreateItem(item *HXCItem) error {
 	item.CreatedAt = now
 	item.LastModified = now
 
-	_, err := r.db.Exec(r.rebind(`
+	// The item row and its mandatory audit-history row MUST be written atomically.
+	// Previously these were two autocommit Execs: if the history insert failed
+	// (e.g. SQLITE_BUSY), the items row was already committed, leaving an orphan
+	// record with no audit row — exactly the broken-audit state the contract below
+	// forbids. A transaction makes the pair all-or-nothing.
+	tx, err := r.db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin create tx: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	_, err = tx.Exec(r.rebind(`
 		INSERT INTO items (hxc_id, type, status, priority, phase, title, description,
 			commit_sha, forensic_anchor, closure_criteria, composes_with,
 			current_location, heading_hash, created_at, last_modified)
@@ -249,12 +260,15 @@ func (r *Registry) CreateItem(item *HXCItem) error {
 	// Record audit history. A failure here MUST surface: a silently-dropped
 	// audit row means the history feature is broken for end users while every
 	// happy-path test still passes (CLAUDE-1 PASS-bluff). Do NOT swallow it.
-	if _, err := r.db.Exec(r.rebind(`
+	if _, err := tx.Exec(r.rebind(`
 		INSERT INTO item_history (hxc_id, event_type, by_entity, reason)
 		VALUES (?, 'Opened', 'System', 'Created via registry')`), item.HXCID); err != nil {
 		return fmt.Errorf("record create history for %s: %w", item.HXCID, err)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit create tx: %w", err)
+	}
 	return nil
 }
 
@@ -299,7 +313,15 @@ func (r *Registry) UpdateItem(item *HXCItem) error {
 	}
 	item.LastModified = time.Now().UTC()
 
-	res, err := r.db.Exec(r.rebind(`
+	// Atomic UPDATE + audit-history insert (see CreateItem): without a transaction
+	// a failed history insert would leave the items row mutated but unaudited.
+	tx, err := r.db.Begin()
+	if err != nil {
+		return fmt.Errorf("begin update tx: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
+	res, err := tx.Exec(r.rebind(`
 		UPDATE items SET
 			type = ?, status = ?, priority = ?, phase = ?, title = ?,
 			description = ?, commit_sha = ?, forensic_anchor = ?,
@@ -323,12 +345,15 @@ func (r *Registry) UpdateItem(item *HXCItem) error {
 
 	// Record audit history. Surface failures (see CreateItem) — a swallowed
 	// error here would let a broken audit sink pass every happy-path test.
-	if _, err := r.db.Exec(r.rebind(`
+	if _, err := tx.Exec(r.rebind(`
 		INSERT INTO item_history (hxc_id, event_type, by_entity, reason)
 		VALUES (?, 'Updated', 'System', 'Updated via registry')`), item.HXCID); err != nil {
 		return fmt.Errorf("record update history for %s: %w", item.HXCID, err)
 	}
 
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("commit update tx: %w", err)
+	}
 	return nil
 }
 

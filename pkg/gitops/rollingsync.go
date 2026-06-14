@@ -76,8 +76,24 @@ func PlanRollingSync(apps []Application) RollingSyncPlan {
 
 	plan := RollingSyncPlan{}
 	step := 0
-	// Fixed tier execution order: canary, then tier-2, then tier-1.
-	for _, t := range []Tier{TierCanary, TierTwo, TierOne} {
+	// Tier execution order: canary, tier-2, tier-1, then any UNKNOWN tiers
+	// (sorted, emitted last). Iterating only the three known tiers would silently
+	// DROP apps whose tier label is a typo, a future ring, or empty — they would
+	// vanish from the rollout entirely. Appending the remaining tiers honors
+	// tierStepFraction's documented "unknown tier is never silently skipped"
+	// contract; unknown tiers roll out all-at-once (fraction 1.0) after the
+	// production ring, never before the canary.
+	order := []Tier{TierCanary, TierTwo, TierOne}
+	known := map[Tier]bool{TierCanary: true, TierTwo: true, TierOne: true}
+	var unknown []Tier
+	for t := range byTier {
+		if !known[t] {
+			unknown = append(unknown, t)
+		}
+	}
+	sort.Slice(unknown, func(i, j int) bool { return unknown[i] < unknown[j] })
+	order = append(order, unknown...)
+	for _, t := range order {
 		names := byTier[t]
 		if len(names) == 0 {
 			continue
