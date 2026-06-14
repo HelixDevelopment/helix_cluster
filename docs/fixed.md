@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 191
-**Last modified:** 2026-06-14T14:43:51Z
+**Revision:** 192
+**Last modified:** 2026-06-14T14:51:30Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **707**.
+Total completed: **711**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -638,6 +638,10 @@ Total completed: **707**.
 | HXC-1811 | Task | P3 | idempotent: adversarial test, exactly-once under concurrent first-use (no bug) | a07f860 |
 | HXC-1812 | Task | P3 | events: adversarial test, handler-func Bus race-free, no teardown-race surface (no bug) | a07f860 |
 | HXC-1813 | Task | P3 | anticheat: adversarial test, HMAC token fail-CLOSED on all malformed input (no bug) | a07f860 |
+| HXC-1814 | Bug | P1 | edge: Allowed() admits invalid/unknown TrustLevel to all workloads (fail-open admission gate) | ba52783 |
+| HXC-1815 | Task | P3 | failconfirm: adversarial test, strict-majority quorum + reporter dedup correct (no bug) | ba52783 |
+| HXC-1816 | Task | P3 | etcd: adversarial test, thin clientv3 wrapper + key-scheme pins (no bug) | ba52783 |
+| HXC-1817 | Task | P3 | deviceplugin: adversarial test, Registry no-double-alloc + conservation (no bug) | ba52783 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
