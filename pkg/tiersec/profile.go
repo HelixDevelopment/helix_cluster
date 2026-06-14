@@ -79,6 +79,13 @@ func tierRank(tier string) (int, error) {
 	if _, err := fmt.Sscanf(tier, "T%d", &rank); err != nil || rank < 1 || rank > 15 {
 		return 0, fmt.Errorf("tiersec: unknown tier %q: must be T1-T15", tier)
 	}
+	// Sscanf silently ignores trailing/embedded junk and accepts sign/zero-pad
+	// forms, so "T13extra", "T15rm -rf", "T07", "T+7" would resolve to a real
+	// rank and FAIL OPEN — granting a malformed/attacker-influenced tier name a
+	// genuine clearance band. Require the input to be the exact canonical form.
+	if tier != fmt.Sprintf("T%d", rank) {
+		return 0, fmt.Errorf("tiersec: unknown tier %q: must be canonical T1-T15", tier)
+	}
 	return rank, nil
 }
 
