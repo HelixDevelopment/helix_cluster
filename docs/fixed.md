@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 161
-**Last modified:** 2026-06-14T08:37:52Z
+**Revision:** 162
+**Last modified:** 2026-06-14T08:42:36Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **608**.
+Total completed: **611**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -539,6 +539,9 @@ Total completed: **608**.
 | HXC-1712 | Task | P1 | nodeselector constraint-satisfaction adversarial tests | 7bd9267 |
 | HXC-1713 | Task | P1 | economics conservation/ROI adversarial tests | 7bd9267 |
 | HXC-1714 | Task | P1 | hybridtco monotonicity/accounting adversarial tests | 7bd9267 |
+| HXC-1715 | Task | P1 | costrouter cost-optimal selection adversarial tests | c6967ef |
+| HXC-1716 | Task | P1 | fallbackchain orchestration adversarial tests | c6967ef |
+| HXC-1717 | Task | P1 | openapivalidate fail-closed validation adversarial tests | c6967ef |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
