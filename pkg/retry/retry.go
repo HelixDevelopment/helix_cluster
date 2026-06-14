@@ -113,15 +113,32 @@ func DoWithResult[T any](ctx context.Context, r *Retry, fn func() (T, error)) (T
 	return zero, fmt.Errorf("retry exhausted after %d attempts: %w", r.MaxAttempts, lastErr)
 }
 
+// mulDelay multiplies base by a non-negative factor, SATURATING at MaxInt64 ns
+// instead of wrapping. Without this, base*2^attempt (Exponential) overflows
+// time.Duration's int64 at attempt ~34-44 and wraps NEGATIVE, so the
+// `delay > MaxDelay` cap below never fires and a negative delay is handed to the
+// timer — which fires immediately, collapsing the backoff into a hot retry loop.
+// Saturating keeps the value positive and capped.
+func mulDelay(base time.Duration, factor float64) time.Duration {
+	if base <= 0 || factor <= 0 {
+		return 0
+	}
+	product := float64(base) * factor
+	if product >= float64(math.MaxInt64) {
+		return time.Duration(math.MaxInt64)
+	}
+	return time.Duration(product)
+}
+
 func (r *Retry) computeDelay(attempt int) time.Duration {
 	var delay time.Duration
 	switch r.BackoffStrategy {
 	case Fixed:
 		delay = r.Delay
 	case Linear:
-		delay = r.Delay * time.Duration(attempt+1)
+		delay = mulDelay(r.Delay, float64(attempt+1))
 	case Exponential:
-		delay = r.Delay * time.Duration(math.Pow(2, float64(attempt)))
+		delay = mulDelay(r.Delay, math.Pow(2, float64(attempt)))
 	default:
 		delay = r.Delay
 	}
