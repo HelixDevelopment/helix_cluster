@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 204
-**Last modified:** 2026-06-14T20:17:40Z
+**Revision:** 205
+**Last modified:** 2026-06-14T20:25:29Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **752**.
+Total completed: **756**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -683,6 +683,10 @@ Total completed: **752**.
 | HXC-1856 | Bug | P2 | build: Job.clone() aliases BuildArgs map despite documented deep-copy -> snapshot mutation corrupts canonical job | 442090c |
 | HXC-1857 | Task | P3 | log: adversarial test, slog shared-mutex concurrent integrity (no bug) | 442090c |
 | HXC-1858 | Task | P3 | bootstrap: adversarial test, peer-rendezvous deterministic + no fail-open (no bug) | 442090c |
+| HXC-1859 | Task | P3 | wireguard: adversarial test, CLAUDE-2 darwin parity REAL (wireguard-go), teardown race-clean (no bug) | 53bd7ff |
+| HXC-1860 | Task | P3 | grafanadash: adversarial test, deterministic JSON + escaping safe (no bug) | 53bd7ff |
+| HXC-1861 | Task | P3 | helixtask: adversarial test, pure stateless decorator (no bug) | 53bd7ff |
+| HXC-1862 | Task | P3 | chutesaccount: adversarial test, read-only client no money-mutation surface (no bug) | 53bd7ff |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
