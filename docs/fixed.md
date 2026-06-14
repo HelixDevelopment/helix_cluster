@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 181
-**Last modified:** 2026-06-14T11:41:54Z
+**Revision:** 182
+**Last modified:** 2026-06-14T11:47:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **674**.
+Total completed: **675**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -605,6 +605,7 @@ Total completed: **674**.
 | HXC-1778 | Task | P1 | kraft metadata-log determinism adversarial tests | 73e955e |
 | HXC-1779 | Task | P1 | gepetto reservation/high-water adversarial tests | 73e955e |
 | HXC-1780 | Task | P1 | edgeregistry concurrency/copy-isolation adversarial tests | 73e955e |
+| HXC-1781 | Task | P1 | marketplace/scan/chutes adversarial tests (over-commit, routing, attestation) | 51bf06d |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
