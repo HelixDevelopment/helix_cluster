@@ -1,7 +1,7 @@
 # Issues Summary
 
-**Revision:** 145
-**Last modified:** 2026-06-14T02:41:30Z
+**Revision:** 146
+**Last modified:** 2026-06-14T02:44:25Z
 **Description:** Counts of active workable items by phase / type / status / priority
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
