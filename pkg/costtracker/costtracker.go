@@ -9,8 +9,14 @@
 // of the per-allocation rates. The reduction versus an AWS on-demand baseline is
 // measured against baselineTotal = baselineRate * totalHours.
 //
-// Self-contained: no imports beyond what is needed; no external packages.
+// Concurrency: Tracker is safe for concurrent use — Record and Report are
+// serialized by an internal mutex. This is load-bearing for cost conservation:
+// without it, concurrent Record calls race on the allocs slice (a data race)
+// AND lose appends (a lost-update that silently destroys recorded charges, so
+// the reported total under-counts the money actually spent).
 package costtracker
+
+import "sync"
 
 // allocation is a single recorded cost-accruing GPU allocation over the month.
 type allocation struct {
@@ -22,6 +28,7 @@ type allocation struct {
 // Tracker accumulates allocations for a simulated month and produces a Report.
 // The zero value is a ready-to-use, empty Tracker.
 type Tracker struct {
+	mu     sync.Mutex
 	allocs []allocation
 }
 
@@ -42,7 +49,9 @@ func (t *Tracker) Record(costPerHour, hours float64, spot bool) {
 	if hours < 0 {
 		hours = 0
 	}
+	t.mu.Lock()
 	t.allocs = append(t.allocs, allocation{costPerHour: costPerHour, hours: hours, spot: spot})
+	t.mu.Unlock()
 }
 
 // Report is the computed monthly summary.
@@ -64,10 +73,12 @@ type Report struct {
 // supplied baselineRatePerHour; it performs no I/O and reads no clock.
 func (t *Tracker) Report(baselineRatePerHour float64) Report {
 	var totalCost, totalHours float64
+	t.mu.Lock()
 	for _, a := range t.allocs {
 		totalCost += a.costPerHour * a.hours
 		totalHours += a.hours
 	}
+	t.mu.Unlock()
 
 	r := Report{TotalCost: totalCost, TotalHours: totalHours}
 
