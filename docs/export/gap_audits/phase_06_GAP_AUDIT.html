@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_06_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_06_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-6-gap-audit-multi-cluster-federation">Phase 6 — Gap Audit
+(Multi-Cluster Federation)</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auditor</td>
+<td>Engineering auditor (code-grounded)</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>2026-06-01</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td><code>docs/research/PHASE_6_ROADMAP.md</code> deliverables
+vs. actual code in <code>pkg/</code>, <code>internal/</code>,
+<code>cmd/</code>, <code>api/</code>, <code>security/</code>
+submodule</td>
+</tr>
+<tr>
+<td><strong>Honest completion</strong></td>
+<td><strong>~4% of Phase 6 deliverables DONE</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it. All 11 planned federation packages are
+<strong>unimplemented</strong>; only single-cluster base packages
+exist.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/federation</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/swim/hierarchical</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/crdt</code> (+ <code>pkg/crdt/merkle</code>)</td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/hlc</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/nattraversal</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/cilium</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/spiffe/federation</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/gitops</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>internal/cell</code> / <code>internal/federation</code> /
+<code>internal/chaos</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>cmd/helix-federation</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/swim</code> (base, would be <em>extended</em> for
+Phi-accrual/gateway-relay)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code> (base, would be <em>extended</em> for
+multi-cell)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/security</code> (base, would be <em>extended</em> for
+SPIFFE federation)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (base, would be <em>extended</em> for
+inter-cell)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> the four base packages are
+implemented+wired+tested for single-cluster Phase 2–5 scope but carry
+<strong>no</strong> federation behaviour, so they are not Phase 6
+deliverables. No Phase 6 package is orphaned because no Phase 6 package
+exists yet.</p>
+<p><strong>One-line summary:</strong> Phase 6 (federation: cells,
+hierarchical SWIM, CRDT/HLC, NAT traversal, SPIFFE federation,
+Cilium/Karmada/ArgoCD) is <strong>essentially not started</strong> — all
+11 planned packages are absent and there are zero federation/cross-cell
+terms in the Go codebase; the only Phase-6-adjacent code is
+single-cluster scaffolding (<code>pkg/swim</code>,
+<code>pkg/wireguard</code>) plus a documented NAT-traversal
+<strong>stub</strong> that returns “not implemented”.</p>
+<hr />
+<h2 id="method-anti-bluff-notes">Method / Anti-bluff notes</h2>
+<ul>
+<li>A deliverable is <strong>DONE</strong> only if implemented AND
+covered by real-behavior tests. Stub/TODO/mock-only/error-path-only ⇒
+PARTIAL or MISSING.</li>
+<li>Searched the full Go tree for federation vocabulary
+(<code>karmada</code>, <code>propagationpolicy</code>,
+<code>merkle</code>, <code>hybrid logical</code>,
+<code>g-counter</code>, <code>lww-register</code>,
+<code>cluster mesh</code>, <code>applicationset</code>,
+<code>cross-cell</code>, <code>inter-cell</code>): <strong>0
+matches</strong>.</li>
+<li>Searched for the 11 planned package dirs (<code>federation</code>,
+<code>crdt</code>, <code>hlc</code>, <code>nattraversal</code>,
+<code>cilium</code>, <code>gitops</code>, <code>internal/cell</code>,
+<code>internal/federation</code>, <code>internal/chaos</code>,
+<code>pkg/swim/hierarchical</code>, <code>pkg/spiffe/federation</code>):
+<strong>none exist</strong> (<code>pkg/testing/chaos</code> is unit-test
+chaos helpers, unrelated).</li>
+<li>Recent hardening (cost-aware scheduling, <code>pkg/fiber</code>,
+<code>pkg/gpuattest</code>, e2ee/attestation in the
+<code>security</code> submodule, etcd/NATS/Postgres integration tests)
+is real but is <strong>single-cluster Phase 5/8 scope</strong>, not
+Phase 6 federation. Credited only where the roadmap names it an
+“existing package to extend”.</li>
+</ul>
+<hr />
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap)</th>
+<th>Status</th>
+<th>Evidence file:line</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/federation</code> — cell registry, lifecycle state
+machine, federated API proxy</td>
+<td>MISSING</td>
+<td>no dir under <code>pkg/</code></td>
+<td>No package; no
+<code>Cell</code>/<code>join</code>/<code>evacuate</code> types
+anywhere.</td>
+</tr>
+<tr>
+<td><code>pkg/swim/hierarchical</code> — two-tier LAN+WAN delegate
+gossip</td>
+<td>MISSING</td>
+<td><code>pkg/swim/</code> (no <code>hierarchical/</code>)</td>
+<td><code>pkg/swim</code> is single-tier only; no delegate/gateway/WAN
+code.</td>
+</tr>
+<tr>
+<td><code>pkg/crdt</code> — G-Counter, LWW-Register, OR-Set + Merkle
+delta</td>
+<td>MISSING</td>
+<td>no dir under <code>pkg/</code></td>
+<td>Zero CRDT/Merkle code in tree.</td>
+</tr>
+<tr>
+<td><code>pkg/hlc</code> — Hybrid Logical Clock</td>
+<td>MISSING</td>
+<td>no dir under <code>pkg/</code></td>
+<td><code>pkg/swim/clock.go</code> is a plain monotonic helper, not an
+HLC.</td>
+</tr>
+<tr>
+<td><code>pkg/nattraversal</code> — STUN/TURN/ICE + UDP hole punch +
+QUIC</td>
+<td>MISSING (stub adjacent)</td>
+<td><code>pkg/wireguard/nat_traversal.go:16-41</code></td>
+<td><code>DiscoverExternalAddress</code> hits ipify and the http client
+returns “not available in this build”;
+<code>SetupPortMapping</code>/<code>RemovePortMapping</code> return
+<code>"not implemented"</code>. Tests assert the <strong>error path
+only</strong> (<code>pkg/wireguard/package_test.go:288-308</code>). No
+STUN/TURN/ICE/QUIC.</td>
+</tr>
+<tr>
+<td><code>pkg/cilium</code> — Cluster Mesh client</td>
+<td>MISSING</td>
+<td>no dir under <code>pkg/</code></td>
+<td>No Cilium/eBPF integration.</td>
+</tr>
+<tr>
+<td><code>pkg/spiffe/federation</code> — trust-bundle exchange across
+cells</td>
+<td>MISSING</td>
+<td><code>pkg/security/spiffe.go</code> (no federation refs)</td>
+<td><code>pkg/security/spiffe.go</code> exists for single-domain SPIFFE;
+no trust-bundle/federation code.</td>
+</tr>
+<tr>
+<td><code>pkg/gitops</code> — ArgoCD ApplicationSet federation</td>
+<td>MISSING</td>
+<td>no dir under <code>pkg/</code></td>
+<td>No ArgoCD/ApplicationSet code.</td>
+</tr>
+<tr>
+<td><code>internal/cell</code> — gateway mgmt, inter-cell WG wiring,
+SWIM delegate config</td>
+<td>MISSING</td>
+<td>no dir under <code>internal/</code></td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td><code>internal/federation</code> — Karmada/OCM, PropagationPolicy,
+kubectl aggregation</td>
+<td>MISSING</td>
+<td>no dir under <code>internal/</code></td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td><code>internal/chaos</code> — 12 chaos experiments
+(CE-01..CE-12)</td>
+<td>MISSING</td>
+<td>no dir under <code>internal/</code></td>
+<td>Absent (<code>pkg/testing/chaos</code> is unit-test fault
+helpers).</td>
+</tr>
+<tr>
+<td><code>cmd/helix-federation</code> binary</td>
+<td>MISSING</td>
+<td><code>cmd/</code> (not present)</td>
+<td>No federation CLI; no <code>helixctl federation</code> /
+<code>cell join</code>.</td>
+</tr>
+<tr>
+<td>Ext: <code>pkg/swim</code> Phi-accrual + gateway-relay
+suspicion</td>
+<td>PARTIAL</td>
+<td><code>pkg/swim/failure_detector.go:8-33</code></td>
+<td>FailureDetector uses a <strong>fixed <code>timeout</code></strong> +
+<code>time.Timer</code> suspicion, NOT Phi-accrual; no gateway-relay
+path. Base SWIM (gossip/prober/suspicion) is real and tested for
+single-cluster.</td>
+</tr>
+<tr>
+<td>Ext: <code>pkg/wireguard</code> multi-cell peers + zero-downtime key
+rotation</td>
+<td>PARTIAL</td>
+<td><code>pkg/wireguard/keyrotation.go:97-141</code></td>
+<td><code>RotateKeysTracked</code> rotates and records the
+<em>previous</em> key for audit and is tested
+(<code>keyrotation_config_test.go:61-308</code>), but there is
+<strong>no zero-downtime overlap-window</strong> (“add new before remove
+old”, 200 ms window) and no multi-cell/inter-cell route advertising.
+Single-cluster mesh only.</td>
+</tr>
+<tr>
+<td>Ext: <code>pkg/security</code> SPIFFE/SPIRE federation + OPA
+cross-cluster</td>
+<td>PARTIAL</td>
+<td><code>pkg/security/spiffe.go</code>,
+<code>internal/policy/</code></td>
+<td>Single-domain SPIFFE + single-cluster policy exist; cross-cluster
+trust bundles / OPA admission absent.</td>
+</tr>
+<tr>
+<td>Ext: <code>pkg/scheduler</code> inter-cell Karmada propagation +
+spot scoring</td>
+<td>PARTIAL</td>
+<td><code>pkg/scheduler/cost_gpu.go:1-30</code></td>
+<td>Real <strong>single-cluster</strong> cost-aware GPU placement plugin
+(tested), but no inter-cell Karmada propagation; “cost reduction” here ≠
+cross-cell bursting.</td>
+</tr>
+<tr>
+<td>Ext: <code>internal/node</code> cell agent / federation identity
+attestation</td>
+<td>MISSING</td>
+<td><code>internal/node/node.go</code></td>
+<td>Node agent has no cell/federation/tier-selection logic.</td>
+</tr>
+<tr>
+<td>Exit gate: real multi-cell integration tests (CLAUDE-1)</td>
+<td>MISSING</td>
+<td>n/a</td>
+<td>No multi-cell testbed; the only WG nat test asserts the stub error
+path.</td>
+</tr>
+<tr>
+<td>Exit gate: e2e operator flows (<code>cell join</code>,
+<code>--all-cells</code>, GitOps)</td>
+<td>MISSING</td>
+<td>n/a</td>
+<td>No CLI surface exists to exercise.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="top-implementable-gaps-go-no-new-infra">TOP IMPLEMENTABLE GAPS
+(Go, no new infra)</h2>
+<p>Prioritized for maximum federation value while remaining pure-Go and
+locally testable. Each is mutation-pairable per §1.1.</p>
+<h3 id="pkghlc-hybrid-logical-clock-p0-foundational">1.
+<code>pkg/hlc</code> — Hybrid Logical Clock (P0, foundational)</h3>
+<p><strong>Target dir:</strong> <code>pkg/hlc/</code>
+<strong>Spec:</strong> Implement a Hybrid Logical Clock: a
+<code>Clock</code> holding <code>{wallMillis, logical}</code> with
+<code>Now()</code> (advances against <code>time.Now</code>),
+<code>Update(remote Timestamp)</code> (max of local/remote wall, bumps
+logical on ties, clamps drift to a configurable bound e.g. 10 ms→error),
+and a total-order <code>Timestamp.Compare</code>. Pure-Go, deterministic
+with an injectable wall-clock func. This is the timestamp substrate
+every CRDT type needs and unblocks <code>pkg/crdt</code>.
+<strong>Acceptance test (mutation-pairable):</strong> Feed an
+out-of-order remote timestamp newer than local wall; assert returned
+timestamp is strictly greater than both inputs and that two events at
+identical wall time get distinct logical counters preserving causal
+order. Mutant: change <code>Update</code> to ignore the remote logical
+(use only wall) → causal-order assertion must fail.</p>
+<h3 id="pkgcrdt-g-counter-lww-register-or-set-p0">2.
+<code>pkg/crdt</code> — G-Counter, LWW-Register, OR-Set (P0)</h3>
+<p><strong>Target dir:</strong> <code>pkg/crdt/</code>
+<strong>Spec:</strong> Implement three state-based CRDTs over
+<code>pkg/hlc</code> timestamps with <code>Merge(other)</code> that is
+commutative, associative, idempotent. G-Counter (per-replica counter
+map, value=sum); LWW-Register (value + HLC, last-writer-wins on
+Compare); OR-Set (add/remove with unique tags). No network — just the
+convergence algebra. <strong>Acceptance test:</strong> Property test
+merging the same set of ops in randomized orders across 3 replicas;
+assert all replicas converge to byte-identical state and that
+<code>Merge</code> is idempotent (merging twice = once). Mutant: make
+OR-Set <code>Remove</code> delete by element instead of by tag →
+concurrent add/remove convergence test must fail.</p>
+<h3 id="pkgfederation-cell-registry-lifecycle-state-machine-p0">3.
+<code>pkg/federation</code> — cell registry + lifecycle state machine
+(P0)</h3>
+<p><strong>Target dir:</strong> <code>pkg/federation/</code>
+<strong>Spec:</strong> Pure-Go cell model:
+<code>Cell{ID, Gateways, State}</code> and an explicit FSM with
+transitions <code>Joining→Syncing→Active→Evacuating→Detached</code>
+(plus <code>Failed</code>). Provide a thread-safe <code>Registry</code>
+(add/remove/list cells, snapshot) and a
+<code>Transition(cell, event)</code> that rejects illegal transitions.
+No real networking — the lifecycle/validation logic is the deliverable;
+wire to transport later. <strong>Acceptance test:</strong> Drive a cell
+through the legal happy path and assert each state; then attempt an
+illegal jump (<code>Detached→Active</code>) and assert a typed error +
+unchanged state. Mutant: remove the illegal-transition guard → the
+rejection test must fail.</p>
+<h3 id="phi-accrual-failure-detector-in-pkgswim-p1">4. Phi-accrual
+failure detector in <code>pkg/swim</code> (P1)</h3>
+<p><strong>Target dir:</strong> <code>pkg/swim/</code> (new
+<code>phi.go</code>, used by <code>failure_detector.go</code>)
+<strong>Spec:</strong> Add a Phi-accrual detector: a sliding window of
+inter-arrival heartbeat intervals producing a <code>phi(now)</code>
+suspicion value from the sample mean/variance; expose
+<code>SuspicionLevel(memberID)</code> and a threshold-based
+<code>IsSuspect</code>. Replace/augment the current fixed-timeout
+<code>FailureDetector</code> so suspicion adapts to observed latency.
+Pure-Go, injectable clock. <strong>Acceptance test:</strong> Feed a
+steady 1 s heartbeat stream then stop; assert phi stays low while
+heartbeats arrive and crosses threshold within a bounded time after they
+stop; assert a jittery-but-alive stream does NOT cross threshold.
+Mutant: drop the variance term (use mean only) → the jitter-tolerance
+assertion must fail.</p>
+<h3 id="pkgcrdt-merkle-anti-entropy-delta-sync-p1-depends-on-2">5.
+<code>pkg/crdt</code> Merkle anti-entropy delta sync (P1, depends on
+#2)</h3>
+<p><strong>Target dir:</strong> <code>pkg/crdt/merkle/</code>
+<strong>Spec:</strong> Build a Merkle tree over a keyspace of CRDT
+registers; <code>Diff(remoteRoot)</code> returns only the divergent key
+set so reconciliation ships deltas, not full state (the roadmap’s &lt;5
+KB/s gossip budget). Pure-Go over an in-memory map; transport-agnostic.
+<strong>Acceptance test:</strong> Two trees differing in 1 of N keys;
+assert <code>Diff</code> returns exactly that key and that syncing it
+makes roots equal. Mutant: hash only leaf values, not subtree children →
+divergence in a deep key must still be detected, so a “single changed
+deep key” test must fail under the mutant.</p>
+<h3
+id="pkgfederation-federated-api-aggregation-model-p1-depends-on-3">6.
+<code>pkg/federation</code> federated API aggregation model (P1, depends
+on #3)</h3>
+<p><strong>Target dir:</strong> <code>pkg/federation/</code> (new
+<code>aggregate.go</code>) <strong>Spec:</strong> Pure-Go fan-out/merge:
+given a set of <code>Active</code> cells from the Registry and a
+per-cell query func (interface, mocked in unit tests), aggregate results
+with partial-failure semantics (return successes + a per-cell error map;
+never fail-closed on one cell). This is the engine behind
+<code>helixctl get ... --all-cells</code>. <strong>Acceptance
+test:</strong> Aggregate over 3 fake cells where one returns an error;
+assert 2 results returned + 1 recorded error and no panic. Mutant: make
+aggregation abort on first error → partial-success assertion must
+fail.</p>
+<hr />
+<h2 id="deferred-need-external-infra-hardware-non-go">DEFERRED (need
+external infra / hardware / non-Go)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Reason deferred</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/nattraversal</code> real STUN/TURN/ICE + UDP hole punch +
+QUIC</td>
+<td>Requires real NAT devices / STUN-TURN servers and a network test
+matrix (4 NAT types) to validate honestly; not unit-testable to a
+real-behavior standard locally.</td>
+</tr>
+<tr>
+<td><code>pkg/cilium</code> Cluster Mesh data plane</td>
+<td>Requires Cilium + eBPF + a Kubernetes multi-cluster; out of pure-Go
+scope.</td>
+</tr>
+<tr>
+<td><code>internal/federation</code> Karmada/OCM PropagationPolicy</td>
+<td>Requires running Karmada/OCM control planes and real K8s
+clusters.</td>
+</tr>
+<tr>
+<td><code>pkg/gitops</code> ArgoCD ApplicationSet federation</td>
+<td>Requires a live ArgoCD instance + Git backend to prove end-user
+flow.</td>
+</tr>
+<tr>
+<td><code>pkg/spiffe/federation</code> trust-bundle exchange</td>
+<td>Needs ≥2 SPIRE servers (nested trust domains) for real cross-cell
+SVID/bundle validation.</td>
+</tr>
+<tr>
+<td><code>internal/chaos</code> CE-01..CE-12 + Chaos Mesh</td>
+<td>Requires Chaos Mesh + a multi-node testbed and partition injection;
+the 12 KPIs are infra-bound.</td>
+</tr>
+<tr>
+<td>WireGuard zero-downtime key rotation overlap window</td>
+<td>Kernel WireGuard interface + multi-host mesh needed to prove the 200
+ms overlap doesn’t flap (skipped on darwin today).</td>
+</tr>
+<tr>
+<td>Velero DR / Prometheus federation / split-brain alerts</td>
+<td>External backup + monitoring stacks; KPI measurement (RPO, alert
+latency) requires the running federation.</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

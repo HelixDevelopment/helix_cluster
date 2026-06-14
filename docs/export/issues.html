@@ -176,19 +176,26 @@
 <h1 class="title">issues</h1>
 </header>
 <h1 id="issues">Issues</h1>
-<p><strong>Revision:</strong> 43 <strong>Last modified:</strong>
-2026-06-02T01:37:37Z <strong>Description:</strong> Active workable-item
+<p><strong>Revision:</strong> 197 <strong>Last modified:</strong>
+2026-06-14T18:36:45Z <strong>Description:</strong> Active workable-item
 registry for Helix Cluster OS <strong>Authority:</strong> Constitution
 §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total active items: <strong>418</strong>. Canonical source:
+<p>Total active items: <strong>223</strong>. Canonical source:
 <code>data/hxc_registry.db</code>. Full per-item detail (description,
 closure criteria, required test types, source refs) lives in the DB and
 <code>docs/research/_ledger/*.json</code>.</p>
-<h2 id="foundation-anti-bluff-5-active">Foundation (anti-bluff) (5
+<h2 id="foundation-anti-bluff-7-active">Foundation (anti-bluff) (7
 active)</h2>
 <table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
 <thead>
 <tr>
 <th>HXC</th>
@@ -199,6 +206,14 @@ active)</h2>
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>HXC-932</td>
+<td>Task</td>
+<td>P0</td>
+<td>Queued</td>
+<td>Wire-in vs prune decision + execution for ~167 orphaned pkg packages
+(STRATEGIC umbrella)</td>
+</tr>
 <tr>
 <td>HXC-016</td>
 <td>Task</td>
@@ -234,9 +249,17 @@ active)</h2>
 <td>Queued</td>
 <td></td>
 </tr>
+<tr>
+<td>HXC-949</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Chaos OTel polyglot trace (Rust/Elixir/Go) + Grafana dashboards
+(split from HXC-1258)</td>
+</tr>
 </tbody>
 </table>
-<h2 id="mvp-11-active">MVP (11 active)</h2>
+<h2 id="mvp-5-active">MVP (5 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -256,27 +279,11 @@ active)</h2>
 </thead>
 <tbody>
 <tr>
-<td>HXC-1117</td>
-<td>Task</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Define and generate proto service stubs
-(node/session/scheduler/health/auth)</td>
-</tr>
-<tr>
 <td>HXC-1100</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Implement real Bazel RBE build execution (internal/build)</td>
-</tr>
-<tr>
-<td>HXC-1119</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement Avro event schemas and schema-validated routing (Event
-Bus)</td>
 </tr>
 <tr>
 <td>HXC-1140</td>
@@ -285,22 +292,6 @@ Bus)</td>
 <td>Queued</td>
 <td>Publish v1.0.0-dev-mvp release across all modules with
 packaging</td>
-</tr>
-<tr>
-<td>HXC-1113</td>
-<td>Bug</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Remove dangling pkg/gpuattest placeholder and reuse
-security/pkg/gpuattest</td>
-</tr>
-<tr>
-<td>HXC-1126</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement LLM Brain advisory engine with LLMsVerifier gate
-(internal/llm)</td>
 </tr>
 <tr>
 <td>HXC-1128</td>
@@ -318,14 +309,6 @@ prediction</td>
 <td>Implement CRIU/DMTCP-based session live migration orchestration</td>
 </tr>
 <tr>
-<td>HXC-1139</td>
-<td>Research</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Author TLA+ specifications for consensus and scheduling
-concurrency</td>
-</tr>
-<tr>
 <td>HXC-1143</td>
 <td>Feature</td>
 <td>P2</td>
@@ -333,17 +316,9 @@ concurrency</td>
 <td>Implement distcc/icecream distributed C/C++ compilation and ccache
 layer</td>
 </tr>
-<tr>
-<td>HXC-1145</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Author MVP architecture and component-specification documentation
-artifacts</td>
-</tr>
 </tbody>
 </table>
-<h2 id="phase-2-14-active">Phase 2 (14 active)</h2>
+<h2 id="phase-2-9-active">Phase 2 (9 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -362,29 +337,6 @@ artifacts</td>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>HXC-1146</td>
-<td>Docs</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Document node-provisioning boundary: project does NOT implement
-jailbreak/exploit/DRM-circumvention</td>
-</tr>
-<tr>
-<td>HXC-905</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>SQLite HXC Registry</td>
-</tr>
-<tr>
-<td>HXC-1147</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement internal/console/linux_boot.go BootCoordinator state
-machine</td>
-</tr>
 <tr>
 <td>HXC-1153</td>
 <td>Feature</td>
@@ -425,14 +377,6 @@ device-specific code)</td>
 /sys/class/thermal</td>
 </tr>
 <tr>
-<td>HXC-1158</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Harden device hardware-identification in
-internal/console/detector.go (generic, fixture-tested)</td>
-</tr>
-<tr>
 <td>HXC-1161</td>
 <td>Feature</td>
 <td>P2</td>
@@ -449,31 +393,23 @@ heterogeneous nodes</td>
 hosts</td>
 </tr>
 <tr>
-<td>HXC-1164</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Author phase_02 architecture diagram (operator console + mesh + node
-integration)</td>
-</tr>
-<tr>
-<td>HXC-1165</td>
-<td>Task</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Ensure api/v1/node.proto carries trust_level + thermal fields
-consumed end-to-end</td>
-</tr>
-<tr>
 <td>HXC-1166</td>
 <td>Research</td>
 <td>P3</td>
 <td>Queued</td>
 <td>CRIU/DMTCP live process migration (research + spike)</td>
 </tr>
+<tr>
+<td>HXC-931</td>
+<td>Task</td>
+<td>P3</td>
+<td>Queued</td>
+<td>Reconcile internal/console linux_boot.go (BootMachine) with
+boot_coordinator.go (BootCoordinator)</td>
+</tr>
 </tbody>
 </table>
-<h2 id="phase-3-40-active">Phase 3 (40 active)</h2>
+<h2 id="phase-3-31-active">Phase 3 (31 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -492,13 +428,6 @@ consumed end-to-end</td>
 </tr>
 </thead>
 <tbody>
-<tr>
-<td>HXC-1167</td>
-<td>Task</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Build ARM64 cross-compilation toolchain for Helix agent</td>
-</tr>
 <tr>
 <td>HXC-1168</td>
 <td>Feature</td>
@@ -537,68 +466,11 @@ START_STICKY</td>
 <td>Integrate Android BatteryManager monitoring</td>
 </tr>
 <tr>
-<td>HXC-1175</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement charging-gated PowerGater scheduling guard</td>
-</tr>
-<tr>
-<td>HXC-1178</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement MQTT client for edge work dispatch and status</td>
-</tr>
-<tr>
-<td>HXC-1184</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge node registration for all tiers (T3-T8)</td>
-</tr>
-<tr>
-<td>HXC-1185</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge heartbeat with battery/thermal/network telemetry</td>
-</tr>
-<tr>
-<td>HXC-1186</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge protocol gateway (MQTT/QUIC/WebSocket)</td>
-</tr>
-<tr>
-<td>HXC-1187</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Define EdgeWorkUnit and EdgeWorkResult protobuf schemas</td>
-</tr>
-<tr>
-<td>HXC-1197</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge output verification
-(LLMsVerifier/redundant/checksum)</td>
-</tr>
-<tr>
 <td>HXC-1205</td>
 <td>Feature</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Build edge setup wizard for device onboarding</td>
-</tr>
-<tr>
-<td>HXC-1207</td>
-<td>Task</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement edge device chaos test suite</td>
 </tr>
 <tr>
 <td>HXC-1208</td>
@@ -665,13 +537,6 @@ START_STICKY</td>
 <td>Implement unified NPU backend with ONNX model converter</td>
 </tr>
 <tr>
-<td>HXC-1193</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement per-tier workload quantization selection</td>
-</tr>
-<tr>
 <td>HXC-1194</td>
 <td>Feature</td>
 <td>P1</td>
@@ -714,6 +579,14 @@ START_STICKY</td>
 <td>Validate ARM SBC per-watt performance &gt;=80% of x86</td>
 </tr>
 <tr>
+<td>HXC-926</td>
+<td>Task</td>
+<td>P1</td>
+<td>Queued</td>
+<td>Wire pkg/powergater CanAcceptWork into edge/agent work-acceptance
+path</td>
+</tr>
+<tr>
 <td>HXC-1181</td>
 <td>Feature</td>
 <td>P2</td>
@@ -726,20 +599,6 @@ START_STICKY</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Implement HarmonyOS Agent (ArkTS) with Da Vinci NPU inference</td>
-</tr>
-<tr>
-<td>HXC-1201</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement low-bandwidth protocol optimizations (CoAP option)</td>
-</tr>
-<tr>
-<td>HXC-1216</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement true embedded Raft consensus (pkg/raft)</td>
 </tr>
 <tr>
 <td>HXC-1217</td>
@@ -772,15 +631,32 @@ START_STICKY</td>
 diagrams</td>
 </tr>
 <tr>
-<td>HXC-1202</td>
-<td>Research</td>
-<td>P3</td>
+<td>HXC-1622</td>
+<td>Feature</td>
+<td>P2</td>
 <td>Queued</td>
-<td>Implement WebRTC P2P data-channel transport for edge devices</td>
+<td>HXC-1167 follow-up: CGO-enabled aarch64 cross-build via zig cc /
+aarch64-linux-gnu-gcc</td>
+</tr>
+<tr>
+<td>HXC-1623</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>HXC-1167 follow-up: validate cross-compiled helix-agent on real
+Orange Pi 5 Max (aarch64) execution</td>
+</tr>
+<tr>
+<td>HXC-1624</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Queued</td>
+<td>HXC-1158 follow-up: add positive non-console SoC-match labels
+(RK3588/RPi/x86 server) to internal/console detector</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-4-49-active">Phase 4 (49 active)</h2>
+<h2 id="phase-4-44-active">Phase 4 (44 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -888,13 +764,6 @@ health checks</td>
 restore</td>
 </tr>
 <tr>
-<td>HXC-904</td>
-<td>Feature</td>
-<td>P0</td>
-<td>In progress</td>
-<td>Phase 4 Build Service</td>
-</tr>
-<tr>
 <td>HXC-1225</td>
 <td>Feature</td>
 <td>P1</td>
@@ -919,30 +788,6 @@ devices</td>
 HarmonyOS</td>
 </tr>
 <tr>
-<td>HXC-1230</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement automated tier detection validating host KVM/ARM64/binfmt
-capabilities</td>
-</tr>
-<tr>
-<td>HXC-1233</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement qcow2 copy-on-write overlay management with 10-deep chain
-limit</td>
-</tr>
-<tr>
-<td>HXC-1245</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement 3 time fault injectors (clock skew, clock freeze,
-monotonic drift)</td>
-</tr>
-<tr>
 <td>HXC-1250</td>
 <td>Feature</td>
 <td>P1</td>
@@ -958,22 +803,6 @@ DNSChaos)</td>
 <td>Build Phoenix LiveView real-time test dashboard</td>
 </tr>
 <tr>
-<td>HXC-1258</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement MetricsCollector exporting 15+ chaos Prometheus metric
-series with OpenTelemetry tracing</td>
-</tr>
-<tr>
-<td>HXC-1259</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement HelixQA automatic challenge generation from test
-outcomes</td>
-</tr>
-<tr>
 <td>HXC-1262</td>
 <td>Feature</td>
 <td>P1</td>
@@ -985,17 +814,9 @@ Jenkins</td>
 <td>HXC-1263</td>
 <td>Feature</td>
 <td>P1</td>
-<td>Queued</td>
+<td>In progress</td>
 <td>Build WebAssembly plugin host on Wasmtime Component Model with WIT
 bindings</td>
-</tr>
-<tr>
-<td>HXC-1264</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Define WIT interfaces for device-simulator, workload-generator,
-fault-injector, metrics-exporter</td>
 </tr>
 <tr>
 <td>HXC-1269</td>
@@ -1154,6 +975,22 @@ RK3588 GPU/NPU</td>
 DNS</td>
 </tr>
 <tr>
+<td>HXC-1625</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Replicate SELinux relabel fix (HXC-1621) to
+Herald/containers/pkg/crossbuild duplicate copy</td>
+</tr>
+<tr>
+<td>HXC-921</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Bazel Remote Execution (REAPI) interop for build service
+(optional)</td>
+</tr>
+<tr>
 <td>HXC-1277</td>
 <td>Research</td>
 <td>P3</td>
@@ -1187,7 +1024,7 @@ build-and-test</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-5-31-active">Phase 5 (31 active)</h2>
+<h2 id="phase-5-26-active">Phase 5 (26 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1207,68 +1044,12 @@ build-and-test</td>
 </thead>
 <tbody>
 <tr>
-<td>HXC-1293</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Extend api/v1/node.proto with tier, trust_level, compute_class, arch
-fields</td>
-</tr>
-<tr>
-<td>HXC-1294</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Create api/v1/resources.proto with npu_tops, fpga_logic_elements,
-tflops_gpu</td>
-</tr>
-<tr>
-<td>HXC-1295</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Extend api/v1/scheduler.proto with tier constraints and
-power_budget</td>
-</tr>
-<tr>
-<td>HXC-1300</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU
-TFLOPS, QPU</td>
-</tr>
-<tr>
 <td>HXC-1314</td>
 <td>Feature</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Implement pkg/handheld Steam Deck agent (Vulkan compute, battery,
 thermal) (DEFERRED hw)</td>
-</tr>
-<tr>
-<td>HXC-1305</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement device discovery engine: GPU detection
-(Vulkan/CUDA/ROCm/Mali strategies)</td>
-</tr>
-<tr>
-<td>HXC-1306</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement device discovery engine: NPU detection (Rockchip/NVIDIA
-DLA/Qualcomm/Apple)</td>
-</tr>
-<tr>
-<td>HXC-1309</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement capability manifest generation + control-plane
-negotiation</td>
 </tr>
 <tr>
 <td>HXC-1312</td>
@@ -1342,14 +1123,6 @@ dual-role)</td>
 nodes (DEFERRED)</td>
 </tr>
 <tr>
-<td>HXC-1328</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement cloud-spot AWS/Azure/GCP IMDS interruption pollers
-(adapters)</td>
-</tr>
-<tr>
 <td>HXC-1329</td>
 <td>Feature</td>
 <td>P1</td>
@@ -1363,22 +1136,6 @@ to on-prem cluster</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Phase 5a integration test: 10-node mixed handheld+SBC cluster</td>
-</tr>
-<tr>
-<td>HXC-1307</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement device discovery engine: FPGA detection
-(Xilinx/Intel/Lattice, hard vs soft core)</td>
-</tr>
-<tr>
-<td>HXC-1308</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement micro-benchmarker producing normalized per-compute-class
-scores</td>
 </tr>
 <tr>
 <td>HXC-1318</td>
@@ -1413,20 +1170,51 @@ TTFT) (DEFERRED cloud)</td>
 adapter (DEFERRED cloud)</td>
 </tr>
 <tr>
-<td>HXC-1331</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Author 64-device master taxonomy table as machine-readable device
-catalog</td>
-</tr>
-<tr>
 <td>HXC-1333</td>
 <td>Task</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Phase 5b integration test: 8-node arm64+riscv64+fpga heterogeneous
 cluster</td>
+</tr>
+<tr>
+<td>HXC-1617</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Live-cloud IMDS interruption integration on real AWS/Azure/GCP spot
+accounts</td>
+</tr>
+<tr>
+<td>HXC-1618</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Validate pkg/benchmark normalized scores across two physically
+different nodes</td>
+</tr>
+<tr>
+<td>HXC-928</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Execute linux fixtures on real linux CI for wave-74 packages
+(CLAUDE-2)</td>
+</tr>
+<tr>
+<td>HXC-929</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Real macOS thermal source for powergater/edgeheartbeat CPU temp</td>
+</tr>
+<tr>
+<td>HXC-930</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Live discrete-GPU/NPU hardware probe for pkg/resources
+accelerators</td>
 </tr>
 <tr>
 <td>HXC-1323</td>
@@ -1452,9 +1240,17 @@ submission (DEFERRED)</td>
 <td>Define and validate 5 reference cluster build recipes
 ($250/$500/$1k/$2k/$5k)</td>
 </tr>
+<tr>
+<td>HXC-1620</td>
+<td>Bug</td>
+<td>P3</td>
+<td>Queued</td>
+<td>Harden tierdetect linux cpuinfoIsARM64 multi-digit CPU-architecture
+parsing</td>
+</tr>
 </tbody>
 </table>
-<h2 id="phase-6-40-active">Phase 6 (40 active)</h2>
+<h2 id="phase-6-17-active">Phase 6 (17 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1474,37 +1270,6 @@ submission (DEFERRED)</td>
 </thead>
 <tbody>
 <tr>
-<td>HXC-1344</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/swim/hierarchical two-tier LAN+WAN delegate
-gossip</td>
-</tr>
-<tr>
-<td>HXC-1348</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/nattraversal STUN client and NAT-type
-classification</td>
-</tr>
-<tr>
-<td>HXC-1349</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement ICE candidate gathering, prioritization and connectivity
-checks</td>
-</tr>
-<tr>
-<td>HXC-1352</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement internal/cell WireGuard inter-cell mesh manager</td>
-</tr>
-<tr>
 <td>HXC-1369</td>
 <td>Feature</td>
 <td>P0</td>
@@ -1521,57 +1286,12 @@ CLI</td>
 gate</td>
 </tr>
 <tr>
-<td>HXC-1345</td>
+<td>HXC-933</td>
 <td>Feature</td>
-<td>P1</td>
+<td>P0</td>
 <td>Queued</td>
-<td>Implement gateway-relayed cross-cell suspicion propagation</td>
-</tr>
-<tr>
-<td>HXC-1346</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT,
-cloud, mDNS)</td>
-</tr>
-<tr>
-<td>HXC-1347</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement mDNS/DNS-SD local cell discovery advertiser and
-browser</td>
-</tr>
-<tr>
-<td>HXC-1350</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement TURN relay allocation and fallback chain</td>
-</tr>
-<tr>
-<td>HXC-1351</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement QUIC fallback transport with 0-RTT and connection
-migration</td>
-</tr>
-<tr>
-<td>HXC-1357</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/spiffe/federation trust-bundle exchange across
-cells</td>
-</tr>
-<tr>
-<td>HXC-1361</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement double-encryption (WireGuard L3 + mTLS L7) data path</td>
+<td>Build cmd/helix-federation and wire Phase 6 packages
+(federation/crdt/hlc/spiffefed/gitops)</td>
 </tr>
 <tr>
 <td>HXC-1362</td>
@@ -1582,28 +1302,6 @@ cells</td>
 propagation</td>
 </tr>
 <tr>
-<td>HXC-1363</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement federated service discovery (cell-local + global
-registry)</td>
-</tr>
-<tr>
-<td>HXC-1364</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement internal/federation Karmada PropagationPolicy engine</td>
-</tr>
-<tr>
-<td>HXC-1367</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/gitops ArgoCD ApplicationSet federation client</td>
-</tr>
-<tr>
 <td>HXC-1370</td>
 <td>Feature</td>
 <td>P1</td>
@@ -1612,34 +1310,11 @@ registry)</td>
 identity attestation</td>
 </tr>
 <tr>
-<td>HXC-1371</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Enforce etcd-stays-within-cell static-analysis lint gate</td>
-</tr>
-<tr>
-<td>HXC-1380</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement split-brain detection PromQL alerts with runbook
-links</td>
-</tr>
-<tr>
 <td>HXC-1385</td>
 <td>Task</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Validate Phase 6 exit-gate KPIs against the live federation</td>
-</tr>
-<tr>
-<td>HXC-1386</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Verify sub-phase dependency gates 6a-&gt;6b-&gt;6c-&gt;6d soak
-conditions</td>
 </tr>
 <tr>
 <td>HXC-1354</td>
@@ -1658,29 +1333,6 @@ bootstrap</td>
 discovery</td>
 </tr>
 <tr>
-<td>HXC-1356</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Integrate libp2p DHT discovery, GossipSub and circuit relay</td>
-</tr>
-<tr>
-<td>HXC-1358</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement OPA/Gatekeeper cross-cluster federated-trust
-admission</td>
-</tr>
-<tr>
-<td>HXC-1359</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement OPA data-residency / data-sovereignty admission
-policy</td>
-</tr>
-<tr>
 <td>HXC-1360</td>
 <td>Feature</td>
 <td>P2</td>
@@ -1695,43 +1347,6 @@ secrets</td>
 <td>Queued</td>
 <td>Implement cloud bursting auto-scaling burst pool with spot
 termination handling</td>
-</tr>
-<tr>
-<td>HXC-1368</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement CRDT-based config sync for cell-local overrides</td>
-</tr>
-<tr>
-<td>HXC-1372</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement per-cell etcd Raft WAN-safe tuning profiles</td>
-</tr>
-<tr>
-<td>HXC-1374</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement internal/chaos CE-01..CE-12 chaos experiment suite</td>
-</tr>
-<tr>
-<td>HXC-1375</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Turmoil-style deterministic multi-cluster simulation
-harness</td>
-</tr>
-<tr>
-<td>HXC-1377</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Author Phase 6 FMEA catalog with detection and recovery
-runbooks</td>
 </tr>
 <tr>
 <td>HXC-1378</td>
@@ -1755,12 +1370,28 @@ runbooks</td>
 <td>Implement Velero tiered disaster recovery backup and restore</td>
 </tr>
 <tr>
-<td>HXC-1383</td>
-<td>Feature</td>
+<td>HXC-922</td>
+<td>Task</td>
 <td>P2</td>
 <td>Queued</td>
-<td>Implement five federation topology patterns and block-binding
-modes</td>
+<td>Live ArgoCD 3-cell ApplicationSet rollout usability capture
+(HXC-1367 live gate)</td>
+</tr>
+<tr>
+<td>HXC-924</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Live Karmada multi-cluster &lt;60s failover usability capture
+(HXC-1364 live gate)</td>
+</tr>
+<tr>
+<td>HXC-925</td>
+<td>Task</td>
+<td>P2</td>
+<td>Queued</td>
+<td>Two-node LAN mDNS discovery usability capture (HXC-1347 live
+gate)</td>
 </tr>
 <tr>
 <td>HXC-1376</td>
@@ -1769,16 +1400,9 @@ modes</td>
 <td>Queued</td>
 <td>Establish quarterly Game Day federation chaos drill protocol</td>
 </tr>
-<tr>
-<td>HXC-1381</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Build Grafana global-health cell-status-grid dashboard</td>
-</tr>
 </tbody>
 </table>
-<h2 id="phase-7-39-active">Phase 7 (39 active)</h2>
+<h2 id="phase-7-4-active">Phase 7 (4 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -1798,246 +1422,6 @@ modes</td>
 </thead>
 <tbody>
 <tr>
-<td>HXC-1387</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement Multi-Raft per-shard consensus manager (G-01, P0)</td>
-</tr>
-<tr>
-<td>HXC-1388</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement heartbeat coalescer for Multi-Raft network overhead
-control</td>
-</tr>
-<tr>
-<td>HXC-1390</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement MVCC revision store with B-tree index and time-travel
-(G-08, P0)</td>
-</tr>
-<tr>
-<td>HXC-1392</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement SLURM-style backfill scheduler over availability timeline
-(G-02, P0)</td>
-</tr>
-<tr>
-<td>HXC-1394</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement CRC16 16,384 hash-slot session router (G-03, P0)</td>
-</tr>
-<tr>
-<td>HXC-1395</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement MOVED/ASK redirection and ASKING for in-flight slot
-migration (G-03)</td>
-</tr>
-<tr>
-<td>HXC-1400</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement largest-subcluster-wins voting quorum (G-19, P0)</td>
-</tr>
-<tr>
-<td>HXC-1419</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Build deterministic simulation testing (DST) framework on Turmoil
-(G-14, P0)</td>
-</tr>
-<tr>
-<td>HXC-1420</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement BUGGIFY chaos macros at 25% deterministic fire rate (G-15,
-P0)</td>
-</tr>
-<tr>
-<td>HXC-1389</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement leaseholder fast-path local reads in Multi-Raft</td>
-</tr>
-<tr>
-<td>HXC-1391</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement persistent Watch Manager with synced/unsynced groups (G-08
-support)</td>
-</tr>
-<tr>
-<td>HXC-1393</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement multifactor priority queue for scheduler
-(age+fairshare+size+QoS)</td>
-</tr>
-<tr>
-<td>HXC-1398</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add Startup health-probe tier with GPU grace period (G-04, P1)</td>
-</tr>
-<tr>
-<td>HXC-1399</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement SWIM majority PFAIL-&gt;FAIL two-phase failure
-confirmation (G-23, P1)</td>
-</tr>
-<tr>
-<td>HXC-1401</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement STONITH fencing agents (IPMI/cloud/shared-disk) (G-19,
-P1)</td>
-</tr>
-<tr>
-<td>HXC-1404</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement N+K failover capacity admission control (G-22, P1)</td>
-</tr>
-<tr>
-<td>HXC-1405</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement gang scheduling all-or-nothing GPU reservation (G-18,
-P1)</td>
-</tr>
-<tr>
-<td>HXC-1407</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement device-plugin / GRES fingerprinting framework
-(G-11/G-13/G-17, P1)</td>
-</tr>
-<tr>
-<td>HXC-1408</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement BOINC-style redundant-execution trust scorer (G-09,
-P1)</td>
-</tr>
-<tr>
-<td>HXC-1410</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement Cassandra 3-layer repair: hinted handoff + read repair +
-Merkle anti-entropy (G-01 part, P1)</td>
-</tr>
-<tr>
-<td>HXC-1421</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Integrate Porcupine linearizability checking in CI under fault
-injection (G-16, P1)</td>
-</tr>
-<tr>
-<td>HXC-1425</td>
-<td>Docs</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Produce Phase 7 phase-by-phase 23-gap matrix as tracked deliverable
-ledger</td>
-</tr>
-<tr>
-<td>HXC-1396</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Atomic Slot Migration controller for live session
-migration (G-03, P2)</td>
-</tr>
-<tr>
-<td>HXC-1397</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Add config-epoch conflict resolution for simultaneous failovers</td>
-</tr>
-<tr>
-<td>HXC-1402</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Pacemaker-style four-type constraint engine (G-20,
-P2)</td>
-</tr>
-<tr>
-<td>HXC-1403</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement SCAN stable virtual-IP/DNS client endpoint (G-21, P2)</td>
-</tr>
-<tr>
-<td>HXC-1406</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement topology-aware NUMA/NVLink GPU placement scoring
-(G-10/G-18, P2)</td>
-</tr>
-<tr>
-<td>HXC-1409</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement standalone delta-state CRDT package
-(G-counter/PN-counter/OR-set/LWW-map) (G-01 part, P2)</td>
-</tr>
-<tr>
-<td>HXC-1411</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Informer cache helixcache.Watcher (list-watch local cache)
-(G-05, P2)</td>
-</tr>
-<tr>
-<td>HXC-1412</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement rate-limited work queue with exponential backoff (G-06,
-P2)</td>
-</tr>
-<tr>
-<td>HXC-1413</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement API Priority &amp; Fairness
-FlowSchema-&gt;PriorityLevel-&gt;Queue (G-07, P2)</td>
-</tr>
-<tr>
 <td>HXC-1414</td>
 <td>Feature</td>
 <td>P2</td>
@@ -2046,52 +1430,11 @@ FlowSchema-&gt;PriorityLevel-&gt;Queue (G-07, P2)</td>
 (G-12, P2)</td>
 </tr>
 <tr>
-<td>HXC-1415</td>
-<td>Feature</td>
+<td>HXC-1619</td>
+<td>Task</td>
 <td>P2</td>
 <td>Queued</td>
-<td>Implement idempotent producer (PID + sequence) for exactly-once
-messaging</td>
-</tr>
-<tr>
-<td>HXC-1416</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement cooperative incremental rebalancing for
-consumers/membership</td>
-</tr>
-<tr>
-<td>HXC-1418</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement tiered cache hot(memory)/warm(NVMe)/cold(SSD) data
-tiers</td>
-</tr>
-<tr>
-<td>HXC-1422</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Build nightly chaos pipeline (pod kill, partition, disk stall, clock
-skew) (G-15 part)</td>
-</tr>
-<tr>
-<td>HXC-1424</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Produce hardened HelixCluster architecture diagram and component
-map</td>
-</tr>
-<tr>
-<td>HXC-1417</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement embedded KRaft-style Raft quorum to remove external
-ZooKeeper</td>
+<td>Enable cmd/dst-sim 1000-seed gate as a live CI job</td>
 </tr>
 <tr>
 <td>HXC-1423</td>
@@ -2101,9 +1444,17 @@ ZooKeeper</td>
 <td>Author TLA+ formal specifications for consensus/coordination
 protocols (P2)</td>
 </tr>
+<tr>
+<td>HXC-914</td>
+<td>Task</td>
+<td>P3</td>
+<td>Queued</td>
+<td>internal/chaos: author live-cluster nightly pipeline + GitHub
+Actions workflow</td>
+</tr>
 </tbody>
 </table>
-<h2 id="phase-8-66-active">Phase 8 (66 active)</h2>
+<h2 id="phase-8-40-active">Phase 8 (40 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -2131,33 +1482,11 @@ protocols (P2)</td>
 pkg/chutes</td>
 </tr>
 <tr>
-<td>HXC-1435</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement GraValVerifier.BatchVerify concurrent attestation with
-pass-rate KPI</td>
-</tr>
-<tr>
-<td>HXC-1436</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement GraVal VRAM-threshold (95%) gate in attestation</td>
-</tr>
-<tr>
 <td>HXC-1438</td>
 <td>Feature</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Implement pkg/chutes MinerController K3s deployment lifecycle</td>
-</tr>
-<tr>
-<td>HXC-1439</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Define ChutesMinerConfig and ValidatorConfig data structures</td>
 </tr>
 <tr>
 <td>HXC-1440</td>
@@ -2201,21 +1530,6 @@ attestation</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Deploy registry-proxy host-network DaemonSet on port 30500</td>
-</tr>
-<tr>
-<td>HXC-1446</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement custom HelixGepetto dual-resource arbitration
-strategy</td>
-</tr>
-<tr>
-<td>HXC-1447</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement dual-workload capacity reservation in internal/gpu</td>
 </tr>
 <tr>
 <td>HXC-1450</td>
@@ -2262,75 +1576,6 @@ registration</td>
 (workload-&gt;client-&gt;E2EE-&gt;network-&gt;miner-&gt;response)</td>
 </tr>
 <tr>
-<td>HXC-1426</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/chutes Chutes OpenAI-compatible API Client
-(non-streaming)</td>
-</tr>
-<tr>
-<td>HXC-1427</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement Chutes API client fallback-model chain on retriable
-failure</td>
-</tr>
-<tr>
-<td>HXC-1428</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement SSE streaming decoder for Chutes chat completions</td>
-</tr>
-<tr>
-<td>HXC-1429</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement Chutes API model-list and user-account/balance
-queries</td>
-</tr>
-<tr>
-<td>HXC-1430</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement model-router default-model resolution by strategy
-(latency/throughput/quality/cost)</td>
-</tr>
-<tr>
-<td>HXC-1431</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Wire E2EE inference envelope between pkg/chutes and
-security/pkg/e2ee</td>
-</tr>
-<tr>
-<td>HXC-1448</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement GraVal attestation hook in internal/gpu Manager</td>
-</tr>
-<tr>
-<td>HXC-1454</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement MarketplaceAdapter interface and Chutes adapter</td>
-</tr>
-<tr>
-<td>HXC-1455</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement UnifiedManager.RouteWorkload concurrent pricing +
-composite scoring</td>
-</tr>
-<tr>
 <td>HXC-1463</td>
 <td>Feature</td>
 <td>P1</td>
@@ -2360,22 +1605,6 @@ deployments</td>
 <td>Author scripts/chutes-verify.sh end-to-end verification</td>
 </tr>
 <tr>
-<td>HXC-1469</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Wire internal/gateway to route internal AI requests through Chutes
-API client</td>
-</tr>
-<tr>
-<td>HXC-1470</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Replace internal/llm stub Inference with real model router
-(latency/throughput/quality/cost)</td>
-</tr>
-<tr>
 <td>HXC-1471</td>
 <td>Feature</td>
 <td>P1</td>
@@ -2388,22 +1617,6 @@ API client</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Deploy SGLang inference engine with RadixAttention</td>
-</tr>
-<tr>
-<td>HXC-1483</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Extend pkg/metrics + Prometheus/Grafana with TAO/GraVal/throughput
-dashboards</td>
-</tr>
-<tr>
-<td>HXC-1484</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Extend pkg/health with miner-api and GraVal DaemonSet health
-checks</td>
 </tr>
 <tr>
 <td>HXC-1485</td>
@@ -2442,6 +1655,21 @@ checks</td>
 500ms</td>
 </tr>
 <tr>
+<td>HXC-935</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Queued</td>
+<td>Wire Phase 8 marketplace/GraVal/miner into a real control loop</td>
+</tr>
+<tr>
+<td>HXC-936</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Queued</td>
+<td>Resolve dual package trees: top-level pkg/gpuattest vs
+security/pkg/gpuattest (and similar)</td>
+</tr>
+<tr>
 <td>HXC-1432</td>
 <td>Feature</td>
 <td>P2</td>
@@ -2465,27 +1693,12 @@ ChaCha20-Poly1305)</td>
 (DEFERRED, GPU)</td>
 </tr>
 <tr>
-<td>HXC-1449</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement MIG profile management in internal/gpu</td>
-</tr>
-<tr>
 <td>HXC-1452</td>
 <td>Feature</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Implement Yuma Consensus / metagraph weight queries in
 pkg/bittensor</td>
-</tr>
-<tr>
-<td>HXC-1456</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement RevenueOptimizer.OptimizeAllocation greedy
-GPU-to-marketplace assignment</td>
 </tr>
 <tr>
 <td>HXC-1457</td>
@@ -2495,41 +1708,11 @@ GPU-to-marketplace assignment</td>
 <td>Implement io.net marketplace adapter</td>
 </tr>
 <tr>
-<td>HXC-1458</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Akash marketplace adapter</td>
-</tr>
-<tr>
 <td>HXC-1459</td>
 <td>Feature</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Implement Salad marketplace adapter</td>
-</tr>
-<tr>
-<td>HXC-1460</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/economics RewardDistributor multi-token
-distribution</td>
-</tr>
-<tr>
-<td>HXC-1461</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement RewardDistributor.GetParticipantROI and break-even
-tracking</td>
-</tr>
-<tr>
-<td>HXC-1473</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Enable AWQ 4-bit quantization as default model format</td>
 </tr>
 <tr>
 <td>HXC-1475</td>
@@ -2539,41 +1722,11 @@ tracking</td>
 <td>Deploy Intel TDX + NVIDIA CC TEE stack via sek8s</td>
 </tr>
 <tr>
-<td>HXC-1476</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement hybrid PQC TLS (X25519 + ML-KEM-768) node-to-node
-transport</td>
-</tr>
-<tr>
 <td>HXC-1477</td>
 <td>Feature</td>
 <td>P2</td>
 <td>Queued</td>
 <td>Implement Cosign/Sigstore image admission controller for K3s</td>
-</tr>
-<tr>
-<td>HXC-1480</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement carbon-aware scheduler with per-job energy metering</td>
-</tr>
-<tr>
-<td>HXC-1481</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement EU AI Act compliance documentation pipeline</td>
-</tr>
-<tr>
-<td>HXC-1482</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement export-control tier verification (country-code KYC) at
-node onboarding</td>
 </tr>
 <tr>
 <td>HXC-1490</td>
@@ -2614,7 +1767,7 @@ challenges</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-8b-68-active">Phase 8B (68 active)</h2>
+<h2 id="phase-8b-28-active">Phase 8B (28 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -2642,73 +1795,6 @@ challenges</td>
 seam</td>
 </tr>
 <tr>
-<td>HXC-1493</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement GPUTier type with priority ordering
-(Local..Decentralized)</td>
-</tr>
-<tr>
-<td>HXC-1494</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement PoolManager registry with tier-ordered Allocate walk</td>
-</tr>
-<tr>
-<td>HXC-1495</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement WorkloadSpec/GPUDevice/GPUAllocation/PoolStatus data
-structures</td>
-</tr>
-<tr>
-<td>HXC-1496</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement candidate filtering (model/VRAM/cost/label selector)</td>
-</tr>
-<tr>
-<td>HXC-1498</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement PriorityScheduler (tier then least-load then cost)</td>
-</tr>
-<tr>
-<td>HXC-1502</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement internal/costbroker ComputeBroker weighted scorer</td>
-</tr>
-<tr>
-<td>HXC-1504</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/burst BurstController MONITOR-&gt;SPILL-&gt;RECOVER
-hysteresis</td>
-</tr>
-<tr>
-<td>HXC-1510</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/provider/chutes ChutesProvider OpenAI-compatible
-adapter</td>
-</tr>
-<tr>
-<td>HXC-1519</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/local LocalGPURegistrar with TCO effective-cost</td>
-</tr>
-<tr>
 <td>HXC-1521</td>
 <td>Task</td>
 <td>P0</td>
@@ -2721,27 +1807,6 @@ adapter</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Implement pkg/e2ee E2EEProxy outbound remote-GPU traffic proxy</td>
-</tr>
-<tr>
-<td>HXC-1530</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement cmd/gpu-pool-manager HTTP+gRPC front-end binary</td>
-</tr>
-<tr>
-<td>HXC-1531</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement cmd/burst-controller utilization-driven binary</td>
-</tr>
-<tr>
-<td>HXC-1532</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement cmd/e2ee-proxy transparent ML-KEM-768 proxy binary</td>
 </tr>
 <tr>
 <td>HXC-1552</td>
@@ -2759,111 +1824,12 @@ adapter</td>
 demo</td>
 </tr>
 <tr>
-<td>HXC-1497</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement global MaxCostPerHour budget cap on allocations</td>
-</tr>
-<tr>
-<td>HXC-1499</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement CostAwareScheduler selecting cheapest GPUs meeting
-SLA</td>
-</tr>
-<tr>
-<td>HXC-1500</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement LatencyAwareScheduler for inference routing</td>
-</tr>
-<tr>
-<td>HXC-1501</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement HealthMonitor with 30s checks and auto-failover
-trigger</td>
-</tr>
-<tr>
-<td>HXC-1503</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement ComputeBroker 60s re-scoring loop with price-spike
-guard</td>
-</tr>
-<tr>
-<td>HXC-1505</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement BurstController utilization RingBuffer moving average</td>
-</tr>
-<tr>
-<td>HXC-1506</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement BurstController activateBurst capacity estimation +
-allocation</td>
-</tr>
-<tr>
-<td>HXC-1507</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/burst CostRouter per-workload-type provider
-scoring</td>
-</tr>
-<tr>
-<td>HXC-1508</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement 5-tier fallback chain
-Chutes-&gt;io.net-&gt;RunPod-&gt;AWS</td>
-</tr>
-<tr>
-<td>HXC-1511</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement Chutes retryWithFallback across fallback models on
-429</td>
-</tr>
-<tr>
-<td>HXC-1514</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/provider/ionet IONetProvider Ray cluster adapter</td>
-</tr>
-<tr>
-<td>HXC-1515</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/provider/runpod RunPodProvider serverless + warm
-pool</td>
-</tr>
-<tr>
 <td>HXC-1520</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Implement LocalGPURegistrar nvidia-smi discovery + GPU
 classification</td>
-</tr>
-<tr>
-<td>HXC-1523</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/e2ee GraValVerifier provider admission gate</td>
 </tr>
 <tr>
 <td>HXC-1526</td>
@@ -2873,49 +1839,12 @@ classification</td>
 <td>Implement pkg/proxy CUDA API interceptor + memory staging</td>
 </tr>
 <tr>
-<td>HXC-1527</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Define gpu_proxy.proto gRPC GPUProvider kernel-dispatch service</td>
-</tr>
-<tr>
 <td>HXC-1528</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Implement virtual /dev/nvidia* device creation proxying to remote
 GPU</td>
-</tr>
-<tr>
-<td>HXC-1529</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement workload-suitability classifier (HPC local vs inference
-remote)</td>
-</tr>
-<tr>
-<td>HXC-1533</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add ProviderAdapter registration hooks to pkg/gpu</td>
-</tr>
-<tr>
-<td>HXC-1534</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add GPUTier-aware filter predicate to pkg/scheduler</td>
-</tr>
-<tr>
-<td>HXC-1535</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Add GPU-tier utilization/cost/provider-health metrics to
-pkg/metrics</td>
 </tr>
 <tr>
 <td>HXC-1536</td>
@@ -2948,26 +1877,11 @@ model</td>
 nvidia.com/gpu</td>
 </tr>
 <tr>
-<td>HXC-1548</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement CostTracker monthly cost report vs AWS on-demand</td>
-</tr>
-<tr>
 <td>HXC-1549</td>
 <td>Task</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Author Helm chart for Phase 8B GPU pool + burst deployment</td>
-</tr>
-<tr>
-<td>HXC-1551</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Build Prometheus/Grafana Phase 8B tier-utilization + cost
-dashboards</td>
 </tr>
 <tr>
 <td>HXC-1554</td>
@@ -2985,13 +1899,6 @@ dashboards</td>
 gate</td>
 </tr>
 <tr>
-<td>HXC-1556</td>
-<td>Task</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Benchmark ML-KEM-768 E2EE handshake latency (&lt;1ms target)</td>
-</tr>
-<tr>
 <td>HXC-1557</td>
 <td>Task</td>
 <td>P1</td>
@@ -3000,33 +1907,12 @@ gate</td>
 requests)</td>
 </tr>
 <tr>
-<td>HXC-1509</td>
+<td>HXC-1615</td>
 <td>Feature</td>
-<td>P2</td>
+<td>P1</td>
 <td>Queued</td>
-<td>Implement QoS tiers (real-time, interactive, batch,
-best-effort)</td>
-</tr>
-<tr>
-<td>HXC-1512</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Chutes GetBalance USD balance monitor</td>
-</tr>
-<tr>
-<td>HXC-1513</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Chutes streaming (SSE) chat-completion variant</td>
-</tr>
-<tr>
-<td>HXC-1516</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/provider/aws AWSProvider EC2 Spot adapter</td>
+<td>Wire pkg/gpu ProviderAdapter registry into pkg/pool provider
+consumption</td>
 </tr>
 <tr>
 <td>HXC-1517</td>
@@ -3052,23 +1938,6 @@ workloads</td>
 <td>Implement key rotation CronJob + HSM integration for E2EE keys</td>
 </tr>
 <tr>
-<td>HXC-1538</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement <span class="citation"
-data-cites="helix.task">@helix.task</span> Go decorator/SDK with
-lifecycle hooks</td>
-</tr>
-<tr>
-<td>HXC-1539</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement intelligent ModelRouter
-(latency/throughput/cost/tee/balanced)</td>
-</tr>
-<tr>
 <td>HXC-1543</td>
 <td>Feature</td>
 <td>P2</td>
@@ -3082,13 +1951,6 @@ lifecycle hooks</td>
 <td>Queued</td>
 <td>Implement CRIU GPU-context checkpoint/restore + graceful
 degradation</td>
-</tr>
-<tr>
-<td>HXC-1547</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement TCO calculator for hybrid own+burst economic model</td>
 </tr>
 <tr>
 <td>HXC-1550</td>
@@ -3126,13 +1988,6 @@ degradation</td>
 <td>Implement bittencert blockchain-backed X.509 identity</td>
 </tr>
 <tr>
-<td>HXC-1544</td>
-<td>Research</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement predictive scaling forecast to pre-warm before peaks</td>
-</tr>
-<tr>
 <td>HXC-1546</td>
 <td>Feature</td>
 <td>P3</td>
@@ -3141,7 +1996,7 @@ degradation</td>
 </tr>
 </tbody>
 </table>
-<h2 id="phase-8c-55-active">Phase 8C (55 active)</h2>
+<h2 id="phase-8c-12-active">Phase 8C (12 active)</h2>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -3169,50 +2024,12 @@ degradation</td>
 HKDF-SHA256)</td>
 </tr>
 <tr>
-<td>HXC-1561</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Add ChaCha20-Poly1305 AEAD cipher variant to pkg/security/e2ee</td>
-</tr>
-<tr>
 <td>HXC-1562</td>
 <td>Task</td>
 <td>P0</td>
 <td>Queued</td>
 <td>Add Chutes byte-interop test-vector corpus for
 pkg/security/e2ee</td>
-</tr>
-<tr>
-<td>HXC-1568</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement pkg/gpuattest device-info challenge/response +
-fingerprint</td>
-</tr>
-<tr>
-<td>HXC-1569</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement seeded matmul proof-of-GPU-work (PoVW) in
-pkg/gpuattest</td>
-</tr>
-<tr>
-<td>HXC-1570</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement O(1) spot-check verification in pkg/gpuattest</td>
-</tr>
-<tr>
-<td>HXC-1571</td>
-<td>Feature</td>
-<td>P0</td>
-<td>Queued</td>
-<td>Implement device-sealed encrypt/decrypt
-(SealForDevice/OpenFromDevice) in pkg/gpuattest</td>
 </tr>
 <tr>
 <td>HXC-1574</td>
@@ -3238,35 +2055,11 @@ pkg/gpuattest</td>
 (NRAS/nvTrust)</td>
 </tr>
 <tr>
-<td>HXC-1563</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement bidirectional per-request response keypair in
-pkg/security/e2ee</td>
-</tr>
-<tr>
-<td>HXC-1565</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement streaming SSE E2EE decryption (e2e_init + per-chunk) in
-pkg/security/e2ee</td>
-</tr>
-<tr>
 <td>HXC-1566</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Implement E2EE instance-discovery + single-use nonce contract</td>
-</tr>
-<tr>
-<td>HXC-1567</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Maintain E2EE length-prefixed framed transport over
-io.ReadWriter</td>
 </tr>
 <tr>
 <td>HXC-1577</td>
@@ -3283,66 +2076,12 @@ io.ReadWriter</td>
 <td>Implement attestation-gated key release (LUKS/secret) handshake</td>
 </tr>
 <tr>
-<td>HXC-1580</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement pkg/modelintegrity hf_cache_verify gate (SHA-256 +
-size)</td>
-</tr>
-<tr>
-<td>HXC-1583</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Maintain pkg/scheduler cost-aware GPU placement plugin</td>
-</tr>
-<tr>
-<td>HXC-1584</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement value-multiplier preemption in pkg/scheduler (Gepetto
-model)</td>
-</tr>
-<tr>
-<td>HXC-1585</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement SKIP LOCKED-style optimistic work-claiming in
-pkg/scheduler</td>
-</tr>
-<tr>
-<td>HXC-1586</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement attestation-gated scheduler admission predicate</td>
-</tr>
-<tr>
-<td>HXC-1590</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement NodeSelector placement-constraint schema in
-pkg/resources</td>
-</tr>
-<tr>
 <td>HXC-1591</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Queued</td>
 <td>Extend pkg/resources GPUInfo with device fingerprint +
 attested/thermal state</td>
-</tr>
-<tr>
-<td>HXC-1592</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement SUPPORTED_GPUS compute-multiplier catalog +
-LookupMultiplier</td>
 </tr>
 <tr>
 <td>HXC-1594</td>
@@ -3353,99 +2092,6 @@ LookupMultiplier</td>
 HTTP)</td>
 </tr>
 <tr>
-<td>HXC-1595</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement streaming-safe failover (retry only before first byte) in
-LLMOrchestrator</td>
-</tr>
-<tr>
-<td>HXC-1604</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Maintain pkg/fiber length-prefixed framed miner&lt;-&gt;validator
-transport</td>
-</tr>
-<tr>
-<td>HXC-1605</td>
-<td>Feature</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Implement fiber ed25519 signed-identity handshake + stake-gated
-admission</td>
-</tr>
-<tr>
-<td>HXC-1613</td>
-<td>Docs</td>
-<td>P1</td>
-<td>Queued</td>
-<td>Document Phase 8C exit-gate evidence matrix (CLAUDE-1 usability
-proofs)</td>
-</tr>
-<tr>
-<td>HXC-1564</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement gzip-before-encrypt payload compression in
-pkg/security/e2ee</td>
-</tr>
-<tr>
-<td>HXC-1572</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement filesystem residency challenge in pkg/gpuattest</td>
-</tr>
-<tr>
-<td>HXC-1573</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement multi-GPU node enumeration in pkg/gpuattest</td>
-</tr>
-<tr>
-<td>HXC-1579</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/security/admission OPA-style policy + signed-image
-(cosign) gate</td>
-</tr>
-<tr>
-<td>HXC-1581</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement model/revision anti-cheat verification token (V2
-HMAC-SHA256)</td>
-</tr>
-<tr>
-<td>HXC-1587</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement bounty/auction economic-placement plugin for
-scheduler</td>
-</tr>
-<tr>
-<td>HXC-1588</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement utilization-aware EWMA candidate ranking for
-scheduler/orchestrator</td>
-</tr>
-<tr>
-<td>HXC-1589</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement Kueue-style suspend-then-admit tiered job admission</td>
-</tr>
-<tr>
 <td>HXC-1593</td>
 <td>Feature</td>
 <td>P2</td>
@@ -3454,139 +2100,12 @@ scheduler/orchestrator</td>
 resources/gpuattest</td>
 </tr>
 <tr>
-<td>HXC-1596</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement per-task ordered fallback chains with dedup/cap +
-empty-response detection</td>
-</tr>
-<tr>
-<td>HXC-1597</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement thermal pre-warm / scale-from-zero state machine
-(Therm)</td>
-</tr>
-<tr>
-<td>HXC-1598</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement passthrough cords + disconnect-aware upstream abort in
-LLMOrchestrator</td>
-</tr>
-<tr>
-<td>HXC-1601</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/inferenceproxy correlation-ID + backend audit
-trail</td>
-</tr>
-<tr>
-<td>HXC-1602</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement deterministic keyed-hash anonymization in
-pkg/inferenceproxy</td>
-</tr>
-<tr>
-<td>HXC-1603</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement spoof-proof managed-header sanitization at the recording
-edge</td>
-</tr>
-<tr>
-<td>HXC-1606</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement node identity verify-then-pin (TOFU) keypair-rooted
-TLS</td>
-</tr>
-<tr>
-<td>HXC-1607</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/marketplace registration -&gt; bounty -&gt; metering
--&gt; payout loop</td>
-</tr>
-<tr>
-<td>HXC-1608</td>
-<td>Feature</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Implement pkg/marketplace/audit commit-then-prove reproducible
-reconciliation</td>
-</tr>
-<tr>
-<td>HXC-1614</td>
-<td>Docs</td>
-<td>P2</td>
-<td>Queued</td>
-<td>Document Phase 8C architecture integration diagrams
-(scheduler&lt;-attest, orchestrator&lt;-e2ee&lt;-TEE, marketplace)</td>
-</tr>
-<tr>
-<td>HXC-1582</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement X25519 ephemeral session-key handshake for verification
-tokens</td>
-</tr>
-<tr>
-<td>HXC-1599</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement Claude/Responses API-shape adapters for LLMOrchestrator
-front door</td>
-</tr>
-<tr>
-<td>HXC-1600</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement error-classified LLM failover taxonomy + sandbox
-scheduling-hint contract</td>
-</tr>
-<tr>
-<td>HXC-1609</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement scale-to-zero metered hot/cold billing state machine</td>
-</tr>
-<tr>
-<td>HXC-1610</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement watchtower-style liveness/integrity prober for served
-instances</td>
-</tr>
-<tr>
 <td>HXC-1611</td>
 <td>Research</td>
 <td>P3</td>
 <td>Queued</td>
 <td>Implement Karmada-pattern multi-cluster aggregation over
 SWIM+Raft+etcd (Phase 6 hook)</td>
-</tr>
-<tr>
-<td>HXC-1612</td>
-<td>Feature</td>
-<td>P3</td>
-<td>Queued</td>
-<td>Implement OpenAPI request-validation admission middleware for
-control-plane APIs</td>
 </tr>
 </tbody>
 </table>

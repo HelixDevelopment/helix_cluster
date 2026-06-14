@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>consensus</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">consensus</h1>
+</header>
+<h1 id="raft-consensus-subsystem-pkgraft-helix-raftd">Raft Consensus
+Subsystem (<code>pkg/raft</code> + <code>helix-raftd</code>)</h1>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td><code>pkg/raft/*</code>, <code>cmd/helix-raftd/*</code>,
+<code>specs/RaftSnapshot.tla</code></td>
+</tr>
+<tr>
+<td>Last reviewed against code</td>
+<td>2026-06-13</td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the embedded Raft consensus subsystem of
+Helix Cluster OS as it exists in the codebase today. Every claim below
+maps to a named symbol, test, or spec. It deliberately describes
+<strong>only what is implemented</strong> — there is no multi-region,
+auto-sharding, or dynamic-membership layer in this subsystem, and none
+is claimed here.</p>
+<p>The subsystem is built on the battle-tested
+<code>github.com/hashicorp/raft</code> library (plus
+<code>github.com/hashicorp/raft-boltdb/v2</code> for durable storage).
+<code>pkg/raft</code> wraps that library behind a small, stable contract
+and grows it along a <strong>transport/storage ladder</strong>, from an
+in-process test cluster up to a real multi-process daemon.
+<code>cmd/helix-raftd</code> is the capstone process that runs one
+production-grade node.</p>
+<hr />
+<h2 id="the-replicated-state-machine-and-the-nodecluster-contract">1.
+The replicated state machine and the Node/Cluster contract</h2>
+<h3 id="kvfsm-the-replicated-keyvalue-state-machine-fsm.go">1.1
+<code>KVFSM</code> — the replicated key/value state machine
+(<code>fsm.go</code>)</h3>
+<p><code>KVFSM</code> implements <code>hashicorp/raft.FSM</code>. It is
+a <code>map[string]string</code> guarded by a <code>sync.RWMutex</code>.
+Replicated mutations are <code>Command</code> values:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode go"><code class="sourceCode go"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="kw">type</span> Command <span class="kw">struct</span> <span class="op">{</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>    Op    CommandType <span class="co">// &quot;set&quot; | &quot;delete&quot;</span></span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>    Key   <span class="dt">string</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>    Value <span class="dt">string</span></span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+<p>A <code>Command</code> is JSON-encoded (<code>Command.Encode</code>),
+appended to the Raft log, replicated to a majority, and only then
+applied to <strong>every</strong> replica’s FSM in identical order by
+<code>KVFSM.Apply</code>. Read/inspection surface:</p>
+<ul>
+<li><code>Get(key) (string, bool)</code> — concurrent-safe point read of
+this replica’s state.</li>
+<li><code>Len() int</code> — number of keys.</li>
+<li><code>AppliedCount() uint64</code> — count of log entries applied to
+<strong>this</strong> FSM; a sink-side replication signal that, on a
+follower, reflects entries replicated and committed regardless of which
+node proposed them.</li>
+</ul>
+<p>For log compaction the FSM implements
+<code>Snapshot</code>/<code>Restore</code>: <code>Snapshot</code>
+returns an immutable JSON clone (<code>kvSnapshot.Persist</code> writes
+it to the snapshot sink), <code>Restore</code> replaces state from a
+snapshot stream. This is the FSM half of the snapshot/compaction path
+that <code>specs/RaftSnapshot.tla</code> verifies (see §4.2).</p>
+<h3 id="node-the-per-node-coordination-wrapper-node.go">1.2
+<code>Node</code> — the per-node coordination wrapper
+(<code>node.go</code>)</h3>
+<p><code>Node</code> wraps one <code>hashicorp/raft.Raft</code> instance
+together with its <code>KVFSM</code>, exposing a surface that
+intentionally resembles <code>pkg/leader</code>’s election so the two
+backends are interchangeable from a caller’s point of view:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Method</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Apply(cmd, timeout) error</code></td>
+<td>Propose a <code>Command</code>. Returns <code>ErrNotLeader</code> if
+not leader; otherwise blocks until the entry is replicated to a majority
+and applied, surfacing any FSM rejection.</td>
+</tr>
+<tr>
+<td><code>IsLeader() bool</code></td>
+<td>True iff <code>raft.State() == Leader</code>.</td>
+</tr>
+<tr>
+<td><code>State() hraft.RaftState</code></td>
+<td>Current Raft state (Leader/Follower/Candidate/Shutdown).</td>
+</tr>
+<tr>
+<td><code>Leader() string</code></td>
+<td>ServerID of the known leader, or <code>""</code>.</td>
+</tr>
+<tr>
+<td><code>LeaderAddr() string</code></td>
+<td>Network <strong>address</strong> of the known leader (a TCP
+<code>host:port</code> for TCP-backed nodes) — what a follower’s admin
+endpoint reports so a client can redirect a write.</td>
+</tr>
+<tr>
+<td><code>LastIndex() uint64</code></td>
+<td>Last index in stable storage; a catch-up signal a restarted node
+reports as it replays its on-disk log.</td>
+</tr>
+<tr>
+<td><code>Shutdown() error</code></td>
+<td>Stops Raft, <strong>then</strong> closes the TCP transport (if any),
+<strong>then</strong> closes the on-disk store (if any) — in that order,
+so files flush and the data dir can be reopened.</td>
+</tr>
+</tbody>
+</table>
+<p>A <code>Node</code> holds at most one transport: <code>trans</code>
+(in-mem) <strong>xor</strong> <code>netTransport</code> (TCP). Storage
+fields (<code>dataDir</code>, <code>closeStore</code>) are orthogonal —
+a persistent node sets them in addition to whichever transport it
+uses.</p>
+<h3 id="cluster-the-multi-node-helper-cluster.go">1.3
+<code>Cluster</code> — the multi-node helper
+(<code>cluster.go</code>)</h3>
+<p><code>Cluster</code> is a set of <code>*Node</code> plus polling
+helpers used by tests and builders:</p>
+<ul>
+<li><code>Leader()</code> — the node that both reports Leader state
+<strong>and</strong> advertises itself as leader (guards against
+transient split views).</li>
+<li><code>WaitForLeader(timeout)</code> /
+<code>WaitForNewLeader(excludeID, timeout)</code> — poll until a (new)
+leader is observed; assert on observed state rather than sleeping a
+fixed duration.</li>
+<li><code>Survivors(excludeID)</code> — all nodes except one (used after
+killing a leader).</li>
+<li><code>Shutdown()</code> — stop every node, skipping already-stopped
+ones.</li>
+</ul>
+<hr />
+<h2 id="the-transportstorage-ladder">2. The transport/storage
+ladder</h2>
+<p>Each rung below adds exactly one production property over the
+previous one, over the <strong>same</strong>
+<code>KVFSM</code>/<code>Node</code>/<code>Cluster</code> contract.
+Shared wiring is factored out so the rungs cannot drift.</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th>Rung</th>
+<th>Constructor</th>
+<th>Transport</th>
+<th>Storage</th>
+<th>Delivered by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. In-mem</td>
+<td><code>NewInmemCluster(base, ids...)</code></td>
+<td><code>InmemTransport</code> (in-process channel mux)</td>
+<td>in-mem log/stable/snapshot</td>
+<td>baseline (<code>cluster.go</code>)</td>
+</tr>
+<tr>
+<td>2. Real TCP</td>
+<td><code>NewNetworkCluster(base, ids...)</code></td>
+<td>real loopback <code>NetworkTransport</code></td>
+<td>in-mem</td>
+<td>HXC-974 (<code>tcp.go</code>)</td>
+</tr>
+<tr>
+<td>3. On-disk</td>
+<td><code>NewPersistentNode(id, dataDir, base)</code></td>
+<td>in-mem</td>
+<td>BoltDB + FileSnapshotStore</td>
+<td>HXC-976 (<code>store.go</code>)</td>
+</tr>
+<tr>
+<td>4. Combined</td>
+<td><code>NewPersistentNetworkNode(...)</code> /
+<code>NewPersistentNetworkCluster(ids, dataDirs)</code></td>
+<td>real TCP</td>
+<td>BoltDB + snapshots</td>
+<td>HXC-978 / Task I5 (<code>persistnet.go</code>)</td>
+</tr>
+<tr>
+<td>5. Fixed-address (multi-process)</td>
+<td><code>NewPersistentNetworkNodeAt(id, dataDir, bindAddr, base, servers)</code></td>
+<td>real TCP at a <strong>fixed</strong> <code>host:port</code></td>
+<td>BoltDB + snapshots</td>
+<td>HXC-982 (<code>persistnet.go</code>, daemon)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="in-mem-newinmemcluster">2.1 In-mem
+(<code>NewInmemCluster</code>)</h3>
+<p>Builds an N-node cluster over <code>hashicorp/raft</code>’s
+<code>InmemTransport</code> and in-mem stores, fully interconnects the
+transports, bootstraps an identical N-server configuration into each
+node, and starts them. No network, etcd, or disk. This is the rung the
+in-process kill-the-leader integration test uses (HXC-1216): a real
+3-node group elects a leader, and committed entries stay intact on the
+survivors after the leader is shut down.</p>
+<h3 id="real-tcp-networktransport-newnetworkcluster-tcp.go">2.2 Real TCP
+<code>NetworkTransport</code> (<code>NewNetworkCluster</code>,
+<code>tcp.go</code>)</h3>
+<p><code>tcpStreamLayer</code> adapts a <code>*net.TCPListener</code>
+into a <code>hashicorp/raft</code> <code>StreamLayer</code>
+(<code>Accept</code>/<code>Close</code>/<code>Addr</code>/<code>Dial</code>).
+<code>openTCPTransportAt(id, bindAddr, base)</code> binds a real
+listener (resolving <code>bindAddr</code>), wraps it in a
+<code>NewNetworkTransportWithConfig</code> (<code>MaxPool: 3</code>,
+<code>Timeout: 5s</code>), and returns the transport plus the concrete
+bound <code>*net.TCPAddr</code>. <code>openTCPTransport</code> is the
+ephemeral convenience over it (<code>"127.0.0.1:0"</code> → OS-assigned
+port). <code>newTCPNode</code> assembles a node from this transport with
+in-mem stores and TCP-tuned timers.</p>
+<p><code>NewNetworkCluster</code> keys the bootstrap configuration by
+each node’s <strong>real</strong> bound TCP address, so peers reach each
+other by dialing genuine kernel sockets —
+RequestVote/AppendEntries/InstallSnapshot RPCs travel over real TCP.
+<code>NetTransport</code> and <code>LocalTCPAddr</code> accessors let
+tests assert each node bound a distinct non-zero port.
+<code>wrapNetworkNodes</code> owns leak-safe partial-failure cleanup: on
+any error it shuts down already-started nodes and closes the un-wrapped
+transports so no listener socket or goroutine leaks.</p>
+<h3 id="on-disk-boltdb-persistence-newpersistentnode-store.go">2.3
+On-disk BoltDB persistence (<code>NewPersistentNode</code>,
+<code>store.go</code>)</h3>
+<p><code>openPersistentStores(dataDir, base)</code> opens the durable
+storage half: a single <code>raft-boltdb/v2</code>
+<code>BoltStore</code> (<code>raft.db</code>) that satisfies
+<strong>both</strong> <code>LogStore</code> and
+<code>StableStore</code>, plus a <code>FileSnapshotStore</code> under
+<code>snapshots/</code> (retain 2). It also <strong>detects prior
+state</strong> — a non-empty <code>raft.db</code> file or a
+<code>LastIndex() &gt; 0</code> — and reports <code>alreadyInit</code>
+so a reopen does <strong>not</strong> re-bootstrap.</p>
+<p><code>NewPersistentNode(id, dataDir, base)</code> uses this with the
+in-mem transport (a single-node Raft is trivially leader; storage
+durability is orthogonal to the transport):</p>
+<ul>
+<li><strong>First call on a fresh dir:</strong> bootstraps a
+single-server config into the durable stores; the node elects itself
+leader.</li>
+<li><strong>Later call on the same dir</strong> (after the previous
+<code>Node.Shutdown</code> closed the bolt file): the node is
+<strong>re-opened</strong> — <code>hashicorp/raft</code> replays the
+persisted log / restores the latest snapshot into a fresh
+<code>KVFSM</code>, recovering all previously committed entries
+<strong>without a caller re-applying them</strong>.</li>
+</ul>
+<p>This rung’s <code>WaitForLeader(timeout)</code> additionally issues a
+Raft <code>Barrier</code> after leadership is observed, so on return
+every replayed-and-committed entry is already applied to the FSM and
+visible via <code>FSM().Get</code>.</p>
+<h3 id="combined-persistent-networked-node-persistnet.go">2.4 Combined
+persistent + networked node (<code>persistnet.go</code>)</h3>
+<p><code>persistnet.go</code> <strong>composes</strong> the two real
+primitives — without duplicating either — into one node that is both
+networked and durable. It reuses <code>openTCPTransportAt</code> (TCP)
+and <code>openPersistentStores</code> (BoltDB + snapshots), so a
+combined node carries a non-nil <code>netTransport</code> (TCP)
+<strong>and</strong> non-nil
+<code>dataDir</code>/<code>closeStore</code> (BoltDB):</p>
+<ul>
+<li><code>NewPersistentNetworkNode(id, dataDir, base, servers)</code> —
+ephemeral-port convenience; returns a <code>PersistentNetworkNode</code>
+bundling the live <code>*Node</code>, its bound
+<code>*net.TCPAddr</code>, and (read-only via <code>LogStore()</code>)
+the on-disk store for direct log inspection.</li>
+<li><code>NewPersistentNetworkCluster(base, ids, dataDirs)</code> — the
+persistent+networked analogue of <code>NewNetworkCluster</code>: binds
+each node’s real TCP listener, bootstraps the full membership into every
+node’s <strong>durable</strong> stores, and starts them.
+<code>wrapPersistentNetworkNodes</code> provides the same leak-safe
+partial-failure cleanup (closing both transports and bolt stores).</li>
+</ul>
+<p>Reopen semantics match §2.3: on a fresh dir it bootstraps; on the
+same dir after a prior <code>Shutdown</code> (or an abrupt kill) it
+recovers the durable log/snapshot and rejoins <strong>without</strong>
+re-bootstrapping, binding a fresh listener.</p>
+<h3
+id="fixed-address-multi-process-primitive-newpersistentnetworknodeat">2.5
+Fixed-address multi-process primitive
+(<code>NewPersistentNetworkNodeAt</code>)</h3>
+<p><code>NewPersistentNetworkNodeAt(id, dataDir, bindAddr, base, servers)</code>
+is the multi-<strong>process</strong> building block. Because the
+transport binds a <strong>known fixed</strong> address
+(e.g. <code>127.0.0.1:7001</code>) instead of an ephemeral one, the full
+initial membership (<code>servers</code> — every node’s
+<code>id=addr</code>, including self) can be configured ahead of time
+across separate OS processes. Each process calls it with the same
+<code>servers</code> list and its own <code>id</code> /
+<code>bindAddr</code> / <code>dataDir</code>:</p>
+<ul>
+<li><strong>First boot (fresh dir):</strong> bootstraps
+<code>servers</code> into the durable stores.</li>
+<li><strong>Reopen (same dir, after a prior Shutdown or a
+SIGKILL):</strong> recovers the persisted log/snapshot from disk and
+rejoins the live cluster <strong>without</strong> re-bootstrapping (the
+durable on-disk configuration wins; <code>servers</code> is ignored),
+using the same fixed <code>bindAddr</code> so peers reconnect by the
+address they know.</li>
+</ul>
+<p><code>Node.Shutdown</code> for such a node stops Raft, closes the TCP
+transport (releasing the listener), then closes BoltDB (flushing files)
+— in that order.</p>
+<hr />
+<h2 id="the-helix-raftd-daemon-cmdhelix-raftd">3. The
+<code>helix-raftd</code> daemon (<code>cmd/helix-raftd</code>)</h2>
+<p><code>helix-raftd</code> is a single-process daemon hosting
+<strong>one</strong> persistent+networked node (real loopback TCP + real
+on-disk BoltDB) via <code>NewPersistentNetworkNodeAt</code>. Run three
+as separate OS processes — each with its own <code>--data-dir</code> and
+<code>--bind</code>, all sharing the same <code>--peers</code>
+membership — and they elect a leader, replicate over real TCP, and
+survive a leader-process kill + restart-from-disk. There is no
+in-process shim.</p>
+<h3 id="flags-main.go">3.1 Flags (<code>main.go</code>)</h3>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--id</code></td>
+<td>This node’s Raft server id; <strong>must</strong> appear in
+<code>--peers</code>.</td>
+</tr>
+<tr>
+<td><code>--data-dir</code></td>
+<td>Durable directory for this node’s BoltDB (<code>raft.db</code>) +
+<code>snapshots/</code>.</td>
+</tr>
+<tr>
+<td><code>--bind</code></td>
+<td>This node’s Raft TCP listen address (<code>host:port</code>),
+e.g. <code>127.0.0.1:7001</code>.</td>
+</tr>
+<tr>
+<td><code>--peers</code></td>
+<td>Full initial membership <strong>including self</strong>:
+comma-separated <code>id=addr</code> pairs. Used only on first boot; on
+reopen the durable on-disk config wins.</td>
+</tr>
+<tr>
+<td><code>--admin</code></td>
+<td>This node’s admin HTTP listen address (<code>host:port</code>), a
+<strong>separate</strong> port from <code>--bind</code>.</td>
+</tr>
+</tbody>
+</table>
+<p><code>parseFlags</code> validates that all four required flags are
+set, that <code>--id</code> appears in <code>--peers</code>, and that
+<code>--bind</code> <strong>equals</strong> the address recorded for
+that id in <code>--peers</code> (peers dial the membership address, so a
+node’s advertised Raft address must be exactly what its peers will
+dial). <code>parsePeers</code> enforces non-empty, unique ids and
+addresses.</p>
+<h3 id="http-admin-api-admin.go">3.2 HTTP admin API
+(<code>admin.go</code>)</h3>
+<p>A small HTTP control surface on the <code>--admin</code> port,
+separate from the Raft TCP port, so a client can drive and observe the
+node out-of-band from Raft’s own RPCs.</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Endpoint</th>
+<th>Method</th>
+<th>Behaviour</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>/status</code></td>
+<td>GET</td>
+<td>JSON
+<code>{id, state, isLeader, leader, leaderAddr, lastIndex, numKeys, applied}</code>
+— live Raft state plus FSM sink-side counters. A supervisor polls this
+to detect “exactly one leader” and “follower caught up”.</td>
+</tr>
+<tr>
+<td><code>/get?key=K</code></td>
+<td>GET</td>
+<td>Reads <code>K</code> from <strong>this</strong> node’s FSM (no Raft
+round-trip). A GET served by a <strong>follower</strong> proves the
+value reached that follower’s own state via replication.</td>
+</tr>
+<tr>
+<td><code>/put?key=K&amp;value=V</code></td>
+<td>PUT/POST</td>
+<td>Applies a SET <strong>through Raft</strong>. Leader-only: Raft
+replicates to a majority and applies to every FSM before the call
+returns. The value may be <code>?value=</code> or the request body.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Leader-gated writes (no split-brain).</strong> On a follower,
+<code>/put</code> returns
+<strong><code>421 Misdirected Request</code></strong> with
+<code>{error, leader, leaderAddr}</code> so the client can redirect to
+the real leader. The same 421 path also covers a leadership change that
+races between the <code>IsLeader()</code> check and <code>Apply</code>
+(which returns <code>ErrNotLeader</code>). Only the leader ever mutates
+state, so there is no split-brain write.</p>
+<h3 id="startup-graceful-shutdown-order-main.go">3.3 Startup / graceful
+shutdown order (<code>main.go</code>)</h3>
+<p>Startup: bring up the persistent+networked node (binds TCP, opens
+BoltDB, bootstraps-or-recovers) → start the admin HTTP server
+(synchronous bind, so a bind failure surfaces before readiness is
+announced) → print a machine-parseable
+<code>HELIX_RAFTD_READY id=… bind=… admin=… tcp=…</code> line on stdout
+once both listeners are up.</p>
+<p>On <code>SIGINT</code>/<code>SIGTERM</code> (10s timeout):
+<strong>stop the admin server first</strong> (no new requests),
+<strong>then</strong> <code>Node.Shutdown</code> (Raft → TCP transport →
+BoltDB, in that order, flushing the data dir so it can be reopened by a
+later process).</p>
+<hr />
+<h2 id="durability-and-safety-guarantees-actually-proven">4. Durability
+and safety guarantees actually proven</h2>
+<h3
+id="multi-process-kill-restart-from-disk-e2e-cmdhelix-raftde2e_test.go-hxc-982">4.1
+Multi-process kill + restart-from-disk E2E
+(<code>cmd/helix-raftd/e2e_test.go</code>, HXC-982)</h3>
+<p>A real multi-<strong>process</strong> end-to-end test (build tag
+<code>e2e</code>; run with
+<code>go test -tags e2e -run TestE2E ./cmd/helix-raftd/ -v</code>). It
+is not a mock and not skipped: it <code>go build</code>s the daemon and
+spawns <strong>3 genuine OS processes</strong> over real TCP with real
+on-disk BoltDB, driving them via their admin HTTP ports. It proves, in
+order:</p>
+<ol type="1">
+<li>Exactly one leader is elected <strong>across the processes</strong>
+over real TCP.</li>
+<li>A PUT on the leader is then served by a <strong>GET on a follower
+process</strong> (replication reached the follower’s own FSM over
+TCP).</li>
+<li>A PUT on a <strong>follower</strong> is rejected with
+<code>421</code> and the leader’s address (leader-gated write).</li>
+<li>The leader process is <strong>SIGKILLed</strong>; a <strong>new
+leader</strong> emerges among the two survivors and the value survives.
+A second key is PUT <strong>while the old leader is down</strong>.</li>
+<li>The killed node is <strong>restarted from its same data
+dir</strong>; it rejoins, catches up <code>lastIndex</code>, and serves
+<strong>both</strong> keys (the persisted one and the one added while it
+was down).</li>
+<li><strong>Decisive persistence proof:</strong> the <strong>full
+cluster</strong> is stopped (every BoltDB flushes), each
+<code>raft.db</code> is asserted non-empty on disk, then <strong>all
+three</strong> are restarted from their same data dirs. A leader is
+re-elected and both values are readable on <strong>every</strong>
+process — they could only have come from on-disk BoltDB, not live
+replication.</li>
+</ol>
+<p>The test writes timestamped evidence (<code>e2e.log</code> + a
+human-readable <code>README.md</code>) to
+<code>qa-results/helix-raftd/&lt;run-id&gt;/</code>.</p>
+<h3
+id="tlc-verified-snapshot-log-compaction-safety-specsraftsnapshot.tla-hxc-979">4.2
+TLC-verified snapshot / log-compaction safety
+(<code>specs/RaftSnapshot.tla</code>, HXC-979)</h3>
+<p><code>specs/RaftSnapshot.tla</code> is a TLA+ model of the
+<strong>snapshot-install / log-compaction safety</strong> dimension the
+Go code exercises (<code>FileSnapshotStore</code> + log truncation past
+the snapshot point + <code>InstallSnapshot</code> to a follower whose
+log has fallen behind the leader’s snapshot index, so a plain
+<code>AppendEntries</code> can no longer catch it up). It is
+deliberately not full Raft: it fixes one stable leader and models the
+<code>COMMIT</code> / <code>COMPACT</code> / <code>INSTALL</code> /
+<code>APPEND</code> actions of that dimension.</p>
+<p>Two safety invariants are checked:</p>
+<ul>
+<li><strong><code>NoCommittedEntryLost</code></strong> — every committed
+index is legitimately covered by the leader: either inside a snapshot
+whose point is itself <code>&lt;= commitIndex</code> (reflects applied
+state) or still present in the un-truncated log.</li>
+<li><strong><code>SnapshotInstallCorrect</code></strong>
+(<code>NoFollowerGap</code> ∧ <code>FollowerAgrees</code>) — after a
+follower installs a snapshot and appends the rest, it holds every
+committed entry up to its own frontier with no gap, and agrees with the
+leader on the shared committed prefix.</li>
+</ul>
+<p>The model carries two mutation flags (<code>AllowBadCompact</code>,
+<code>AllowLossyInstall</code>) that, when enabled, deliberately break
+these invariants — the mutation-testing harness’s proof that the
+invariants have real teeth. The <strong>main</strong> configuration
+(<code>RaftSnapshot.cfg</code>) runs with <strong>both mutations
+OFF</strong>, <code>Followers = {f1, f2}</code>,
+<code>MaxIndex = 3</code> — the smallest domain that yields a genuine
+“compact past a follower’s log end, then install” gap. The bounded state
+space is explored <strong>exhaustively to completion</strong> (TLC
+reports 0 states left on the queue) under sound symmetry reduction over
+the interchangeable follower ids, with both invariants holding. (As
+checked locally with <code>tla2tools.jar</code>, the exhaustive run
+completes in a small, fixed number of states — on the order of a couple
+hundred — well within the time budget.)</p>
+<hr />
+<h2 id="a-3-node-cluster-as-deployed-by-helix-raftd">5. A 3-node cluster
+(as deployed by <code>helix-raftd</code>)</h2>
+<p>Three <code>helix-raftd</code> processes, each binding a fixed Raft
+TCP port and a separate admin HTTP port, each backed by its own on-disk
+BoltDB. Raft RPCs flow over TCP between the nodes; clients drive the
+admin API on top; the leader is the only node that mutates state.</p>
+<pre><code>                         client / supervisor
+                                  |
+              admin HTTP (GET /status, /get; PUT /put)
+        +-------------------------+-------------------------+
+        | 421 + leaderAddr        |  (writes only here)     | 421 + leaderAddr
+        v                         v                         v
+  +-----------+             +-----------+             +-----------+
+  | helix-    |             | helix-    |             | helix-    |
+  | raftd  n1 |             | raftd  n2 |             | raftd  n3 |
+  | FOLLOWER  |             |  LEADER   |             | FOLLOWER  |
+  |           |             |           |             |           |
+  |  KVFSM    |             |  KVFSM    |             |  KVFSM    |
+  +-----+-----+             +-----+-----+             +-----+-----+
+        |  Raft RPCs (RequestVote / AppendEntries / InstallSnapshot)
+        |  over real loopback TCP — every node dials the others&#39; --bind
+        +========================+========================+
+        |                        |                        |
+   +----v----+              +----v----+              +----v----+
+   | BoltDB  |              | BoltDB  |              | BoltDB  |
+   | raft.db |              | raft.db |              | raft.db |
+   | +snaps/ |              | +snaps/ |              | +snaps/ |
+   +---------+              +---------+              +---------+
+   data-dir n1             data-dir n2             data-dir n3</code></pre>
+<p>Which node is leader is decided by Raft election and changes on
+failure; the diagram shows one possible assignment. A write accepted by
+the leader is replicated to a majority and applied to every node’s
+<code>KVFSM</code> before the leader’s <code>/put</code> returns; each
+node’s committed log and snapshots are durable in its own
+<code>raft.db</code> + <code>snapshots/</code>, so a node (or the whole
+cluster) recovers its state from disk on restart.</p>
+<hr />
+<h2 id="source-map">6. Source map</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Concern</th>
+<th>File(s)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Replicated FSM + <code>Command</code></td>
+<td><code>pkg/raft/fsm.go</code></td>
+</tr>
+<tr>
+<td><code>Node</code> contract, in-mem node builder</td>
+<td><code>pkg/raft/node.go</code></td>
+</tr>
+<tr>
+<td><code>Cluster</code> helpers, in-mem cluster</td>
+<td><code>pkg/raft/cluster.go</code></td>
+</tr>
+<tr>
+<td>Real TCP transport</td>
+<td><code>pkg/raft/tcp.go</code></td>
+</tr>
+<tr>
+<td>On-disk BoltDB + snapshot stores, reopen-recovery</td>
+<td><code>pkg/raft/store.go</code></td>
+</tr>
+<tr>
+<td>Combined persistent+networked node, fixed-address builder</td>
+<td><code>pkg/raft/persistnet.go</code></td>
+</tr>
+<tr>
+<td>Daemon (flags, lifecycle)</td>
+<td><code>cmd/helix-raftd/main.go</code></td>
+</tr>
+<tr>
+<td>Daemon admin HTTP API</td>
+<td><code>cmd/helix-raftd/admin.go</code></td>
+</tr>
+<tr>
+<td>Prometheus <code>/metrics</code> endpoint + observability (<a
+href="observability.md">docs</a>)</td>
+<td><code>cmd/helix-raftd/metrics.go</code></td>
+</tr>
+<tr>
+<td>Multi-process kill+restart E2E</td>
+<td><code>cmd/helix-raftd/e2e_test.go</code></td>
+</tr>
+<tr>
+<td>Snapshot/compaction safety spec</td>
+<td><code>specs/RaftSnapshot.tla</code>,
+<code>specs/RaftSnapshot.cfg</code></td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

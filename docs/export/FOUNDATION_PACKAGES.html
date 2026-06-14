@@ -274,6 +274,71 @@ assignment via a controller quorum, with controller election and
 controller-loss failover.</td>
 </tr>
 <tr>
+<td><code>raft</code></td>
+<td>Embedded <code>github.com/hashicorp/raft</code> consensus: a
+<code>KVFSM</code> replicated key/value state machine
+(<code>Apply</code>/<code>Snapshot</code>/<code>Restore</code>), a
+<code>Node</code> wrapper
+(<code>Apply</code>/<code>Leader</code>/<code>IsLeader</code>/<code>State</code>/<code>Shutdown</code>)
+and <code>NewInmemCluster</code> for N-node bootstrap over
+hashicorp/raft’s in-memory transport+store. Real 3-node kill-the-leader
+integration test: a new leader is elected and committed log entries stay
+intact on survivors, <code>-race</code> clean and non-flaky (HXC-1216).
+Beyond the in-mem path, three production primitives over the same
+<code>KVFSM</code>/<code>Node</code>/<code>Cluster</code> contract: (1)
+a real TCP <strong>network</strong> transport (<code>tcp.go</code>) —
+<code>tcpStreamLayer</code> over <code>net.ListenTCP</code> (loopback
+ephemeral port) wrapped in
+<code>raft.NewNetworkTransportWithConfig</code>, with
+<code>NewNetworkCluster(ids...)</code> standing up an N-node cluster
+whose RequestVote/AppendEntries/InstallSnapshot RPCs travel over genuine
+kernel sockets (leak-safe partial-failure cleanup;
+<code>NetTransport</code>/<code>LocalTCPAddr</code> accessors), stores
+still in-mem (HXC-974); (2) real on-disk <strong>persistence</strong>
+(<code>store.go</code>) — <code>NewPersistentNode(id,dataDir)</code>
+backed by a <code>hashicorp/raft-boltdb/v2</code> <code>BoltStore</code>
+(one bbolt file as log+stable store) plus a
+<code>FileSnapshotStore</code>, so a Shutdown→re-open of the same dir
+recovers all committed entries from disk WITHOUT caller re-apply (reopen
+detected → no re-bootstrap; <code>WaitForLeader</code> issues a
+<code>Barrier</code> so recovery is fully applied before return), in-mem
+transport (HXC-976); (3) a combined
+<strong>persistent+networked</strong> production node
+(<code>persistnet.go</code>) — <code>NewPersistentNetworkNode</code> /
+<code>NewPersistentNetworkCluster(ids,dataDirs)</code> composing the
+real TCP transport AND the real BoltDB+snapshot persistence into one
+node (restart→recover-from-disk→rejoin over a freshly bound port),
+reusing <code>openTCPTransport</code>/<code>openPersistentStores</code>
+so the two halves can’t drift (Task I5). For
+multi-<strong>process</strong> clusters,
+<code>NewPersistentNetworkNodeAt(id,dataDir,bindAddr,base,servers)</code>
+binds a caller-specified fixed TCP address with an explicit server set
+(first boot bootstraps; reopen recovers-from-disk without re-bootstrap),
+via the single shared <code>openTCPTransportAt</code> (no TCP-wiring
+duplication). This primitive backs the <code>helix-raftd</code> daemon
+(<code>cmd/helix-raftd</code>): one persistent+networked node per OS
+process with an HTTP admin API (<code>/status</code>, <code>/get</code>,
+leader-only <code>/put</code> via raft <code>Apply</code> — a follower
+returns 421 + the real leader address, so no split-brain), proven by a
+real 3-process E2E that survives a leader-process <code>SIGKILL</code>
+and a full-cluster restart-from-disk where every value re-served could
+only have come from on-disk BoltDB (HXC-982).</td>
+</tr>
+<tr>
+<td><code>raftleader</code></td>
+<td>Real Raft-backed leader-election service adapting <code>raft</code>
+to a <code>leader</code>-shaped contract: <code>RaftElection</code>
+(<code>IsLeader</code>/<code>LeaderID</code>/<code>Resign</code> via a
+real <code>LeadershipTransfer</code>, <code>Apply</code> leader-gated,
+<code>Campaign</code>/<code>WaitForLeadership</code>,
+<code>LeadershipChanges</code> sourced from hashicorp/raft’s
+<code>LeaderCh</code>, <code>ErrNotLeader</code>). 3-node test:
+exactly-one-leader, follower write-gating, kill-leader re-election,
+committed state survives failover (HXC-953). Closes the gap where
+<code>leader</code> was not real Raft; <code>leader</code> left
+untouched.</td>
+</tr>
+<tr>
 <td><code>stonith</code></td>
 <td>Shoot-The-Other-Node-In-The-Head fencing: a
 <code>FencingAgent</code> interface with IPMI / AWS-EC2 / Azure-ARM /

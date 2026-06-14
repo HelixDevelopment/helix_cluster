@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_08_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_08_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-8-chutes-ai-integration-code-grounded-gap-audit">Phase 8
+(Chutes AI Integration) — Code-Grounded Gap Audit</h1>
+<p><strong>Revision:</strong> 1 <strong>Last modified:</strong>
+2026-06-01 <strong>Maintainer:</strong> Engineering Auditor (anti-bluff
+sweep per CLAUDE-1 / §11.4.68)</p>
+<p><strong>Honest completion: ~12% of the Phase 8 roadmap is shipped as
+real, tested code.</strong></p>
+<p>One-line summary: the <em>security-substrate primitives</em> that
+Phase 8 depends on (post-quantum E2EE session/transport, GraVal-style
+GPU attestation, TEE attestation) are genuinely implemented with real
+crypto and real-behavior tests in the <code>security/</code> submodule —
+but every Phase-8-<em>specific</em> deliverable (Chutes API client,
+MinerController, Bittensor wallet/registration, marketplace adapters,
+Helm charts, node scripts, model router, E2EE proxy wiring, GraVal CUDA
+kernel) is MISSING. No <code>pkg/chutes</code>,
+<code>pkg/marketplace</code>, <code>pkg/bittensor</code> exists; no code
+references <code>chutes</code>, <code>bittensor</code>,
+<code>TAO</code>, <code>metagraph</code>, or an OpenAI-compatible
+inference endpoint.</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it. Note: <code>security/pkg/*</code> lives in the
+<strong>separate <code>vasic-digital/security</code> module</strong>, so
+it is <strong>not</strong> in HelixCluster’s <code>cmd/</code> dep graph
+by construction — those primitives are reusable building blocks, not
+wired Phase-8 features.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/chutes</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/marketplace</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/bittensor</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>security/pkg/e2ee</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not imported by any helix
+cmd)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/gpuattest</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not imported by any helix
+cmd)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/attestation</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not imported by any helix
+cmd)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/gpuattest</code> (local placeholder shim)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/fiber</code> (8C miner↔︎validator transport)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/llm</code> (model router — stub
+<code>Inference</code>)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code> (local alloc; no Phase-8 hooks)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (Omega core; no carbon/compliance)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts:</strong> the local
+<code>pkg/gpuattest</code> shim and <code>pkg/fiber</code> are
+implemented+tested but reachable from <strong>no</strong> binary. The
+genuine crypto primitives in the <code>security/</code> submodule are
+tested but, being a separate module, are not part of any HelixCluster
+binary’s dependency graph — so no Phase-8 consumer integrates them yet.
+<code>internal/llm</code> is wired but its <code>Inference</code> is a
+self-labelled stub, so package-wired ≠ feature-working here.</p>
+<h2 id="method-caveats">Method &amp; caveats</h2>
+<ul>
+<li>Searched <code>pkg/ internal/ cmd/ api/ security/</code> for:
+<code>chutes</code>, <code>bittensor</code>, <code>subtensor</code>,
+<code>metagraph</code>, <code>TAO</code>, <code>coldkey/hotkey</code>,
+<code>yuma</code>, <code>graval</code>, <code>marketplace</code>,
+<code>mlkem</code>, <code>e2ee</code>, <code>attestation</code>,
+<code>llm.chutes.ai</code>, <code>text/event-stream</code>. Only
+attestation/e2ee (in <code>security/</code>) and incidental matches
+hit.</li>
+<li><code>security/</code> is the <code>vasic-digital/security</code>
+submodule. Its packages compile and tests PASS from the submodule root
+(<code>cd security &amp;&amp; go test ./pkg/e2ee/ ./pkg/gpuattest/ ./pkg/attestation/</code>
+→ all <code>ok</code>). They are NOT yet imported by any HelixCluster
+Phase-8 consumer (no <code>pkg/chutes</code> to wire them into), so they
+are reusable building blocks, not an integrated feature.</li>
+<li>CLAUDE-1 / §11.4.68 gate: NONE of the Phase 8 success criteria (TAO
+on-chain, tokens through validator scoring API, GraVal pass-rate, E2EE
+proxy audit log, P99 first-token latency) can be evidenced — the
+producing code does not exist.</li>
+</ul>
+<h2 id="deliverable-status-table">Deliverable status table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap §)</th>
+<th>Status</th>
+<th>Evidence file:line</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/chutes</code> MinerController + GraValVerifier (P0
+#1)</td>
+<td>MISSING</td>
+<td>(no <code>pkg/chutes</code>)</td>
+<td>No directory, no symbol. Critical-path revenue gate unstarted.</td>
+</tr>
+<tr>
+<td>Bittensor wallet + subnet registration (P0 #2)</td>
+<td>MISSING</td>
+<td>(grep <code>bittensor</code>/<code>coldkey</code>/<code>TAO</code> →
+0 hits)</td>
+<td>No wallet, no subtensor client, no registration.</td>
+</tr>
+<tr>
+<td>Custom HelixGepetto dual-resource strategy (P0 #3)</td>
+<td>MISSING</td>
+<td><code>internal/gpu/manager.go</code></td>
+<td>GPU manager does plain allocation/best-fit/offline; no cost
+weighting, no Helix-PoW-vs-Chutes split, no load-based hard-cap.</td>
+</tr>
+<tr>
+<td><code>helm/helixcluster-chutes</code> base chart (P0 #4)</td>
+<td>MISSING</td>
+<td>(no <code>helm/</code> dir)</td>
+<td>No Helm charts in repo.</td>
+</tr>
+<tr>
+<td>Node prep/deploy/health/verify scripts (P0 #5)</td>
+<td>MISSING</td>
+<td><code>scripts/</code> (no <code>chutes-*.sh</code>)</td>
+<td>None of <code>chutes-node-prep.sh</code>,
+<code>chutes-miner-deploy.sh</code>,
+<code>chutes-health-monitor.sh</code>,
+<code>chutes-verify.sh</code>.</td>
+</tr>
+<tr>
+<td>Chutes API Go client + streaming (P1 #6)</td>
+<td>MISSING</td>
+<td>(grep <code>llm.chutes.ai</code>/<code>text/event-stream</code> →
+0)</td>
+<td>No OpenAI-compatible client, no SSE streaming, no fallback
+chain.</td>
+</tr>
+<tr>
+<td><code>pkg/e2ee</code> ML-KEM-768 proxy (P1 #7) — primitive</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/e2ee/package.go:18-330</code>,
+<code>transport.go:31-77</code></td>
+<td>Real hybrid PQC: ML-KEM-768 (FIPS 203) + HKDF-SHA256 + AES-256-GCM,
+nonce-reuse/replay rejection, framed transport. 14 real tests PASS. BUT:
+it is a session/transport library, not the <em>proxy</em> the roadmap
+specifies (no Chutes-request interception, no gzip pipeline, no audit
+log, not wired to <code>internal/gateway</code>). Roadmap names
+ChaCha20-Poly1305; impl uses AES-256-GCM (a deliberate, documented
+choice — equivalent AEAD, but a spec deviation to note).</td>
+</tr>
+<tr>
+<td>GraVal GPU attestation (P0/P1) — primitive</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/gpuattest/package.go:22-323</code></td>
+<td>Real challenge/response attestation: HMAC-SHA256(key,
+nonce‖descriptor), iterated difficulty, single-use nonce, expiry, replay
+rejection, constant-time compare. 13 real tests PASS. HONEST SCOPE
+(lines 13-21): software only — proves possession of a device
+<em>secret</em>, NOT physical GPU silicon. The genuine GraVal CUDA
+“proof of consecutive VRAM work” kernel is absent (DEFERRED — needs
+GPU). Not consumed by any miner controller.</td>
+</tr>
+<tr>
+<td>TEE attestation (TDX/NVIDIA-CC, <code>sek8s</code>) (P2 #11) —
+primitive</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/attestation/attestation.go:1-40+</code></td>
+<td>Real software TEE-document model: ed25519-signed measurements +
+nonce + policy + freshness, <code>QuoteSigner</code> seam for real
+hardware. Tests PASS. Hardware-rooted quote (TDX/NVIDIA CC) DEFERRED —
+needs hardware. No <code>sek8s</code> deployment.</td>
+</tr>
+<tr>
+<td><code>values-models.yaml</code> 8 model configs (P1 #8)</td>
+<td>MISSING</td>
+<td>(no <code>helm/</code>)</td>
+<td>No model deployment manifests.</td>
+</tr>
+<tr>
+<td><code>pkg/marketplace</code> UnifiedManager + Chutes adapter (P1
+#9)</td>
+<td>MISSING</td>
+<td>(no <code>pkg/marketplace</code>)</td>
+<td>No <code>MarketplaceAdapter</code> interface, no composite scoring,
+no revenue optimizer.</td>
+</tr>
+<tr>
+<td>io.net / Akash / Salad adapters (P2 #10)</td>
+<td>MISSING</td>
+<td>(no <code>pkg/marketplace</code>)</td>
+<td>Unstarted.</td>
+</tr>
+<tr>
+<td><code>internal/llm</code> model router
+(latency/throughput/quality/cost)</td>
+<td>MISSING</td>
+<td><code>internal/llm/manager.go:133-158</code></td>
+<td>Manager is a registry with an explicitly-labelled stub
+<code>Inference</code> (synthetic response). Real contract guards (must
+be registered+loaded, non-empty prompt) exist and are tested, but no
+router, no Chutes backend, no SSE.</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code> GraVal hooks / MIG / dual-workload
+split</td>
+<td>MISSING</td>
+<td><code>internal/gpu/manager.go</code>,
+<code>internal/gpu/manager_extra_test.go</code></td>
+<td>Solid allocation logic with real tests, but zero Phase-8 extension
+(no attestation hook, no MIG profile mgmt, no capacity
+reservation).</td>
+</tr>
+<tr>
+<td>Hybrid PQC TLS node-to-node (P2 #12)</td>
+<td>MISSING</td>
+<td>—</td>
+<td><code>security/pkg/e2ee</code> provides the KEM primitive but no
+node-to-node TLS integration (X25519+ML-KEM-768) exists.</td>
+</tr>
+<tr>
+<td>Carbon-aware scheduler + EU AI Act compliance pipeline (P2 #13)</td>
+<td>MISSING</td>
+<td><code>pkg/scheduler/</code></td>
+<td>Omega scheduler present from earlier phases; no carbon signal, no
+compliance doc generator, no export-control tier verification.</td>
+</tr>
+<tr>
+<td>HelixQA Challenges (miner/E2EE/marketplace/GraVal)</td>
+<td>MISSING</td>
+<td><code>challenges/</code></td>
+<td>No Phase-8 challenge scenarios; none could pass without the
+producing code.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infrahardware">TOP
+IMPLEMENTABLE GAPS (Go, no new infra/hardware)</h2>
+<p>Ordered by value-per-effort. Each is buildable in pure Go against the
+<em>already-shipped</em> <code>security/</code> primitives, with
+mutation-pairable acceptance tests, and needs no GPU/Bittensor/cloud to
+be a real, tested feature.</p>
+<ol type="1">
+<li><p><strong>Chutes OpenAI-compatible API client (non-streaming
+first).</strong> Target: <code>pkg/chutes/client.go</code>. Spec: a
+<code>Client</code> wrapping <code>net/http</code> that targets a
+configurable base URL (<code>CHUTES_BASE_URL</code>, default
+<code>https://llm.chutes.ai/v1</code>) with a <code>cpk_</code> bearer
+token from env, exposing
+<code>ChatCompletion(ctx, req) (Resp, error)</code> over the OpenAI
+<code>/chat/completions</code> schema, with context deadline, typed
+error decoding (429/5xx → typed retriable error), and a fallback-model
+chain (<code>[]string</code> tried in order on retriable failure). No
+real key needed for the test — run against an
+<code>httptest.Server</code> that speaks the OpenAI JSON shape.
+Acceptance test (mutation-pairable): assert the client sends
+<code>Authorization: Bearer &lt;token&gt;</code>, honors the fallback
+chain (first model → 503, second → 200), and surfaces the assistant
+message. Mutation: drop the <code>Authorization</code> header in source
+→ test must FAIL; drop fallback-advance logic → multi-model test must
+FAIL.</p></li>
+<li><p><strong>SSE streaming decoder for Chutes chat.</strong> Target:
+<code>pkg/chutes/stream.go</code>. Spec:
+<code>StreamChatCompletion(ctx, req) (&lt;-chan Delta, &lt;-chan error)</code>
+that parses <code>text/event-stream</code>
+(<code>data: {json}\n\n</code>, terminating on
+<code>data: [DONE]</code>), emitting incremental <code>Delta</code>
+tokens; cancels cleanly on <code>ctx</code> done; bounds line length.
+Test against an <code>httptest.Server</code> streaming a fixed SSE
+script. Acceptance test: feed a 5-chunk SSE script, assert reassembled
+text + that <code>[DONE]</code> closes the channel + that context-cancel
+stops mid-stream. Mutation: ignore <code>[DONE]</code> sentinel →
+channel-close test FAILs; swallow ctx-cancel → cancel test FAILs (or
+deadlocks under <code>-timeout</code>).</p></li>
+<li><p><strong>E2EE inference envelope wiring <code>pkg/chutes</code> ↔︎
+<code>security/pkg/e2ee</code>.</strong> Target:
+<code>pkg/chutes/e2ee_proxy.go</code>. Spec: a thin
+<code>E2EEProxy</code> that, for requests flagged
+<code>TEERequired</code>, performs the e2ee handshake
+(<code>e2ee.NewInitiator</code>/<code>Respond</code>/<code>Complete</code>),
+seals the request body and opens the response via
+<code>e2ee.Session</code>, and writes a structured audit-log line
+(request id, sealed bool, byte counts) — satisfying the roadmap’s “E2EE
+proxy audit log” sink-side evidence. Pure in-process; loopback
+<code>io.ReadWriter</code> via <code>e2ee.Transport</code>. Acceptance
+test: round-trip a request body through initiator+responder sessions
+over an in-memory pipe, assert plaintext recovered, ciphertext on the
+wire ≠ plaintext, and an audit record emitted with
+<code>sealed=true</code>. Mutation: make the proxy pass plaintext
+through unsealed → “ciphertext ≠ plaintext” assertion FAILs; suppress
+the audit write → audit-record assertion FAILs.</p></li>
+<li><p><strong>GraVal-style miner attestation handshake
+controller.</strong> Target: <code>pkg/chutes/attest.go</code> (consumes
+<code>security/pkg/gpuattest</code>). Spec: a <code>Verifier</code>-side
+<code>RegisterAndChallenge(deviceID, key)</code> +
+<code>Admit(resp)</code> flow and a <code>Prover</code>-side
+<code>Attest(challenge)</code> that wraps
+<code>gpuattest.SoftwareProver</code>/<code>Verifier</code>, plus a
+<code>BatchVerify([]Response) (passRate float64)</code> returning the
+roadmap’s GraVal pass-rate KPI. Software-only; the real CUDA kernel
+stays DEFERRED but this is the integration seam + metric. Acceptance
+test: register N devices, run N attestations, assert
+<code>BatchVerify</code> pass-rate == 1.0; tamper one response, assert
+pass-rate drops + that device rejected with
+<code>ErrResponseMismatch</code>. Mutation: skip the constant-time
+compare / always-admit → tampered-device test FAILs.</p></li>
+<li><p><strong>MarketplaceAdapter interface + Chutes adapter + composite
+scorer.</strong> Target: <code>pkg/marketplace/</code>. Spec:
+<code>type Adapter interface { Name() string; Quote(ctx, GPUSpec) (Offer, error) }</code>;
+an in-process <code>ChutesAdapter</code> returning a deterministic
+<code>Offer{PriceUSD, AvailPct, LatencyMs, ThroughputTps}</code>; a
+<code>RevenueOptimizer.Best(offers)</code> implementing the roadmap’s
+composite score (price 30% / availability 30% / latency 20% / throughput
+20%, with a 1.5× TEE multiplier flag). No external marketplace needed —
+adapter returns configured/fixture data; the <em>scoring</em> is the
+real, testable logic. Acceptance test: feed 3 offers with known fields,
+assert the optimizer picks the correct weighted winner and that the TEE
+multiplier flips the winner when set. Mutation: invert a weight sign /
+drop the TEE multiplier → winner-selection test FAILs.</p></li>
+<li><p><strong>Dual-workload capacity reservation in
+<code>internal/gpu</code>.</strong> Target:
+<code>internal/gpu/reservation.go</code>. Spec: extend
+<code>Manager</code> with
+<code>ReserveForHelixPoW(fraction float64)</code> and a
+<code>ChutesCapacity() Stats</code> that reports only the non-reserved
+remainder, plus a hard-cap rule: when reported Helix load &gt; 80%,
+<code>ChutesCapacity</code> returns zero available (the roadmap’s
+Gepetto starvation guard) — all in-memory, no scheduler rewrite.
+Acceptance test: reserve 0.8, set load 0.85, assert
+<code>ChutesCapacity().Available == 0</code>; set load 0.5, assert
+non-zero. Mutation: remove the &gt;80% hard-cap branch →
+starvation-guard test FAILs.</p></li>
+</ol>
+<h2 id="deferred-external-infra-hardware-zig-gpu-kernels">DEFERRED
+(external infra / hardware / Zig / GPU kernels)</h2>
+<ul>
+<li><strong>GraVal CUDA “proof of consecutive VRAM work” kernel</strong>
+— requires real NVIDIA GPU + CUDA toolchain +
+<code>libgraval-miner.so</code>. Software stand-in exists
+(<code>security/pkg/gpuattest</code>); silicon-rooted proof cannot be
+done in CI.</li>
+<li><strong>Bittensor mainnet/testnet wallet, subnet registration, TAO
+emission, metagraph/Yuma queries</strong> — requires a live subtensor
+node and ~600 TAO for subnet ops; on-chain evidence (btcli/explorer) is
+unobtainable without the network.</li>
+<li><strong>Real Chutes SN64 end-to-end (tokens through validator
+scoring API, P99 first-token latency, 100+ nodes on metagraph)</strong>
+— requires a funded <code>cpk_</code> key + live Chutes network; client
+(#1/#2) can be built/tested against <code>httptest</code>, but the KPI
+evidence is external.</li>
+<li><strong>Intel TDX + NVIDIA CC hardware attestation
+(<code>sek8s</code>), LUKS root, Cosign admission, K3s GPU
+bare-metal</strong> — requires TEE-capable hardware + a K3s cluster.
+Software attestation model exists
+(<code>security/pkg/attestation</code>); hardware quote chain is
+deferred.</li>
+<li><strong>Helm chart real-cluster deploy +
+<code>values-models.yaml</code> model serving (vLLM/SGLang/AWQ)</strong>
+— charts are authorable in-repo (a smaller gap), but proving they serve
+models needs GPU nodes; mark the manifest authoring implementable, the
+serving-proof deferred.</li>
+</ul>
+</body>
+</html>

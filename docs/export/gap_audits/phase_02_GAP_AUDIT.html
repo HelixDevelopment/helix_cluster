@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_02_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_02_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-2-gap-audit-console-nodes-distributed-foundations">Phase 2
+Gap Audit — Console Nodes &amp; Distributed Foundations</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auditor</td>
+<td>Engineering auditor (code-grounded)</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>2026-06-01</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Direct inspection of <code>pkg/</code>, <code>internal/</code>,
+<code>cmd/</code>, <code>api/</code> + <code>go test</code> of all Phase
+2 packages</td>
+</tr>
+</tbody>
+</table>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> The old single-status table
+below conflated “the package exists” with “the package is used.” A
+package can be <strong>implemented</strong> and <strong>tested</strong>
+yet never reached from any binary (<strong>orphaned / not
+wired</strong>). <code>wired</code> here is <strong>measured</strong>,
+not assumed:
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>).
+<strong>“Completed (registry) ≠ wired”</strong> — a package marked
+Completed in the HXC registry only means source+tests exist; it does NOT
+prove it is reachable from a shipped binary.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/swim</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/leader</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/session</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/session/backends</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/node</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/console</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/scheduler</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/wireguard</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/session</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts (implemented+tested but NOT reachable from
+any <code>cmd/</code> binary):</strong> <code>pkg/leader</code>,
+<code>internal/console</code>, <code>internal/wireguard</code>. These
+pass tests and look “done” in the registry but are not wired into a
+shipped binary — exactly the exists-but-unused state the old audit hid.
+Wiring (or an explicit consumer) is required before they count as
+end-user-usable per CLAUDE-1.</p>
+<h2 id="verdict-80-complete">Verdict: ~80% complete</h2>
+<p><strong>Summary:</strong> All P0/P1 distributed-foundation packages
+(<code>swim</code>, <code>wireguard</code>, <code>discovery</code>,
+<code>leader</code>, <code>resources</code>, <code>scheduler</code>,
+<code>session</code>, node agent) are genuinely implemented with
+real-behavior tests that all pass; the remaining ~20% gap is
+concentrated in console boot coordination (no
+<code>linux_boot.go</code>), real NAT traversal (STUN/UPnP/hole-punching
+is a stub), and live-migration strategies (CRIU/DMTCP/container
+correctly deferred). No PASS-bluffs found in the implemented core —
+tests assert sink-side behavior, not just non-panic.</p>
+<p>All 14 Phase 2 packages compiled and passed <code>go test</code> at
+audit time (swim 3.2s, wireguard 0.7s, discovery 1.6s, leader 1.1s,
+resources 1.3s, scheduler 1.0s, session 1.7s, session/backends 3.7s,
+internal/node 2.3s, internal/console 2.0s, internal/gpu 3.1s,
+internal/scheduler 3.0s, internal/wireguard 2.6s, internal/session
+2.6s).</p>
+<h2 id="deliverable-status">Deliverable Status</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/swim</code> gossip: membership, suspicion, indirect
+ping</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/swim/suspicion.go:99</code> (SuspectWithRelays),
+<code>pkg/swim/prober.go:55</code> (IndirectProbe),
+<code>pkg/swim/failure_detector.go:38</code>; 3136 LOC</td>
+<td>Real incarnation/refute logic; suspicion_test + package_test assert
+Suspect/Confirm/Refute transitions.</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code> mesh: tunnels, key exchange, config
+gen</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/wireguard/config.go:37</code> (GenerateKeyPair via
+wgtypes/curve25519), <code>pkg/wireguard/mesh.go</code>,
+<code>pkg/wireguard/configgen.go</code>; 1807 LOC</td>
+<td>Real key gen + config rendering; mesh+manager tested.</td>
+</tr>
+<tr>
+<td>WireGuard key rotation</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/wireguard/keyrotation.go:104</code> (RotateKeysTracked),
+<code>:17</code> (KeyFingerprint), <code>:44</code> (Supersedes)</td>
+<td>Generation tracking + supersede ordering; keyrotation_config_test
+covers it.</td>
+</tr>
+<tr>
+<td>WireGuard NAT traversal (STUN/UPnP/hole-punch)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/wireguard/nat_traversal.go:18</code> (“STUN-like”),
+<code>:33</code> &amp; <code>:41</code> return
+<code>"UPnP/NAT-PMP not implemented"</code></td>
+<td>DiscoverExternalAddress hits external HTTP echo only; no real STUN
+client, UPnP, or UDP hole-punching. Roadmap P2 risk item.</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code> registry + health-aware routing</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/discovery/selection.go:15</code> (WeightedSelector),
+<code>:110-114</code> (healthy + TTL-expiry filter),
+<code>pkg/discovery/etcd_backend.go</code>; 1485 LOC</td>
+<td>In-memory + etcd backends real; weighted health-aware selection
+tested. etcd_backend_test uses a mock client (real etcd proven in
+<code>pkg/etcd</code> integration tests per repo).</td>
+</tr>
+<tr>
+<td><code>pkg/leader</code> TTL election + fencing</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/leader/fencing.go:117</code> (AcquireLease),
+<code>:45</code> (IsStale), <code>:73</code> (LeaseRegistry.acquire);
+796 LOC</td>
+<td>Monotonic fencing tokens + lease TTL; fencing_test asserts
+stale-token rejection.</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code> aggregator (CPU/mem/GPU/cgroup)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/resources/proc_linux.go:40</code> (/proc/cpuinfo),
+<code>:93</code> (/proc/meminfo),
+<code>pkg/resources/cgroup_v2.go</code>; 1449 LOC</td>
+<td>Real /proc + cgroup v2 parsing; proc_mock enables fixture-based
+tests. GPU is a struct field populated by console layer (see
+below).</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> plugin framework + optimistic
+concurrency</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/scheduler/plugins.go:13</code> (Filter/Score/Bind),
+<code>pkg/scheduler/scheduler.go:154</code> (ScheduleOptimistic +
+version), <code>pkg/scheduler/cost_gpu.go</code>,
+<code>gang_preempt.go</code>; 2093 LOC</td>
+<td>NodeResourcesFit/CapabilityMatch/LoadAware plugins + cost-aware GPU
++ gang/preempt; version CAS tested.</td>
+</tr>
+<tr>
+<td><code>pkg/session</code> CRDT state + manager</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/session/crdt.go</code>,
+<code>pkg/session/convergence.go</code>,
+<code>pkg/session/lifecycle.go</code>; 3058 LOC</td>
+<td>CRDT convergence + lifecycle tested with real merge assertions.</td>
+</tr>
+<tr>
+<td><code>pkg/session/backends</code> tmux + native PTY</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/session/backends/native.go:15</code> (creack/pty),
+<code>:53</code> (pty.Start),
+<code>pkg/session/backends/tmux.go:20</code> (LookPath tmux)</td>
+<td>Native PTY spawns real process; tmux shells out. tmux Attach is a
+documented partial (window-pipe, not full PTY wrap) —
+<code>tmux.go:67-73</code>.</td>
+</tr>
+<tr>
+<td>Session migration (CRDT / CRIU / DMTCP / container)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/session/migration.go:51</code> (crdtStrategy real),
+<code>:178/:196/:214</code> return
+<code>"... not implemented"</code></td>
+<td>Only CRDT (state-only) strategy is real; CRIU/DMTCP/container are
+explicit stubs — matches roadmap §6 P2 “CRIU/DMTCP research, Phase
+3”.</td>
+</tr>
+<tr>
+<td><code>internal/node</code> agent: heartbeat, probes, SWIM+WG
+wiring</td>
+<td><strong>DONE</strong></td>
+<td><code>internal/node/node.go:84</code> (swim.NewProtocol),
+<code>:97</code> (wireguard.NewManager), <code>:109</code> (resources
+aggregator); node_behavior_test + server_behavior_test</td>
+<td>Genuinely composes the three substrates; behavior tests
+present.</td>
+</tr>
+<tr>
+<td><code>internal/console</code> PS4/PS5 detection + thermal +
+trust</td>
+<td><strong>DONE</strong></td>
+<td><code>internal/console/detector.go:46</code> (Detect, /proc/cpuinfo
++ device-tree), <code>thermal.go</code>, <code>trust.go</code>,
+<code>register.go</code></td>
+<td>Real /proc parsing with injectable paths;
+detector_test/thermal_test/trust_test/register_sink_test (sink-side) all
+present.</td>
+</tr>
+<tr>
+<td><code>internal/console</code> GPU compute wrapper
+(<code>gpu_wrapper.go</code>)</td>
+<td><strong>DONE (renamed)</strong></td>
+<td><code>internal/console/gpu.go:21</code> (GPUQuerier,
+vulkanLoaderPath); gpu_test + gpu_helpers_test</td>
+<td>Vulkan-loader probe; satisfies roadmap <code>gpu_wrapper.go</code>
+mapping under a different filename.</td>
+</tr>
+<tr>
+<td><code>internal/console</code> Linux boot coordination
+(<code>linux_boot.go</code>)</td>
+<td><strong>MISSING</strong></td>
+<td>No <code>linux_boot.go</code> / <code>LinuxBoot</code> symbol in
+<code>internal/console/</code></td>
+<td>Roadmap §4.3 maps <code>console_dim04</code> →
+<code>linux_boot.go</code>. No boot coordination code exists.</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code> manager/monitor</td>
+<td><strong>DONE</strong></td>
+<td><code>internal/gpu/manager.go</code>, <code>monitor.go</code>;
+manager_test + manager_extra_test</td>
+<td>Generic GPU manager beyond console; tested.</td>
+</tr>
+<tr>
+<td>Proto APIs (node/session/scheduler/health)</td>
+<td><strong>DONE</strong></td>
+<td><code>api/v1/node.proto</code>+<code>node.pb.go</code>,
+<code>session</code>, <code>scheduler</code>, <code>health</code>,
+<code>advisory</code>, <code>security</code>, <code>build</code> (+
+<code>_grpc.pb.go</code>)</td>
+<td>Generated stubs present and consumed by internal/* servers.</td>
+</tr>
+<tr>
+<td><code>cmd/helix-node</code>, <code>helix-scheduler</code>,
+<code>helix-session</code> binaries</td>
+<td><strong>DONE</strong></td>
+<td><code>cmd/helix-node</code>, <code>cmd/helix-scheduler</code>,
+<code>cmd/helix-session</code> present (all cmd/* hardened)</td>
+<td>Binaries wired to internal servers.</td>
+</tr>
+<tr>
+<td>PS4/PS5 bare-metal Linux agent (real hardware join)</td>
+<td><strong>DEFERRED</strong></td>
+<td>n/a</td>
+<td>Requires owned jailbroken hardware + firmware; roadmap §7 high-risk.
+Detection logic exists but real-node E2E un-runnable here.</td>
+</tr>
+<tr>
+<td>Console GPU as CUDA/ROCm compute donor</td>
+<td><strong>DEFERRED</strong></td>
+<td>n/a</td>
+<td>Needs GPU kernels + drivers on console hardware.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infra">Top Implementable Gaps
+(Go, no new infra)</h2>
+<ol type="1">
+<li><p><strong><code>internal/console/linux_boot.go</code> — boot
+coordination state machine.</strong> Implement a
+<code>BootCoordinator</code> that reads kernel/firmware markers
+(e.g. <code>/proc/version</code>, <code>/sys/firmware/devicetree</code>,
+cmdline) via injectable paths and reports a <code>BootState</code>
+(Unknown/Booting/UserspaceReady/ClusterReady) plus a
+<code>WaitReady(ctx)</code> that gates node registration until probes
+pass. Pure file-reads + a deterministic state machine; no hardware
+needed for the logic. <em>Acceptance test (mutation-pairable):</em> feed
+fixture path-sets representing each boot phase and assert the returned
+<code>BootState</code>; mutant = flip the readiness threshold/ordering
+and confirm the test fails.</p></li>
+<li><p><strong><code>pkg/wireguard</code> real STUN client in
+<code>nat_traversal.go</code>.</strong> Replace the HTTP-echo
+<code>DiscoverExternalAddress</code> with a minimal RFC 5389 STUN
+Binding request over UDP (parse XOR-MAPPED-ADDRESS) against a
+configurable STUN server; keep UPnP returning a typed
+<code>ErrUnsupported</code>. No new infra — uses a stock public STUN
+endpoint or a local test server. <em>Acceptance test:</em> spin an
+in-process fake STUN UDP responder returning a known XOR-mapped addr;
+assert the parsed reflexive <code>ip:port</code>. Mutant = corrupt the
+XOR-decode mask and confirm failure.</p></li>
+<li><p><strong><code>pkg/discovery</code> etcd-backed integration test
+(real server).</strong> Add a build-tagged integration test that runs
+<code>EtcdBackend</code> against a real embedded/containerized etcd
+(repo already proves etcd in <code>pkg/etcd</code>), asserting
+register→lookup→TTL-expiry→deregister round-trips — closing the
+mock-only gap on the backend. <em>Acceptance test:</em> register an
+instance with short TTL, sleep past TTL, assert <code>Lookup</code>
+excludes it; mutant = drop the lease/TTL on Put and confirm the expired
+instance wrongly persists.</p></li>
+<li><p><strong><code>pkg/session/migration.go</code>
+container-checkpoint strategy (CRDT+manifest, no CRIU).</strong>
+Implement <code>containerStrategy</code> to do a state-only checkpoint:
+serialize CRDT session state + a restart manifest (cmd, env, cwd) to a
+blob, “migrate” by transferring the blob and re-spawning via the native
+backend on target. This is real and infra-free (process restart, not
+live freeze), distinct from the deferred CRIU path. <em>Acceptance
+test:</em> checkpoint a session, restore on a second manager instance,
+assert CRDT state + manifest equality and a live re-spawned PTY. Mutant
+= omit env from the manifest and confirm the restored-state assertion
+fails.</p></li>
+<li><p><strong><code>pkg/resources</code> Linux GPU reader
+(<code>/sys</code> + NVML-free sysfs).</strong> Add a
+<code>GPUReader</code> that enumerates <code>/dev/dri/card*</code> and
+<code>/sys/class/drm/*/device</code> (vendor/device IDs, VRAM where
+exposed) to populate <code>GPUInfo.Count</code>/vendor without vendor
+SDKs; wire into <code>NodeAggregator</code> (currently GPU is only
+copied through at <code>aggregator.go:122</code>). <em>Acceptance
+test:</em> point the reader at fixture sysfs trees (NVIDIA, AMD, none)
+and assert detected count/vendor. Mutant = swap the vendor-ID map and
+confirm misclassification fails the test.</p></li>
+<li><p><strong><code>pkg/wireguard</code> key-rotation grace/overlap
+window in mesh.</strong> Extend <code>RotateKeysTracked</code> to keep
+the superseded key valid for a configurable overlap so in-flight peers
+don’t drop; expose <code>ActiveKeys()</code> returning current+grace
+keys consumed by <code>mesh.go</code> peer config. <em>Acceptance
+test:</em> rotate, assert both keys are accepted within the window and
+the old key is rejected after it (driven by an injected clock). Mutant =
+expire the old key immediately and confirm the overlap assertion
+fails.</p></li>
+</ol>
+<h2 id="deferred-need-external-infra-hardware-zig-gpu-kernels">Deferred
+(need external infra / hardware / Zig / GPU kernels)</h2>
+<ul>
+<li><strong>PS4/PS5 bare-metal Linux agent join (real
+hardware):</strong> needs owned, jailbroken consoles + tested firmware;
+detection logic is implemented but a real-node E2E cannot run in this
+environment. (Roadmap §7 high-risk.)</li>
+<li><strong>Console GPU CUDA/ROCm compute donor path:</strong> requires
+GPU kernels (C/C++) and console GPU drivers; out of scope for Go-only
+work.</li>
+<li><strong>CRIU/DMTCP live process migration:</strong> requires
+CRIU/DMTCP system binaries + privileged checkpoint/restore; roadmap §6
+explicitly schedules this for Phase 3 research.</li>
+<li><strong>Real WireGuard kernel-module mesh over NAT across real
+networks:</strong> STUN client (gap #2) is implementable, but cross-NAT
+hole-punching validation needs multi-host/relay infra.</li>
+</ul>
+<p><strong>Deferred count: 4</strong> (all blocked on owned console
+hardware, GPU kernels/drivers, privileged checkpoint binaries, or
+multi-host networks — none implementable as pure no-infra Go here).</p>
+</body>
+</html>

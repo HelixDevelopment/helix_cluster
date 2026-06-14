@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_08C_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_08C_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-8c-code-grounded-gap-audit">Phase 8C — Code-Grounded Gap
+Audit</h1>
+<blockquote>
+<p><strong>Honest completion: ~45% of Phase 8C deliverables.</strong>
+Crypto/trust primitives (PQ E2EE envelope, software proof-of-GPU,
+software TEE attestation) are genuinely implemented with real-behavior
+tests in the <code>vasic-digital/security</code> submodule; scheduler
+cost/preemption and a fiber transport exist. But the higher pillars —
+LLMOrchestrator serving (still a stub), GPU resource model,
+model-integrity gate, marketplace/audit, inferenceproxy, admission — are
+MISSING, and the implemented primitives lack the Chutes byte-interop,
+O(1) spot-check, streaming, and attestation-gated scheduling the roadmap
+specifies.</p>
+</blockquote>
+<p>Audited 2026-06-01 against actual code in <code>pkg/</code>,
+<code>internal/</code>, <code>cmd/</code>, and the
+<code>security/</code> submodule (<code>vasic-digital/security</code>).
+A deliverable is <strong>DONE</strong> only if implemented AND covered
+by real-behavior tests; stub/partial/untested → PARTIAL/MISSING.</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it.</p>
+<p><strong>STALENESS CORRECTION:</strong> the 2026-06-01 table below
+marked <code>pkg/modelintegrity</code> (then
+<code>hf_cache_verify</code>), <code>pkg/inferenceproxy</code>, and
+<code>pkg/marketplace</code> as MISSING. As of 2026-06-04 <strong>all
+three EXIST and are TESTED</strong> — but <strong>all three are
+ORPHANED</strong> (not reachable from any <code>cmd/</code> binary). The
+registry would show them “Completed”; the measured <code>wired</code>
+column shows they are exists-but-unused. The rows below override the
+older prose.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/modelintegrity</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/inferenceproxy</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/marketplace</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/fiber</code> (miner↔︎validator transport)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (cost_gpu + preempt)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code> (GPU model — no attested/multiplier
+yet)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/llm</code> (router — stub
+<code>Inference</code>)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/e2ee</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/gpuattest</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/attestation</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/admission</code> / signed-image gate</td>
+<td style="text-align: center;"><strong>NO (absent)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts:</strong> <code>pkg/modelintegrity</code>,
+<code>pkg/inferenceproxy</code>, <code>pkg/marketplace</code>,
+<code>pkg/fiber</code> are implemented+tested but reachable from no
+binary. They satisfy “the package exists” and would pass
+<code>go test</code>, but deliver zero end-user value until a binary
+(e.g. <code>internal/llm</code>’s <code>LoadModel</code>, or the
+gateway) imports them — exactly the gap the 3-axis model exposes that
+“Completed” hid.</p>
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap §)</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>8C.1 <code>pkg/security/e2ee</code> PQ envelope (ML-KEM-768 +
+HKDF-SHA256 + AEAD)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>security/pkg/e2ee/package.go:103-326</code>; tests
+<code>security/pkg/e2ee/package_test.go:37-360</code> (14 tests:
+tamper/nonce-reuse/AAD/wrong-key rejection)</td>
+<td>Real handshake + AEAD + replay rejection. <strong>Gaps vs
+spec:</strong> AEAD is AES-256-GCM, roadmap §4.1 demands
+<strong>ChaCha20-Poly1305</strong>; no streaming, no gzip, no
+nonce/instance <strong>discovery</strong> contract, and <strong>NO
+Chutes byte-interop vectors</strong> (§8 exit gate “byte-for-byte
+decrypt vs reference vectors” unmet).</td>
+</tr>
+<tr>
+<td>8C.1 E2EE framed transport</td>
+<td><strong>DONE</strong></td>
+<td><code>security/pkg/e2ee/transport.go:31-77</code>;
+<code>package_test.go:286-336</code></td>
+<td>Length-prefixed record framing over <code>io.ReadWriter</code>,
+oversize guard, round-trip + concurrent tests. Solid but minimal.</td>
+</tr>
+<tr>
+<td>8C.2 <code>pkg/gpuattest</code> software proof-of-GPU
+(challenge/response + fingerprint)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>security/pkg/gpuattest/package.go:104-323</code>; tests
+<code>package_test.go:42-380</code> (13 tests:
+expired/replay/tamper/wrong-key/forged-descriptor rejection)</td>
+<td>Honest, clean-room HMAC challenge/response with replay+expiry
+protection and explicit self-documented scope note (no GPU kernel).
+<strong>Gaps:</strong> no <strong>matmul PoVW</strong>, no <strong>O(1)
+spot-check</strong>, no <strong>device-sealed E2EE</strong> (§4.1).
+Cannot reject a real oversubscribed/spoofed GPU — only proves secret
+possession.</td>
+</tr>
+<tr>
+<td>8C.3 <code>pkg/security/attestation</code> TEE (TDX/NVIDIA quote,
+measured boot, key release)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>security/pkg/attestation/attestation.go:1-346</code>; tests
+<code>attestation_test.go</code> (18 tests)</td>
+<td>Real ed25519-signed document construct/verify with nonce freshness,
+clock-skew, and measurement-<strong>policy</strong> evaluation; honest
+“software stands in for hardware quote” seam (<code>QuoteSigner</code>).
+<strong>Gaps:</strong> no real TDX/NVIDIA quote, no attested <strong>key
+release</strong>, no measured-boot binding. Roadmap §8 hardware exit
+gate unmet (needs real hardware — DEFERRED).</td>
+</tr>
+<tr>
+<td>8C.3 <code>pkg/security/admission</code> (OPA-style policy +
+signed-image/cosign)</td>
+<td><strong>MISSING</strong></td>
+<td><code>security/pkg/policy/policy.go</code> is generic rule eval — no
+admission, no cosign, no signed-image verify; no <code>admission</code>
+dir anywhere</td>
+<td>Only a generic policy-rule framework exists; the workload-admission
++ image-signature gate is absent.</td>
+</tr>
+<tr>
+<td>8C.4 <code>pkg/scheduler</code> cost-aware placement</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/scheduler/cost_gpu.go:28-130</code>;
+<code>cost_gpu_test.go</code></td>
+<td>Cost-aware GPU scoring plugin (explicit price labels + proxy),
+implements Plugin interface, tested.</td>
+</tr>
+<tr>
+<td>8C.4 Scheduler preemption + optimistic claiming</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/scheduler/gang_preempt.go:66-279</code>
+(<code>ScheduleGangOptimistic</code>,
+<code>SchedulePreemptOptimistic</code>, version-conflict)</td>
+<td>Priority-based preemption + optimistic-concurrency version bump
+present &amp; tested. <strong>Gaps:</strong> preemption is
+<strong>priority</strong>-based, not the roadmap’s
+<strong>value-multiplier</strong> model; no
+<code>SKIP LOCKED</code>-style DB claiming; <strong>no attestation-gated
+admission predicate</strong> (§5.1 integration unmet — scheduler never
+consults gpuattest/attestation).</td>
+</tr>
+<tr>
+<td>8C.5 <code>pkg/resources</code> GPU type (fingerprint +
+compute-multiplier catalog + attested/thermal state)</td>
+<td><strong>MISSING</strong></td>
+<td><code>pkg/resources/types.go:23-28</code>
+<code>GPUInfo{Count,Model,Memory}</code> only</td>
+<td>No device fingerprint, no <code>SUPPORTED_GPUS</code> multiplier
+catalog, no verified/attested flag, no thermal/readiness state.
+<code>internal/gpu/gpu.go</code> has status enum + /proc detection but
+not the attested resource model.</td>
+</tr>
+<tr>
+<td>8C.6 LLMOrchestrator WRAP vLLM/SGLang + ranking/failover + thermal
+pre-warm + trace audit</td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/llm/manager.go:142-158</code> —
+<code>Inference</code> returns
+<code>"[stub inference from %s]"</code></td>
+<td>Honest self-labeled <strong>stub</strong>. No vLLM/SGLang HTTP
+backend, no OpenAI passthrough, no ranking, no failover, no pre-warm, no
+trace trail. This is the largest functional gap.</td>
+</tr>
+<tr>
+<td>8C.7 Model-integrity gate (<code>hf_cache_verify</code> → Go,
+SHA/size)</td>
+<td><strong>MISSING</strong></td>
+<td>no match for
+<code>hf_cache</code>/<code>ModelIntegrity</code>/<code>VerifyModel</code>
+in <code>pkg/</code>,<code>internal/</code>,<code>security/pkg/</code>.
+<code>security/pkg/content/</code> is text content-filtering, not model
+integrity</td>
+<td>Roadmap P1 #7 (“cheap, high-value”) — entirely absent.</td>
+</tr>
+<tr>
+<td>8C.7 <code>pkg/marketplace</code> + <code>/audit</code>
+(registration→bounty→metering→payout, commit-then-prove)</td>
+<td><strong>MISSING</strong></td>
+<td>no match for
+<code>bounty</code>/<code>payout</code>/<code>metering</code>/<code>Marketplace</code>
+in <code>pkg</code>,<code>internal</code>,<code>cmd</code></td>
+<td>Economic layer entirely absent.</td>
+</tr>
+<tr>
+<td><code>pkg/inferenceproxy</code> (correlation-ID, trace unwrap,
+anonymization)</td>
+<td><strong>MISSING</strong></td>
+<td>no match for
+<code>correlation</code>/<code>anonymiz</code>/<code>inferenceproxy</code>
+in <code>pkg</code>/<code>internal</code></td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td><code>pkg/fiber</code> miner↔︎validator transport</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/fiber/fiber.go:1-35+</code>;
+<code>fiber_test.go</code></td>
+<td>Clean-room length-prefixed framed transport with Ping/Pong keepalive
++ 1-reader/1-writer contract, tested. <strong>Gaps:</strong> no signed
+identity / stake-gated admission, no E2EE underlay wired (only
+documented as future).</td>
+</tr>
+<tr>
+<td>Node identity: verify-then-pin (TOFU) TLS + header sanitization</td>
+<td><strong>MISSING</strong></td>
+<td>no <code>pin</code>/<code>TOFU</code>/<code>VerifyThenPin</code> in
+<code>pkg/security/tls.go</code> or
+<code>security/pkg/security/</code></td>
+<td>Existing <code>pkg/security/{tls,spiffe,vault}.go</code> cover
+standard TLS/SPIFFE/Vault, not keypair-rooted verify-then-pin.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infra">Top Implementable Gaps
+(Go, no new infra)</h2>
+<ol type="1">
+<li><p><strong>Model-integrity gate →
+<code>pkg/modelintegrity/</code></strong> <em>(roadmap P1 #7, 0.5wk,
+highest value/effort ratio)</em> Port <code>hf_cache_verify</code>
+semantics: given a model directory and a signed manifest of
+<code>{relpath → sha256, size}</code>, walk the cache and verify every
+file’s SHA-256 and byte size before a model is marked servable; reject
+on any mismatch/missing/extra file. Pure stdlib
+(<code>crypto/sha256</code>, <code>io</code>, <code>os</code>). Wire
+into <code>internal/llm/manager.go LoadModel</code> as a precondition.
+<strong>Use only V2 HMAC-SHA256 semantics — never MD5 (risk §7
+V1).</strong> <em>Mutation-pairable acceptance test:</em> build a temp
+model dir + manifest; assert <code>Verify</code> passes; then (a) flip
+one byte → expect <code>ErrHashMismatch</code>, (b) truncate a file →
+expect <code>ErrSizeMismatch</code>, (c) delete a file → expect
+<code>ErrMissing</code>. Mutation: invert the
+<code>subtle.ConstantTimeCompare</code>/size check and confirm a test
+fails.</p></li>
+<li><p><strong>Attestation-gated scheduler admission predicate →
+<code>pkg/scheduler/</code> (extend)</strong> <em>(roadmap §5.1,
+P1)</em> Add an <code>AdmissionPredicate</code> hook on
+<code>Scheduler</code> (and a <code>Plugin.Filter</code> participant)
+that rejects a node unless it carries a verified attestation token.
+Define an interface
+<code>NodeTrust interface{ Verified(nodeID string) bool }</code>
+satisfied by <code>gpuattest.Verifier</code> /
+<code>attestation.Verifier</code> results; nodes failing verification
+are filtered out before scoring. No new infra — operates on existing
+<code>Node</code> labels + an injected verifier. <em>Mutation-pairable
+test:</em> two nodes, one with a valid gpuattest response registered,
+one spoofed; assert only the attested node is placeable. Mutation: make
+the predicate always-return-true and confirm the spoofed-node-rejected
+test fails.</p></li>
+<li><p><strong>GPU resource model → <code>pkg/resources/</code> (extend
+<code>GPUInfo</code>)</strong> <em>(roadmap 8C.5, P1)</em> Extend
+<code>GPUInfo</code> with <code>DeviceFingerprint string</code>,
+<code>ComputeMultiplier float64</code> (from a static
+<code>SUPPORTED_GPUS</code> catalog keyed by <code>Model</code>),
+<code>Attested bool</code>, and
+<code>Thermal{TempC int; Ready bool}</code>. Provide
+<code>LookupMultiplier(model string)</code> against a hardcoded catalog
+(H100/H200/A100/etc.) with a conservative default. Feed
+<code>ComputeMultiplier</code>/<code>Attested</code> into the cost
+scorer (#2 and <code>cost_gpu.go</code>). <em>Mutation-pairable
+test:</em> assert <code>LookupMultiplier("H100")</code> &gt;
+<code>LookupMultiplier("A100")</code> &gt; default; assert an
+un-attested GPU is scored below an attested one. Mutation: swap two
+catalog entries → ordering test fails.</p></li>
+<li><p><strong>E2EE Chutes byte-interop vectors + ChaCha20-Poly1305
+cipher option → <code>security/pkg/e2ee/</code></strong> <em>(roadmap §8
+exit gate, P0)</em> Add a <code>testdata/</code> corpus of fixed
+(encap-key, KEM-ct, nonce, AAD, plaintext, expected-ciphertext) vectors
+and a vector-driven test asserting byte-for-byte
+<code>Seal</code>/<code>Open</code> reproduction; add a
+ChaCha20-Poly1305 AEAD variant
+(<code>golang.org/x/crypto/chacha20poly1305</code>) selectable via
+<code>SessionConfig</code>, matching the roadmap’s stated cipher. Closes
+the “byte-for-byte vs reference vectors” exit gate without a live
+worker. <em>Mutation-pairable test:</em> table of golden vectors; assert
+exact ciphertext bytes. Mutation: perturb one HKDF info-label/salt byte
+in derivation → all golden-vector tests fail.</p></li>
+<li><p><strong>gpuattest O(1) spot-check + device-sealed encrypt →
+<code>security/pkg/gpuattest/</code></strong> <em>(roadmap 8C.2,
+P0)</em> Add <code>SpotCheck(resp, index)</code> that re-derives and
+compares a single deterministic challenge-indexed word of the proof
+(O(1) verification of a large software-PoVW response) and a
+<code>SealForDevice(deviceKey, plaintext)</code>/<code>OpenFromDevice</code>
+pair binding an AEAD key to the device secret. Stays software-only and
+clearly scoped (no GPU kernel). <em>Mutation-pairable test:</em> genuine
+response passes spot-check at random indices; a response with one
+tampered word fails at that index. Mutation: make <code>SpotCheck</code>
+ignore <code>index</code> → tampered-word test fails.</p></li>
+<li><p><strong>fiber signed-identity + stake-gated admission →
+<code>pkg/fiber/</code> (extend)</strong> <em>(roadmap §9 Phase 6
+hook)</em> Add an ed25519 handshake frame type carrying
+<code>{nodeID, pubkey, signed-nonce}</code> and an
+<code>Admit(func(nodeID, stake) bool)</code> gate run before application
+frames flow; reject unsigned/under-staked peers (stake supplied by
+caller, no chain). Reuses existing frame machinery.
+<em>Mutation-pairable test:</em> peer with valid signature + sufficient
+stake admitted; bad signature or zero stake rejected. Mutation: skip
+signature verification → bad-signature test fails.</p></li>
+<li><p><strong>inferenceproxy correlation/anonymization →
+<code>pkg/inferenceproxy/</code></strong> <em>(roadmap P2 #10)</em> An
+<code>http.Handler</code> middleware that injects/propagates a
+correlation-ID header, records which backend served a request (audit
+trail), and deterministically anonymizes configured request
+headers/fields (keyed hash, stable per-tenant). Pure stdlib.
+<em>Mutation-pairable test:</em> same input header → same anonymized
+token across calls; different tenant → different token; correlation-ID
+present on response. Mutation: make anonymizer return input unchanged →
+“anonymized ≠ original” test fails.</p></li>
+</ol>
+<h2
+id="deferred-need-external-infra-hardware-gpu-kernels-non-go">DEFERRED
+(need external infra / hardware / GPU kernels / non-Go)</h2>
+<ul>
+<li><strong>8C.3 real TEE attestation (Intel TDX + NVIDIA
+confidential-GPU quotes, measured boot, attested key release).</strong>
+Needs real TDX + H100/H200-class confidential-GPU hardware and vendor CA
+chains (<code>go-tdx-guest</code>/DCAP/NRAS). Software
+<code>QuoteSigner</code> seam exists; genuine quotes cannot be produced
+or end-to-end validated in CI without the hardware (roadmap §7, §8
+hardware gate).</li>
+<li><strong>8C.2 hardware-rooted proof-of-GPU (real GraVal CUDA/OpenCL
+matmul kernel).</strong> Requires GPU + CUDA/OpenCL kernel code (not Go)
+and a GPU CI runner to prove a spoofed/oversubscribed GPU is rejected
+(roadmap §8 GPU gate). The software spot-check (#5) is the
+CPU-CI-testable subset; full hardware validation is deferred.</li>
+<li><strong>8C.6 vLLM/SGLang runtime WRAP (live serving exit
+gate).</strong> The Go ranking/failover/passthrough orchestration (gap
+#6-adjacent) is implementable, but the §8 “live confidential instance /
+real worker” exit gate requires running upstream vLLM/SGLang GPU
+containers — deferred to a GPU integration environment.</li>
+<li><strong>8C.7 marketplace settlement over real economic
+flow.</strong> The Go data model + commit-then-prove audit logic is
+buildable on existing Postgres/etcd, but end-to-end payout/reward
+reconciliation as an exit gate depends on the (still-missing) serving +
+metering data plane above; defer the e2e settlement proof until #1/#3/#6
+land.</li>
+</ul>
+</body>
+</html>

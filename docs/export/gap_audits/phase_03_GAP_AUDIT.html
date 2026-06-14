@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_03_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_03_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-3-gap-audit-code-grounded">Phase 3 Gap Audit —
+Code-Grounded</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Date</td>
+<td>2026-06-01</td>
+</tr>
+<tr>
+<td>Auditor</td>
+<td>Engineering auditor (code-grounded, anti-bluff per CLAUDE-1 /
+§7.1)</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td><code>docs/research/PHASE_3_ROADMAP.md</code> deliverables
+vs. actual <code>pkg/ internal/ cmd/ api/</code></td>
+</tr>
+<tr>
+<td><strong>Honest completion</strong></td>
+<td><strong>~70% of Phase 3 P0/P1 scope DONE; ~15% PARTIAL; ~15%
+MISSING/DEFERRED</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> The narrative table below
+mixes “exists” with “used”. A package can be
+<strong>implemented</strong> and <strong>tested</strong> yet never
+reached from any binary (<strong>orphaned</strong>). <code>wired</code>
+is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed in
+the HXC registry means source+tests exist; it does NOT prove a shipped
+binary reaches it.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/etcd</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/lock</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/leader</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/classads</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/scheduler</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/node</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/security</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/security</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gateway</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/policy</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/metrics</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/tracing</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/health</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/health</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/storage</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/build</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/build</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/gateway</code> (roadmap name)</td>
+<td style="text-align: center;"><strong>NO (only
+<code>internal/gateway</code> exists)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts (implemented+tested but NOT reachable from
+any <code>cmd/</code> binary):</strong> <code>pkg/lock</code>,
+<code>pkg/leader</code>, <code>pkg/tracing</code>,
+<code>pkg/storage</code>. The audit text already flags
+<code>pkg/discovery</code>’s etcd backend and <code>pkg/classads</code>
+as “implemented but unwired into the cluster/scheduler path” — the
+package-level <code>wired</code> column above is the mechanical version
+of that finding (note: the <em>package</em> <code>pkg/classads</code> is
+compiled into a binary, but its scheduler-Filter/Score integration is
+still absent, so feature-wiring ≠ package-wiring here).</p>
+<p><strong>One-line summary:</strong> The P0
+consensus/scheduler/security/gateway skeletons and most cmd binaries are
+genuinely implemented with real-behavior tests (real etcd/NATS/Postgres
+via brokertest), but several integrations are unwired (etcd discovery
+backend, ClassAds→scheduler, OTel tracing) and the GPU/storage/migration
+backends remain stubs or pure-Go placeholders.</p>
+<hr />
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<p>Evidence paths are repo-relative. “DONE” = implemented AND has
+real-behavior tests; “PARTIAL” = implemented but
+unwired/mock-only/missing a claimed capability; “MISSING/DEFERRED” =
+stub/absent.</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap)</th>
+<th>Status</th>
+<th>Evidence file:line</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/etcd</code> client wrapper</td>
+<td>DONE</td>
+<td><code>pkg/etcd/package.go:9,25</code> (real <code>clientv3</code>);
+<code>pkg/etcd/etcd_integration_test.go</code>
+(<code>//go:build integration</code>)</td>
+<td>Put/Get/lease/txn over real etcd via brokertest.</td>
+</tr>
+<tr>
+<td><code>pkg/lock</code> distributed locks</td>
+<td>DONE</td>
+<td><code>pkg/lock/lock.go:60-74</code> (<code>EtcdLocker</code> on
+<code>concurrency</code>);
+<code>pkg/lock/lock_integration_test.go:27</code> (real etcd
+<code>TestMain</code>)</td>
+<td>Memory + etcd backends; sink-side key inspection in tests.</td>
+</tr>
+<tr>
+<td><code>pkg/leader</code> / raft-ish election</td>
+<td>PARTIAL</td>
+<td><code>pkg/leader/*.go</code> (385 LoC, 411 test)</td>
+<td>Real election logic + tests, but NOT hashicorp/raft or etcd-Raft
+consensus; <code>pkg/raft</code> package does not exist. Roadmap’s true
+Raft is unrealized.</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> Omega core + queue + preempt</td>
+<td>DONE</td>
+<td><code>pkg/scheduler/scheduler.go:8-50</code>,
+<code>gang_preempt.go</code>, <code>cost_gpu.go</code>;
+<code>pkg/scheduler/*_test.go</code> (1129 test LoC)</td>
+<td>Two-level optimistic-concurrency scheduler, gang scheduling,
+priority preemption, cost/GPU-aware scoring all present and tested.</td>
+</tr>
+<tr>
+<td><code>pkg/classads</code> expression parser/evaluator</td>
+<td>DONE (standalone)</td>
+<td><code>pkg/classads/parser.go</code>, <code>ast.go</code>,
+<code>eval.go</code> (662 LoC, 627 test)</td>
+<td>Real lexer→AST→evaluator. BUT not consumed by scheduler (see gap
+below).</td>
+</tr>
+<tr>
+<td><code>internal/scheduler</code> gRPC service</td>
+<td>PARTIAL</td>
+<td><code>internal/scheduler/server.go:41,102</code> (wired to
+<code>pkg/scheduler</code>); <code>server_behavior_test.go</code></td>
+<td>ScheduleJob/Cancel/Status real; <code>StreamJobEvents</code>
+(<code>server.go:193</code>) sends ONE static event then closes — not a
+live stream.</td>
+</tr>
+<tr>
+<td><code>internal/node</code> agent (SWIM + resources + register)</td>
+<td>PARTIAL</td>
+<td><code>internal/node/node.go:79</code> (real SWIM), <code>:11</code>
+(<code>pkg/resources</code> probing), <code>:105</code></td>
+<td>Uses <code>discovery.NewInMemoryBackend()</code>
+(<code>node.go:105</code>) NOT the etcd backend — registration is
+node-local only, no cluster-wide visibility.</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code> etcd backend</td>
+<td>PARTIAL</td>
+<td><code>pkg/discovery/etcd_backend.go</code> +
+<code>etcd_backend_test.go</code> (real clientv3)</td>
+<td>Implemented &amp; tested, but wired NOWHERE in prod
+(<code>grep NewEtcdBackend</code> → only its own file). Dead in the
+cluster path.</td>
+</tr>
+<tr>
+<td><code>pkg/security</code> mTLS + SPIFFE</td>
+<td>DONE</td>
+<td><code>internal/security/orchestrator.go:136-164</code> (real
+rsa/x509 cert gen), <code>:34,72</code> (scopes, SPIFFE trust domain);
+<code>pkg/security/tls.go:33</code>; <code>security_test.go</code> (1207
+test LoC)</td>
+<td>Real cert issuance, RBAC scopes, identity→scope bindings, revocation
+sweep.</td>
+</tr>
+<tr>
+<td><code>internal/security</code> RBAC/authz</td>
+<td>DONE</td>
+<td><code>internal/security/authorize_rbac_test.go</code>,
+<code>scopes_test.go</code>, <code>identity_bindings.go</code></td>
+<td>Scope-based authorize with real tests.</td>
+</tr>
+<tr>
+<td>e2ee / attestation / gpuattest</td>
+<td>DONE (submodule)</td>
+<td><code>security/pkg/e2ee</code>,
+<code>security/pkg/attestation</code>,
+<code>security/pkg/gpuattest</code></td>
+<td>Lives in <code>vasic-digital/security</code> submodule as stated;
+present with pkg structure. Not re-audited line-by-line here.</td>
+</tr>
+<tr>
+<td><code>pkg/gateway</code> / <code>internal/gateway</code> reverse
+proxy</td>
+<td>PARTIAL</td>
+<td><code>internal/gateway/gateway.go:24-33</code> (static route table,
+<code>X-Helix-Gateway</code> sink header);
+<code>gateway_test.go</code></td>
+<td>Real HTTP reverse proxy with tests, but NO auth/mTLS/RBAC/rate-limit
+enforcement (<code>grep tls|auth|jwt</code> → none). Roadmap demanded
+OPA + mTLS termination.</td>
+</tr>
+<tr>
+<td><code>internal/policy</code> OPA engine</td>
+<td>PARTIAL</td>
+<td><code>internal/policy/engine.go</code> (243 LoC),
+<code>engine_test.go</code></td>
+<td>Custom policy engine + tests; NOT OPA/Rego (no
+<code>open-policy-agent</code> import). Functional but not the specified
+tech.</td>
+</tr>
+<tr>
+<td><code>pkg/metrics</code> Prometheus exposition</td>
+<td>DONE</td>
+<td><code>pkg/metrics/package.go:64</code> (Histogram), <code>:34</code>
+(Gauge), <code>:172</code> (<code>PrometheusHandler</code> text
+format)</td>
+<td>Counter/Gauge/Histogram + <code>/metrics</code> text exposition +
+tests (630 LoC). Custom impl, not official client lib, but real &amp;
+end-user-usable.</td>
+</tr>
+<tr>
+<td><code>pkg/tracing</code> OpenTelemetry</td>
+<td>PARTIAL</td>
+<td><code>pkg/tracing/package.go:21,47</code> (homegrown
+<code>TraceID</code>/<code>Span</code>)</td>
+<td>Real span tree + W3C-ish header propagation + tests (797 LoC), but
+NOT OpenTelemetry SDK — no OTLP export to Jaeger. Roadmap specified OTel
+wiring.</td>
+</tr>
+<tr>
+<td><code>internal/health</code> monitor + scoring</td>
+<td>DONE</td>
+<td><code>internal/health/*.go</code> (592 LoC, 802 test, 4 test files);
+<code>pkg/health</code> (452/642)</td>
+<td>Composite health scoring + tests. eBPF/LSTM correctly absent
+(P3).</td>
+</tr>
+<tr>
+<td><code>pkg/storage</code> abstraction</td>
+<td>PARTIAL</td>
+<td><code>pkg/storage/storage.go:34</code> (Memory), <code>:93</code>
+(File)</td>
+<td>Memory + File backends with tests. NO S3/Ceph/NFS distributed
+backend (roadmap §2.4).</td>
+</tr>
+<tr>
+<td><code>pkg/build</code> RBE/CAS</td>
+<td>DONE</td>
+<td><code>pkg/build/*.go</code> (574 LoC),
+<code>build_integration_test.go</code>; <code>internal/build</code> (716
+LoC)</td>
+<td>CAS/action-cache with real integration tests.</td>
+</tr>
+<tr>
+<td><code>cmd/helixd</code> control daemon</td>
+<td>PARTIAL</td>
+<td><code>cmd/helixd/main.go:180,245</code> (dependency health prober +
+HTTP status)</td>
+<td>Real config/probe/status daemon, but it ORCHESTRATES via TCP health
+checks; it does not embed/serve the scheduler/session/security gRPC
+services in-process.</td>
+</tr>
+<tr>
+<td><code>cmd/htmux</code> CLI</td>
+<td>DONE</td>
+<td><code>cmd/htmux/main.go:97-105</code>
+(create/attach/list/kill/rename), <code>client.go:75</code> (real gRPC
+<code>sessionClient</code>)</td>
+<td>Functional gRPC session CLI (587 LoC). Hand-rolled flag parser, not
+Cobra, but works.</td>
+</tr>
+<tr>
+<td>All other <code>cmd/*</code> binaries</td>
+<td>DONE</td>
+<td><code>cmd/helix-{scheduler,session,security,gateway,node,build,health,policy,llm,advisory,setup}/main.go</code>
+(each 140-420 LoC + a test file)</td>
+<td>Every roadmap binary exists with a main and at least one test; none
+empty.</td>
+</tr>
+<tr>
+<td><code>internal/gpu/*</code> CUDA/ROCm/oneAPI/MLX backends</td>
+<td>DEFERRED</td>
+<td><code>internal/gpu/manager.go</code>, <code>gpu.go</code> (640 LoC,
+pure Go; <code>grep "import \"C\""</code> → none)</td>
+<td>Pure-Go device abstraction/manager/monitor only. No cgo vendor
+backends. DEFERRED: needs GPU hardware + vendor SDKs/cgo.</td>
+</tr>
+<tr>
+<td>Session live migration (CRIU/DMTCP)</td>
+<td>DEFERRED</td>
+<td><code>pkg/session/migration.go:178-222</code>
+(<code>"criu not implemented"</code>,
+<code>"dmtcp not implemented"</code>)</td>
+<td>Explicit stubs. DEFERRED: needs CRIU/DMTCP host tooling + privileged
+kernel support.</td>
+</tr>
+<tr>
+<td>WireGuard NAT traversal (UPnP/NAT-PMP)</td>
+<td>DEFERRED</td>
+<td><code>pkg/wireguard/nat_traversal.go:35,41</code>
+(<code>"UPnP/NAT-PMP not implemented"</code>)</td>
+<td>DEFERRED: needs external NAT gateway hardware to validate
+end-to-end.</td>
+</tr>
+<tr>
+<td>True Raft consensus (<code>pkg/raft</code>)</td>
+<td>MISSING</td>
+<td>(no <code>pkg/raft</code>)</td>
+<td>Roadmap §2.1 core gap. Distributed locks/election currently lean on
+etcd; no embedded Raft library.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="top-implementable-gaps-go-no-new-infrahardware">TOP
+IMPLEMENTABLE GAPS (Go, no new infra/hardware)</h2>
+<p>Prioritized. Each is buildable with existing deps and produces an
+end-user-visible behavior change with a mutation-pairable acceptance
+test.</p>
+<h3
+id="wire-etcdbackend-into-the-node-agent-real-cluster-wide-discovery">1.
+Wire <code>EtcdBackend</code> into the node agent (real cluster-wide
+discovery)</h3>
+<ul>
+<li><strong>Target dir:</strong> <code>internal/node/</code></li>
+<li><strong>Spec:</strong> <code>internal/node/node.go:105</code>
+hardcodes <code>discovery.NewInMemoryBackend()</code>, so node
+registrations are invisible cluster-wide despite a complete, tested
+<code>pkg/discovery/etcd_backend.go</code>. Add an <code>Agent</code>
+config field (<code>EtcdEndpoints []string</code>); when non-empty,
+construct <code>discovery.NewEtcdBackend(...)</code> with a TTL lease
+tied to the SWIM heartbeat so a dead node’s instance auto-expires. Fall
+back to in-memory only when no endpoints are configured. Expose the
+chosen backend type via the agent’s status so operators can see “etcd”
+vs “memory”.</li>
+<li><strong>Acceptance test (mutation-pairable):</strong> Integration
+test (<code>//go:build integration</code>) boots a real etcd via
+brokertest, starts two agents pointing at it, and asserts agent A’s
+<code>registry.List()</code> returns agent B’s instance with B’s
+resource metadata. <strong>Mutation:</strong> revert
+<code>node.go</code> to <code>NewInMemoryBackend()</code> → test must
+FAIL (A sees only itself).</li>
+</ul>
+<h3 id="make-internalscheduler.streamjobevents-a-real-event-stream">2.
+Make <code>internal/scheduler.StreamJobEvents</code> a real event
+stream</h3>
+<ul>
+<li><strong>Target dir:</strong> <code>internal/scheduler/</code> (+
+small <code>pkg/scheduler</code> event hook)</li>
+<li><strong>Spec:</strong> <code>server.go:193</code> sends a single
+hardcoded <code>"scheduled"</code> event and returns — a PASS-bluff for
+“StreamJobEvents”. Add a per-job event channel in
+<code>pkg/scheduler</code> (publish on SCHEDULED / BOUND / PREEMPTED /
+COMPLETED / CANCELLED state transitions) and have the gRPC handler
+subscribe and forward events until job terminal or client cancel.</li>
+<li><strong>Acceptance test:</strong> Schedule a job, open the stream,
+then cancel/preempt it; assert the stream emits ≥2 distinct
+<code>EventType</code>s in order with monotonically increasing
+timestamps. <strong>Mutation:</strong> drop the <code>PREEMPTED</code>
+publish → test must FAIL (stream missing the second event).</li>
+</ul>
+<h3 id="connect-pkgclassads-to-the-scheduler-filterscore-stages">3.
+Connect <code>pkg/classads</code> to the scheduler Filter/Score
+stages</h3>
+<ul>
+<li><strong>Target dir:</strong> <code>pkg/scheduler/</code> (new
+<code>plugins_classads.go</code>)</li>
+<li><strong>Spec:</strong> A full ClassAds parser/evaluator exists
+(<code>pkg/classads/eval.go</code>) but
+<code>grep classads pkg/scheduler</code> returns nothing — the scheduler
+ignores it. Add a <code>ClassAdFilterPlugin</code> and
+<code>ClassAdScorePlugin</code> implementing the existing
+<code>Plugin</code> interface: evaluate a job’s
+<code>Requirements</code> expression against each node’s attribute ad
+(Filter), and a <code>Rank</code> expression to produce a Score. Reuse
+<code>pkg/scheduler.Resources</code> as the attribute source.</li>
+<li><strong>Acceptance test:</strong> Build two nodes (one matching, one
+not) and a job whose <code>Requirements = (GPU &gt;= 1)</code>; assert
+the filter rejects the non-GPU node and <code>Rank = -Memory</code>
+orders nodes by free memory. <strong>Mutation:</strong> flip the
+comparison operator in the evaluator call
+(<code>&gt;=</code>→<code>&lt;</code>) → test must FAIL.</li>
+</ul>
+<h3 id="add-auth-rbac-enforcement-to-the-gateway">4. Add auth + RBAC
+enforcement to the gateway</h3>
+<ul>
+<li><strong>Target dir:</strong> <code>internal/gateway/</code></li>
+<li><strong>Spec:</strong> <code>gateway.go</code> is a bare reverse
+proxy with zero auth (<code>grep tls|auth|jwt</code> → none),
+contradicting roadmap §2.7 (mTLS + OPA enforcement). Add a middleware
+that extracts a bearer/JWT identity (reuse <code>pkg/jwt</code>) and
+checks required scopes (reuse <code>internal/security</code> scope model
+/ <code>internal/policy</code>) per route prefix; reject with 401/403
+and an <code>X-Helix-Deny-Reason</code> header before proxying.</li>
+<li><strong>Acceptance test:</strong> Request
+<code>/api/v1/scheduler/</code> with (a) no token → 401, (b) token
+missing <code>scheduler:write</code> → 403 with deny reason, (c) valid
+token → proxied (sees <code>X-Helix-Gateway</code>).
+<strong>Mutation:</strong> make the middleware fail-open on missing
+scope → cases (a)/(b) must FAIL.</li>
+</ul>
+<h3 id="add-an-s3-compatible-minio-backend-to-pkgstorage">5. Add an
+S3-compatible (minio) backend to <code>pkg/storage</code></h3>
+<ul>
+<li><strong>Target dir:</strong> <code>pkg/storage/</code></li>
+<li><strong>Spec:</strong> Only Memory + File exist; roadmap §2.4 wants
+pluggable distributed backends. Add an <code>S3Store</code> implementing
+the existing <code>Put/Get/Delete/List</code> interface against the
+standard S3 API (minio-go or aws-sdk-go-v2). No new infra at test time —
+the minio container is already in the compose stack, so the integration
+test can boot it via the existing brokertest harness pattern.</li>
+<li><strong>Acceptance test
+(<code>//go:build integration</code>):</strong> Round-trip a blob
+through <code>S3Store</code> against a real minio container; assert
+<code>Get</code> returns bytes-identical content and
+<code>List(prefix)</code> enumerates it. <strong>Mutation:</strong> swap
+<code>Put</code> to write to the wrong bucket → <code>Get</code> must
+FAIL.</li>
+</ul>
+<h3 id="otlpjaeger-export-shim-for-pkgtracing">6. OTLP/Jaeger export
+shim for <code>pkg/tracing</code></h3>
+<ul>
+<li><strong>Target dir:</strong> <code>pkg/tracing/</code></li>
+<li><strong>Spec:</strong> Tracing is homegrown with no exporter, so
+spans never reach the deployed Jaeger. Add a thin OTLP-HTTP exporter
+that serializes existing <code>Span</code>s
+(TraceID/ParentID/timings/attrs) to the OTLP JSON span shape and POSTs
+batches to the collector endpoint. Keep the homegrown API; only add a
+sink. (Stops short of full OTel SDK migration, which is larger.)</li>
+<li><strong>Acceptance test:</strong> Stand up an
+<code>httptest.Server</code> as a fake collector; emit a parent+child
+span; assert the exporter POSTs one batch containing both spans with the
+correct parent linkage and a shared TraceID. <strong>Mutation:</strong>
+drop ParentID from the serialization → linkage assertion must FAIL.</li>
+</ul>
+<hr />
+<h2
+id="deferred-need-external-infra-hardware-zig-gpu-kernels-count-4">DEFERRED
+(need external infra / hardware / Zig / GPU kernels) — count: 4</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Reason deferred</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>internal/gpu/*</code> CUDA/ROCm/oneAPI/MLX backends</td>
+<td>Requires physical GPUs + vendor SDKs (CUDA/ROCm/oneAPI/MLX) and cgo
+bindings; cannot be validated end-user-usable without hardware (CLAUDE-1
+sink-side evidence impossible in CI).</td>
+</tr>
+<tr>
+<td>Session live migration (CRIU/DMTCP)</td>
+<td>Requires CRIU/DMTCP host binaries and privileged kernel checkpoint
+support; explicit stubs at
+<code>pkg/session/migration.go:178-222</code>.</td>
+</tr>
+<tr>
+<td>WireGuard UPnP/NAT-PMP traversal</td>
+<td>Requires a real NAT gateway/router to exercise; cannot prove
+traversal in a flat CI network.</td>
+</tr>
+<tr>
+<td>True embedded Raft (<code>pkg/raft</code>)</td>
+<td>Implementable in Go (hashicorp/raft), but a multi-week consensus
+deliverable, not a quick gap; current etcd-backed locks/election cover
+the immediate need, so this is deferred as a major work item rather than
+a quick win.</td>
+</tr>
+</tbody>
+</table>
+</body>
+</html>

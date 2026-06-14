@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_08_B_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_08_B_GAP_AUDIT</h1>
+</header>
+<h1
+id="phase-8b-gap-audit-reverse-integration-chutes-ai-unified-gpu-consumer">Phase
+8B Gap Audit — Reverse Integration (Chutes AI / Unified GPU
+Consumer)</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Audited</td>
+<td>2026-06-01</td>
+</tr>
+<tr>
+<td>Auditor</td>
+<td>Engineering auditor (code-grounded)</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td><code>docs/research/PHASE_8B_ROADMAP.md</code> deliverables
+vs. actual <code>pkg/</code>, <code>internal/</code>, <code>cmd/</code>,
+<code>api/</code>, <code>security/</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="honest-completion-8-complete">Honest Completion: ~8%
+complete</h2>
+<p><strong>One-line summary:</strong> Phase 8B’s <em>crypto
+foundation</em> is real and well-tested (ML-KEM-768 E2EE, software TEE
+attestation, and software GraVal proof-of-GPU all exist in the
+<code>security/</code> submodule), but <strong>every Phase 8B-specific
+deliverable — the <code>GPUProvider</code> interface,
+<code>PoolManager</code>, all four provider adapters,
+<code>BurstController</code>, <code>ComputeBroker</code>, CUDA proxy,
+and all three <code>cmd/</code> binaries — is MISSING</strong>. No
+remote GPU is consumed anywhere in the codebase;
+<code>internal/gpu</code> is strictly local detection/allocation.</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it. <code>security/pkg/*</code> is a <strong>separate
+module</strong> and so never appears in HelixCluster’s <code>cmd/</code>
+dep graph.</p>
+<p><strong>MAJOR STALENESS CORRECTION:</strong> the original 2026-06-01
+table marked nearly all of Phase 8B MISSING. That is now <strong>wrong
+in both directions</strong>. As of 2026-06-04, the three binaries
+<strong>and</strong> the whole package set <strong>EXIST and are
+TESTED</strong> — <code>cmd/gpu-pool-manager</code>,
+<code>cmd/burst-controller</code>, <code>cmd/e2ee-proxy</code>,
+<code>pkg/pool</code>, <code>pkg/burst</code>, <code>pkg/local</code>,
+<code>internal/costbroker</code>, and all four
+<code>pkg/provider/{chutes,ionet,runpod,aws}</code> adapters.
+<strong>However, every one of those value packages is ORPHANED — not
+reachable from any <code>cmd/</code> binary’s dependency graph</strong>
+(the binaries do not yet import them). So the registry would call these
+“Completed” while they are exists-but-unused. The rows below are
+authoritative over the older prose.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package / binary</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cmd/gpu-pool-manager</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes (is a <code>main</code>)</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/burst-controller</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes (is a <code>main</code>)</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/e2ee-proxy</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes (is a <code>main</code>)</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/pool</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/pool/scheduler</code></td>
+<td style="text-align: center;"><strong>NO (subdir absent)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/provider/chutes</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/provider/ionet</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/provider/runpod</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/provider/aws</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/burst</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/local</code> (LocalGPURegistrar)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/costbroker</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/proxy</code> (CUDA interceptor)</td>
+<td style="text-align: center;"><strong>NO (absent)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/gpu</code> (top-level adapter hooks)</td>
+<td style="text-align: center;"><strong>NO (only
+<code>internal/gpu</code>)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>security/pkg/e2ee</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/gpuattest</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/attestation</code> (separate module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code> (local-only, no tier/provider)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Callout (textbook double-orphan):</strong> the three
+<code>cmd/*</code> binaries are wired <em>as binaries</em>, and the
+pool/burst/provider/costbroker packages are implemented+tested — but the
+binaries and the value packages are <strong>not connected to each
+other</strong> (<code>go list -deps ./cmd/gpu-pool-manager</code> does
+not include <code>pkg/pool</code>). Both halves look “done” in
+isolation; the feature is non-functional because the wiring between them
+is missing. The old “all MISSING” verdict and any “Completed” registry
+entry are equally misleading — only the measured <code>wired</code>
+column reveals the truth.</p>
+<h2 id="evidence-backed-anti-bluff-notes">Evidence-Backed Anti-Bluff
+Notes</h2>
+<ul>
+<li>The crypto primitives are genuine:
+<code>security/pkg/e2ee/package.go</code> imports stdlib
+<code>crypto/mlkem</code> (ML-KEM-768, FIPS 203) +
+<code>crypto/hkdf</code> + AES-256-GCM, with 14 real tests
+(<code>package_test.go</code>). This satisfies the <em>cryptographic
+core</em> of P8B’s <code>pkg/e2ee</code> but is <strong>not</strong>
+wired into any proxy, provider, or outbound-traffic path — so the
+roadmap deliverable “E2EEProxy for outbound remote-GPU traffic” is
+PARTIAL at best (primitive present, integration absent).</li>
+<li><code>security/pkg/gpuattest/package.go</code> self-declares an
+HONEST SCOPE NOTE: it is <em>software</em> HMAC-SHA256
+challenge/response, NOT a CUDA/OpenCL GraVal kernel and NOT
+hardware-rooted. It maps to the roadmap’s <code>GraValVerifier</code>
+interface but the real GPU-kernel verification is explicitly DEFERRED
+(hardware required).</li>
+<li><code>pkg/scheduler/cost_gpu.go</code> and
+<code>pkg/fiber/fiber.go</code> are tagged “Phase 8C” in their own
+headers — they are intra-cluster node scoring and a miner↔︎validator
+framing transport, NOT the P8B cross-provider <code>ComputeBroker</code>
+or remote spillover. Counting them toward 8B would be a scope
+bluff.</li>
+</ul>
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap §4/§6)</th>
+<th>Status</th>
+<th>Evidence file:line</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/pool</code> — <code>GPUProvider</code> iface +
+<code>PoolManager</code> (P0 #1)</td>
+<td>MISSING</td>
+<td>no <code>pkg/pool</code> dir (find on pkg/internal/cmd empty)</td>
+<td>Single integration seam for all of 8B; nothing exists</td>
+</tr>
+<tr>
+<td><code>pkg/pool/scheduler</code> —
+Priority/CostAware/LatencyAware</td>
+<td>MISSING</td>
+<td>absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/provider/chutes</code> — <code>ChutesProvider</code> (P0
+#2)</td>
+<td>MISSING</td>
+<td>no <code>chutes</code>/<code>io.net</code> ref in
+pkg/internal/cmd/api</td>
+<td>Primary remote burst target; no API client</td>
+</tr>
+<tr>
+<td><code>pkg/provider/ionet</code> — Ray adapter (P1 #6)</td>
+<td>MISSING</td>
+<td>absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/provider/runpod</code> — serverless + warm pool (P1
+#7)</td>
+<td>MISSING</td>
+<td>absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/provider/aws</code> — EC2 Spot (P2 #11)</td>
+<td>MISSING</td>
+<td>absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/e2ee</code> — ML-KEM-768 crypto core</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/e2ee/package.go:18-30</code>,
+<code>transport.go:15</code></td>
+<td>Real ML-KEM-768+AES-GCM Session + framed Transport, 14 tests; lives
+in submodule, NOT exposed as <code>pkg/e2ee</code> nor wired to any
+provider</td>
+</tr>
+<tr>
+<td><code>pkg/e2ee</code> — <code>E2EEProxy</code> (outbound remote-GPU
+proxy)</td>
+<td>MISSING</td>
+<td><code>e2ee/transport.go</code> has no listener/dial/http</td>
+<td>Only an <code>io.ReadWriter</code> framing layer; no transparent
+proxy, no outbound routing</td>
+</tr>
+<tr>
+<td><code>pkg/e2ee</code> — <code>GraValVerifier</code> admission gate
+(P1 #10)</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/gpuattest/package.go:215-282</code></td>
+<td>Software Verifier/Prover + RegisterDevice/Challenge/Verify with 13
+tests; software-only (self-declared), NOT a provider-admission gate, no
+<code>graval.verified</code> label flow</td>
+</tr>
+<tr>
+<td><code>pkg/e2ee</code> — <code>AttestationVerifier</code> (TDX)</td>
+<td>PARTIAL</td>
+<td><code>security/pkg/attestation/attestation.go:25-45</code></td>
+<td>Real ed25519 software TEE doc verify (18 tests); hardware TDX quote
+DEFERRED per its own scope note</td>
+</tr>
+<tr>
+<td><code>pkg/burst</code> — <code>BurstController</code> state machine
+(P0 #5)</td>
+<td>MISSING</td>
+<td>no <code>burst</code> ref anywhere</td>
+<td>Core value prop (90% spill / 63% recover hysteresis) absent</td>
+</tr>
+<tr>
+<td><code>pkg/proxy</code> — CUDA interceptor + virtual
+<code>/dev/nvidia*</code> (P1 #8)</td>
+<td>MISSING</td>
+<td>absent</td>
+<td>Requires CUDA/driver work; see DEFERRED</td>
+</tr>
+<tr>
+<td><code>pkg/local</code> — <code>LocalGPURegistrar</code> (TCO cost)
+(P0 #4)</td>
+<td>PARTIAL</td>
+<td><code>internal/gpu/manager.go:14-40</code>, <code>gpu.go</code></td>
+<td>Local GPU detection/alloc/health exists (real /proc on Linux, mock
+else); NO TCO/effective-cost model, NO tier registration into a
+pool</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code> — tier mgmt / provider registration /
+health wiring</td>
+<td>PARTIAL</td>
+<td><code>internal/gpu/manager.go</code>, <code>monitor.go</code></td>
+<td>Local-only Manager+Monitor; zero tier/provider/remote concepts
+(grep: only “pool” as English word)</td>
+</tr>
+<tr>
+<td><code>internal/costbroker</code> — <code>ComputeBroker</code>
+real-time scoring</td>
+<td>MISSING</td>
+<td>absent</td>
+<td><code>pkg/scheduler/cost_gpu.go</code> is Phase 8C intra-node
+scoring, not multi-provider broker</td>
+</tr>
+<tr>
+<td><code>cmd/gpu-pool-manager</code> (gRPC+HTTP front-end)</td>
+<td>MISSING</td>
+<td>not in <code>cmd/</code> listing</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cmd/burst-controller</code></td>
+<td>MISSING</td>
+<td>not in <code>cmd/</code> listing</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>cmd/e2ee-proxy</code></td>
+<td>MISSING</td>
+<td>not in <code>cmd/</code> listing</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/gpu</code> — <code>ProviderAdapter</code> registration
+hooks</td>
+<td>MISSING</td>
+<td>no top-level <code>pkg/gpu</code> (only
+<code>internal/gpu</code>)</td>
+<td>Roadmap names <code>pkg/gpu</code>; only <code>internal/gpu</code>
+exists, no adapter hooks</td>
+</tr>
+<tr>
+<td><code>pkg/metrics</code> — GPU-tier util / cost-per-hour / provider
+health</td>
+<td>MISSING</td>
+<td><code>pkg/metrics/</code> has no tier/cost/provider gauges</td>
+<td>Generic metrics only</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> — <code>GPUTier</code>-aware filter
+predicate</td>
+<td>MISSING</td>
+<td><code>pkg/scheduler/cost_gpu.go:50</code> filters on GPU count
+only</td>
+<td>No tier predicate</td>
+</tr>
+<tr>
+<td>Helm chart + Prometheus/Grafana 8B dashboards (P1 #9)</td>
+<td>MISSING</td>
+<td>no 8B pool/burst dashboards under <code>deploy/</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td>HelixQA <code>BurstChallenge</code> (§8 exit gate)</td>
+<td>MISSING</td>
+<td>no burst/failover challenge in <code>challenges/</code></td>
+<td>Mandatory CLAUDE-1 gate unmet</td>
+</tr>
+<tr>
+<td>E2E <code>helix submit</code> → saturate → route-to-Chutes demo</td>
+<td>MISSING</td>
+<td>no remote routing path</td>
+<td>Mandatory CLAUDE-1 gate unmet</td>
+</tr>
+<tr>
+<td>Real-provider CI integration (Chutes/io.net/RunPod)</td>
+<td>MISSING</td>
+<td>no provider client to integration-test</td>
+<td>Mandatory “no mock-only” gate unmet</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infra">TOP IMPLEMENTABLE GAPS
+(Go, no new infra)</h2>
+<p>These are concrete, no-new-hardware, no-new-cluster-infra
+deliverables, in dependency order. Each is mutation-pairable per
+§1.1.</p>
+<h3 id="pkgpool-gpuprovider-interface-in-memory-poolmanager-p0-1">1.
+<code>pkg/pool</code> — <code>GPUProvider</code> interface + in-memory
+<code>PoolManager</code> (P0 #1)</h3>
+<p><strong>Target dir:</strong> <code>pkg/pool/</code>
+<strong>Spec:</strong> Define the single integration seam:
+<code>GPUProvider</code> interface (<code>Name() string</code>,
+<code>Tier() Tier</code>, <code>Probe(ctx) (Capacity, error)</code>,
+<code>Submit(ctx, WorkloadRequest) (Result, error)</code>,
+<code>Healthy(ctx) bool</code>), plus value types
+<code>VirtualGPU</code>, <code>WorkloadRequest</code>,
+<code>Capacity</code>, and a <code>PoolManager</code> that registers
+providers, sorts them by <code>Tier</code> priority
+(Local=1…Decentralized=4), and on <code>Allocate(req)</code> walks tiers
+in order returning the first healthy provider with capacity. Pure Go,
+in-memory registry, deterministic ordering, context-cancellable. No
+network calls — providers are interfaces, tested with a
+<code>FakeProvider</code>. <strong>Acceptance test
+(mutation-pairable):</strong> With three registered fake providers
+(tiers 1/3/4) where tier-1 reports zero capacity and tier-3 healthy,
+<code>Allocate</code> MUST return the tier-3 provider’s result.
+Mutation: flip the tier-sort comparator to descending → test must fail
+(would pick tier-4). Second mutation: skip the capacity check → test
+must fail (would pick saturated tier-1).</p>
+<h3
+id="internalcostbroker-computebroker-deterministic-scorer-internalcostbroker">2.
+<code>internal/costbroker</code> — <code>ComputeBroker</code>
+deterministic scorer (internal/costbroker)</h3>
+<p><strong>Target dir:</strong> <code>internal/costbroker/</code>
+<strong>Spec:</strong> Implement the roadmap’s weighted scorer: given a
+slice of
+<code>ProviderSignal{Price, Availability, Latency, Throughput}</code>,
+compute
+<code>score = 0.30*priceScore + 0.30*availability + 0.20*latencyScore + 0.20*throughput</code>
+(price/latency inverted+normalized to [0,1]). Expose
+<code>Rank([]ProviderSignal) []Ranked</code> returning a stable,
+descending ordering, and enforce a hard <code>MaxCostPerHour</code> cap
+that drops over-budget providers entirely. Re-rank is pure/stateless so
+it can be called every 60s by a caller. No external data — signals are
+injected. <strong>Acceptance test (mutation-pairable):</strong> Given a
+cheap-but-slow provider vs. an expensive-fast one with documented
+weights, assert the exact ranking and that a provider above
+<code>MaxCostPerHour</code> is excluded. Mutation: change a weight
+constant (0.30→0.50) → ordering assertion must flip and fail. Mutation:
+remove the cap filter → excluded provider reappears and the count
+assertion fails.</p>
+<h3 id="pkgburst-burstcontroller-hysteresis-state-machine-p0-5">3.
+<code>pkg/burst</code> — <code>BurstController</code> hysteresis state
+machine (P0 #5)</h3>
+<p><strong>Target dir:</strong> <code>pkg/burst/</code>
+<strong>Spec:</strong> A clock-injectable state machine with states
+<code>MONITOR → SPILL → RECOVER</code>. Input is a utilization sample
+<code>[0,1]</code>; transitions: ≥0.90 enters SPILL (emits a spill
+event), and only drops back to MONITOR when utilization falls to ≤0.63
+(hysteresis — no flapping between). Expose
+<code>Observe(util float64) (Transition, []Event)</code> and a queryable
+<code>State()</code>. No goroutines required for the core (caller drives
+ticks); fully deterministic. <strong>Acceptance test
+(mutation-pairable):</strong> Feed the sequence 0.5→0.95→0.80→0.62 and
+assert exactly one SPILL at 0.95 and one RECOVER at 0.62 (the 0.80
+sample stays in SPILL due to hysteresis). Mutation: collapse the two
+thresholds to a single 0.90 boundary → the 0.80 sample wrongly recovers
+and the “exactly one RECOVER” assertion fails. Mutation: make recover
+use <code>&gt;=</code> 0.63 → 0.80 triggers recover, test fails.</p>
+<h3
+id="pkgproviderchutes-chutesprovider-openai-compatible-adapter-httptest-p0-2">4.
+<code>pkg/provider/chutes</code> — <code>ChutesProvider</code>
+OpenAI-compatible adapter (httptest) (P0 #2)</h3>
+<p><strong>Target dir:</strong> <code>pkg/provider/chutes/</code>
+<strong>Spec:</strong> Implement <code>GPUProvider</code> over an
+OpenAI-compatible <code>/v1/chat/completions</code> REST endpoint:
+configurable base URL + API key, JSON request/response marshaling,
+HTTP-429 honoring with exponential backoff (capped), context deadline
+propagation, and a <code>Healthy</code> probe via a lightweight GET. The
+HTTP client is injectable so it is tested against an
+<code>httptest.Server</code> (real HTTP round-trip, not a mock
+interface). Live-endpoint CI remains DEFERRED until a Chutes sandbox key
+exists, but the wire-correct adapter is fully buildable now.
+<strong>Acceptance test (mutation-pairable):</strong> Drive against an
+<code>httptest.Server</code> that returns 429 once then 200 with a known
+completion; assert the adapter retried and returned the parsed content,
+and that an injected fake clock shows backoff was applied. Mutation:
+remove the 429 retry branch → request fails on first 429 and content
+assertion fails. Mutation: ignore the response body field mapping →
+parsed content mismatch fails.</p>
+<h3 id="pkglocal-localgpuregistrar-with-tco-effective-cost-p0-4">5.
+<code>pkg/local</code> — <code>LocalGPURegistrar</code> with TCO
+effective-cost (P0 #4)</h3>
+<p><strong>Target dir:</strong> <code>pkg/local/</code> (wrapping
+<code>internal/gpu</code>) <strong>Spec:</strong> Wrap the existing
+<code>internal/gpu.Manager</code> inventory and produce
+<code>VirtualGPU</code> entries tagged <code>Tier=Local</code> with an
+<em>effective</em> <code>$/hr</code> derived from a TCO model:
+<code>effectiveCost = (capexAmortizedPerHour + powerWatts*pricePerKWh/1000) / utilizationFactor</code>,
+all inputs from config (no invented external prices). Registers the
+local tier into a <code>pkg/pool.PoolManager</code>. This is the
+pre-condition the roadmap names (“pool must know local tier before
+spillover”). <strong>Acceptance test (mutation-pairable):</strong> Given
+a fixed GPU count and config (capex, watts, kWh price, util), assert the
+computed effective <code>$/hr</code> equals a hand-derived constant and
+that exactly N local <code>VirtualGPU</code>s register at Tier=Local.
+Mutation: drop the power term from the cost formula → numeric assertion
+fails. Mutation: tag tier as Remote → tier assertion fails.</p>
+<h3 id="cmdgpu-pool-manager-http-front-end-over-pkgpool-cmd-binary">6.
+<code>cmd/gpu-pool-manager</code> — HTTP front-end over
+<code>pkg/pool</code> (cmd binary)</h3>
+<p><strong>Target dir:</strong> <code>cmd/gpu-pool-manager/</code>
+<strong>Spec:</strong> Thin binary exposing
+<code>pkg/pool.PoolManager</code> over HTTP: <code>POST /allocate</code>
+(WorkloadRequest → chosen provider+result), <code>GET /providers</code>
+(registered providers + tier + health), <code>GET /healthz</code>.
+Reuses existing repo conventions (<code>pkg/log</code>, graceful
+shutdown like other <code>cmd/helix-*</code>). No business logic in the
+binary — it wires pool + costbroker + local registrar.
+<strong>Acceptance test (mutation-pairable):</strong>
+<code>httptest</code> the handler with two fake providers;
+<code>POST /allocate</code> returns the tier-correct provider as JSON
+and <code>GET /providers</code> lists both with health. Mutation: have
+the handler ignore tier ordering from the pool → allocate returns wrong
+provider, JSON assertion fails.</p>
+<h2 id="deferred-external-infra-hardware-non-go">DEFERRED (external
+infra / hardware / non-Go)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Item</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Real GraVal CUDA/OpenCL GPU kernel verification</td>
+<td>Requires NVIDIA GPU + CUDA toolchain;
+<code>security/pkg/gpuattest</code> is software-only by explicit design
+and stands in as the interface seam</td>
+</tr>
+<tr>
+<td>Intel TDX attestation enforcement (real quotes)</td>
+<td>Requires TDX-capable hardware + vendor cert chain;
+<code>security/pkg/attestation</code> ships a software ed25519 stand-in
+only</td>
+</tr>
+<tr>
+<td><code>pkg/proxy</code> CUDA API interceptor + virtual
+<code>/dev/nvidia*</code></td>
+<td>Requires CUDA driver shimming, kernel/device-node creation, Linux
+GPU host — not implementable as pure portable Go; gRPC kernel-forwarding
+also needs a remote GPU host</td>
+</tr>
+<tr>
+<td>Live-endpoint CI vs Chutes / io.net / RunPod / AWS Spot</td>
+<td>Requires real provider accounts/credits + network egress; adapters
+can be built and httptest-verified now, live integration gated on
+credentials</td>
+</tr>
+<tr>
+<td><code>pkg/provider/aws</code> EC2 Spot interrupt + CRIU/S3
+checkpoint</td>
+<td>Needs AWS account, Spot fleet, and CRIU host support</td>
+</tr>
+<tr>
+<td>48-hour load test / 7-day soak / chaos suite (§8 KPIs)</td>
+<td>Requires sustained real infra + GPU fleet; cannot run in unit/CI
+alone</td>
+</tr>
+<tr>
+<td>Key rotation CronJob + HSM</td>
+<td>Needs Kubernetes CronJob runtime + HSM device</td>
+</tr>
+<tr>
+<td>Grafana sink-side burst screenshots (§8 gates)</td>
+<td>Requires a running Prometheus/Grafana + live burst event to
+capture</td>
+</tr>
+</tbody>
+</table>
+<h2 id="bottom-line">Bottom Line</h2>
+<p>The reusable security crypto (ML-KEM-768 E2EE, software attestation,
+software GraVal) is real and tested but sits in the
+<code>security/</code> submodule as primitives, not as Phase 8B
+components. The entire reverse-integration mechanism — provider
+abstraction, pool manager, cost broker, burst controller, and the three
+binaries — is unbuilt. Items 1–6 above are the honest, no-new-infra
+critical path to a functioning 8B MVP skeleton.</p>
+</body>
+</html>

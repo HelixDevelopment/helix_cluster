@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_05_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_05_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-5-gap-audit-advanced-exotic-device-ecosystem">Phase 5 Gap
+Audit — Advanced &amp; Exotic Device Ecosystem</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Auditor</td>
+<td>Engineering auditor (code-grounded, anti-bluff)</td>
+</tr>
+<tr>
+<td>Date</td>
+<td>2026-06-01</td>
+</tr>
+<tr>
+<td>Method</td>
+<td>Direct inspection of <code>pkg/</code>, <code>internal/</code>,
+<code>cmd/</code>, <code>api/</code> against PHASE_5_ROADMAP.md
+deliverables</td>
+</tr>
+<tr>
+<td><strong>Honest completion</strong></td>
+<td><strong>~3% complete</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it. Phase 5 is almost entirely <strong>unimplemented</strong>,
+so most rows are <code>implemented=NO</code>; the table makes that
+mechanical rather than narrative.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/device</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/handheld</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/fpga</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/riscv</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/cloudspot</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/inference</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/quantum</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>internal/handheld</code> / <code>sbc</code> /
+<code>fpga</code> / <code>enterprise</code> / <code>iot</code> /
+<code>exotic</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (would be <em>extended</em> for
+tier/power)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code> (would be <em>extended</em> for
+NPU/FPGA/TFLOPS)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code> (would be <em>extended</em> for
+15-tier/trust)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code> (would be <em>extended</em> for spot
+teardown)</td>
+<td style="text-align: center;">yes (base only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Note:</strong> the four “extended” base packages are
+implemented+wired+tested for their <em>Phase 2–4</em> scope but carry
+<strong>none</strong> of the Phase 5 tier/trust/power/NPU behaviour, so
+they are not Phase 5 deliverables. No Phase 5 package is orphaned
+because no Phase 5 package exists yet.</p>
+<p><strong>One-line summary:</strong> Phase 5 is effectively unstarted
+in code — none of the 7 planned <code>pkg/</code> packages, none of the
+6 planned <code>internal/</code> packages, and none of the planned proto
+fields (<code>tier</code>, <code>trust_level</code>,
+<code>compute_class</code>, <code>arch</code>, <code>npu_tops</code>,
+<code>power_budget</code>) exist; the only adjacent assets are generic
+Phase 2–4/8C foundations (scheduler, resources, wireguard, llm manager)
+that were NOT extended for device-tier/trust/power-aware behaviour.
+Recent “Wave1–5 / Phase 8C” hardening (RBAC scopes,
+<code>pkg/fiber</code>, cost-aware GPU placement,
+PQ-crypto/<code>gpuattest</code>/TEE attestation in the
+<code>security/</code> submodule) is real but belongs to other tracks
+and does not satisfy any Phase 5 deliverable.</p>
+<hr />
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<p>The roadmap’s concrete deliverables are the new <code>pkg/</code>
+(§4.1), new <code>internal/</code> (§4.2), extended packages (§4.3), and
+proto extensions (§5.3).</p>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/device</code> — capability descriptor + auto-probe (P0
+#1)</td>
+<td>MISSING</td>
+<td>dir absent (<code>ls pkg/</code> — no <code>device</code>)</td>
+<td>Foundation for all tier/trust assignment; nothing exists.</td>
+</tr>
+<tr>
+<td><code>pkg/handheld</code> — Steam Deck/x86 handheld agent,
+Vulkan/battery/thermal (P0 #2)</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>No <code>vulkan|battery|thermal</code> in <code>pkg/</code>. Only
+<code>internal/console/thermal.go:13</code> exists (PS4/PS5 console
+thermal zones, Phase 2 — not handheld).</td>
+</tr>
+<tr>
+<td><code>pkg/fpga</code> — hard-SoC/soft-core/DPU backends (P1 #6)</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>No FPGA code anywhere in
+<code>pkg/</code>/<code>internal/</code>.</td>
+</tr>
+<tr>
+<td><code>pkg/riscv</code> — riscv64 cross-compile helpers, RVV probe
+(P0 #5)</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>No riscv build pipeline. (Note: roadmap claims riscv64 Go/Docker
+parity from Phase 3, unverified here.)</td>
+</tr>
+<tr>
+<td><code>pkg/cloudspot</code> — WireGuard join/leave + preemption
+handler (P1 #8)</td>
+<td>MISSING</td>
+<td>dir absent; <code>pkg/wireguard/mesh.go</code> has generic
+join/leave only</td>
+<td>No <code>spot</code>/<code>preempt</code>/checkpoint logic;
+<code>grep -ril 'spot\|preempt' pkg/wireguard</code> → none.</td>
+</tr>
+<tr>
+<td><code>pkg/inference</code> — Groq/Cerebras/Jetson/llama.cpp
+provider-agnostic backend (P1 #10)</td>
+<td>MISSING</td>
+<td><code>internal/llm/manager.go:142</code>
+(<code>Inference</code>)</td>
+<td>Existing LLM layer is a local model-registry stub: no provider
+abstraction, no Groq/Cerebras/TensorRT/HTTP client.</td>
+</tr>
+<tr>
+<td><code>pkg/quantum</code> — Qiskit Runtime plugin (P2 #12)</td>
+<td>MISSING / DEFERRED</td>
+<td>dir absent</td>
+<td>Research-only T14; external infra.</td>
+</tr>
+<tr>
+<td><code>internal/handheld</code></td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>internal/sbc</code> — RK3588 NPU / Jetson TensorRT / Turing
+RK1</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>internal/fpga</code></td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>internal/enterprise</code> — EPYC/Ampere auto-provision,
+Coreboot trust</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>internal/iot</code> — OpenWrt/NAS/webOS agents</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>internal/exotic</code> — Groq/Cerebras clients, quantum,
+neuromorphic</td>
+<td>MISSING</td>
+<td>dir absent</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> extension — tier-aware matchmaking +
+power-aware T9 policy (P0 #4)</td>
+<td>MISSING</td>
+<td><code>pkg/scheduler/types.go</code> (no
+<code>Tier</code>/<code>Trust</code>/<code>PowerBudget</code>/<code>Arch</code>)</td>
+<td><code>cost_gpu.go</code> is Phase 8C cost-aware GPU placement
+(label-based <code>$/gpu-hr</code>), NOT tier/power-aware device
+routing. No power budget, no T9 handheld policy.</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code> extension — NPU TOPS / FPGA LE / GPU
+TFLOPS / QPU probing</td>
+<td>MISSING</td>
+<td><code>pkg/resources/types.go:24</code> (<code>GPUInfo</code> has no
+TFLOPS); no <code>npu/tops/fpga/tflops</code> fields</td>
+<td>Only CPU/Mem/GPU(count)/Disk/Net cgroup-v2 probing exists.</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code> extension — 15-tier registry +
+trust-aware routing</td>
+<td>MISSING</td>
+<td><code>pkg/discovery/selection.go</code>,
+<code>etcd_backend.go</code> (no
+<code>tier</code>/<code>trust</code>)</td>
+<td>etcd-backed service discovery exists but is tier-agnostic.</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code> extension — spot dynamic join/leave +
+preemption-safe teardown</td>
+<td>PARTIAL</td>
+<td><code>pkg/wireguard/mesh.go</code>, <code>manager.go</code></td>
+<td>Generic mesh join/leave + key rotation exist; no preemption-aware
+teardown or spot-drain hook.</td>
+</tr>
+<tr>
+<td>proto: <code>node.proto</code> +=
+<code>tier</code>,<code>trust_level</code>,<code>compute_class</code>,<code>arch</code></td>
+<td>MISSING</td>
+<td><code>api/v1/node.proto:20-45</code> (only
+<code>node_id</code>,<code>region</code>,<code>status</code>,<code>reason</code>)</td>
+<td>None of the 4 fields present.</td>
+</tr>
+<tr>
+<td>proto: <code>scheduler.proto</code> += tier constraints,
+<code>power_budget</code></td>
+<td>MISSING</td>
+<td><code>api/v1/scheduler.proto</code> (grep tier/power → none)</td>
+<td>—</td>
+</tr>
+<tr>
+<td>proto: <code>resources.proto</code> +=
+<code>npu_tops</code>,<code>fpga_logic_elements</code>,<code>tflops_gpu</code></td>
+<td>MISSING</td>
+<td><code>api/v1/resources.proto</code> file does not exist</td>
+<td>The proto file itself is absent.</td>
+</tr>
+<tr>
+<td>Steam Deck Flatpak agent (5a)</td>
+<td>MISSING</td>
+<td>no <code>cmd/</code> or packaging artifact</td>
+<td>DEFERRED — needs real Steam Deck hardware for exit-gate
+evidence.</td>
+</tr>
+<tr>
+<td>Jetson TensorRT backend (5a)</td>
+<td>MISSING / DEFERRED</td>
+<td>—</td>
+<td>Needs L4T/Jetson hardware + TensorRT.</td>
+</tr>
+<tr>
+<td>riscv64 CI build artifact (5b)</td>
+<td>MISSING</td>
+<td>no riscv pipeline in <code>scripts/</code>/CI verified</td>
+<td>DEFERRED-ish — CI-implementable but needs toolchain.</td>
+</tr>
+<tr>
+<td>FPGA DPU / Groq / Cerebras / Cloud-spot exit gates</td>
+<td>MISSING</td>
+<td>—</td>
+<td>DEFERRED — all require external hardware/cloud (see below).</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Tally:</strong> 0 DONE, 1 PARTIAL (<code>pkg/wireguard</code>
+generic mesh), ~22 MISSING. Hence <strong>~3%</strong> (sole partial
+credit = reusable wireguard/scheduler/resources/discovery scaffolding
+that a Phase 5 build would extend).</p>
+<hr />
+<h2 id="top-implementable-gaps-go-no-new-infra">TOP IMPLEMENTABLE GAPS
+(Go, no new infra)</h2>
+<p>Prioritized, concrete, mutation-pairable. These need no hardware and
+unblock the rest of Phase 5.</p>
+<h3
+id="pkgdevice-universal-capability-descriptor-arch-auto-probe-p0-unblocks-everything">1.
+<code>pkg/device</code> — universal capability descriptor + arch
+auto-probe (P0, unblocks everything)</h3>
+<p><strong>Target:</strong> <code>pkg/device/</code>
+<strong>Spec:</strong> Define
+<code>Descriptor{ Tier, TrustLevel, ComputeClass, Arch, CPUCores, MemMB, GPUs, NPUTops, FPGALogicElements, GPUTFLOPS, PowerBudgetW }</code>
+with enums for the 15 tiers (T1–T15) and trust levels. Implement
+<code>Probe(ctx) (Descriptor, error)</code> that derives
+<code>Arch</code> from <code>runtime.GOARCH</code>, CPU/mem from
+existing <code>pkg/resources</code> readers, and reads optional override
+labels (env/config) for fields not auto-detectable (NPU/FPGA/TFLOPS).
+Provide <code>AssignTier(Descriptor) Tier</code> implementing the §50
+taxonomy decision tree (e.g. <code>riscv64</code>→T10,
+x86+open-firmware→T1, GPU+battery present→T9). Pure Go, deterministic.
+<strong>Acceptance test (mutation-pairable):</strong> table-driven
+fixtures mapping synthetic <code>Descriptor</code>s → expected tier.
+<em>Mutation:</em> swap the <code>riscv64→T10</code> branch to
+<code>→T2</code>; the riscv fixture assertion must fail. Verifies tier
+logic, not just non-panic.</p>
+<h3
+id="proto-codegen-devicetier-fields-p0-blocks-schedulerdiscovery-wiring">2.
+proto + codegen: device/tier fields (P0, blocks scheduler+discovery
+wiring)</h3>
+<p><strong>Target:</strong> <code>api/v1/node.proto</code>, new
+<code>api/v1/resources.proto</code>, <code>api/v1/scheduler.proto</code>
+<strong>Spec:</strong> Add <code>tier</code>, <code>trust_level</code>,
+<code>compute_class</code>, <code>arch</code> to <code>Node</code>;
+create <code>resources.proto</code> with <code>npu_tops</code>,
+<code>fpga_logic_elements</code>, <code>tflops_gpu</code>; add
+<code>power_budget</code> + repeated tier constraints to scheduler
+request. Regenerate via existing buf pipeline. Add round-trip mapping
+helpers <code>device.Descriptor &lt;-&gt; pb.Node</code>.
+<strong>Acceptance test:</strong> marshal a Descriptor→proto→Descriptor,
+assert field equality incl. tier enum. <em>Mutation:</em> drop the
+<code>arch</code> field copy in the mapper → round-trip assertion
+fails.</p>
+<h3 id="pkgscheduler-tier-aware-power-aware-plugin-p0-4">3.
+<code>pkg/scheduler</code> tier-aware + power-aware plugin (P0 #4)</h3>
+<p><strong>Target:</strong> <code>pkg/scheduler/tier_power.go</code>
+<strong>Spec:</strong> New <code>Plugin</code> (same
+<code>Name/Filter/Score/Bind</code> contract as
+<code>cost_gpu.go</code>) that (a) Filters out nodes whose
+<code>Tier</code>/<code>TrustLevel</code> violate a job’s
+<code>RequiredTier</code>/<code>MinTrust</code>, and (b) for T9 HANDHELD
+nodes, Filters when <code>power_budget</code> remaining &lt; job
+estimate or node reports gaming-active/on-battery label. Reuse the
+existing plugin registration in <code>plugins.go</code>.
+<strong>Acceptance test:</strong> feed a job requiring T1 against a
+mixed node set; assert only T1 nodes survive Filter, and a charging-T9
+node is admitted while a battery-only T9 is rejected. <em>Mutation:</em>
+invert the trust comparison (<code>&gt;=</code>→<code>&lt;</code>) → an
+untrusted node leaks through and the assertion fails.</p>
+<h3 id="pkgdiscovery-15-tier-registry-trust-aware-selection-p0">4.
+<code>pkg/discovery</code> 15-tier registry + trust-aware selection
+(P0)</h3>
+<p><strong>Target:</strong> <code>pkg/discovery/tier_registry.go</code>
+<strong>Spec:</strong> Extend the etcd-backed registry to index nodes by
+tier/trust and add <code>SelectByTier(tier, minTrust)</code> returning
+only matching entries. Backward-compatible with existing
+<code>selection.go</code>. <strong>Acceptance test:</strong> register
+synthetic nodes across T1/T9/T10, query
+<code>SelectByTier(T10, …)</code>, assert exact set. <em>Mutation:</em>
+make <code>SelectByTier</code> ignore the trust filter → a below-trust
+node appears and assertion fails. (Run against the existing etcd
+integration harness for real-behavior credit.)</p>
+<h3 id="pkgcloudspot-preemption-handler-logic-only-no-aws-p1-8">5.
+<code>pkg/cloudspot</code> preemption handler (logic only, no AWS) (P1
+#8)</h3>
+<p><strong>Target:</strong> <code>pkg/cloudspot/</code>
+<strong>Spec:</strong> <code>PreemptionWatcher</code> interface + a
+pluggable <code>SignalSource</code> (file/HTTP-poller injectable for
+test). On signal, fire ordered hooks:
+<code>Drain → Checkpoint → Leave(mesh)</code>. Provide a
+<code>FakeSignalSource</code> for tests; real AWS/GCP metadata poller is
+a thin adapter (deferred to infra). Wire <code>Leave</code> to
+<code>pkg/wireguard</code> mesh teardown. <strong>Acceptance
+test:</strong> inject a fake preemption signal; assert hooks run in
+order and <code>Leave</code> is called exactly once within the 2-min
+budget (simulated clock). <em>Mutation:</em> reorder so
+<code>Leave</code> precedes <code>Checkpoint</code> → ordering assertion
+fails.</p>
+<h3
+id="pkginference-provider-agnostic-interface-local-backend-p1-10-partial">6.
+<code>pkg/inference</code> provider-agnostic interface + local backend
+(P1 #10, partial)</h3>
+<p><strong>Target:</strong> <code>pkg/inference/</code>
+<strong>Spec:</strong> Define
+<code>Backend{ Name(); Generate(ctx, Req) (Resp, error) }</code> and a
+<code>Router</code> that selects a backend by capability/tier. Implement
+a <code>LocalBackend</code> wrapping the existing
+<code>internal/llm</code> manager so the interface is exercised
+end-to-end today. Groq/Cerebras/Jetson are adapter structs (HTTP/SDK)
+marked DEFERRED until credentials/hardware exist, but the interface +
+routing + local path are fully testable now. <strong>Acceptance
+test:</strong> register a fake + local backend; route a request and
+assert the chosen backend matches the tier policy and response
+propagates. <em>Mutation:</em> make Router always pick index 0 → the
+tier-routing assertion fails.</p>
+<hr />
+<h2
+id="deferred-external-infra-hardware-zig-gpu-kernel-cannot-be-honestly-completed-in-repo">DEFERRED
+(external infra / hardware / Zig / GPU-kernel — cannot be honestly
+completed in-repo)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Reason deferred</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Steam Deck Flatpak agent gaming-interference gate</td>
+<td>Requires real Steam Deck; exit gate demands real-device FPS/battery
+benchmark (CLAUDE-1 forbids mock-only).</td>
+</tr>
+<tr>
+<td>Jetson TensorRT ≥60 TOPS backend</td>
+<td>Requires Jetson Orin L4T hardware + TensorRT runtime.</td>
+</tr>
+<tr>
+<td>FPGA hard-core (DE10-Nano/Zynq/KV260 DPU) + soft-core
+(Colorlight/VexRiscv)</td>
+<td>Requires physical FPGA boards + Vitis AI / Yosys-LiteX
+toolchains.</td>
+</tr>
+<tr>
+<td>riscv64 native CI build artifact</td>
+<td>Implementable but needs riscv64 toolchain/runner in CI infra.</td>
+</tr>
+<tr>
+<td>EPYC / Ampere Altra auto-provisioning gate</td>
+<td>Requires real bare-metal server hardware for &lt;30-min onboarding
+evidence.</td>
+</tr>
+<tr>
+<td>Cloud spot hybrid (5 on-prem + 5 spot) integration gate</td>
+<td>Requires live AWS/GCP spot accounts.</td>
+</tr>
+<tr>
+<td>Groq LPU &lt;100ms TTFT / Cerebras CS-3</td>
+<td>Requires GroqCloud / Cerebras cloud API credentials.</td>
+</tr>
+<tr>
+<td><code>pkg/quantum</code> Qiskit Runtime</td>
+<td>Requires IBM Quantum account; research-only T14.</td>
+</tr>
+<tr>
+<td>webOS smart TV agent</td>
+<td>Requires webOS device + JS bridge runtime.</td>
+</tr>
+<tr>
+<td>gVisor/Kata per-tier sandbox hardening</td>
+<td>Requires gVisor/Kata runtime on real cluster nodes.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Deferred count: 10</strong> — all blocked on external
+hardware, cloud accounts, or device-specific toolchains; none are
+pure-Go in-repo work. The 6 implementable gaps above
+(<code>pkg/device</code>, proto fields, tier/power scheduler plugin,
+tier-aware discovery, <code>pkg/cloudspot</code> logic,
+<code>pkg/inference</code> interface+local backend) constitute the
+honest, no-new-infra path to move Phase 5 off ~3%.</p>
+</body>
+</html>

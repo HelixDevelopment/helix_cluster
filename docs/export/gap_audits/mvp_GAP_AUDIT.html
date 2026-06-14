@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>mvp_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">mvp_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-mvp-code-grounded-gap-audit">PHASE MVP — Code-Grounded Gap
+Audit</h1>
+<blockquote>
+<p><strong>Honest assessment: ~60% complete</strong> | Auditor:
+engineering review | 2026-06-01</p>
+<p>One-line summary: Cluster-formation primitives
+(SWIM/WireGuard/discovery/leader/etcd/NATS), the resource readers, the
+Omega scheduler core, and the security crypto layer are genuinely
+implemented with real-behavior tests; but the <strong>Build Service is
+simulated</strong>, <strong>Kafka pub/sub is in-memory only</strong>,
+<strong>session I/O has no remote WebSocket forwarding</strong>,
+<strong>the API gateway has no auth</strong>, node state is ephemeral
+in-memory, and there is no HelixQA Challenge runner that exercises live
+services.</p>
+</blockquote>
+<p>The roadmap/MVP_PROGRESS docs overstate stubs (events/etcd are now
+real) <strong>and</strong> overstate completion (build, pubsub,
+session-forwarding, gateway-auth are weaker than implied). This audit
+corrects both.</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”. A
+package can be <strong>implemented</strong> and <strong>tested</strong>
+yet never reached from any binary (<strong>orphaned</strong>).
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it.</p>
+<p><strong>STALENESS CORRECTION:</strong> the original table called
+<code>pkg/gpuattest</code> an “empty dir / dangling placeholder”. As of
+2026-06-02 it is a <strong>real, populated, tested local
+package</strong> (attest/povw/seal/spotcheck/multigpu) — implemented +
+tested, but <strong>orphaned</strong> (no binary imports it). Row below
+is authoritative.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/events</code> (NATS)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/etcd</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/discovery</code> (etcd backend)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/pubsub</code> (in-memory only)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/resources</code> (cgroup v2 + /proc)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (Omega core)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/scheduler</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/session</code> (+ backends)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/node</code> / <code>cmd/helix-node</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/wireguard</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gateway</code> / <code>cmd/helix-gateway</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/swim</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/leader</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/lock</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/hxcregistry</code> (Postgres, nested module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/gpu</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/build</code> / <code>cmd/helix-build</code>
+(simulated build)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/security</code> (RBAC scopes)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/htmux</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/session</code> / <code>cmd/helix-session</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/metrics</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/tracing</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/helix-test</code> (HelixQA-ish runner)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/gpuattest</code> (local; was “empty”)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/jwt</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/middleware</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/websocket</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>security/pkg/e2ee</code> / <code>attestation</code> (separate
+module)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (not in helix cmd
+graph)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts (implemented+tested but reachable from NO
+<code>cmd/</code> binary):</strong> <code>pkg/events</code>,
+<code>pkg/pubsub</code>, <code>pkg/leader</code>, <code>pkg/lock</code>,
+<code>pkg/hxcregistry</code>, <code>pkg/tracing</code>,
+<code>pkg/gpuattest</code>, <code>pkg/middleware</code>. Several of
+these are precisely the MVP gaps the prose already names
+(e.g. <code>pkg/middleware</code>+<code>pkg/jwt</code> exist but the
+gateway doesn’t enforce auth → <code>pkg/middleware</code> orphaned;
+node registry not etcd-backed → relevant backends sit unwired).
+<code>pkg/websocket</code> IS now wired (the old “not wired to session
+attach” note may be partially stale at the package level — verify the
+<em>feature</em> path separately).</p>
+<h2 id="methodology">Methodology</h2>
+<p>DONE = real implementation <strong>and</strong> real-behavior test
+(unit + integration vs real service where the feature claims real-world
+operation). PARTIAL = implemented but simulated/mock-only/missing a
+load-bearing path. MISSING = absent or empty. Integration tests are
+gated <code>//go:build integration</code> and boot <strong>real</strong>
+containers via <code>containers/pkg/brokertest</code>
+(<code>StartNATS</code>/<code>StartEtcd</code>/<code>StartPostgres</code>,
+real testcontainers).</p>
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0-1 NATS/JetStream client (<code>pkg/events</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/events/nats_backend.go:8</code>;
+<code>pkg/events/nats_integration_test.go:1</code>
+(<code>//go:build integration</code>, real broker)</td>
+<td>Wraps <code>digital.vasic.eventbus/pkg/nats</code>; sink-side
+round-trip proven against a real NATS+JetStream container.</td>
+</tr>
+<tr>
+<td>P0-2 etcd client (<code>pkg/etcd</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/etcd/package.go:9</code> (<code>clientv3</code>);
+<code>pkg/etcd/etcd_integration_test.go:1</code> (real etcd)</td>
+<td>Real <code>go.etcd.io/etcd/client/v3</code> + concurrency;
+integration test boots real etcd.</td>
+</tr>
+<tr>
+<td>etcd discovery backend (<code>pkg/discovery</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/discovery/etcd_backend.go:12,52</code>;
+<code>etcd_backend_test.go</code></td>
+<td>Lease + keepalive + put/delete on real clientv3 interface.</td>
+</tr>
+<tr>
+<td>P0-3 Kafka producer/consumer (<code>pkg/pubsub</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/pubsub/package.go:6-36</code></td>
+<td>In-memory <code>Broker</code> only (map of channels). <strong>No
+Kafka/sarama/segmentio import, no integration test.</strong> Roadmap
+claims Kafka — false.</td>
+</tr>
+<tr>
+<td>P0-4 cgroups v2 + /proc reader (<code>pkg/resources</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/resources/cgroup_v2.go:96,148,187</code>;
+<code>proc_linux.go:22,39,92</code>; <code>cgroup_v2_test.go</code> +
+<code>testdata/</code></td>
+<td>Real cgroup-v2 fs parsing with golden testdata; <code>/proc</code>
+reader for CPU/mem.</td>
+</tr>
+<tr>
+<td>P0-5 Omega scheduler core
+(<code>pkg/scheduler</code>,<code>internal/scheduler</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/scheduler/scheduler.go:101,157</code>
+(<code>ScheduleOptimistic</code> w/ version); <code>cost_gpu.go</code>;
+<code>gang_preempt.go</code>;
+<code>internal/scheduler/server.go</code></td>
+<td>Filter/score/bind pipeline, optimistic-concurrency versioning,
+cost-aware GPU placement, gang/preempt. Real unit + behavior tests.</td>
+</tr>
+<tr>
+<td>P0-6 tmux control-mode backend (<code>pkg/session</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/session/backends/tmux.go:20,34,45</code></td>
+<td>Shells to real <code>tmux</code> for create/attach
+(<code>exec.Command</code>), but <strong>not control-mode
+(<code>-CC</code>)</strong> and no streaming I/O; attach opens a window,
+no PTY byte forwarding. CRDT/lifecycle/migration logic real
+(<code>crdt.go</code>,<code>migration.go</code>).</td>
+</tr>
+<tr>
+<td>P0-7 Node gRPC handlers
+(<code>internal/node</code>,<code>cmd/helix-node</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>internal/node/server.go:20-31,36</code> (in-memory maps);
+<code>cmd/helix-node/main.go:110,115</code> (real
+<code>grpc.NewServer</code>)</td>
+<td>Real gRPC server serving generated <code>helixv1</code> Node API,
+but registry is process-local <code>map</code> — <strong>not
+etcd-backed</strong>, lost on restart, not shared across nodes.</td>
+</tr>
+<tr>
+<td>P0-8 WireGuard mesh + NAT traversal
+(<code>pkg/wireguard</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/wireguard/mesh.go</code>, <code>configgen.go</code>,
+<code>keyrotation.go</code> (real);
+<code>nat_traversal.go:17-19</code></td>
+<td>Mesh config-gen + key rotation real &amp; tested. NAT traversal is a
+<strong>placeholder</strong> (“STUN-like”, comment “For production,
+integrate with a STUN client”) — no real hole-punch/STUN.</td>
+</tr>
+<tr>
+<td>P0-9 API gateway wiring
+(<code>internal/gateway</code>,<code>cmd/helix-gateway</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>internal/gateway/gateway.go:27-30,83,91</code>;
+<code>cmd/helix-gateway/main.go:117</code></td>
+<td>Real reverse proxy with prefix routing + <code>/health</code>,
+graceful shutdown. <strong>No JWT/RBAC/auth middleware wired</strong>
+(grep for jwt/Authorization/Bearer in gateway = none) despite
+<code>pkg/jwt</code>+<code>pkg/middleware</code> existing.</td>
+</tr>
+<tr>
+<td>SWIM gossip (<code>pkg/swim</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/swim/transport.go:14,21</code> (real
+<code>net.ListenUDP</code>);
+<code>failure_detector.go</code>,<code>suspicion.go</code>,<code>prober.go</code></td>
+<td>Real UDP transport, suspicion, failure detection, paired tests.</td>
+</tr>
+<tr>
+<td>Leader election + fencing (<code>pkg/leader</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/leader/fencing.go:64,117,155</code></td>
+<td>Lease registry, fencing tokens, epoch, staleness; behavior-tested.
+(In-process registry, not etcd-CAS — adequate for MVP.)</td>
+</tr>
+<tr>
+<td>Distributed lock (<code>pkg/lock</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/lock/lock_integration_test.go</code>
+(<code>//go:build integration</code>, real etcd)</td>
+<td>Integration-tested against real etcd.</td>
+</tr>
+<tr>
+<td>Internal artifact registry (<code>pkg/hxcregistry</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/hxcregistry/registry.go</code>,<code>schema.sql</code>,<code>hxcregistry_integration_test.go:1</code>
+(real Postgres)</td>
+<td>Real Postgres-backed registry with schema + integration test (recent
+anti-bluff fix per commit 6083681).</td>
+</tr>
+<tr>
+<td>GPU resource probe (<code>internal/gpu</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>internal/gpu/manager.go:36,52,57,118</code></td>
+<td>Real <code>/proc/driver/nvidia/gpus</code> parser
+(<code>detectGPUsReal</code>) <strong>with mock fallback</strong>
+(<code>detectGPUsMock</code>) on non-Linux/no-GPU. Allocation/monitoring
+real &amp; tested, but no real-GPU integration evidence
+(hardware-bound).</td>
+</tr>
+<tr>
+<td>Build Service
+(<code>internal/build</code>,<code>cmd/helix-build</code>)</td>
+<td><strong>PARTIAL/SIMULATED</strong></td>
+<td><code>internal/build/orchestrator.go:366-390</code>
+(<code>runBuild</code> = <code>time.After(100ms)</code> then fake
+<code>ImageTag</code>); <code>worker.go</code> (no exec)</td>
+<td>Orchestrator/worker-pool/state-machine/cache real &amp; well-tested,
+but <strong>the build itself is simulated</strong> — no Bazel RBE, no
+distcc, no <code>exec.Command</code>. <code>pkg/build</code> integration
+test exists but exercises the abstraction, not a real toolchain.</td>
+</tr>
+<tr>
+<td>e2ee transport (<code>security/pkg/e2ee</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>security/pkg/e2ee/package.go:21</code> (AES-256-GCM);
+<code>transport.go:40,62</code>; <code>package_test.go</code></td>
+<td>Real AEAD record protocol over ML-KEM-style encapsulation; Seal/Open
+with nonce discipline, tamper test. (In
+<code>vasic-digital/security</code> submodule.)</td>
+</tr>
+<tr>
+<td>Attestation (<code>security/pkg/attestation</code>)</td>
+<td><strong>PARTIAL (honest)</strong></td>
+<td><code>security/pkg/attestation/attestation.go:14-22,89</code></td>
+<td>Real ed25519 sign/verify of measurement docs with nonce binding —
+<strong>explicitly documented as software-rooted, NOT hardware
+TDX/SGX/NVIDIA</strong>. Honest contract; real hardware root =
+DEFERRED.</td>
+</tr>
+<tr>
+<td>RBAC scopes / identity (<code>internal/security</code>)</td>
+<td><strong>DONE</strong></td>
+<td><code>internal/security/identity_bindings.go</code>;
+<code>authorize_rbac_test.go</code>; <code>scopes_test.go</code>;
+<code>policy_enforcer.go</code></td>
+<td>Scope-based authorization with paired behavior tests (recent
+hardening). Not yet wired into the gateway (see P0-9).</td>
+</tr>
+<tr>
+<td>htmux CLI (<code>cmd/htmux</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>cmd/htmux/main.go:27</code>; <code>terminal.go:84,134</code>
+(comment: “session service does not expose a streaming endpoint”)</td>
+<td>Real raw-mode terminal + dial seam, but cannot stream remote session
+I/O because the server side is missing.</td>
+</tr>
+<tr>
+<td>Session I/O WebSocket forwarding
+(<code>cmd/helix-session</code>)</td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/session/*</code> +
+<code>pkg/session/manager.go:28,207</code> (no Stream/WebSocket)</td>
+<td>No bidirectional PTY-over-WebSocket path. <code>pkg/websocket</code>
+exists but is not wired to session attach. MVP exit-gate “remote session
+attach &lt;1s” cannot be met.</td>
+</tr>
+<tr>
+<td>HelixQA Challenge runner (<code>cmd/helix-test</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>cmd/helix-test/main.go:5-7,86,117</code>
+(dst/chaos/device)</td>
+<td>Runs deterministic-sim + chaos + device-sim, but is
+<strong>not</strong> a Challenge runner that drives live services and
+captures sink-side evidence per CLAUDE-1. 55 <code>challenges/</code>
+dirs exist but no live-service gate.</td>
+</tr>
+<tr>
+<td>Prometheus metrics / tracing
+(<code>pkg/metrics</code>,<code>pkg/tracing</code>)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/metrics/*</code>, <code>pkg/tracing/*</code> (real
+helpers)</td>
+<td>Helpers real &amp; tested; <strong>not uniformly wired/scraped
+across all 14 services</strong> (operability exit-gate unmet — no
+Grafana/scrape evidence).</td>
+</tr>
+<tr>
+<td>GPU attestation glue (<code>pkg/gpuattest</code>)</td>
+<td><strong>MISSING (empty)</strong></td>
+<td><code>pkg/gpuattest/</code> (no files)</td>
+<td>Empty dir in this repo; real impl lives at
+<code>security/pkg/gpuattest/package.go</code>. Local package is a
+dangling placeholder.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infra">TOP IMPLEMENTABLE GAPS
+(Go, no new infra)</h2>
+<ol type="1">
+<li><p><strong>Session I/O WebSocket forwarding</strong> —
+<code>internal/session</code> + <code>cmd/helix-session</code> (+ reuse
+<code>pkg/websocket</code>). Add a <code>StreamSession</code>/attach
+handler that bridges a tmux pane’s PTY to a WebSocket: spawn
+<code>tmux -CC</code> (or <code>pipe-pane</code>) for the named session,
+copy bytes bidirectionally between the PTY fd and the WS conn, and
+propagate resize. Expose it on the session service and have
+<code>cmd/htmux/terminal.go:134</code> dial it. <em>Acceptance test
+(mutation-pairable):</em> loopback WS test — write
+<code>"echo hi\n"</code> to the client side, assert <code>"hi"</code>
+echoes back within 1s; <strong>mutation:</strong> drop the server→client
+copy goroutine ⇒ test must hang/fail.</p></li>
+<li><p><strong>API gateway auth middleware</strong> —
+<code>internal/gateway</code>. Wrap the reverse-proxy handler with
+<code>pkg/middleware</code> + <code>pkg/jwt</code>: reject requests
+lacking a valid Bearer token (401), inject verified claims, and enforce
+<code>internal/security</code> scopes per route prefix.
+<em>Acceptance:</em> request to <code>/api/v1/scheduler/</code> with
+no/invalid/expired token ⇒ 401; valid token + correct scope ⇒ proxied
+200; <strong>mutation:</strong> make the verifier always return nil
+error ⇒ the unauthorized cases must start failing.</p></li>
+<li><p><strong>Kafka producer/consumer</strong> —
+<code>pkg/pubsub</code>. Replace/extend the in-memory
+<code>Broker</code> with a real client (<code>segmentio/kafka-go</code>)
+implementing <code>Publish(topic,key,value)</code> /
+<code>Subscribe(topic,group)</code> with at-least-once delivery and
+offset commit; keep the in-memory impl behind the same interface for
+unit tests. <em>Acceptance (integration, real Kafka via brokertest
+pattern):</em> publish N messages, consume across 2 group members,
+assert every key delivered exactly to one consumer;
+<strong>mutation:</strong> skip the offset commit ⇒ redelivery assertion
+fails.</p></li>
+<li><p><strong>Etcd-backed node registry</strong> —
+<code>internal/node</code>. Persist
+<code>RegisterNode</code>/<code>UpdateNodeStatus</code> into
+<code>pkg/etcd</code> (lease-bound keys, TTL = heartbeat window) instead
+of the in-memory map, and read <code>ListNodes</code> from etcd so two
+<code>helix-node</code> processes see each other. <em>Acceptance
+(integration, real etcd):</em> register on instance A,
+<code>ListNodes</code> on instance B returns it; stop A’s keepalive ⇒
+entry expires within TTL; <strong>mutation:</strong> never attach the
+lease ⇒ the expiry assertion fails.</p></li>
+<li><p><strong>HelixQA live-service Challenge runner</strong> —
+<code>cmd/helix-test</code> (<code>challenge</code> subcommand). Add a
+runner that boots a service (or compose stack), drives the real
+endpoint, and writes captured sink-side evidence (response/log/metric)
+to an artifact dir, exiting non-zero on mismatch. Wire 3–5
+<code>challenges/</code> dirs to it. <em>Acceptance:</em> a passing
+challenge produces an evidence file with the expected sink line;
+<strong>mutation:</strong> point the challenge at a wrong endpoint ⇒
+runner exits non-zero and writes a failure record.</p></li>
+<li><p><strong>tmux control-mode (<code>-CC</code>) backend</strong> —
+<code>pkg/session/backends/tmux.go</code>. Upgrade <code>Attach</code>
+to use <code>tmux -CC</code> control mode, parsing
+<code>%output</code>/<code>%begin</code>/<code>%end</code> notifications
+into structured events so the session service can multiplex panes.
+<em>Acceptance:</em> create a session, send a command, assert a parsed
+<code>%output</code> event contains the command’s stdout;
+<strong>mutation:</strong> ignore <code>%output</code> frames ⇒
+assertion fails.</p></li>
+<li><p><strong>Uniform metrics/health wiring across services</strong> —
+<code>cmd/helix-*</code>. Mount <code>pkg/metrics</code>
+<code>/metrics</code> and <code>pkg/health</code> on every binary’s
+HTTP/gRPC server. <em>Acceptance:</em> table test hitting each command’s
+<code>/metrics</code> returns a <code>helix_*</code> counter that
+increments after one request; <strong>mutation:</strong> drop the
+counter <code>.Inc()</code> in a handler ⇒ the increment assertion
+fails.</p></li>
+</ol>
+<h2 id="deferred-external-infra-hardware-non-go">DEFERRED (external
+infra / hardware / non-Go)</h2>
+<ul>
+<li><strong>Bazel RBE / distcc real build execution</strong>
+(<code>internal/build</code>) — DEFERRED: needs a real Bazel/AOSP
+toolchain and remote-execution cluster; current simulated
+<code>runBuild</code> is acceptable only as a placeholder, not
+MVP-complete.</li>
+<li><strong>Hardware-rooted attestation (TDX/SGX/NVIDIA)</strong>
+(<code>security/pkg/attestation</code>,<code>pkg/gpuattest</code>) —
+DEFERRED: requires confidential-compute hardware; software ed25519
+stand-in is honestly documented.</li>
+<li><strong>Real GPU probe validation</strong>
+(<code>internal/gpu</code>) — DEFERRED for sink-side proof: needs an
+actual NVIDIA GPU; <code>/proc</code> parser is real but unverifiable in
+CI.</li>
+<li><strong>WireGuard NAT traversal / STUN hole-punch</strong>
+(<code>pkg/wireguard/nat_traversal.go</code>) — DEFERRED: needs a
+STUN/TURN relay + multi-host NAT topology to validate; placeholder HTTP
+discovery insufficient.</li>
+<li><strong>CRIU live migration, Zellij/screen backends, Zig primitives,
+C/C++ GPU kernels, PS4/PS5 console nodes</strong> — DEFERRED per roadmap
+§6 P2 (non-Go and/or hardware-bound).</li>
+<li><strong>Vault secret rotation + Grafana scrape exit-gates</strong> —
+DEFERRED for sink-side evidence: needs the running observability/secrets
+stack (compose) to capture operator-visible proof.</li>
+</ul>
+</body>
+</html>

@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 43 <strong>Last modified:</strong>
-2026-06-02T01:37:37Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 197 <strong>Last modified:</strong>
+2026-06-14T18:36:45Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>222</strong>.</p>
+<p>Total completed: <strong>725</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -305,6 +305,14 @@ canonical; edit via cmd/hxc-registry, not by hand)</p>
 <td>P1</td>
 <td></td>
 <td></td>
+</tr>
+<tr>
+<td>HXC-1000</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX delta-ORSet strong-eventual-consistency defect
+(remove-before-add divergence)</td>
+<td>84141b9</td>
 </tr>
 <tr>
 <td>HXC-1001</td>
@@ -1163,6 +1171,14 @@ cmd/helix-*)</td>
 <td>05f408d</td>
 </tr>
 <tr>
+<td>HXC-1113</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Remove dangling pkg/gpuattest placeholder and reuse
+security/pkg/gpuattest</td>
+<td></td>
+</tr>
+<tr>
 <td>HXC-1114</td>
 <td>Feature</td>
 <td>P0</td>
@@ -1186,11 +1202,27 @@ triggers</td>
 <td>7634fbbfaf4e66eba233c79adb5d2b4c169e9d36</td>
 </tr>
 <tr>
+<td>HXC-1117</td>
+<td>Task</td>
+<td>P0</td>
+<td>Define and generate proto service stubs
+(node/session/scheduler/health/auth)</td>
+<td>bd605bf</td>
+</tr>
+<tr>
 <td>HXC-1118</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Implement REST API surface on API Gateway with OpenAPI 3.0</td>
 <td>6c825dfc56a498b371578de921db8458a97d09f9</td>
+</tr>
+<tr>
+<td>HXC-1119</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement Avro event schemas and schema-validated routing (Event
+Bus)</td>
+<td>f2b9a4d</td>
 </tr>
 <tr>
 <td>HXC-1120</td>
@@ -1236,6 +1268,14 @@ triggers</td>
 <td>Implement Setup Wizard single-command node onboarding (cmd,
 BASH+Go)</td>
 <td>9c58146</td>
+</tr>
+<tr>
+<td>HXC-1126</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement LLM Brain advisory engine with LLMsVerifier gate
+(internal/llm)</td>
+<td>f4d8da9</td>
 </tr>
 <tr>
 <td>HXC-1127</td>
@@ -1314,6 +1354,14 @@ gate)</td>
 <td>75f076f</td>
 </tr>
 <tr>
+<td>HXC-1139</td>
+<td>Research</td>
+<td>P2</td>
+<td>Author TLA+ specifications for consensus and scheduling
+concurrency</td>
+<td>a39e89b</td>
+</tr>
+<tr>
 <td>HXC-1141</td>
 <td>Feature</td>
 <td>P2</td>
@@ -1334,6 +1382,30 @@ sharing</td>
 <td>P2</td>
 <td>Implement WireGuard mesh network policies (segmentation)</td>
 <td>467a6dc62cc792f48a64c687cab03209ff99ff27</td>
+</tr>
+<tr>
+<td>HXC-1145</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Author MVP architecture and component-specification documentation
+artifacts</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-1146</td>
+<td>Docs</td>
+<td>P0</td>
+<td>Document node-provisioning boundary: project does NOT implement
+jailbreak/exploit/DRM-circumvention</td>
+<td>2a90f56</td>
+</tr>
+<tr>
+<td>HXC-1147</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement internal/console/linux_boot.go BootCoordinator state
+machine</td>
+<td>4c2d4b0</td>
 </tr>
 <tr>
 <td>HXC-1148</td>
@@ -1389,6 +1461,14 @@ etcd</td>
 <td>7718c20</td>
 </tr>
 <tr>
+<td>HXC-1158</td>
+<td>Task</td>
+<td>P2</td>
+<td>Harden device hardware-identification in
+internal/console/detector.go (generic, fixture-tested)</td>
+<td>da02870</td>
+</tr>
+<tr>
 <td>HXC-1160</td>
 <td>Feature</td>
 <td>P2</td>
@@ -1401,6 +1481,71 @@ etcd</td>
 <td>P2</td>
 <td>E2E: multi-node session CRDT convergence</td>
 <td>8e8cebb</td>
+</tr>
+<tr>
+<td>HXC-1164</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Author phase_02 architecture diagram (operator console + mesh + node
+integration)</td>
+<td>4c2d4b0</td>
+</tr>
+<tr>
+<td>HXC-1165</td>
+<td>Task</td>
+<td>P2</td>
+<td>Ensure api/v1/node.proto carries trust_level + thermal fields
+consumed end-to-end</td>
+<td>af16635</td>
+</tr>
+<tr>
+<td>HXC-1167</td>
+<td>Task</td>
+<td>P0</td>
+<td>Build ARM64 cross-compilation toolchain for Helix agent</td>
+<td>da02870</td>
+</tr>
+<tr>
+<td>HXC-1175</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement charging-gated PowerGater scheduling guard</td>
+<td>2a90f56</td>
+</tr>
+<tr>
+<td>HXC-1178</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement MQTT client for edge work dispatch and status</td>
+<td>cd8bb86</td>
+</tr>
+<tr>
+<td>HXC-1184</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement edge node registration for all tiers (T3-T8)</td>
+<td>0bb95e9</td>
+</tr>
+<tr>
+<td>HXC-1185</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement edge heartbeat with battery/thermal/network telemetry</td>
+<td>2a90f56</td>
+</tr>
+<tr>
+<td>HXC-1186</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement edge protocol gateway (MQTT/QUIC/WebSocket)</td>
+<td>a4c9bf7</td>
+</tr>
+<tr>
+<td>HXC-1187</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Define EdgeWorkUnit and EdgeWorkResult protobuf schemas</td>
+<td>af16635</td>
 </tr>
 <tr>
 <td>HXC-1188</td>
@@ -1432,6 +1577,13 @@ devices</td>
 <td>7718c20</td>
 </tr>
 <tr>
+<td>HXC-1193</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement per-tier workload quantization selection</td>
+<td>0bb95e9</td>
+</tr>
+<tr>
 <td>HXC-1195</td>
 <td>Feature</td>
 <td>P0</td>
@@ -1446,6 +1598,14 @@ devices</td>
 <td>7718c20</td>
 </tr>
 <tr>
+<td>HXC-1197</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement edge output verification
+(LLMsVerifier/redundant/checksum)</td>
+<td>0bb95e9</td>
+</tr>
+<tr>
 <td>HXC-1198</td>
 <td>Feature</td>
 <td>P1</td>
@@ -1458,6 +1618,27 @@ devices</td>
 <td>P1</td>
 <td>Implement edge sensor-fusion framework and stream workload type</td>
 <td>75f076f</td>
+</tr>
+<tr>
+<td>HXC-1201</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement low-bandwidth protocol optimizations (CoAP option)</td>
+<td>5ebb093</td>
+</tr>
+<tr>
+<td>HXC-1202</td>
+<td>Research</td>
+<td>P3</td>
+<td>Implement WebRTC P2P data-channel transport for edge devices</td>
+<td>4261d34</td>
+</tr>
+<tr>
+<td>HXC-1207</td>
+<td>Task</td>
+<td>P0</td>
+<td>Implement edge device chaos test suite</td>
+<td>646b1ad</td>
 </tr>
 <tr>
 <td>HXC-1210</td>
@@ -1502,6 +1683,13 @@ devices</td>
 <td>7718c20</td>
 </tr>
 <tr>
+<td>HXC-1216</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement true embedded Raft consensus (pkg/raft)</td>
+<td>a39e89b</td>
+</tr>
+<tr>
 <td>HXC-1220</td>
 <td>Task</td>
 <td>P2</td>
@@ -1517,12 +1705,28 @@ T1-T8</td>
 <td>1c0d943</td>
 </tr>
 <tr>
+<td>HXC-1230</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement automated tier detection validating host KVM/ARM64/binfmt
+capabilities</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
 <td>HXC-1231</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Implement device provisioning lifecycle abstraction
 (Provisioner/Instance state machine)</td>
 <td>553a043</td>
+</tr>
+<tr>
+<td>HXC-1233</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement qcow2 copy-on-write overlay management with 10-deep chain
+limit</td>
+<td>9ee8592</td>
 </tr>
 <tr>
 <td>HXC-1236</td>
@@ -1588,6 +1792,14 @@ CPU/mem/disk pressure, OOM kill, graceful shutdown)</td>
 <td>e93fad6</td>
 </tr>
 <tr>
+<td>HXC-1245</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement 3 time fault injectors (clock skew, clock freeze,
+monotonic drift)</td>
+<td>0bb95e9</td>
+</tr>
+<tr>
 <td>HXC-1247</td>
 <td>Feature</td>
 <td>P1</td>
@@ -1628,6 +1840,22 @@ collection</td>
 <td>aba565b</td>
 </tr>
 <tr>
+<td>HXC-1258</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement MetricsCollector exporting 15+ chaos Prometheus metric
+series with OpenTelemetry tracing</td>
+<td>c642583</td>
+</tr>
+<tr>
+<td>HXC-1259</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement HelixQA automatic challenge generation from test
+outcomes</td>
+<td>58ae8b1</td>
+</tr>
+<tr>
 <td>HXC-1260</td>
 <td>Feature</td>
 <td>P1</td>
@@ -1642,6 +1870,14 @@ severity gating</td>
 <td>Implement Welch’s t-test statistical regression detector for
 HelixQA</td>
 <td>1c0d943</td>
+</tr>
+<tr>
+<td>HXC-1264</td>
+<td>Task</td>
+<td>P1</td>
+<td>Define WIT interfaces for device-simulator, workload-generator,
+fault-injector, metrics-exporter</td>
+<td>765236d</td>
 </tr>
 <tr>
 <td>HXC-1265</td>
@@ -1700,6 +1936,30 @@ override labels</td>
 <td>9baae11</td>
 </tr>
 <tr>
+<td>HXC-1293</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Extend api/v1/node.proto with tier, trust_level, compute_class, arch
+fields</td>
+<td>af16635</td>
+</tr>
+<tr>
+<td>HXC-1294</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Create api/v1/resources.proto with npu_tops, fpga_logic_elements,
+tflops_gpu</td>
+<td>af16635</td>
+</tr>
+<tr>
+<td>HXC-1295</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Extend api/v1/scheduler.proto with tier constraints and
+power_budget</td>
+<td>af16635</td>
+</tr>
+<tr>
 <td>HXC-1296</td>
 <td>Feature</td>
 <td>P0</td>
@@ -1730,6 +1990,14 @@ helpers</td>
 <td>Implement pkg/discovery 15-tier registry + SelectByTier(tier,
 minTrust)</td>
 <td>e4f0b03</td>
+</tr>
+<tr>
+<td>HXC-1300</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Extend pkg/resources to probe NPU TOPS, FPGA logic elements, GPU
+TFLOPS, QPU</td>
+<td>2a90f56</td>
 </tr>
 <tr>
 <td>HXC-1301</td>
@@ -1764,6 +2032,46 @@ manager</td>
 <td>0346e1c</td>
 </tr>
 <tr>
+<td>HXC-1305</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement device discovery engine: GPU detection
+(Vulkan/CUDA/ROCm/Mali strategies)</td>
+<td>e3099cf</td>
+</tr>
+<tr>
+<td>HXC-1306</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement device discovery engine: NPU detection (Rockchip/NVIDIA
+DLA/Qualcomm/Apple)</td>
+<td>583c6ca</td>
+</tr>
+<tr>
+<td>HXC-1307</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement device discovery engine: FPGA detection
+(Xilinx/Intel/Lattice, hard vs soft core)</td>
+<td>b545d84</td>
+</tr>
+<tr>
+<td>HXC-1308</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement micro-benchmarker producing normalized per-compute-class
+scores</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-1309</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement capability manifest generation + control-plane
+negotiation</td>
+<td>14f13c6</td>
+</tr>
+<tr>
 <td>HXC-1310</td>
 <td>Feature</td>
 <td>P0</td>
@@ -1778,6 +2086,22 @@ data/network policy by trust level)</td>
 <td>Author complete YAML tier definitions (T1-T15) with min_requirements
 and constraints</td>
 <td>d4829d1</td>
+</tr>
+<tr>
+<td>HXC-1328</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement cloud-spot AWS/Azure/GCP IMDS interruption pollers
+(adapters)</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-1331</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Author 64-device master taxonomy table as machine-readable device
+catalog</td>
+<td>cbe329a</td>
 </tr>
 <tr>
 <td>HXC-1334</td>
@@ -1857,12 +2181,134 @@ failure</td>
 <td>37c2a9a</td>
 </tr>
 <tr>
+<td>HXC-1344</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/swim/hierarchical two-tier LAN+WAN delegate
+gossip</td>
+<td>7f465a6</td>
+</tr>
+<tr>
+<td>HXC-1345</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement gateway-relayed cross-cell suspicion propagation</td>
+<td>7f465a6</td>
+</tr>
+<tr>
+<td>HXC-1346</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement bootstrap/rendezvous strategies (static, DNS-SRV, DHT,
+cloud, mDNS)</td>
+<td>ddd5efa</td>
+</tr>
+<tr>
+<td>HXC-1347</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement mDNS/DNS-SD local cell discovery advertiser and
+browser</td>
+<td>e5f963b</td>
+</tr>
+<tr>
+<td>HXC-1348</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/nattraversal STUN client and NAT-type
+classification</td>
+<td>7f465a6</td>
+</tr>
+<tr>
+<td>HXC-1349</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement ICE candidate gathering, prioritization and connectivity
+checks</td>
+<td>18c4d60</td>
+</tr>
+<tr>
+<td>HXC-1350</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement TURN relay allocation and fallback chain</td>
+<td>48e13fe</td>
+</tr>
+<tr>
+<td>HXC-1351</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement QUIC fallback transport with 0-RTT and connection
+migration</td>
+<td>d9718e8</td>
+</tr>
+<tr>
+<td>HXC-1352</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement internal/cell WireGuard inter-cell mesh manager</td>
+<td>18c4d60</td>
+</tr>
+<tr>
 <td>HXC-1353</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Implement WireGuard zero-downtime key rotation with overlap
 window</td>
 <td>0c8b4ca</td>
+</tr>
+<tr>
+<td>HXC-1356</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Integrate libp2p DHT discovery, GossipSub and circuit relay</td>
+<td>8b0bb7a</td>
+</tr>
+<tr>
+<td>HXC-1357</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/spiffe/federation trust-bundle exchange across
+cells</td>
+<td>18c4d60</td>
+</tr>
+<tr>
+<td>HXC-1358</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement OPA/Gatekeeper cross-cluster federated-trust
+admission</td>
+<td>14f13c6</td>
+</tr>
+<tr>
+<td>HXC-1359</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement OPA data-residency / data-sovereignty admission
+policy</td>
+<td>996610f</td>
+</tr>
+<tr>
+<td>HXC-1361</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement double-encryption (WireGuard L3 + mTLS L7) data path</td>
+<td>18c4d60</td>
+</tr>
+<tr>
+<td>HXC-1363</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement federated service discovery (cell-local + global
+registry)</td>
+<td>ddd5efa</td>
+</tr>
+<tr>
+<td>HXC-1364</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement internal/federation Karmada PropagationPolicy engine</td>
+<td>e5f963b</td>
 </tr>
 <tr>
 <td>HXC-1365</td>
@@ -1873,12 +2319,2815 @@ scoring</td>
 <td>0c8b4ca</td>
 </tr>
 <tr>
+<td>HXC-1367</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/gitops ArgoCD ApplicationSet federation client</td>
+<td>e5f963b</td>
+</tr>
+<tr>
+<td>HXC-1368</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement CRDT-based config sync for cell-local overrides</td>
+<td>996610f</td>
+</tr>
+<tr>
+<td>HXC-1371</td>
+<td>Task</td>
+<td>P1</td>
+<td>Enforce etcd-stays-within-cell static-analysis lint gate</td>
+<td>ddd5efa</td>
+</tr>
+<tr>
+<td>HXC-1372</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement per-cell etcd Raft WAN-safe tuning profiles</td>
+<td>996610f</td>
+</tr>
+<tr>
 <td>HXC-1373</td>
 <td>Feature</td>
 <td>P1</td>
 <td>Implement split-brain prevention and partition-classification
 logic</td>
 <td>37c2a9a</td>
+</tr>
+<tr>
+<td>HXC-1374</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement internal/chaos CE-01..CE-12 chaos experiment suite</td>
+<td>14f13c6</td>
+</tr>
+<tr>
+<td>HXC-1375</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Turmoil-style deterministic multi-cluster simulation
+harness</td>
+<td>9a4ecbd</td>
+</tr>
+<tr>
+<td>HXC-1377</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Author Phase 6 FMEA catalog with detection and recovery
+runbooks</td>
+<td>9a4ecbd</td>
+</tr>
+<tr>
+<td>HXC-1380</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement split-brain detection PromQL alerts with runbook
+links</td>
+<td>7f465a6</td>
+</tr>
+<tr>
+<td>HXC-1381</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Build Grafana global-health cell-status-grid dashboard</td>
+<td>9a4ecbd</td>
+</tr>
+<tr>
+<td>HXC-1383</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement five federation topology patterns and block-binding
+modes</td>
+<td>996610f</td>
+</tr>
+<tr>
+<td>HXC-1386</td>
+<td>Task</td>
+<td>P1</td>
+<td>Verify sub-phase dependency gates 6a-&gt;6b-&gt;6c-&gt;6d soak
+conditions</td>
+<td>14f13c6</td>
+</tr>
+<tr>
+<td>HXC-1387</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement Multi-Raft per-shard consensus manager (G-01, P0)</td>
+<td>ca80b35</td>
+</tr>
+<tr>
+<td>HXC-1388</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement heartbeat coalescer for Multi-Raft network overhead
+control</td>
+<td>f6bb012</td>
+</tr>
+<tr>
+<td>HXC-1389</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement leaseholder fast-path local reads in Multi-Raft</td>
+<td>28fd683</td>
+</tr>
+<tr>
+<td>HXC-1390</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement MVCC revision store with B-tree index and time-travel
+(G-08, P0)</td>
+<td>f6bb012</td>
+</tr>
+<tr>
+<td>HXC-1391</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement persistent Watch Manager with synced/unsynced groups (G-08
+support)</td>
+<td>5c7d8db</td>
+</tr>
+<tr>
+<td>HXC-1392</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement SLURM-style backfill scheduler over availability timeline
+(G-02, P0)</td>
+<td>3d1daa9</td>
+</tr>
+<tr>
+<td>HXC-1393</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement multifactor priority queue for scheduler
+(age+fairshare+size+QoS)</td>
+<td>4ec944c</td>
+</tr>
+<tr>
+<td>HXC-1394</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement CRC16 16,384 hash-slot session router (G-03, P0)</td>
+<td>3d1daa9</td>
+</tr>
+<tr>
+<td>HXC-1395</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement MOVED/ASK redirection and ASKING for in-flight slot
+migration (G-03)</td>
+<td>3d1daa9</td>
+</tr>
+<tr>
+<td>HXC-1396</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Atomic Slot Migration controller for live session
+migration (G-03, P2)</td>
+<td>5c7d8db</td>
+</tr>
+<tr>
+<td>HXC-1397</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Add config-epoch conflict resolution for simultaneous failovers</td>
+<td>ac17134</td>
+</tr>
+<tr>
+<td>HXC-1398</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Add Startup health-probe tier with GPU grace period (G-04, P1)</td>
+<td>5c7d8db</td>
+</tr>
+<tr>
+<td>HXC-1399</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement SWIM majority PFAIL-&gt;FAIL two-phase failure
+confirmation (G-23, P1)</td>
+<td>5c7d8db</td>
+</tr>
+<tr>
+<td>HXC-1400</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement largest-subcluster-wins voting quorum (G-19, P0)</td>
+<td>3d1daa9</td>
+</tr>
+<tr>
+<td>HXC-1401</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement STONITH fencing agents (IPMI/cloud/shared-disk) (G-19,
+P1)</td>
+<td>ca80b35</td>
+</tr>
+<tr>
+<td>HXC-1402</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Pacemaker-style four-type constraint engine (G-20,
+P2)</td>
+<td>f6bb012</td>
+</tr>
+<tr>
+<td>HXC-1403</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement SCAN stable virtual-IP/DNS client endpoint (G-21, P2)</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1404</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement N+K failover capacity admission control (G-22, P1)</td>
+<td>dbcd006</td>
+</tr>
+<tr>
+<td>HXC-1405</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement gang scheduling all-or-nothing GPU reservation (G-18,
+P1)</td>
+<td>dbcd006</td>
+</tr>
+<tr>
+<td>HXC-1406</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement topology-aware NUMA/NVLink GPU placement scoring
+(G-10/G-18, P2)</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1407</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement device-plugin / GRES fingerprinting framework
+(G-11/G-13/G-17, P1)</td>
+<td>ca80b35</td>
+</tr>
+<tr>
+<td>HXC-1408</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement BOINC-style redundant-execution trust scorer (G-09,
+P1)</td>
+<td>4ec944c</td>
+</tr>
+<tr>
+<td>HXC-1409</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement standalone delta-state CRDT package
+(G-counter/PN-counter/OR-set/LWW-map) (G-01 part, P2)</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1410</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement Cassandra 3-layer repair: hinted handoff + read repair +
+Merkle anti-entropy (G-01 part, P1)</td>
+<td>5485d4b</td>
+</tr>
+<tr>
+<td>HXC-1411</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Informer cache helixcache.Watcher (list-watch local cache)
+(G-05, P2)</td>
+<td>4ec944c</td>
+</tr>
+<tr>
+<td>HXC-1412</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement rate-limited work queue with exponential backoff (G-06,
+P2)</td>
+<td>f6bb012</td>
+</tr>
+<tr>
+<td>HXC-1413</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement API Priority &amp; Fairness
+FlowSchema-&gt;PriorityLevel-&gt;Queue (G-07, P2)</td>
+<td>4ec944c</td>
+</tr>
+<tr>
+<td>HXC-1415</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement idempotent producer (PID + sequence) for exactly-once
+messaging</td>
+<td>5485d4b</td>
+</tr>
+<tr>
+<td>HXC-1416</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement cooperative incremental rebalancing for
+consumers/membership</td>
+<td>5485d4b</td>
+</tr>
+<tr>
+<td>HXC-1417</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement embedded KRaft-style Raft quorum to remove external
+ZooKeeper</td>
+<td>28fd683</td>
+</tr>
+<tr>
+<td>HXC-1418</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement tiered cache hot(memory)/warm(NVMe)/cold(SSD) data
+tiers</td>
+<td>ac17134</td>
+</tr>
+<tr>
+<td>HXC-1419</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Build deterministic simulation testing (DST) framework on Turmoil
+(G-14, P0)</td>
+<td>28fd683</td>
+</tr>
+<tr>
+<td>HXC-1420</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement BUGGIFY chaos macros at 25% deterministic fire rate (G-15,
+P0)</td>
+<td>0563e52</td>
+</tr>
+<tr>
+<td>HXC-1421</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Integrate Porcupine linearizability checking in CI under fault
+injection (G-16, P1)</td>
+<td>28fd683</td>
+</tr>
+<tr>
+<td>HXC-1422</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Build nightly chaos pipeline (pod kill, partition, disk stall, clock
+skew) (G-15 part)</td>
+<td>28fd683</td>
+</tr>
+<tr>
+<td>HXC-1424</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Produce hardened HelixCluster architecture diagram and component
+map</td>
+<td>b75a553</td>
+</tr>
+<tr>
+<td>HXC-1425</td>
+<td>Docs</td>
+<td>P1</td>
+<td>Produce Phase 7 phase-by-phase 23-gap matrix as tracked deliverable
+ledger</td>
+<td>70f6634</td>
+</tr>
+<tr>
+<td>HXC-1426</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/chutes Chutes OpenAI-compatible API Client
+(non-streaming)</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1427</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement Chutes API client fallback-model chain on retriable
+failure</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1428</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement SSE streaming decoder for Chutes chat completions</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1429</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement Chutes API model-list and user-account/balance
+queries</td>
+<td>1c8d0d1</td>
+</tr>
+<tr>
+<td>HXC-1430</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement model-router default-model resolution by strategy
+(latency/throughput/quality/cost)</td>
+<td>9d02879</td>
+</tr>
+<tr>
+<td>HXC-1431</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Wire E2EE inference envelope between pkg/chutes and
+security/pkg/e2ee</td>
+<td>2278f85</td>
+</tr>
+<tr>
+<td>HXC-1435</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement GraValVerifier.BatchVerify concurrent attestation with
+pass-rate KPI</td>
+<td>1c8d0d1</td>
+</tr>
+<tr>
+<td>HXC-1436</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement GraVal VRAM-threshold (95%) gate in attestation</td>
+<td>1c8d0d1</td>
+</tr>
+<tr>
+<td>HXC-1439</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Define ChutesMinerConfig and ValidatorConfig data structures</td>
+<td>ca80b35</td>
+</tr>
+<tr>
+<td>HXC-1446</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement custom HelixGepetto dual-resource arbitration
+strategy</td>
+<td>1c8d0d1</td>
+</tr>
+<tr>
+<td>HXC-1447</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement dual-workload capacity reservation in internal/gpu</td>
+<td>ca80b35</td>
+</tr>
+<tr>
+<td>HXC-1448</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement GraVal attestation hook in internal/gpu Manager</td>
+<td>5b4a875</td>
+</tr>
+<tr>
+<td>HXC-1449</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement MIG profile management in internal/gpu</td>
+<td>7aabc72</td>
+</tr>
+<tr>
+<td>HXC-1454</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement MarketplaceAdapter interface and Chutes adapter</td>
+<td>ba72e83</td>
+</tr>
+<tr>
+<td>HXC-1455</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement UnifiedManager.RouteWorkload concurrent pricing +
+composite scoring</td>
+<td>7e01512</td>
+</tr>
+<tr>
+<td>HXC-1456</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement RevenueOptimizer.OptimizeAllocation greedy
+GPU-to-marketplace assignment</td>
+<td>cbe329a</td>
+</tr>
+<tr>
+<td>HXC-1458</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Akash marketplace adapter</td>
+<td>bd90b85</td>
+</tr>
+<tr>
+<td>HXC-1460</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/economics RewardDistributor multi-token
+distribution</td>
+<td>cbe329a</td>
+</tr>
+<tr>
+<td>HXC-1461</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement RewardDistributor.GetParticipantROI and break-even
+tracking</td>
+<td>cbe329a</td>
+</tr>
+<tr>
+<td>HXC-1469</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Wire internal/gateway to route internal AI requests through Chutes
+API client</td>
+<td>7aabc72</td>
+</tr>
+<tr>
+<td>HXC-1470</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Replace internal/llm stub Inference with real model router
+(latency/throughput/quality/cost)</td>
+<td>5b4a875</td>
+</tr>
+<tr>
+<td>HXC-1473</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Enable AWQ 4-bit quantization as default model format</td>
+<td>7aabc72</td>
+</tr>
+<tr>
+<td>HXC-1476</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement hybrid PQC TLS (X25519 + ML-KEM-768) node-to-node
+transport</td>
+<td>f983f8b</td>
+</tr>
+<tr>
+<td>HXC-1480</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement carbon-aware scheduler with per-job energy metering</td>
+<td>f983f8b</td>
+</tr>
+<tr>
+<td>HXC-1481</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement EU AI Act compliance documentation pipeline</td>
+<td>f983f8b</td>
+</tr>
+<tr>
+<td>HXC-1482</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement export-control tier verification (country-code KYC) at
+node onboarding</td>
+<td>cbe329a</td>
+</tr>
+<tr>
+<td>HXC-1483</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Extend pkg/metrics + Prometheus/Grafana with TAO/GraVal/throughput
+dashboards</td>
+<td>5b4a875</td>
+</tr>
+<tr>
+<td>HXC-1484</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Extend pkg/health with miner-api and GraVal DaemonSet health
+checks</td>
+<td>e5f963b</td>
+</tr>
+<tr>
+<td>HXC-1493</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement GPUTier type with priority ordering
+(Local..Decentralized)</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1494</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement PoolManager registry with tier-ordered Allocate walk</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1495</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement WorkloadSpec/GPUDevice/GPUAllocation/PoolStatus data
+structures</td>
+<td>7aabc72</td>
+</tr>
+<tr>
+<td>HXC-1496</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement candidate filtering (model/VRAM/cost/label selector)</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1497</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement global MaxCostPerHour budget cap on allocations</td>
+<td>5485d4b</td>
+</tr>
+<tr>
+<td>HXC-1498</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement PriorityScheduler (tier then least-load then cost)</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1499</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement CostAwareScheduler selecting cheapest GPUs meeting
+SLA</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1500</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement LatencyAwareScheduler for inference routing</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1501</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement HealthMonitor with 30s checks and auto-failover
+trigger</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1502</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement internal/costbroker ComputeBroker weighted scorer</td>
+<td>a733d87</td>
+</tr>
+<tr>
+<td>HXC-1503</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement ComputeBroker 60s re-scoring loop with price-spike
+guard</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1504</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/burst BurstController MONITOR-&gt;SPILL-&gt;RECOVER
+hysteresis</td>
+<td>9d02879</td>
+</tr>
+<tr>
+<td>HXC-1505</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement BurstController utilization RingBuffer moving average</td>
+<td>7558107</td>
+</tr>
+<tr>
+<td>HXC-1506</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement BurstController activateBurst capacity estimation +
+allocation</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1507</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/burst CostRouter per-workload-type provider
+scoring</td>
+<td>7558107</td>
+</tr>
+<tr>
+<td>HXC-1508</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement 5-tier fallback chain
+Chutes-&gt;io.net-&gt;RunPod-&gt;AWS</td>
+<td>9d02879</td>
+</tr>
+<tr>
+<td>HXC-1509</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement QoS tiers (real-time, interactive, batch,
+best-effort)</td>
+<td>af7b7f5</td>
+</tr>
+<tr>
+<td>HXC-1510</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/provider/chutes ChutesProvider OpenAI-compatible
+adapter</td>
+<td>7aabc72</td>
+</tr>
+<tr>
+<td>HXC-1511</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement Chutes retryWithFallback across fallback models on
+429</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1512</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Chutes GetBalance USD balance monitor</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1513</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Chutes streaming (SSE) chat-completion variant</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1514</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/provider/ionet IONetProvider Ray cluster adapter</td>
+<td>e5f963b</td>
+</tr>
+<tr>
+<td>HXC-1515</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/provider/runpod RunPodProvider serverless + warm
+pool</td>
+<td>7783030</td>
+</tr>
+<tr>
+<td>HXC-1516</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/provider/aws AWSProvider EC2 Spot adapter</td>
+<td>7783030</td>
+</tr>
+<tr>
+<td>HXC-1519</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/local LocalGPURegistrar with TCO effective-cost</td>
+<td>a733d87</td>
+</tr>
+<tr>
+<td>HXC-1523</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/e2ee GraValVerifier provider admission gate</td>
+<td>9d02879</td>
+</tr>
+<tr>
+<td>HXC-1527</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Define gpu_proxy.proto gRPC GPUProvider kernel-dispatch service</td>
+<td>af16635</td>
+</tr>
+<tr>
+<td>HXC-1529</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement workload-suitability classifier (HPC local vs inference
+remote)</td>
+<td>af7b7f5</td>
+</tr>
+<tr>
+<td>HXC-1530</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement cmd/gpu-pool-manager HTTP+gRPC front-end binary</td>
+<td>ba72e83</td>
+</tr>
+<tr>
+<td>HXC-1531</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement cmd/burst-controller utilization-driven binary</td>
+<td>ac17134</td>
+</tr>
+<tr>
+<td>HXC-1532</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement cmd/e2ee-proxy transparent ML-KEM-768 proxy binary</td>
+<td>c10b33f</td>
+</tr>
+<tr>
+<td>HXC-1533</td>
+<td>Task</td>
+<td>P1</td>
+<td>Add ProviderAdapter registration hooks to pkg/gpu</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-1534</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Add GPUTier-aware filter predicate to pkg/scheduler</td>
+<td>7783030</td>
+</tr>
+<tr>
+<td>HXC-1535</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Add GPU-tier utilization/cost/provider-health metrics to
+pkg/metrics</td>
+<td>7e01512</td>
+</tr>
+<tr>
+<td>HXC-1538</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement <span class="citation"
+data-cites="helix.task">@helix.task</span> Go decorator/SDK with
+lifecycle hooks</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1539</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement intelligent ModelRouter
+(latency/throughput/cost/tee/balanced)</td>
+<td>ac17134</td>
+</tr>
+<tr>
+<td>HXC-1544</td>
+<td>Research</td>
+<td>P3</td>
+<td>Implement predictive scaling forecast to pre-warm before peaks</td>
+<td>e12881c</td>
+</tr>
+<tr>
+<td>HXC-1547</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement TCO calculator for hybrid own+burst economic model</td>
+<td>e12881c</td>
+</tr>
+<tr>
+<td>HXC-1548</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement CostTracker monthly cost report vs AWS on-demand</td>
+<td>e12881c</td>
+</tr>
+<tr>
+<td>HXC-1551</td>
+<td>Task</td>
+<td>P1</td>
+<td>Build Prometheus/Grafana Phase 8B tier-utilization + cost
+dashboards</td>
+<td>7783030</td>
+</tr>
+<tr>
+<td>HXC-1556</td>
+<td>Task</td>
+<td>P1</td>
+<td>Benchmark ML-KEM-768 E2EE handshake latency (&lt;1ms target)</td>
+<td>c10b33f</td>
+</tr>
+<tr>
+<td>HXC-1561</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Add ChaCha20-Poly1305 AEAD cipher variant to pkg/security/e2ee</td>
+<td>69c1a89 (security fbdab51)</td>
+</tr>
+<tr>
+<td>HXC-1563</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement bidirectional per-request response keypair in
+pkg/security/e2ee</td>
+<td>831089a (security f09227f)</td>
+</tr>
+<tr>
+<td>HXC-1564</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement gzip-before-encrypt payload compression in
+pkg/security/e2ee</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-1565</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement streaming SSE E2EE decryption (e2e_init + per-chunk) in
+pkg/security/e2ee</td>
+<td>02c42d4 (security 16ae574)</td>
+</tr>
+<tr>
+<td>HXC-1567</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Maintain E2EE length-prefixed framed transport over
+io.ReadWriter</td>
+<td>31ff29f (security 29a6193)</td>
+</tr>
+<tr>
+<td>HXC-1568</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement pkg/gpuattest device-info challenge/response +
+fingerprint</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1569</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement seeded matmul proof-of-GPU-work (PoVW) in
+pkg/gpuattest</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1570</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement O(1) spot-check verification in pkg/gpuattest</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1571</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Implement device-sealed encrypt/decrypt
+(SealForDevice/OpenFromDevice) in pkg/gpuattest</td>
+<td>4f6f440</td>
+</tr>
+<tr>
+<td>HXC-1572</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement filesystem residency challenge in pkg/gpuattest</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1573</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement multi-GPU node enumeration in pkg/gpuattest</td>
+<td>f983f8b</td>
+</tr>
+<tr>
+<td>HXC-1579</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/security/admission OPA-style policy + signed-image
+(cosign) gate</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1580</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement pkg/modelintegrity hf_cache_verify gate (SHA-256 +
+size)</td>
+<td>a733d87</td>
+</tr>
+<tr>
+<td>HXC-1581</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement model/revision anti-cheat verification token (V2
+HMAC-SHA256)</td>
+<td>ec5bdc8</td>
+</tr>
+<tr>
+<td>HXC-1582</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement X25519 ephemeral session-key handshake for verification
+tokens</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1583</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Maintain pkg/scheduler cost-aware GPU placement plugin</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1584</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement value-multiplier preemption in pkg/scheduler (Gepetto
+model)</td>
+<td>70f6634</td>
+</tr>
+<tr>
+<td>HXC-1585</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement SKIP LOCKED-style optimistic work-claiming in
+pkg/scheduler</td>
+<td>70f6634</td>
+</tr>
+<tr>
+<td>HXC-1586</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement attestation-gated scheduler admission predicate</td>
+<td>70f6634</td>
+</tr>
+<tr>
+<td>HXC-1587</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement bounty/auction economic-placement plugin for
+scheduler</td>
+<td>ec5bdc8</td>
+</tr>
+<tr>
+<td>HXC-1588</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement utilization-aware EWMA candidate ranking for
+scheduler/orchestrator</td>
+<td>af7b7f5</td>
+</tr>
+<tr>
+<td>HXC-1589</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement Kueue-style suspend-then-admit tiered job admission</td>
+<td>ec5bdc8</td>
+</tr>
+<tr>
+<td>HXC-1590</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement NodeSelector placement-constraint schema in
+pkg/resources</td>
+<td>7558107</td>
+</tr>
+<tr>
+<td>HXC-1592</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement SUPPORTED_GPUS compute-multiplier catalog +
+LookupMultiplier</td>
+<td>9d02879</td>
+</tr>
+<tr>
+<td>HXC-1595</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement streaming-safe failover (retry only before first byte) in
+LLMOrchestrator</td>
+<td>ec5bdc8</td>
+</tr>
+<tr>
+<td>HXC-1596</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement per-task ordered fallback chains with dedup/cap +
+empty-response detection</td>
+<td>af7b7f5</td>
+</tr>
+<tr>
+<td>HXC-1597</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement thermal pre-warm / scale-from-zero state machine
+(Therm)</td>
+<td>e12881c</td>
+</tr>
+<tr>
+<td>HXC-1598</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement passthrough cords + disconnect-aware upstream abort in
+LLMOrchestrator</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1599</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement Claude/Responses API-shape adapters for LLMOrchestrator
+front door</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1600</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement error-classified LLM failover taxonomy + sandbox
+scheduling-hint contract</td>
+<td>b60e36f</td>
+</tr>
+<tr>
+<td>HXC-1601</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/inferenceproxy correlation-ID + backend audit
+trail</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1602</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement deterministic keyed-hash anonymization in
+pkg/inferenceproxy</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1603</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement spoof-proof managed-header sanitization at the recording
+edge</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1604</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Maintain pkg/fiber length-prefixed framed miner&lt;-&gt;validator
+transport</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1605</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement fiber ed25519 signed-identity handshake + stake-gated
+admission</td>
+<td>b31d53a</td>
+</tr>
+<tr>
+<td>HXC-1606</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement node identity verify-then-pin (TOFU) keypair-rooted
+TLS</td>
+<td>7558107</td>
+</tr>
+<tr>
+<td>HXC-1607</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/marketplace registration -&gt; bounty -&gt; metering
+-&gt; payout loop</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1608</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement pkg/marketplace/audit commit-then-prove reproducible
+reconciliation</td>
+<td>9ad74be</td>
+</tr>
+<tr>
+<td>HXC-1609</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement scale-to-zero metered hot/cold billing state machine</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1610</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement watchtower-style liveness/integrity prober for served
+instances</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1612</td>
+<td>Feature</td>
+<td>P3</td>
+<td>Implement OpenAPI request-validation admission middleware for
+control-plane APIs</td>
+<td>a442a9a</td>
+</tr>
+<tr>
+<td>HXC-1613</td>
+<td>Docs</td>
+<td>P1</td>
+<td>Document Phase 8C exit-gate evidence matrix (CLAUDE-1 usability
+proofs)</td>
+<td>da02870</td>
+</tr>
+<tr>
+<td>HXC-1614</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Document Phase 8C architecture integration diagrams
+(scheduler&lt;-attest, orchestrator&lt;-e2ee&lt;-TEE, marketplace)</td>
+<td>da02870</td>
+</tr>
+<tr>
+<td>HXC-1616</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Honor WithClock in cloudspot Azure/GCP pollers (currently silently
+ignored)</td>
+<td>31f4139</td>
+</tr>
+<tr>
+<td>HXC-1621</td>
+<td>Bug</td>
+<td>P1</td>
+<td>SELinux bind-mount relabel hardcoded :Z — make conditional +
+cross-platform (containers/pkg/crossbuild)</td>
+<td>da02870 (main pointer); containers submodule 1598f28</td>
+</tr>
+<tr>
+<td>HXC-1626</td>
+<td>Feature</td>
+<td>P2</td>
+<td>HXC-1119 follow-up: wire pkg/events Avro codec into the NATS
+HelixBackend wire path + schemas for
+SessionEvent/SchedulerEvent/AuditEvent</td>
+<td>c700da5</td>
+</tr>
+<tr>
+<td>HXC-1627</td>
+<td>Feature</td>
+<td>P2</td>
+<td>HXC-1626 follow-up: NATSBackend typed Avro publish/subscribe for
+SessionEvent/SchedulerEvent/AuditEvent</td>
+<td>feb8f0a</td>
+</tr>
+<tr>
+<td>HXC-1628</td>
+<td>Task</td>
+<td>P2</td>
+<td>buf lint STYLE conformance for api/v1 protos
+(PACKAGE_DIRECTORY_MATCH + RPC-response naming)</td>
+<td>3a7812b</td>
+</tr>
+<tr>
+<td>HXC-1629</td>
+<td>Task</td>
+<td>P2</td>
+<td>Wire Makefile migrate-up/migrate-down to scripts/run-migrations.sh
+(PRR item 46)</td>
+<td>a2643db</td>
+</tr>
+<tr>
+<td>HXC-1630</td>
+<td>Task</td>
+<td>P1</td>
+<td>Run govulncheck vulnerability scan across main/api/v1/security
+modules (PRR security gap)</td>
+<td>a2643db</td>
+</tr>
+<tr>
+<td>HXC-1631</td>
+<td>Bug</td>
+<td>P1</td>
+<td>govulncheck: bump Go toolchain (go.mod go-directive) to clear 9
+reachable stdlib advisories</td>
+<td>b96a8d5</td>
+</tr>
+<tr>
+<td>HXC-1632</td>
+<td>Bug</td>
+<td>P2</td>
+<td>govulncheck: bump golang.org/x/net v0.54.0 -&gt; v0.55.0
+(GO-2026-5026 idna)</td>
+<td>b96a8d5</td>
+</tr>
+<tr>
+<td>HXC-1633</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Implement real wireguard-go userspace path on macOS (CLAUDE-2 parity
+for pkg/wireguard)</td>
+<td>69c1a89</td>
+</tr>
+<tr>
+<td>HXC-1634</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Implement real darwin GPU/device probes (Metal/IOKit) for
+internal/gpu + pkg/device (CLAUDE-2)</td>
+<td>69c1a89</td>
+</tr>
+<tr>
+<td>HXC-1635</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add SBOM generation + dependabot/renovate to complete supply-chain
+posture (PRR items 34/80)</td>
+<td>69c1a89</td>
+</tr>
+<tr>
+<td>HXC-1636</td>
+<td>Task</td>
+<td>P2</td>
+<td>Local make deps-update target (no-CI dependency-update maintenance,
+PRR item 80)</td>
+<td>1a3c3d7</td>
+</tr>
+<tr>
+<td>HXC-1637</td>
+<td>Bug</td>
+<td>P1</td>
+<td>make build is broken: builds non-existent ./cmd/helix-cluster</td>
+<td>c99d225</td>
+</tr>
+<tr>
+<td>HXC-1638</td>
+<td>Bug</td>
+<td>P2</td>
+<td>helixctl binary referenced in docs but absent from cmd/</td>
+<td>c99d225</td>
+</tr>
+<tr>
+<td>HXC-1639</td>
+<td>Bug</td>
+<td>P2</td>
+<td>SQL schema drift: 0001_primary_schema.sql diverges from the
+golang-migrate chain (001-015)</td>
+<td>9fef232</td>
+</tr>
+<tr>
+<td>HXC-1640</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/stonith fencing-safety test (positive confirmation + fenced node
+cannot act)</td>
+<td>4cff5ea</td>
+</tr>
+<tr>
+<td>HXC-1641</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX registry NextHXCID lexical-vs-numeric id-allocation bug</td>
+<td>34482ee</td>
+</tr>
+<tr>
+<td>HXC-1642</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/epochresolve adversarial fencing test (stale epoch rejected,
+at-most-one owner)</td>
+<td>fa82504</td>
+</tr>
+<tr>
+<td>HXC-1643</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/idempotent concurrency bug (data race + double-commit broke
+exactly-once)</td>
+<td>c48a8c0</td>
+</tr>
+<tr>
+<td>HXC-1644</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/workclaim concurrent mutual-exclusion test (exactly-one
+claimant)</td>
+<td>2ecd5f2</td>
+</tr>
+<tr>
+<td>HXC-1645</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/voting exhaustive at-most-one-authoritative test (split-brain
+invariant)</td>
+<td>f74ce34</td>
+</tr>
+<tr>
+<td>HXC-1646</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/semaphore adversarial bounded-concurrency test (never exceed N,
+reaches N)</td>
+<td>0a0caac</td>
+</tr>
+<tr>
+<td>HXC-1647</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/lru adversarial eviction + capacity test (true LRU not FIFO,
+exact bound)</td>
+<td>771c77f</td>
+</tr>
+<tr>
+<td>HXC-1648</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/lock double-release crash + cross-owner free (unguarded
+UnlockFunc)</td>
+<td>a3f3393</td>
+</tr>
+<tr>
+<td>HXC-1649</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/heartbeatcoalescer Receiver data race (unsynchronized
+lastSeen)</td>
+<td>0bc06ee</td>
+</tr>
+<tr>
+<td>HXC-1650</td>
+<td>Bug</td>
+<td>P1</td>
+<td>harden EtcdLocker fire-once release guard (follow-up to
+HXC-1648)</td>
+<td>85397fb</td>
+</tr>
+<tr>
+<td>HXC-1651</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/flowcontrol concurrent credit-conservation test (never
+over-admit)</td>
+<td>916e8cf</td>
+</tr>
+<tr>
+<td>HXC-1652</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/ratelimit UserLimiter adversarial over-admission test
+(dual-bucket, frozen clock)</td>
+<td>af8455d</td>
+</tr>
+<tr>
+<td>HXC-1653</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/pool GPU-instance-pool adversarial concurrency test (no
+double-issue, capacity bound)</td>
+<td>916ea58</td>
+</tr>
+<tr>
+<td>HXC-1654</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/watchmanager adversarial concurrency test (register/notify/sync
+churn)</td>
+<td>47a0599</td>
+</tr>
+<tr>
+<td>HXC-1655</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/multiraft adversarial registry-concurrency test (concurrent
+create/route/remove)</td>
+<td>87efe0e</td>
+</tr>
+<tr>
+<td>HXC-1656</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/pubsub adversarial concurrent sub/unsub/publish test (no
+send-on-closed)</td>
+<td>b388843</td>
+</tr>
+<tr>
+<td>HXC-1657</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/tieredcache coherence test (re-Put shadows stale lower tier, no
+contamination)</td>
+<td>57a2a75</td>
+</tr>
+<tr>
+<td>HXC-1658</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/session adversarial concurrent FSM test (at-most-once terminal
+transition)</td>
+<td>5f070a5</td>
+</tr>
+<tr>
+<td>HXC-1659</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX pkg/offlinesync Reconcile conflict winner non-deterministic
+(violated documented lower-Seq policy)</td>
+<td>681c24b</td>
+</tr>
+<tr>
+<td>HXC-1660</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/workqueue adversarial concurrency test (no double-processing,
+dedup three-set safety)</td>
+<td>fab2305</td>
+</tr>
+<tr>
+<td>HXC-1661</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/metering conservation test (exact revenue accounting, per-key
+isolation)</td>
+<td>a970df4</td>
+</tr>
+<tr>
+<td>HXC-1662</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/budgetcap concurrent over-spend test (cap never exceeded)</td>
+<td>72b254c</td>
+</tr>
+<tr>
+<td>HXC-1663</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/billingfsm adversarial money-safety test (transition matrix, no
+double-bill, conservation)</td>
+<td>13686ac</td>
+</tr>
+<tr>
+<td>HXC-1664</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/informer cache-coherence test (latest-delta-wins, delete
+coherence, no resurrection)</td>
+<td>f2afc09</td>
+</tr>
+<tr>
+<td>HXC-1665</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/rebalance adversarial minimal-disruption test (sticky, balance,
+idempotence)</td>
+<td>a3c6a49</td>
+</tr>
+<tr>
+<td>HXC-1666</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/slotmigration concurrent-map crash (routing lookups raced
+the commit flip)</td>
+<td>2895ae5</td>
+</tr>
+<tr>
+<td>HXC-1667</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/edgeregistry concurrent-map race (Register raced
+Get/Len/ListByTier/Dump)</td>
+<td>d623d24</td>
+</tr>
+<tr>
+<td>HXC-1668</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/modelrouter concurrent read-safety test (immutable routing
+table)</td>
+<td>8b17477</td>
+</tr>
+<tr>
+<td>HXC-1669</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/fedtopology concurrent read-safety + path-correctness test
+(immutable topology)</td>
+<td>ab37c75</td>
+</tr>
+<tr>
+<td>HXC-1670</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/jwt keystore concurrent-map crash on auth path (verify raced
+rotation)</td>
+<td>698ef55</td>
+</tr>
+<tr>
+<td>HXC-1671</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/ewmarank concurrency-contract + ranking-correctness test
+(documented single-threaded)</td>
+<td>2b0c1c3</td>
+</tr>
+<tr>
+<td>HXC-1672</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX pkg/jobadmit concurrent-map crash (admit/complete raced state
+lookups)</td>
+<td>cc67630</td>
+</tr>
+<tr>
+<td>HXC-1673</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/failconfirm concurrency-contract + quorum-confirmation test
+(documented single-threaded)</td>
+<td>e4d4e98</td>
+</tr>
+<tr>
+<td>HXC-1674</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX pkg/redundantexec concurrent-map + trust-field race (validate
+raced trust reads)</td>
+<td>c24ac4d</td>
+</tr>
+<tr>
+<td>HXC-1675</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX pkg/rescorer concurrent ranking/map race (Tick rerank raced
+Top/Ranking)</td>
+<td>46c06d5</td>
+</tr>
+<tr>
+<td>HXC-1676</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/fedtrust concurrent trust-policy test (immutable-after-build,
+deny-never-permitted)</td>
+<td>8a1413d</td>
+</tr>
+<tr>
+<td>HXC-1677</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX pkg/thermalwarm concurrent-map + state-field race
+(dispatch/state raced warming)</td>
+<td>0c820ba</td>
+</tr>
+<tr>
+<td>HXC-1678</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/phasegate concurrent read-safety + gating-correctness test
+(immutable-after-build)</td>
+<td>79db281</td>
+</tr>
+<tr>
+<td>HXC-1679</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/dataplane partial-lock audit + concurrent race test
+(Distributor.pending fully guarded)</td>
+<td>facc96f</td>
+</tr>
+<tr>
+<td>HXC-1680</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/inferenceproxy partial-lock audit + concurrent race test
+(MemAudit fully guarded)</td>
+<td>c526da2</td>
+</tr>
+<tr>
+<td>HXC-1681</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/timefault concurrency-contract + fault-model test (deterministic
+single-sequence harness)</td>
+<td>78cd830</td>
+</tr>
+<tr>
+<td>HXC-1682</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/auctionplace adversarial clearing test (first-caller-wins,
+order-independent, single winner)</td>
+<td>34c0b7b</td>
+</tr>
+<tr>
+<td>HXC-1683</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/constraints Forbidden hard-ban precedence test (closes latent
+Forbidden&gt;Required gap)</td>
+<td>12fa963</td>
+</tr>
+<tr>
+<td>HXC-1684</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/preempt 20k-case oracle preemption test (priority-safety,
+minimality, no false reject)</td>
+<td>1b26424</td>
+</tr>
+<tr>
+<td>HXC-1685</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/carbonsched oracle selection test (lowest-carbon argmin,
+order-independent)</td>
+<td>782b3a0</td>
+</tr>
+<tr>
+<td>HXC-1686</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/costsched oracle selection test (lowest-cost, lex tie-break;
+closes unstable-sort gap)</td>
+<td>d6303ed</td>
+</tr>
+<tr>
+<td>HXC-1687</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/suitability exhaustive placement test (HPC never
+remote/non-low-latency hard rule)</td>
+<td>39895b8</td>
+</tr>
+<tr>
+<td>HXC-1688</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/revenueopt adversarial pricing test (TEE-&gt;Chutes bonus,
+oracle winner+revenue)</td>
+<td>2f7d65e</td>
+</tr>
+<tr>
+<td>HXC-1689</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/forecast numeric OLS-correctness test (formula vs oracle, exact
+window, direction)</td>
+<td>e8ca5d3</td>
+</tr>
+<tr>
+<td>HXC-1690</td>
+<td>Bug</td>
+<td>P1</td>
+<td>FIX pkg/qos intransitive near-tie comparator (order-dependent QoS
+selection)</td>
+<td>1d5f748</td>
+</tr>
+<tr>
+<td>HXC-1691</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/latencysched comparator transitivity audit + order-independence
+test (transitive, no band)</td>
+<td>b34d938</td>
+</tr>
+<tr>
+<td>HXC-1692</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/gpupool comparator transitivity audit + order-independence test
+(transitive, no band)</td>
+<td>9ab1d54</td>
+</tr>
+<tr>
+<td>HXC-1693</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/smartrouter dual audit (comparator transitivity + partial-lock)
+clean on both</td>
+<td>40ad3c5</td>
+</tr>
+<tr>
+<td>HXC-1694</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/bursthysteresis exhaustive hysteresis-boundary test (no flap,
+inclusive thresholds)</td>
+<td>35fafe3</td>
+</tr>
+<tr>
+<td>HXC-1695</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/healthmonitor FSM transition-matrix + concurrency test
+(edge-triggered, fully guarded)</td>
+<td>7c08ddf</td>
+</tr>
+<tr>
+<td>HXC-1696</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/balancemonitor event-log conservation + concurrency test (no
+lost append, strict threshold)</td>
+<td>b41a6fe</td>
+</tr>
+<tr>
+<td>HXC-1697</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/hybridkex adversarial hybrid-binding test (X25519+ML-KEM-768,
+both components bind)</td>
+<td>c122650</td>
+</tr>
+<tr>
+<td>HXC-1698</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/x25519session adversarial key-agreement test (auth, wrong-peer,
+low-order rejection)</td>
+<td>84a9e64</td>
+</tr>
+<tr>
+<td>HXC-1699</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/modelintegrity adversarial tamper/forgery test (SHA-256
+content-pinning, path-swap)</td>
+<td>2ba8f10</td>
+</tr>
+<tr>
+<td>HXC-1700</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/gpuattest adversarial attestation-forgery test (ed25519,
+pinned-key trust)</td>
+<td>d2c5d33</td>
+</tr>
+<tr>
+<td>HXC-1701</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/spiffefed adversarial trust-domain-confusion test (exact host
+match, no lookalike bypass)</td>
+<td>b39ad90</td>
+</tr>
+<tr>
+<td>HXC-1702</td>
+<td>Task</td>
+<td>P1</td>
+<td>attestadmit fail-closed adversarial tests</td>
+<td>2a0616f</td>
+</tr>
+<tr>
+<td>HXC-1703</td>
+<td>Task</td>
+<td>P1</td>
+<td>gravalverify anti-cheat adversarial tests</td>
+<td>2a0616f</td>
+</tr>
+<tr>
+<td>HXC-1704</td>
+<td>Task</td>
+<td>P1</td>
+<td>exportcontrol embargo/lookalike adversarial tests</td>
+<td>2a0616f</td>
+</tr>
+<tr>
+<td>HXC-1705</td>
+<td>Task</td>
+<td>P1</td>
+<td>imagepolicy admission adversarial tests</td>
+<td>470d7fc</td>
+</tr>
+<tr>
+<td>HXC-1706</td>
+<td>Task</td>
+<td>P1</td>
+<td>headersanitize spoof-proofing adversarial tests</td>
+<td>470d7fc</td>
+</tr>
+<tr>
+<td>HXC-1707</td>
+<td>Task</td>
+<td>P1</td>
+<td>edgeverify content-hash adversarial tests</td>
+<td>470d7fc</td>
+</tr>
+<tr>
+<td>HXC-1708</td>
+<td>Task</td>
+<td>P1</td>
+<td>anonymize keyed-hash tokenizer adversarial tests</td>
+<td>470d7fc</td>
+</tr>
+<tr>
+<td>HXC-1709</td>
+<td>Task</td>
+<td>P1</td>
+<td>priorityqueue total-order adversarial tests</td>
+<td>5b8e8b5</td>
+</tr>
+<tr>
+<td>HXC-1710</td>
+<td>Task</td>
+<td>P1</td>
+<td>auditproof canonical-serialization adversarial tests</td>
+<td>5b8e8b5</td>
+</tr>
+<tr>
+<td>HXC-1711</td>
+<td>Task</td>
+<td>P1</td>
+<td>backoff cap/overflow adversarial tests</td>
+<td>5b8e8b5</td>
+</tr>
+<tr>
+<td>HXC-1712</td>
+<td>Task</td>
+<td>P1</td>
+<td>nodeselector constraint-satisfaction adversarial tests</td>
+<td>7bd9267</td>
+</tr>
+<tr>
+<td>HXC-1713</td>
+<td>Task</td>
+<td>P1</td>
+<td>economics conservation/ROI adversarial tests</td>
+<td>7bd9267</td>
+</tr>
+<tr>
+<td>HXC-1714</td>
+<td>Task</td>
+<td>P1</td>
+<td>hybridtco monotonicity/accounting adversarial tests</td>
+<td>7bd9267</td>
+</tr>
+<tr>
+<td>HXC-1715</td>
+<td>Task</td>
+<td>P1</td>
+<td>costrouter cost-optimal selection adversarial tests</td>
+<td>c6967ef</td>
+</tr>
+<tr>
+<td>HXC-1716</td>
+<td>Task</td>
+<td>P1</td>
+<td>fallbackchain orchestration adversarial tests</td>
+<td>c6967ef</td>
+</tr>
+<tr>
+<td>HXC-1717</td>
+<td>Task</td>
+<td>P1</td>
+<td>openapivalidate fail-closed validation adversarial tests</td>
+<td>c6967ef</td>
+</tr>
+<tr>
+<td>HXC-1718</td>
+<td>Task</td>
+<td>P1</td>
+<td>correlation audit-trail adversarial tests</td>
+<td>0a504e5</td>
+</tr>
+<tr>
+<td>HXC-1719</td>
+<td>Task</td>
+<td>P1</td>
+<td>modelretry classification adversarial tests</td>
+<td>0a504e5</td>
+</tr>
+<tr>
+<td>HXC-1720</td>
+<td>Task</td>
+<td>P1</td>
+<td>workloadrouter routing+concurrency adversarial tests</td>
+<td>0a504e5</td>
+</tr>
+<tr>
+<td>HXC-1721</td>
+<td>Task</td>
+<td>P1</td>
+<td>streamfailover orchestration adversarial tests</td>
+<td>4244b6d</td>
+</tr>
+<tr>
+<td>HXC-1722</td>
+<td>Task</td>
+<td>P1</td>
+<td>burstcapacity spillover-estimator adversarial tests</td>
+<td>4244b6d</td>
+</tr>
+<tr>
+<td>HXC-1723</td>
+<td>Task</td>
+<td>P1</td>
+<td>powergater night-window/state adversarial tests</td>
+<td>4244b6d</td>
+</tr>
+<tr>
+<td>HXC-1724</td>
+<td>Task</td>
+<td>P1</td>
+<td>residency data-residency compliance adversarial tests</td>
+<td>bad44dc</td>
+</tr>
+<tr>
+<td>HXC-1725</td>
+<td>Task</td>
+<td>P1</td>
+<td>watchtower tamper-integrity adversarial tests</td>
+<td>bad44dc</td>
+</tr>
+<tr>
+<td>HXC-1726</td>
+<td>Task</td>
+<td>P1</td>
+<td>fsresidency file content-integrity adversarial tests</td>
+<td>bad44dc</td>
+</tr>
+<tr>
+<td>HXC-1727</td>
+<td>Task</td>
+<td>P1</td>
+<td>devicecatalog lookup adversarial tests</td>
+<td>1810b72</td>
+</tr>
+<tr>
+<td>HXC-1728</td>
+<td>Task</td>
+<td>P1</td>
+<td>gputopo topology-selection adversarial tests</td>
+<td>1810b72</td>
+</tr>
+<tr>
+<td>HXC-1729</td>
+<td>Task</td>
+<td>P1</td>
+<td>configsync CRDT store concurrency adversarial tests</td>
+<td>1810b72</td>
+</tr>
+<tr>
+<td>HXC-1730</td>
+<td>Task</td>
+<td>P1</td>
+<td>config defaults/validation adversarial tests</td>
+<td>0043627</td>
+</tr>
+<tr>
+<td>HXC-1731</td>
+<td>Task</td>
+<td>P1</td>
+<td>deviceprofile YAML-load adversarial tests</td>
+<td>0043627</td>
+</tr>
+<tr>
+<td>HXC-1732</td>
+<td>Task</td>
+<td>P1</td>
+<td>gpucatalog scoring/multiplier adversarial tests</td>
+<td>0043627</td>
+</tr>
+<tr>
+<td>HXC-1733</td>
+<td>Task</td>
+<td>P1</td>
+<td>healthprobe grace-window adversarial tests</td>
+<td>c09c24d</td>
+</tr>
+<tr>
+<td>HXC-1734</td>
+<td>Task</td>
+<td>P1</td>
+<td>devicemap round-trip mapping adversarial tests</td>
+<td>c09c24d</td>
+</tr>
+<tr>
+<td>HXC-1735</td>
+<td>Task</td>
+<td>P1</td>
+<td>burst autoscaling-hysteresis adversarial tests</td>
+<td>c09c24d</td>
+</tr>
+<tr>
+<td>HXC-1736</td>
+<td>Task</td>
+<td>P1</td>
+<td>archlint doc-vs-disk linter adversarial tests</td>
+<td>3b8f1d1</td>
+</tr>
+<tr>
+<td>HXC-1737</td>
+<td>Task</td>
+<td>P1</td>
+<td>etcdlint import-ban linter adversarial tests</td>
+<td>3b8f1d1</td>
+</tr>
+<tr>
+<td>HXC-1738</td>
+<td>Task</td>
+<td>P1</td>
+<td>tierdetect per-OS detection adversarial tests</td>
+<td>3b8f1d1</td>
+</tr>
+<tr>
+<td>HXC-1739</td>
+<td>Task</td>
+<td>P1</td>
+<td>llmadapter translation-fidelity adversarial tests</td>
+<td>75ac469</td>
+</tr>
+<tr>
+<td>HXC-1740</td>
+<td>Task</td>
+<td>P1</td>
+<td>passthrough streaming-fidelity adversarial tests</td>
+<td>75ac469</td>
+</tr>
+<tr>
+<td>HXC-1741</td>
+<td>Task</td>
+<td>P1</td>
+<td>grpcutil auth-interceptor adversarial tests</td>
+<td>75ac469</td>
+</tr>
+<tr>
+<td>HXC-1742</td>
+<td>Task</td>
+<td>P1</td>
+<td>middleware panic-recovery/chain adversarial tests</td>
+<td>e534ad3</td>
+</tr>
+<tr>
+<td>HXC-1743</td>
+<td>Task</td>
+<td>P1</td>
+<td>llmfailover failover-path/hint adversarial tests</td>
+<td>e534ad3</td>
+</tr>
+<tr>
+<td>HXC-1744</td>
+<td>Task</td>
+<td>P1</td>
+<td>capability manifest/negotiate adversarial tests</td>
+<td>e534ad3</td>
+</tr>
+<tr>
+<td>HXC-1745</td>
+<td>Task</td>
+<td>P1</td>
+<td>sandbox capability-isolation adversarial tests</td>
+<td>5cb37ea</td>
+</tr>
+<tr>
+<td>HXC-1746</td>
+<td>Task</td>
+<td>P1</td>
+<td>splitbrainalert detection adversarial tests</td>
+<td>5cb37ea</td>
+</tr>
+<tr>
+<td>HXC-1747</td>
+<td>Task</td>
+<td>P1</td>
+<td>serde capnp serialization adversarial tests</td>
+<td>5cb37ea</td>
+</tr>
+<tr>
+<td>HXC-1748</td>
+<td>Task</td>
+<td>P1</td>
+<td>netutil SSRF-defense adversarial tests</td>
+<td>f0dc4a2</td>
+</tr>
+<tr>
+<td>HXC-1749</td>
+<td>Task</td>
+<td>P1</td>
+<td>healthmonitor FSM/concurrency adversarial tests</td>
+<td>f0dc4a2</td>
+</tr>
+<tr>
+<td>HXC-1750</td>
+<td>Task</td>
+<td>P1</td>
+<td>leader fencing split-brain-safety adversarial tests</td>
+<td>f0dc4a2</td>
+</tr>
+<tr>
+<td>HXC-1751</td>
+<td>Task</td>
+<td>P1</td>
+<td>workclaim claim-exclusivity adversarial tests</td>
+<td>081a9ad</td>
+</tr>
+<tr>
+<td>HXC-1752</td>
+<td>Task</td>
+<td>P1</td>
+<td>tierdef config-load adversarial tests</td>
+<td>081a9ad</td>
+</tr>
+<tr>
+<td>HXC-1753</td>
+<td>Bug</td>
+<td>P0</td>
+<td>hlc Update/Now logical-counter overflow breaks HLC domination
+(causality) — FIXED</td>
+<td>081a9ad</td>
+</tr>
+<tr>
+<td>HXC-1754</td>
+<td>Task</td>
+<td>P1</td>
+<td>hashslot CRC16/hashtag adversarial tests</td>
+<td>78c3cdb</td>
+</tr>
+<tr>
+<td>HXC-1755</td>
+<td>Task</td>
+<td>P1</td>
+<td>mvcc snapshot-isolation adversarial tests</td>
+<td>78c3cdb</td>
+</tr>
+<tr>
+<td>HXC-1756</td>
+<td>Task</td>
+<td>P1</td>
+<td>stats Welch-t-test adversarial tests</td>
+<td>78c3cdb</td>
+</tr>
+<tr>
+<td>HXC-1757</td>
+<td>Task</td>
+<td>P1</td>
+<td>ringavg moving-average adversarial tests</td>
+<td>78c3cdb</td>
+</tr>
+<tr>
+<td>HXC-1758</td>
+<td>Task</td>
+<td>P1</td>
+<td>crdt semilattice-law adversarial tests</td>
+<td>c0cd240</td>
+</tr>
+<tr>
+<td>HXC-1759</td>
+<td>Bug</td>
+<td>P1</td>
+<td>antientropy equal-version conflict never converges (permanent
+split-brain) — FIXED</td>
+<td>c0cd240</td>
+</tr>
+<tr>
+<td>HXC-1760</td>
+<td>Task</td>
+<td>P1</td>
+<td>splitbrain quorum-classification adversarial tests</td>
+<td>c0cd240</td>
+</tr>
+<tr>
+<td>HXC-1761</td>
+<td>Task</td>
+<td>P1</td>
+<td>porcupine linearizability-checker adversarial tests</td>
+<td>c0cd240</td>
+</tr>
+<tr>
+<td>HXC-1762</td>
+<td>Bug</td>
+<td>P1</td>
+<td>offlinesync: decompression-bomb DoS + equal-Seq split-brain — BOTH
+FIXED</td>
+<td>96bb4c5</td>
+</tr>
+<tr>
+<td>HXC-1763</td>
+<td>Task</td>
+<td>P1</td>
+<td>heartbeatcoalescer coalescing/concurrency adversarial tests</td>
+<td>96bb4c5</td>
+</tr>
+<tr>
+<td>HXC-1764</td>
+<td>Task</td>
+<td>P1</td>
+<td>multiraft durability-safety adversarial tests</td>
+<td>96bb4c5</td>
+</tr>
+<tr>
+<td>HXC-1765</td>
+<td>Bug</td>
+<td>P2</td>
+<td>computeproto: FlatBuffers decode DoS (panic on hostile bytes) —
+hardened with ReadComputeTaskSafe</td>
+<td>bdf7837</td>
+</tr>
+<tr>
+<td>HXC-1766</td>
+<td>Task</td>
+<td>P1</td>
+<td>nattraversal STUN codec adversarial tests</td>
+<td>bdf7837</td>
+</tr>
+<tr>
+<td>HXC-1767</td>
+<td>Task</td>
+<td>P1</td>
+<td>websocket envelope codec adversarial tests</td>
+<td>bdf7837</td>
+</tr>
+<tr>
+<td>HXC-1768</td>
+<td>Task</td>
+<td>P1</td>
+<td>fiber framing/admission adversarial tests</td>
+<td>bdf7837</td>
+</tr>
+<tr>
+<td>HXC-1769</td>
+<td>Task</td>
+<td>P1</td>
+<td>ice RFC8445 priority adversarial tests</td>
+<td>fe35955</td>
+</tr>
+<tr>
+<td>HXC-1770</td>
+<td>Task</td>
+<td>P1</td>
+<td>wasm sandbox-enforcement adversarial tests</td>
+<td>fe35955</td>
+</tr>
+<tr>
+<td>HXC-1771</td>
+<td>Bug</td>
+<td>P1</td>
+<td>helixnet prod fabric teardown race: send on closed channel panic —
+FIXED</td>
+<td>fe35955</td>
+</tr>
+<tr>
+<td>HXC-1772</td>
+<td>Task</td>
+<td>P1</td>
+<td>edgefusion windowed-fusion adversarial tests</td>
+<td>fe35955</td>
+</tr>
+<tr>
+<td>HXC-1773</td>
+<td>Task</td>
+<td>P1</td>
+<td>watchmanager watch-fanout concurrency adversarial tests</td>
+<td>6260409</td>
+</tr>
+<tr>
+<td>HXC-1774</td>
+<td>Task</td>
+<td>P1</td>
+<td>informer cache-coherence adversarial tests</td>
+<td>6260409</td>
+</tr>
+<tr>
+<td>HXC-1775</td>
+<td>Task</td>
+<td>P1</td>
+<td>cellmesh overlap-detection adversarial tests</td>
+<td>6260409</td>
+</tr>
+<tr>
+<td>HXC-1776</td>
+<td>Task</td>
+<td>P1</td>
+<td>edgeheartbeat liveness/concurrency adversarial tests</td>
+<td>6260409</td>
+</tr>
+<tr>
+<td>HXC-1777</td>
+<td>Task</td>
+<td>P1</td>
+<td>checkpoint_merge merge/migrate adversarial tests</td>
+<td>73e955e</td>
+</tr>
+<tr>
+<td>HXC-1778</td>
+<td>Task</td>
+<td>P1</td>
+<td>kraft metadata-log determinism adversarial tests</td>
+<td>73e955e</td>
+</tr>
+<tr>
+<td>HXC-1779</td>
+<td>Task</td>
+<td>P1</td>
+<td>gepetto reservation/high-water adversarial tests</td>
+<td>73e955e</td>
+</tr>
+<tr>
+<td>HXC-1780</td>
+<td>Task</td>
+<td>P1</td>
+<td>edgeregistry concurrency/copy-isolation adversarial tests</td>
+<td>73e955e</td>
+</tr>
+<tr>
+<td>HXC-1781</td>
+<td>Task</td>
+<td>P1</td>
+<td>marketplace/scan/chutes adversarial tests (over-commit, routing,
+attestation)</td>
+<td>51bf06d</td>
+</tr>
+<tr>
+<td>HXC-1782</td>
+<td>Bug</td>
+<td>P1</td>
+<td>classads parser/evaluator stack-overflow DoS on deeply-nested
+expression — FIXED</td>
+<td>33aaaa0</td>
+</tr>
+<tr>
+<td>HXC-1783</td>
+<td>Task</td>
+<td>P1</td>
+<td>raftprofile parse/timing-invariant adversarial tests</td>
+<td>33aaaa0</td>
+</tr>
+<tr>
+<td>HXC-1784</td>
+<td>Task</td>
+<td>P1</td>
+<td>phasegate gating/concurrency adversarial tests</td>
+<td>33aaaa0</td>
+</tr>
+<tr>
+<td>HXC-1785</td>
+<td>Bug</td>
+<td>P1</td>
+<td>costtracker unsynchronized accumulator: data race + cost
+non-conservation — FIXED</td>
+<td>ccab647</td>
+</tr>
+<tr>
+<td>HXC-1786</td>
+<td>Task</td>
+<td>P1</td>
+<td>providerchain fallback adversarial tests</td>
+<td>ccab647</td>
+</tr>
+<tr>
+<td>HXC-1787</td>
+<td>Task</td>
+<td>P1</td>
+<td>modelrouter selection adversarial tests</td>
+<td>ccab647</td>
+</tr>
+<tr>
+<td>HXC-1788</td>
+<td>Bug</td>
+<td>P1</td>
+<td>dataplane Distributor.SendToWorker concurrent-send libzmq SIGABRT —
+FIXED</td>
+<td>96f86cd</td>
+</tr>
+<tr>
+<td>HXC-1789</td>
+<td>Task</td>
+<td>P1</td>
+<td>marketplaceadapter translation-fidelity adversarial tests</td>
+<td>96f86cd</td>
+</tr>
+<tr>
+<td>HXC-1790</td>
+<td>Task</td>
+<td>P1</td>
+<td>raftleader election-safety adversarial tests</td>
+<td>96f86cd</td>
+</tr>
+<tr>
+<td>HXC-1791</td>
+<td>Bug</td>
+<td>P1</td>
+<td>budgetcap: NaN cost bypasses MaxCostPerHour cap (unbounded
+over-spend)</td>
+<td>bd0936a</td>
+</tr>
+<tr>
+<td>HXC-1792</td>
+<td>Task</td>
+<td>P3</td>
+<td>metering: adversarial test pinning documented single-goroutine
+contract</td>
+<td>bd0936a</td>
+</tr>
+<tr>
+<td>HXC-1793</td>
+<td>Task</td>
+<td>P3</td>
+<td>inferenceproxy: adversarial concurrency/edge hardening test</td>
+<td>bd0936a</td>
+</tr>
+<tr>
+<td>HXC-1794</td>
+<td>Bug</td>
+<td>P1</td>
+<td>ewmarank: NaN sample poisons EWMA and breaks Rank total order
+(mis-routes traffic)</td>
+<td>14a8267</td>
+</tr>
+<tr>
+<td>HXC-1795</td>
+<td>Bug</td>
+<td>P1</td>
+<td>admissioncontrol: int64 reserve-sum overflow bypasses N+K capacity
+cap</td>
+<td>14a8267</td>
+</tr>
+<tr>
+<td>HXC-1796</td>
+<td>Task</td>
+<td>P3</td>
+<td>auctionplace: adversarial test, FCFS board contract pinned (no
+bug)</td>
+<td>14a8267</td>
+</tr>
+<tr>
+<td>HXC-1797</td>
+<td>Task</td>
+<td>P3</td>
+<td>flowcontrol: adversarial test, APF round-robin cursor survives
+resort (no bug)</td>
+<td>14a8267</td>
+</tr>
+<tr>
+<td>HXC-1798</td>
+<td>Bug</td>
+<td>P2</td>
+<td>forecast: non-finite sample poisons OLS prediction and suppresses
+PreWarm (missed scaling)</td>
+<td>2c1b6d3</td>
+</tr>
+<tr>
+<td>HXC-1799</td>
+<td>Task</td>
+<td>P3</td>
+<td>gravaladmit: adversarial test, single-use nonce gate K=1
+over-commit-proof (no bug)</td>
+<td>2c1b6d3</td>
+</tr>
+<tr>
+<td>HXC-1800</td>
+<td>Task</td>
+<td>P3</td>
+<td>balancemonitor: adversarial test, wire NaN/Inf rejected by stdlib
+JSON (no bug)</td>
+<td>2c1b6d3</td>
+</tr>
+<tr>
+<td>HXC-1801</td>
+<td>Task</td>
+<td>P3</td>
+<td>fedtrust: adversarial test, deny branches fail-CLOSED (no bug)</td>
+<td>2c1b6d3</td>
+</tr>
+<tr>
+<td>HXC-1802</td>
+<td>Bug</td>
+<td>P2</td>
+<td>carbonsched: NaN carbon-intensity poisons greenest-region selection
++ breaks total order</td>
+<td>4bab485</td>
+</tr>
+<tr>
+<td>HXC-1803</td>
+<td>Task</td>
+<td>P3</td>
+<td>constraints: adversarial test, flat-struct placement engine (no
+bug)</td>
+<td>4bab485</td>
+</tr>
+<tr>
+<td>HXC-1804</td>
+<td>Task</td>
+<td>P3</td>
+<td>federation: adversarial test, uint32+enum total order, mutex-guarded
+(no bug)</td>
+<td>4bab485</td>
+</tr>
+<tr>
+<td>HXC-1805</td>
+<td>Task</td>
+<td>P3</td>
+<td>discovery: adversarial test, all registries promise+keep concurrency
+safety (no bug)</td>
+<td>4bab485</td>
+</tr>
+<tr>
+<td>HXC-1806</td>
+<td>Task</td>
+<td>P3</td>
+<td>cloudspot: adversarial test, preemption-drain handler deterministic
+(no bug)</td>
+<td>f5e2da9</td>
+</tr>
+<tr>
+<td>HXC-1807</td>
+<td>Task</td>
+<td>P3</td>
+<td>gpupool: adversarial test, stateless read-only query pkg (no
+bug)</td>
+<td>f5e2da9</td>
+</tr>
+<tr>
+<td>HXC-1808</td>
+<td>Task</td>
+<td>P3</td>
+<td>backfill: adversarial test, pure deterministic scheduler (no
+bug)</td>
+<td>f5e2da9</td>
+</tr>
+<tr>
+<td>HXC-1809</td>
+<td>Task</td>
+<td>P3</td>
+<td>health: adversarial test, fail-closed rollup, RWMutex-guarded (no
+bug)</td>
+<td>f5e2da9</td>
+</tr>
+<tr>
+<td>HXC-1810</td>
+<td>Bug</td>
+<td>P2</td>
+<td>rescorer: NaN price breaks rerank comparator -&gt; NaN provider
+seizes top, mis-routes traffic</td>
+<td>a07f860</td>
+</tr>
+<tr>
+<td>HXC-1811</td>
+<td>Task</td>
+<td>P3</td>
+<td>idempotent: adversarial test, exactly-once under concurrent
+first-use (no bug)</td>
+<td>a07f860</td>
+</tr>
+<tr>
+<td>HXC-1812</td>
+<td>Task</td>
+<td>P3</td>
+<td>events: adversarial test, handler-func Bus race-free, no
+teardown-race surface (no bug)</td>
+<td>a07f860</td>
+</tr>
+<tr>
+<td>HXC-1813</td>
+<td>Task</td>
+<td>P3</td>
+<td>anticheat: adversarial test, HMAC token fail-CLOSED on all malformed
+input (no bug)</td>
+<td>a07f860</td>
+</tr>
+<tr>
+<td>HXC-1814</td>
+<td>Bug</td>
+<td>P1</td>
+<td>edge: Allowed() admits invalid/unknown TrustLevel to all workloads
+(fail-open admission gate)</td>
+<td>ba52783</td>
+</tr>
+<tr>
+<td>HXC-1815</td>
+<td>Task</td>
+<td>P3</td>
+<td>failconfirm: adversarial test, strict-majority quorum + reporter
+dedup correct (no bug)</td>
+<td>ba52783</td>
+</tr>
+<tr>
+<td>HXC-1816</td>
+<td>Task</td>
+<td>P3</td>
+<td>etcd: adversarial test, thin clientv3 wrapper + key-scheme pins (no
+bug)</td>
+<td>ba52783</td>
+</tr>
+<tr>
+<td>HXC-1817</td>
+<td>Task</td>
+<td>P3</td>
+<td>deviceplugin: adversarial test, Registry no-double-alloc +
+conservation (no bug)</td>
+<td>ba52783</td>
+</tr>
+<tr>
+<td>HXC-1818</td>
+<td>Bug</td>
+<td>P2</td>
+<td>gitops: PlanRollingSync silently drops apps with unknown/typo/empty
+tier label</td>
+<td>e69663c</td>
+</tr>
+<tr>
+<td>HXC-1819</td>
+<td>Bug</td>
+<td>P2</td>
+<td>hxcregistry: CreateItem/UpdateItem non-atomic -&gt; orphan item rows
+with no audit history</td>
+<td>e69663c</td>
+</tr>
+<tr>
+<td>HXC-1820</td>
+<td>Task</td>
+<td>P3</td>
+<td>fmea: adversarial test, int-only RPN scoring (no bug)</td>
+<td>e69663c</td>
+</tr>
+<tr>
+<td>HXC-1821</td>
+<td>Task</td>
+<td>P3</td>
+<td>gpu: adversarial test, provider-adapter registry RWMutex-guarded (no
+bug)</td>
+<td>e69663c</td>
+</tr>
+<tr>
+<td>HXC-1822</td>
+<td>Bug</td>
+<td>P2</td>
+<td>jobadmit: used+Request int overflow bypasses quota cap (over-admit +
+total poison)</td>
+<td>c9f397d</td>
+</tr>
+<tr>
+<td>HXC-1823</td>
+<td>Bug</td>
+<td>P2</td>
+<td>smartrouter: NaN/Inf score latched at index 0 mis-routes (breaks all
+4 strategies)</td>
+<td>c9f397d</td>
+</tr>
+<tr>
+<td>HXC-1824</td>
+<td>Task</td>
+<td>P3</td>
+<td>voting: adversarial test, strict-majority quorum + dedup +
+deterministic tiebreak (no bug)</td>
+<td>c9f397d</td>
+</tr>
+<tr>
+<td>HXC-1825</td>
+<td>Bug</td>
+<td>P3</td>
+<td>jwt: verifyRSA passes crypto.Hash(0) not SHA256/384/512 -&gt;
+rejects all standards-compliant RS256 (fail-closed interop)</td>
+<td>05d79b8</td>
+</tr>
+<tr>
+<td>HXC-1826</td>
+<td>Bug</td>
+<td>P1</td>
+<td>security: IsValidTrustDomain admits ‘/’ in SPIFFE trust domain
+(fail-open identity primitive)</td>
+<td>347c22a</td>
+</tr>
+<tr>
+<td>HXC-1827</td>
+<td>Bug</td>
+<td>P2</td>
+<td>storage: RedisStore.SetSessionRouting non-atomic -&gt; orphan
+routing hash with no TTL on Expire failure</td>
+<td>347c22a</td>
+</tr>
+<tr>
+<td>HXC-1828</td>
+<td>Bug</td>
+<td>P2</td>
+<td>validator: checkMin/checkMax float NaN bypasses range bounds
+(fail-open validation)</td>
+<td>347c22a</td>
+</tr>
+<tr>
+<td>HXC-1829</td>
+<td>Task</td>
+<td>P3</td>
+<td>stonith: adversarial test, fencing confirms sink-side (no fail-open)
+(no bug)</td>
+<td>347c22a</td>
+</tr>
+<tr>
+<td>HXC-1830</td>
+<td>Task</td>
+<td>P3</td>
+<td>metrics: adversarial test, atomic counters + mutex histograms
+conserve under race (no bug)</td>
+<td>ad81091</td>
+</tr>
+<tr>
+<td>HXC-1831</td>
+<td>Task</td>
+<td>P3</td>
+<td>session: adversarial test, Manager RWMutex-guarded + deep-copy Get +
+crypto-rand IDs (no bug)</td>
+<td>ad81091</td>
 </tr>
 <tr>
 <td>HXC-902</td>
@@ -1893,6 +5142,608 @@ logic</td>
 <td>P1</td>
 <td></td>
 <td></td>
+</tr>
+<tr>
+<td>HXC-904</td>
+<td>Feature</td>
+<td>P0</td>
+<td>Phase 4 Build Service</td>
+<td>e5f963b</td>
+</tr>
+<tr>
+<td>HXC-905</td>
+<td>Feature</td>
+<td>P0</td>
+<td>SQLite HXC Registry</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-908</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Harden pkg/stonith IPMI credential handling (no -P on argv, redact
+in errors)</td>
+<td>5b4a875</td>
+</tr>
+<tr>
+<td>HXC-909</td>
+<td>Task</td>
+<td>P2</td>
+<td>pkg/multiraft: make RaftTransport async-delivery safe (Step under
+shard lock)</td>
+<td>bd90b85</td>
+</tr>
+<tr>
+<td>HXC-910</td>
+<td>Task</td>
+<td>P2</td>
+<td>pkg/deviceplugin: add concurrency test exercising Registry mutex
+under -race</td>
+<td>5b4a875</td>
+</tr>
+<tr>
+<td>HXC-911</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/chutes StreamChannel: honor cancellation on blocked reads +
+close reader</td>
+<td>bd90b85</td>
+</tr>
+<tr>
+<td>HXC-912</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/kraft: CreateTopic should return ErrTopicExists on conflicting
+re-create</td>
+<td>bd90b85</td>
+</tr>
+<tr>
+<td>HXC-913</td>
+<td>Task</td>
+<td>P3</td>
+<td>pkg/porcupine: implement state-dedup memoization via Model.Equal for
+large histories</td>
+<td>bd90b85</td>
+</tr>
+<tr>
+<td>HXC-915</td>
+<td>Task</td>
+<td>P2</td>
+<td>pkg/dst: wire 1000-sims/commit deterministic-simulation CI gate (GH
+Actions + cmd harness)</td>
+<td>f4d8da9</td>
+</tr>
+<tr>
+<td>HXC-916</td>
+<td>Task</td>
+<td>P2</td>
+<td>pkg/provider/chutes: ctx-interruptible backoff + honor Retry-After
+header</td>
+<td>7783030</td>
+</tr>
+<tr>
+<td>HXC-917</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/multiraft: handle ShardStorage SetHardState/Append errors before
+Advance</td>
+<td>2a90f56</td>
+</tr>
+<tr>
+<td>HXC-918</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/marketplaceadapter Akash: default MinReputation via constructor
++ escape SDL fields</td>
+<td>4c2d4b0</td>
+</tr>
+<tr>
+<td>HXC-919</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/provider/runpod: surface Worker.Endpoint + don’t hold lock
+across cold-provision network call</td>
+<td>4c2d4b0</td>
+</tr>
+<tr>
+<td>HXC-920</td>
+<td>Task</td>
+<td>P3</td>
+<td>pkg/provider/chutes: test parseRetryAfter HTTP-date branch
+(RFC1123/RFC850/asctime + past-date clamp)</td>
+<td>4c2d4b0</td>
+</tr>
+<tr>
+<td>HXC-927</td>
+<td>Task</td>
+<td>P2</td>
+<td>Surface multiraft durability persist-error through public API</td>
+<td>31f4139</td>
+</tr>
+<tr>
+<td>HXC-934</td>
+<td>Bug</td>
+<td>P0</td>
+<td>Make cmd/e2ee-proxy consume security/pkg/e2ee instead of inline
+crypto (de-bluff E2EE)</td>
+<td>bc21b0d</td>
+</tr>
+<tr>
+<td>HXC-937</td>
+<td>Task</td>
+<td>P1</td>
+<td>Add e2e + chaos test types for consensus/federation/marketplace</td>
+<td>d688cc6</td>
+</tr>
+<tr>
+<td>HXC-938</td>
+<td>Task</td>
+<td>P2</td>
+<td>Add fuzz to crypto and benchmarks to hot paths</td>
+<td>11d48a5</td>
+</tr>
+<tr>
+<td>HXC-939</td>
+<td>Docs</td>
+<td>P2</td>
+<td>Refresh stale per-phase GAP_AUDIT.md files (CLAUDE-3)</td>
+<td>6bf944d</td>
+</tr>
+<tr>
+<td>HXC-940</td>
+<td>Task</td>
+<td>P2</td>
+<td>Wire the orphaned gate packages
+(covgate/archlint/etcdlint/qualitygate/phasegate)</td>
+<td>6042daf</td>
+</tr>
+<tr>
+<td>HXC-941</td>
+<td>Task</td>
+<td>P2</td>
+<td>Reconcile E2EE AEAD spec deviation (AES-256-GCM vs roadmap
+ChaCha20-Poly1305)</td>
+<td>3d6e249</td>
+</tr>
+<tr>
+<td>HXC-942</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Add e2e/chaos -race integration tests for the 8 fixed concurrency
+hazards</td>
+<td>f92b1ff</td>
+</tr>
+<tr>
+<td>HXC-943</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Test HelixQA validators (done) and vision/ORB (blocked) + fix
+helixqa module graph</td>
+<td>a39e89b</td>
+</tr>
+<tr>
+<td>HXC-944</td>
+<td>Bug</td>
+<td>P0</td>
+<td>Fix 3 CRITICAL CVEs from trivy security scan</td>
+<td>cc34fa3</td>
+</tr>
+<tr>
+<td>HXC-945</td>
+<td>Bug</td>
+<td>P1</td>
+<td>Triage and resolve gosec HIGH findings (99 HIGH) from security
+scan</td>
+<td>4aa1d5d</td>
+</tr>
+<tr>
+<td>HXC-946</td>
+<td>Task</td>
+<td>P2</td>
+<td>Triage trivy misconfig HIGH (50) + suppress QA-sentinel secret
+false-positives</td>
+<td>e352c51</td>
+</tr>
+<tr>
+<td>HXC-947</td>
+<td>Task</td>
+<td>P3</td>
+<td>Add root go.mod require/replace for digital.vasic.security
+(out-of-workspace builds)</td>
+<td>a39e89b</td>
+</tr>
+<tr>
+<td>HXC-948</td>
+<td>Bug</td>
+<td>P2</td>
+<td>Fix api/v1 module path /v1-suffix blocking out-of-workspace
+require/replace</td>
+<td>42d38fb</td>
+</tr>
+<tr>
+<td>HXC-950</td>
+<td>Bug</td>
+<td>P1</td>
+<td>sidecarutil HealthProbe load-robustness (WaitDelay + transient
+retry)</td>
+<td>b081dad</td>
+</tr>
+<tr>
+<td>HXC-951</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for SWIM membership/failure-detection (TLC-verified
+safety)</td>
+<td>3fedcbe</td>
+</tr>
+<tr>
+<td>HXC-952</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Unified hardware-inventory engine (CPU+memory+GPU+NPU
+aggregation)</td>
+<td>7011255</td>
+</tr>
+<tr>
+<td>HXC-953</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Real Raft-backed leader-election service (pkg/raftleader adapting
+pkg/raft)</td>
+<td>7011255</td>
+</tr>
+<tr>
+<td>HXC-954</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Edge gateway multi-transport integration (QUIC + MQTT + WebSocket
+end-to-end)</td>
+<td>1515077</td>
+</tr>
+<tr>
+<td>HXC-955</td>
+<td>Feature</td>
+<td>P2</td>
+<td>Distributed KV demo over Raft (cmd/raftkv-demo) — building blocks
+composed</td>
+<td>c52eee8</td>
+</tr>
+<tr>
+<td>HXC-956</td>
+<td>Feature</td>
+<td>P2</td>
+<td>OpenTelemetry single-runtime tracing foundation
+(observability/tracing)</td>
+<td>a2a4c01</td>
+</tr>
+<tr>
+<td>HXC-957</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for WireGuard/Noise-IK handshake (TLC-verified
+safety)</td>
+<td>462baaf</td>
+</tr>
+<tr>
+<td>HXC-958</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for OR-Set CRDT convergence (TLC-verified, add-wins)</td>
+<td>be574fe</td>
+</tr>
+<tr>
+<td>HXC-959</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Two-Phase Commit atomicity (TLC-verified)</td>
+<td>dac5022</td>
+</tr>
+<tr>
+<td>HXC-960</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Saga compensation atomicity (TLC-verified)</td>
+<td>de127fc</td>
+</tr>
+<tr>
+<td>HXC-961</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for vector-clock causal delivery (TLC-verified)</td>
+<td>7d54dd1</td>
+</tr>
+<tr>
+<td>HXC-962</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Raft single-server membership change safety
+(TLC-verified)</td>
+<td>d8d39e9</td>
+</tr>
+<tr>
+<td>HXC-963</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for leader-lease leaseholder reads / no-stale-read
+(TLC-verified)</td>
+<td>e7dc5a4</td>
+</tr>
+<tr>
+<td>HXC-964</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for phi-accrual failure-detector accuracy
+(TLC-verified)</td>
+<td>70824c5</td>
+</tr>
+<tr>
+<td>HXC-965</td>
+<td>Feature</td>
+<td>P1</td>
+<td>End-to-end cluster node-agent: compose
+discovery+raft+capabilities+gateway (clusternode)</td>
+<td>03b7162</td>
+</tr>
+<tr>
+<td>HXC-966</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Chandy-Lamport distributed snapshot
+(TLC-verified)</td>
+<td>ea0c6a7</td>
+</tr>
+<tr>
+<td>HXC-967</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Lamport distributed mutual exclusion
+(TLC-verified)</td>
+<td>6d34c9b</td>
+</tr>
+<tr>
+<td>HXC-968</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Dynamo-style quorum consistency R+W&gt;N
+(TLC-verified)</td>
+<td>c9fc6dd</td>
+</tr>
+<tr>
+<td>HXC-969</td>
+<td>Feature</td>
+<td>P1</td>
+<td>clusternode real-WebSocket transport: cross-node messaging over real
+TCP</td>
+<td>c9fc6dd</td>
+</tr>
+<tr>
+<td>HXC-970</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Hybrid Logical Clock (TLC-verified)</td>
+<td>d1bba72</td>
+</tr>
+<tr>
+<td>HXC-971</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for Raft ReadIndex linearizable reads (TLC-verified)</td>
+<td>5eb06fe</td>
+</tr>
+<tr>
+<td>HXC-972</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for STONITH fencing safety / no dual-active
+(TLC-verified)</td>
+<td>19d676c</td>
+</tr>
+<tr>
+<td>HXC-973</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for gossip/epidemic dissemination convergence
+(TLC-verified)</td>
+<td>7c05953</td>
+</tr>
+<tr>
+<td>HXC-974</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Real TCP-networked Raft for pkg/raft (network transport + leak-safe
+cluster)</td>
+<td>33de5cc</td>
+</tr>
+<tr>
+<td>HXC-975</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for PN-Counter CRDT convergence (TLC-verified)</td>
+<td>46805f7</td>
+</tr>
+<tr>
+<td>HXC-976</td>
+<td>Feature</td>
+<td>P1</td>
+<td>Real BoltDB persistence for pkg/raft (durable on-disk store +
+recovery)</td>
+<td>426b213</td>
+</tr>
+<tr>
+<td>HXC-977</td>
+<td>Research</td>
+<td>P2</td>
+<td>TLA+ spec for rendezvous (HRW) consistent hashing minimal disruption
+(TLC-verified)</td>
+<td>f061694</td>
+</tr>
+<tr>
+<td>HXC-978</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/raft: combined persistent+networked node (real TCP transport +
+on-disk BoltDB) with restart-recover-rejoin</td>
+<td>75fc874</td>
+</tr>
+<tr>
+<td>HXC-979</td>
+<td>Research</td>
+<td>P1</td>
+<td>TLA+ snapshot-install / log-compaction safety spec (RaftSnapshot),
+TLC-verified exhaustive</td>
+<td>58aabc3</td>
+</tr>
+<tr>
+<td>HXC-980</td>
+<td>Bug</td>
+<td>P1</td>
+<td>registry CLI: update auto-moves current_location on status change +
+reconcile backfill (doc-sync truthfulness)</td>
+<td>f1b66c1</td>
+</tr>
+<tr>
+<td>HXC-981</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/wasm: combined-bounds sandbox E2E (fuel + memory cap +
+capability deny enforced simultaneously)</td>
+<td>4457f9c</td>
+</tr>
+<tr>
+<td>HXC-982</td>
+<td>Feature</td>
+<td>P0</td>
+<td>helix-raftd: real multi-process persistent Raft daemon (TCP +
+BoltDB) with kill+restart-from-disk E2E</td>
+<td>99f9a6c</td>
+</tr>
+<tr>
+<td>HXC-983</td>
+<td>Docs</td>
+<td>P1</td>
+<td>docs/consensus.md: consolidated Raft consensus architecture doc +
+README link + docs_chain tracking</td>
+<td>c81f940</td>
+</tr>
+<tr>
+<td>HXC-984</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/raft: snapshot/log-compaction InstallSnapshot integration test
+(runtime proof of HXC-979)</td>
+<td>92fb006</td>
+</tr>
+<tr>
+<td>HXC-985</td>
+<td>Feature</td>
+<td>P1</td>
+<td>clusternode durable consensus: NodeAgent on persistent+networked
+raft with full-restart-from-disk E2E</td>
+<td>f7d19eb</td>
+</tr>
+<tr>
+<td>HXC-986</td>
+<td>Research</td>
+<td>P1</td>
+<td>TLA+ Raft PreVote spec — stale/restarted node cannot disrupt a
+stable leader (TLC-verified)</td>
+<td>46f72fd</td>
+</tr>
+<tr>
+<td>HXC-987</td>
+<td>Feature</td>
+<td>P1</td>
+<td>helix-raftd Prometheus /metrics endpoint (live raft state, real
+scrape proven)</td>
+<td>a56363d</td>
+</tr>
+<tr>
+<td>HXC-988</td>
+<td>Feature</td>
+<td>P1</td>
+<td>e2ee adversarial tamper/wrong-key crypto tests (AEAD tag, ML-KEM-768
+implicit rejection)</td>
+<td>8f84114</td>
+</tr>
+<tr>
+<td>HXC-989</td>
+<td>Docs</td>
+<td>P2</td>
+<td>helix-raftd observability materials: Prometheus scrape config +
+Grafana dashboard + docs/observability.md</td>
+<td>87a157d</td>
+</tr>
+<tr>
+<td>HXC-990</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/raft PreVote runtime disruption test (runtime pairing of
+HXC-986)</td>
+<td>03a9cea</td>
+</tr>
+<tr>
+<td>HXC-991</td>
+<td>Feature</td>
+<td>P2</td>
+<td>helix-raftctl CLI client for helix-raftd admin API (live-cluster
+proven)</td>
+<td>8c8922a</td>
+</tr>
+<tr>
+<td>HXC-992</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/scheduler Omega optimistic-concurrency barrier-race test (no
+double-booking)</td>
+<td>8a3f499</td>
+</tr>
+<tr>
+<td>HXC-993</td>
+<td>Task</td>
+<td>P2</td>
+<td>gofmt hygiene: format 125 unformatted committed Go files across pkg/
++ cmd/</td>
+<td>a709acb</td>
+</tr>
+<tr>
+<td>HXC-994</td>
+<td>Bug</td>
+<td>P0</td>
+<td>FIX real SWIM false-positive failure detection (healthy members
+wrongly marked DEAD)</td>
+<td>8d24960</td>
+</tr>
+<tr>
+<td>HXC-995</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/antientropy end-to-end Merkle reconciliation test
+(only-differences-transferred)</td>
+<td>feab638</td>
+</tr>
+<tr>
+<td>HXC-996</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/mvcc snapshot-isolation + race-safety test (consistent
+point-in-time reads)</td>
+<td>934cdec</td>
+</tr>
+<tr>
+<td>HXC-997</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/deltacrdt adversarial convergence tests + characterizes a real
+ORSet SEC defect</td>
+<td>f2eee0d</td>
+</tr>
+<tr>
+<td>HXC-999</td>
+<td>Feature</td>
+<td>P1</td>
+<td>pkg/splitbrain partition-safety test (at-most-one-authoritative
+across all cuts)</td>
+<td>93e61a2</td>
 </tr>
 </tbody>
 </table>

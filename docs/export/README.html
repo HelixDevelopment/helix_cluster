@@ -551,6 +551,14 @@ href="docs/MVP_ARCHITECTURE.md"><code>docs/MVP_ARCHITECTURE.md</code></a>
 — living MVP seven-layer overview + service-communication Mermaid
 grounded in real packages, with a Go drift-validator that fails the
 build on doc/codebase drift (HXC-1145)</li>
+<li><a href="docs/consensus.md"><code>docs/consensus.md</code></a> —
+Raft consensus subsystem (<code>pkg/raft</code> +
+<code>helix-raftd</code>): the
+<code>KVFSM</code>/<code>Node</code>/<code>Cluster</code> contract and
+the transport/storage ladder (in-mem → real TCP → on-disk BoltDB →
+combined persistent+networked → fixed-address multi-process daemon),
+with the multi-process kill+restart-from-disk E2E and the TLC-verified
+snapshot/log-compaction safety spec (HXC-974/976/978/979/982)</li>
 <li><a
 href="docs/FOUNDATION_PACKAGES.md"><code>docs/FOUNDATION_PACKAGES.md</code></a>
 — full catalogue of <code>pkg/</code> packages</li>

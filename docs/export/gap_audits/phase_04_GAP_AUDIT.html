@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_04_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_04_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-4-virtual-testing-matrix-gap-audit">Phase 4 — Virtual
+Testing Matrix: GAP AUDIT</h1>
+<blockquote>
+<p><strong>Honest completion: ~30% complete.</strong> Pure-Go
+DST/chaos/device-profile/snapshot/wasm primitives + a
+<code>helix-test</code> CLI are real and tested, but the roadmap’s
+defining infrastructure (Firecracker microVMs, K3s, Rust
+<code>turmoil</code>, Elixir/OTP controller, Phoenix dashboard, 25+
+fault types, HelixQA pipeline) is absent or only protocol-shaped. The
+matrix cannot yet “simulate all 8 tiers” or gate CI as specified.</p>
+</blockquote>
+<p>Audited 2026-06-01 against actual code under <code>pkg/</code>,
+<code>internal/</code>, <code>cmd/</code>, <code>containers/</code>. All
+cited tests were executed
+(<code>go test ./pkg/testing/... ./pkg/wasm/... ./cmd/helix-test/...</code>
+→ all <code>ok</code>).</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”. A
+package can be <strong>implemented</strong> and <strong>tested</strong>
+yet never reached from any binary (<strong>orphaned</strong>).
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it.</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/testing/dst</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/testing/chaos</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/testing/device</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/testing/snapshot</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/wasm</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/helix-test</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/helix-snapshot</code></td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>cmd/helix-testd</code></td>
+<td style="text-align: center;"><strong>NO (absent)</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>containers/pkg/vm</code> (QEMU, Phase-1 carryover)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;"><strong>NO (orphaned)</strong></td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Orphan callouts (implemented+tested but NOT reachable from
+any <code>cmd/</code> binary):</strong> <code>pkg/wasm</code>,
+<code>containers/pkg/vm</code>. Note <code>cmd/helix-snapshot</code> now
+<strong>exists and is built</strong> (the old text marked it MISSING —
+that is stale; the standalone binary is present).
+<code>cmd/helix-testd</code> is still absent.</p>
+<h2 id="deliverable-status">Deliverable Status</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (roadmap §)</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/testing/dst</code> — virtual time, seeded PRNG, event
+queue (§5.1, P0#4)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/testing/dst/engine.go:66-203</code>;
+<code>engine_test.go</code></td>
+<td>Real min-heap event loop, seeded <code>math/rand</code>, virtual
+clock, deterministic replay. NOT Rust <code>turmoil</code>; no network
+sim layer, no interface-swap (Net2/Sim2), not wired into
+<code>pkg/swim</code>/<code>scheduler</code>/<code>session</code> (only
+consumer is the CLI).</td>
+</tr>
+<tr>
+<td>Interface swapping (Net2/Sim2) (P0#5)</td>
+<td><strong>MISSING</strong></td>
+<td>grep: no <code>Sim2</code>/<code>Net2</code>/<code>SimNet</code> in
+any <code>.go</code></td>
+<td>“Same code runs in prod and sim” not realized; distributed pkgs have
+no sim transport seam.</td>
+</tr>
+<tr>
+<td>BUGGIFY macro system (P1#10)</td>
+<td><strong>MISSING</strong></td>
+<td>grep: no <code>BUGGIFY</code> in repo</td>
+<td>Not implemented.</td>
+</tr>
+<tr>
+<td><code>pkg/testing/chaos</code> — fault injection (§5.1, P0#6)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/testing/chaos/fault.go:17-296</code>;
+<code>fault_test.go</code></td>
+<td>5 fault types (partition, packet-loss, latency, node-crash,
+resource-exhaustion) with apply/restore + a <code>ChaosRunner</code>.
+Faults mutate in-process booleans/RNG only — no real netem/cgroup/kill
+effects. Roadmap demands <strong>25+</strong> types and an Elixir Chaos
+Controller + YAML scenarios.</td>
+</tr>
+<tr>
+<td>25+ fault injection types (§2, P1#11)</td>
+<td><strong>MISSING</strong></td>
+<td>only 5 structs in <code>fault.go:25,54,106,163,197</code></td>
+<td>20 short of target; no clock-skew, disk-fill, byzantine, DNS,
+cert-expiry, etc.</td>
+</tr>
+<tr>
+<td><code>pkg/testing/device</code> — profile registry (§5.1, P0#3)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/testing/device/profile.go:55-182</code>;
+<code>profile_test.go</code></td>
+<td>Real T1–T8 YAML profile registry with load/save/merge. But it is
+<strong>data only</strong> — no provisioning, boot, or lifecycle
+(<code>grep Provision/Boot/Spawn</code> → none). Roadmap pairs registry
+with “provisioning, lifecycle”.</td>
+</tr>
+<tr>
+<td><code>pkg/testing/snapshot</code> — golden snapshot mgmt (§5.1)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/testing/snapshot/manager.go:14-114</code>;
+<code>manager_test.go</code></td>
+<td>Create/Restore/Compare/List/Delete on <code>.golden</code> files,
+mutex-guarded, real FS I/O, tested. This is golden-file snapshotting,
+NOT the Firecracker &lt;10ms VM-state snapshot of §7 P2#15 (that remains
+MISSING).</td>
+</tr>
+<tr>
+<td><code>pkg/wasm</code> — Wasmtime host + plugin (§5.1, P1#14,
+§4.7)</td>
+<td><strong>PARTIAL→strong</strong></td>
+<td><code>pkg/wasm/host.go:28-121</code>, <code>plugin.go:35-103</code>;
+<code>plugin_test.go:13-56</code> real <code>Wat2Wasm</code>
+modules</td>
+<td>Genuine Wasmtime (<code>wasmtime-go/v29</code>) engine;
+loads/instantiates WASI modules; plugin ABI copies into real linear
+memory and returns guest-computed bytes (tests compile real WAT, assert
+transformed output). Missing: Component Model / WIT bindings, capability
+sandbox, 5μs spawn benchmark.</td>
+</tr>
+<tr>
+<td><code>cmd/helix-test</code> CLI (§5.3, P0)</td>
+<td><strong>DONE</strong></td>
+<td><code>cmd/helix-test/main.go:44-247</code>;
+<code>main_test.go</code> (294 lines)</td>
+<td>dst/chaos/device/snapshot subcommands; testable
+<code>run(args,stdout,stderr) int</code> seam; honest seed/arg
+validation. Real, tested, usable end-to-end.</td>
+</tr>
+<tr>
+<td><code>cmd/helix-testd</code> daemon (OTP controller node) (§5.3,
+P0)</td>
+<td><strong>MISSING</strong></td>
+<td><code>ls cmd</code> → absent</td>
+<td>Not built.</td>
+</tr>
+<tr>
+<td><code>cmd/helix-snapshot</code> CLI (§5.3, P1)</td>
+<td><strong>MISSING</strong></td>
+<td><code>ls cmd</code> → absent</td>
+<td>Folded informally into <code>helix-test snapshot</code>; standalone
+binary absent.</td>
+</tr>
+<tr>
+<td>K3s foundation + RuntimeClasses + golden image pipeline (§3 4.1,
+P0#1-2)</td>
+<td><strong>MISSING / DEFERRED</strong></td>
+<td>grep: no <code>k3s</code>/<code>RuntimeClass</code> in
+<code>.go</code></td>
+<td>Requires external cluster + Firecracker/Kata runtimes.</td>
+</tr>
+<tr>
+<td>Firecracker microVM T1–T3 (28ms boot) (§4.2, P0#2)</td>
+<td><strong>MISSING / DEFERRED</strong></td>
+<td>grep: no <code>firecracker</code> in <code>.go</code></td>
+<td>Needs KVM host + firecracker binary.</td>
+</tr>
+<tr>
+<td>QEMU/KVM T4–T6 full-system emulation (§4.2, P1#8)</td>
+<td><strong>PARTIAL (Phase-1 carryover)</strong></td>
+<td><code>containers/pkg/vm/qemu.go:74-188</code>,
+<code>matrix.go</code> (429 ln); <code>qemu_test.go</code></td>
+<td>A real QEMU provisioner exists
+(Boot/WaitForReady/Upload/Run/Download, KVM detect, per-arch binary)
+from the Phase-1 VM framework — but it is not tied to the Phase-4 device
+registry/tiers and needs a host with QEMU/KVM to actually boot.</td>
+</tr>
+<tr>
+<td>Docker T7–T8 protocol stubs (iOS/HarmonyOS) (§4.2, P1#9)</td>
+<td><strong>MISSING</strong></td>
+<td><code>containers/pkg/vm/ios</code>,<code>macos</code> dirs exist but
+no T7/T8 binfmt path</td>
+<td>No <code>binfmt_misc</code> / protocol-stub layer in code.</td>
+</tr>
+<tr>
+<td>Elixir/OTP controller:
+SessionManager/DevicePool/TestRunner/SnapshotManager (§5.2, P0#7)</td>
+<td><strong>MISSING / DEFERRED</strong></td>
+<td>no <code>*.ex</code>/<code>mix.exs</code> in repo</td>
+<td>Elixir component never started.</td>
+</tr>
+<tr>
+<td>Phoenix LiveView dashboard (§5.2, P1#12)</td>
+<td><strong>MISSING / DEFERRED</strong></td>
+<td>no Elixir/Phoenix sources</td>
+<td>Not started.</td>
+</tr>
+<tr>
+<td><code>internal/testing/{controller,dashboard,faults,workloads}</code>
+(§5.2)</td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/testing/</code> does not exist</td>
+<td>None of the four internal pkgs present.</td>
+</tr>
+<tr>
+<td>HelixQA integration: invariant detection, Welch’s t-test regression,
+CI gate (§3 4.6, P1#13)</td>
+<td><strong>MISSING</strong></td>
+<td>grep
+<code>Welch</code>/<code>invariant</code>/<code>regression</code> → only
+unrelated hits</td>
+<td>No statistical regression engine, no challenge-pipeline wiring for
+Phase-4 DST seeds.</td>
+</tr>
+<tr>
+<td>Success-criteria benchmarks (boot 28ms, 5000 VMs/host, 10:1
+compression, &lt;5μs spawn, &gt;80% cov) (§9)</td>
+<td><strong>MISSING</strong></td>
+<td>no benchmark suites for these KPIs</td>
+<td>Exit gates unmeasured.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="top-implementable-gaps-go-no-new-infra">TOP IMPLEMENTABLE GAPS
+(Go, no new infra)</h2>
+<ol type="1">
+<li><p><strong>Expand chaos fault library toward 25+ —
+<code>pkg/testing/chaos/</code>.</strong> Add pure-Go in-sim faults
+implementing the existing <code>Fault</code> interface:
+<code>ClockSkew</code>, <code>DiskFill</code>,
+<code>MessageReorder</code>, <code>MessageDuplication</code>,
+<code>ByzantineCorruption</code>, <code>DNSFailure</code>,
+<code>CertExpiry</code>, <code>SlowDisk</code>, <code>Bitflip</code>,
+<code>ConnectionReset</code>. Each holds parameters +
+<code>applied</code> state and exposes a query method
+(e.g. <code>ShouldCorrupt()</code>, <code>Skew()</code>) the DST engine
+consults. Keeps the existing apply/restore symmetry and
+<code>ChaosRunner</code>. <em>Acceptance test (mutation-pairable):</em>
+seed a fixed RNG, assert <code>ClockSkew.Skew()</code> returns the exact
+deterministic offset sequence and is zero before
+<code>Apply()</code>/after <code>Restore()</code>; mutant that drops the
+<code>applied</code> guard or mis-signs the offset fails.</p></li>
+<li><p><strong>Wire DST into a real distributed pkg via a sim transport
+seam — <code>pkg/testing/dst/</code> + <code>pkg/swim/</code>.</strong>
+Define a <code>Transport</code> interface
+(<code>Send(from,to string, msg []byte)</code>) with a production net
+impl and a <code>SimTransport</code> backed by
+<code>Engine.SendMessage</code>/handlers, then run <code>pkg/swim</code>
+membership over it. This realizes “same code in prod and sim” (P0#5)
+without external infra. <em>Acceptance test:</em> run SWIM over
+<code>SimTransport</code> with seed S, partition two nodes via a
+<code>chaos.NetworkPartition</code> consulted by the transport, assert
+the partitioned node is marked suspect/dead deterministically and
+identically across two runs of seed S; mutant that ignores the partition
+predicate keeps the node alive → fails.</p></li>
+<li><p><strong>Add a BUGGIFY probabilistic fault hook —
+<code>pkg/testing/dst/</code>.</strong> Implement
+<code>func (eng *Engine) Buggify(p float64) bool</code> driven by the
+engine RNG, plus a registration list so enabled BUGGIFY sites are
+reproducible per seed and can be globally toggled. <em>Acceptance
+test:</em> with a fixed seed, assert the exact boolean sequence for
+<code>Buggify(0.5)</code> over N calls and that disabling BUGGIFY makes
+it always false; mutant using a fresh/global rand instead of
+<code>eng.rng</code> breaks reproducibility → fails.</p></li>
+<li><p><strong>Statistical regression detector —
+<code>pkg/testing/regression/</code> (new) feeding HelixQA.</strong>
+Implement Welch’s t-test
+(<code>func Welch(a, b []float64) (t, dfWelch, p float64)</code>) and a
+<code>Detector</code> that flags a regression when
+<code>p &lt; alpha</code> and mean degrades beyond a threshold,
+returning a structured result the challenge pipeline can publish. Pure
+numeric, no infra. <em>Acceptance test:</em> feed two known samples with
+a published expected t-stat/p-value (textbook fixture), assert within
+epsilon; assert identical distributions yield “no regression”; mutant
+swapping pooled-variance for Welch’s separate-variance denominator fails
+the fixture.</p></li>
+<li><p><strong>Device provisioning lifecycle abstraction —
+<code>pkg/testing/device/</code>.</strong> Add a
+<code>Provisioner</code> interface
+(<code>Provision(*Profile) (Instance, error)</code>,
+<code>Instance.Boot/Stop/Status</code>) with a deterministic
+<code>FakeProvisioner</code> (state machine:
+provisioned→booting→ready→stopped, timings from the profile). Lets the
+controller/CLI exercise lifecycle logic without Firecracker/QEMU.
+<em>Acceptance test:</em> provision T3, assert state transitions and
+that <code>Boot</code> is rejected from <code>stopped</code>; assert
+profile boot-time is honored against a virtual clock; mutant that allows
+boot-from-stopped or skips a transition fails.</p></li>
+<li><p><strong><code>cmd/helix-snapshot</code> standalone CLI —
+<code>cmd/helix-snapshot/</code>.</strong> Promote the snapshot
+subcommand into its own P1 binary reusing
+<code>pkg/testing/snapshot</code>, with the same injectable
+<code>run(args,stdout,stderr) int</code> seam as
+<code>helix-test</code>. <em>Acceptance test:</em>
+create→list→compare(match)→compare(mismatch→exit1)→delete sequence via
+the run seam over a temp dir, asserting exit codes and stdout; mutant
+returning 0 on mismatch fails.</p></li>
+<li><p><strong>Capability sandbox + spawn benchmark for wasm —
+<code>pkg/wasm/</code>.</strong> Add an allow-list
+<code>Capabilities</code> struct gating which WASI features
+<code>Instantiate</code> enables (deny FS/clock/env by default), and a
+<code>Benchmark</code>/<code>testing.B</code> measuring host+instantiate
+latency. <em>Acceptance test:</em> a module importing a denied host
+function fails to instantiate with a typed error; an allowed one
+succeeds; mutant that ignores the capability set (always full WASI) lets
+the denied module run → fails.</p></li>
+</ol>
+<h2 id="deferred-need-external-infra-non-go">DEFERRED (need external
+infra / non-Go)</h2>
+<ul>
+<li><strong>K3s cluster + RuntimeClasses + golden-image
+pipeline</strong> — needs a real Kubernetes cluster and node runtimes;
+cannot be unit-validated in-repo.</li>
+<li><strong>Firecracker microVMs (T1–T3, 28ms boot, 5000
+VMs/host)</strong> — requires KVM-enabled Linux host + firecracker
+binary + snapshot files.</li>
+<li><strong>QEMU/KVM T4–T6 boot validation</strong> — provisioner code
+exists (<code>containers/pkg/vm/qemu.go</code>) but live booting needs
+QEMU/KVM hardware; only mock-level tests run in CI.</li>
+<li><strong>Cuttlefish (T5 Android) / iOS (T7) / HarmonyOS (T8) real
+device sim</strong> — Android virtualization, Apple-licensed
+virtualization ($9,995 tier per §8), and HarmonyOS images; protocol-stub
+Go work is in gap #1-style scope but real-device fidelity is
+hardware-bound.</li>
+<li><strong>Elixir/OTP Chaos &amp; Testing Controller + Phoenix LiveView
+dashboard</strong> — non-Go stack (Elixir/BEAM); out of this Go-only
+audit’s implementable set.</li>
+<li><strong>Rust <code>turmoil</code> DST core</strong> — non-Go; the Go
+<code>dst.Engine</code> is the in-repo substitute.</li>
+</ul>
+<p><em>Deferred count: 6 areas (all require external infra, hardware, or
+non-Go runtimes; reasons above).</em></p>
+</body>
+</html>

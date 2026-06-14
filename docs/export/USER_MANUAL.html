@@ -431,15 +431,21 @@ cmd/helix-policy      cmd/helix-advisory     cmd/helix-build
 cmd/helix-node        cmd/helix-llm          cmd/helix-snapshot
 cmd/helix-setup       cmd/helix-agent        cmd/helix-test
 cmd/helix_infra       cmd/gpu-pool-manager   cmd/e2ee-proxy
-cmd/dst-sim           cmd/htmux              cmd/hxc-registry</code></pre>
+cmd/dst-sim           cmd/htmux              cmd/hxc-registry
+cmd/helixctl</code></pre>
 <blockquote>
-<p>There is <strong>no <code>helixctl</code> binary</strong> in this
-repository. Documentation elsewhere
-(<code>docs/guides/getting-started.md</code>) references
-<code>./bin/helixctl build submit …</code>; that CLI is not present in
-<code>cmd/</code>. Do not expect <code>helixctl</code> to build.
-Operator interactions happen through the per-service binaries and their
-HTTP/gRPC surfaces described below.</p>
+<p><code>helixctl</code> (<code>cmd/helixctl</code>) is the
+operator-facing CLI. Its <code>build</code> command group is a thin gRPC
+client of the <code>helix-build</code> service
+(<code>BuildService</code>):
+<code>helixctl build submit|status|logs|cancel</code> each perform a
+real RPC against a running build service at <code>--addr</code> (default
+<code>localhost:50051</code>, overridable by the
+<code>HELIX_BUILD_ADDR</code> env var). It is built into
+<code>bin/helixctl</code> by <code>make build</code> along with the
+per-service binaries. Other operator interactions continue to happen
+through the per-service binaries and their HTTP/gRPC surfaces described
+below.</p>
 </blockquote>
 <hr />
 <h2 id="configuration">3. Configuration</h2>

@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>phase_07_GAP_AUDIT</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">phase_07_GAP_AUDIT</h1>
+</header>
+<h1 id="phase-7-code-grounded-gap-audit">Phase 7 — Code-Grounded Gap
+Audit</h1>
+<blockquote>
+<p><strong>Auditor:</strong> engineering auditor (anti-bluff, CLAUDE-1)
+| <strong>Date:</strong> 2026-06-01 <strong>Honest completion estimate:
+~18% of Phase 7 named deliverables.</strong></p>
+</blockquote>
+<p><strong>One-line summary:</strong> None of the 15 planned
+<code>pkg/*</code> Phase 7 packages or the 2 planned
+<code>internal/*</code> packages exist by name; the only real Phase 7
+progress is <em>partial</em> hardening folded into pre-existing packages
+(gang scheduling/preemption, session CRDT convergence + migration, SWIM
+suspicion, 2-of-3 health tiers, real etcd integration), and the rest of
+the 23-gap matrix (Multi-Raft, MVCC, backfill, hash-slot, voting,
+STONITH, DST/BUGGIFY, Porcupine, device-plugin/GRES, admission control,
+repair, BOINC trust) is MISSING.</p>
+<h2 id="axis-package-status-refreshed-2026-06-04-hxc-939">3-Axis Package
+Status (Refreshed 2026-06-04, HXC-939)</h2>
+<blockquote>
+<p><strong>Why this section exists:</strong> “exists” ≠ “used”.
+<code>wired</code> is <strong>measured</strong> via
+<code>go list -deps ./cmd/... | grep -Fx &lt;module-path&gt;/&lt;pkg&gt;</code>
+(module = <code>github.com/HelixDevelopment/helix_cluster</code>), not
+assumed. <strong>“Completed (registry) ≠ wired”</strong> — Completed
+only means source+tests exist; it does NOT prove a shipped binary
+reaches it. Almost every named Phase 7 package is
+<strong>unimplemented</strong>; the one notable trap is the
+<code>internal/advisory</code> name collision (it exists, but as a lock
+service, NOT the planned BOINC trust package).</p>
+</blockquote>
+<table>
+<colgroup>
+<col style="width: 16%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+</colgroup>
+<thead>
+<tr>
+<th>Package (planned name)</th>
+<th style="text-align: center;">implemented</th>
+<th style="text-align: center;">wired (reachable from
+<code>cmd/</code>)</th>
+<th style="text-align: center;">tested</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pkg/multiraft</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/mvcc</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/crdt</code> (standalone)</td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/backfill</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/deviceplugin</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/hashslot</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/stonith</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/constraint</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/voting</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/scan</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/dst</code> (named)</td>
+<td style="text-align: center;"><strong>NO</strong>
+(<code>pkg/testing/dst</code> is the unrelated Phase-4 one)</td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/porcupine</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/gangscheduler</code></td>
+<td style="text-align: center;"><strong>NO</strong> (gang logic lives in
+<code>pkg/scheduler</code>)</td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/admissioncontrol</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/repair</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>internal/advisory</code> (planned: BOINC trust)</td>
+<td style="text-align: center;"><strong>NO — name
+collision</strong></td>
+<td style="text-align: center;">yes (the <em>lock</em> service is
+wired)</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>internal/chaos</code></td>
+<td style="text-align: center;"><strong>NO</strong></td>
+<td style="text-align: center;">n/a</td>
+<td style="text-align: center;">n/a</td>
+</tr>
+<tr>
+<td><code>pkg/scheduler</code> (gang/preempt folded here)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/session</code> (CRDT/migration folded here)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/swim</code> (suspicion folded here)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/health</code> (2-of-3 tiers)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+<tr>
+<td><code>pkg/etcd</code> (substrate)</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+<td style="text-align: center;">yes</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Name-collision warning (verified):</strong>
+<code>internal/advisory</code> IS implemented, wired and tested — but as
+an <strong>Advisory Lock gRPC service</strong>, NOT the planned
+<code>internal/advisory</code> BOINC trust scorer. Do
+<strong>not</strong> mark Phase 7 gap G-09 done from its
+<code>wired=yes</code>. This is precisely the kind of “exists ≠ the
+thing you wanted” trap the 3-axis view surfaces.</p>
+<hr />
+<h2 id="method-caveats">Method &amp; Caveats</h2>
+<ul>
+<li>Verified against actual source under <code>pkg/</code>,
+<code>internal/</code>, <code>cmd/</code>, <code>api/</code> — not
+against the prose report.</li>
+<li>Roadmap §4.1/§4.2 names 15 <code>pkg/*</code> + 2
+<code>internal/*</code> <em>planned</em> packages. A directory-name
+check shows <strong>0 of 17 exist by their planned name</strong>
+(<code>pkg/{multiraft,mvcc,crdt,backfill,deviceplugin,hashslot,stonith,constraint,voting,scan,dst,porcupine,gangscheduler,admissioncontrol,repair}</code>,
+<code>internal/{advisory(trust),chaos}</code>).</li>
+<li><strong>Name collision warning:</strong>
+<code>internal/advisory/</code> <strong>exists but is NOT the planned
+BOINC trust-scoring package</strong>. It is an advisory
+<em>distributed-lock</em> gRPC service
+(<code>internal/advisory/server.go:1</code> “Package advisory implements
+the Advisory Lock gRPC service”). Do not mark G-09 done from its
+presence.</li>
+<li>DONE requires real implementation <strong>and</strong> real-behavior
+tests (CLAUDE-1). Stub/mock-only/untested ⇒ PARTIAL/MISSING.</li>
+</ul>
+<hr />
+<h2 id="deliverable-status-table">Deliverable Status Table</h2>
+<table>
+<colgroup>
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+<col style="width: 25%" />
+</colgroup>
+<thead>
+<tr>
+<th>Deliverable (Gap / Pkg)</th>
+<th>Status</th>
+<th>Evidence (file:line)</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Gang scheduling, all-or-nothing (G-10)
+<code>pkg/gangscheduler</code></td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/scheduler/gang_preempt.go:66</code>
+<code>ScheduleGang</code>; tests
+<code>pkg/scheduler/gang_preempt_test.go:10-340</code></td>
+<td>Real atomic placement + preemption with optimistic-version tests.
+NOT in planned <code>pkg/gangscheduler</code>; <strong>no
+topology/NUMA/NVLink scoring</strong> (the G-18 half).</td>
+</tr>
+<tr>
+<td>Topology-aware NUMA/NVLink placement (G-18)</td>
+<td><strong>MISSING</strong></td>
+<td>no match for <code>numa\|nvlink\|topology</code> in
+scheduler/gpu</td>
+<td>Not implemented.</td>
+</tr>
+<tr>
+<td>Cost-aware GPU placement (Phase 8C, not P7)</td>
+<td>DONE (out-of-scope)</td>
+<td><code>pkg/scheduler/cost_gpu.go:1</code>;
+<code>cost_gpu_test.go</code></td>
+<td>Real plugin+tests but labeled Phase 8C; not a Phase 7 gap.</td>
+</tr>
+<tr>
+<td>CRDT delta-state sync (G-01 partial, P2) <code>pkg/crdt</code></td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/session/crdt.go:9</code>; convergence laws
+<code>pkg/session/convergence_test.go:102-209</code></td>
+<td>LWW only, session-scoped. No standalone <code>pkg/crdt</code>
+(G-counter/PN-counter/OR-set/LWW-map), no 5s delta cross-cell sync, not
+wired to <code>pkg/pubsub</code>/federation.</td>
+</tr>
+<tr>
+<td>Session migration / ASM (G-03 part) <code>pkg/session</code></td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/session/migration.go:10</code>
+<code>MigrationPlanner</code>; lifecycle tests
+<code>pkg/session/lifecycle_test.go:93-152</code></td>
+<td>State-machine + CRIU/DMTCP/CRDT/container strategies modeled;
+lifecycle transitions tested. No hash-slot router, no MOVED/ASK, no
+Atomic Slot Migration.</td>
+</tr>
+<tr>
+<td>Hash-slot router CRC16 + MOVED/ASK (G-03)
+<code>pkg/hashslot</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>crc16\|16384\|MOVED\|ASK\|hash slot</code> in
+<code>pkg/session</code>,<code>internal/gateway</code></td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>SWIM PFAIL→FAIL two-phase consensus (G-23)</td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/swim/suspicion.go:44</code> SuspicionManager
+(Suspect→indirect probe→Dead, incarnation refutation)</td>
+<td>Single-node suspicion+refutation is real and tested
+(<code>suspicion_test.go</code>). <strong>Missing majority/quorum
+confirmation</strong> the roadmap requires for PFAIL→FAIL
+(<code>grep majority\|quorum</code> → none).</td>
+</tr>
+<tr>
+<td>Three-tier health probes (G-04, P1) <code>pkg/health</code></td>
+<td><strong>PARTIAL</strong></td>
+<td><code>pkg/health/rollup.go:22-23</code>
+<code>Liveness</code>,<code>Readiness</code>; tests
+<code>rollup_test.go:94</code></td>
+<td>Only <strong>2 of 3</strong> tiers. <strong>No <code>Startup</code>
+kind</strong>, no GPU grace period.</td>
+</tr>
+<tr>
+<td>MVCC revision store + B-tree + watch (G-08, P0)
+<code>pkg/mvcc</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>pkg/etcd/package.go:118</code> only references etcd’s own
+<code>mvccpb</code> enum</td>
+<td>No own MVCC store, no time-travel, no bbolt B-tree backend.</td>
+</tr>
+<tr>
+<td>Multi-Raft per-shard consensus (G-01, P0)
+<code>pkg/multiraft</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>multiraft\|multi-raft</code> in repo <code>*.go</code></td>
+<td>Absent; etcd single-write path unchanged.</td>
+</tr>
+<tr>
+<td>SLURM backfill scheduler (G-02, P0) <code>pkg/backfill</code></td>
+<td><strong>MISSING</strong></td>
+<td>no scheduler <code>backfill</code> symbol (only Herald docops
+backfill, unrelated)</td>
+<td>Absent; no resource-availability timeline.</td>
+</tr>
+<tr>
+<td>DST framework + 1k sim/commit (G-14/15, P0)
+<code>pkg/dst</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>dst\|turmoil\|buggify</code> in repo</td>
+<td>Absent; no deterministic sim, no BUGGIFY macros. CI gate
+unenforceable.</td>
+</tr>
+<tr>
+<td>Porcupine linearizability in CI (G-16, P1)
+<code>pkg/porcupine</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>porcupine</code> in repo</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>Voting quorum, largest-subcluster-wins (G-19, P0)
+<code>pkg/voting</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>voting\|largest subcluster</code> in repo</td>
+<td>Absent; split-brain unresolved.</td>
+</tr>
+<tr>
+<td>STONITH fencing agents (G-19, P1) <code>pkg/stonith</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>stonith\|fenc</code> in repo</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>Device-plugin / GRES descriptors (G-11/13/17, P1)
+<code>pkg/deviceplugin</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/gpu/manager.go</code> has mock detect only
+(<code>gpu_test.go:TestDetectGPUsMock</code>); no
+<code>gres\|fingerprint</code></td>
+<td>GPU manager allocates/releases (real tests) but is not an extensible
+GRES fingerprinting framework.</td>
+</tr>
+<tr>
+<td>BOINC trust model (G-09, P1) <code>internal/advisory</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/advisory/server.go:1</code> is a
+<strong>lock</strong> service, not trust</td>
+<td>Planned package not implemented; name collision.</td>
+</tr>
+<tr>
+<td>Failover admission control (G-22, P1)
+<code>pkg/admissioncontrol</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>admission</code> in
+<code>internal/gateway</code>/scheduler</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>Cassandra 3-layer repair (G-01 part, P1)
+<code>pkg/repair</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>merkle\|anti-entropy\|hinted handoff</code> in repo</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>Pacemaker 4-type constraint engine (G-20, P2)
+<code>pkg/constraint</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>pkg/constraint</code>; no colocation/ordering/stickiness
+engine</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>SCAN stable VIP/DNS (G-21, P2) <code>pkg/scan</code></td>
+<td><strong>MISSING</strong></td>
+<td>no <code>pkg/scan</code></td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>APF FlowSchema→PriorityLevel→Queue (G-07, P2)
+<code>pkg/security</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>pkg/security/</code> = spiffe/tls/vault only</td>
+<td>Not implemented; existing <code>pkg/ratelimit</code> is generic, not
+APF.</td>
+</tr>
+<tr>
+<td>Informer cache <code>helixcache.Watcher</code> + rate-limited queue
+(G-05/06, P2) <code>internal/node</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/node/</code> = node/server only; no
+<code>helixcache</code>/informer</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>Nightly chaos pipeline (G-15 part) <code>internal/chaos</code></td>
+<td><strong>MISSING</strong></td>
+<td><code>internal/chaos</code> absent</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>TLA+ formal specs (P2)</td>
+<td><strong>MISSING</strong></td>
+<td>no <code>.tla</code> specs found</td>
+<td>Absent.</td>
+</tr>
+<tr>
+<td>etcd real integration (substrate, supports G-08)</td>
+<td><strong>DONE</strong></td>
+<td><code>pkg/etcd/etcd_integration_test.go:26</code> real broker via
+<code>brokertest.StartEtcd</code>; sink-side tests
+<code>:148,:177</code></td>
+<td>Genuine real-service tests (KV/watch/lease/lock). Supports but does
+not constitute MVCC/Multi-Raft.</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Scoreboard:</strong> DONE 1 (etcd substrate) · PARTIAL 5
+(gang/preempt, session CRDT, session migration, SWIM suspicion, 2-tier
+health) · MISSING 17+ of the named 23-gap matrix. The 7 P0 blockers
+(Multi-Raft, backfill, DST, BUGGIFY, voting, MVCC, hash-slot) are
+<strong>all MISSING</strong>.</p>
+<hr />
+<h2 id="top-implementable-gaps-pure-go-no-new-infra">TOP IMPLEMENTABLE
+GAPS (pure-Go, no new infra)</h2>
+<p>Prioritized; each is self-contained, mutation-pairable, and needs no
+external hardware/cluster.</p>
+<h3 id="pkghashslot-crc16-16384-slot-router-g-03-p0">1.
+<code>pkg/hashslot</code> — CRC16 16,384-slot router (G-03, P0)</h3>
+<p><strong>Target dir:</strong> <code>pkg/hashslot/</code>. Implement
+Redis-compatible <code>CRC16(key)%16384</code> slot mapping, a
+<code>SlotMap</code> (slot→nodeID) with <code>Owner(key)</code>,
+<code>Reshard(slots, dst)</code>, and
+<code>MOVED</code>/<code>ASK</code> redirection structs for in-flight
+migration (Atomic Slot Migration: source serves <code>ASK</code> while a
+slot is <code>MIGRATING</code>, dest accepts on <code>ASKING</code>).
+Pure computation + in-memory map; wire later into
+<code>internal/gateway</code>. <strong>Acceptance test
+(mutation-pairable):</strong> assert known Redis CRC16 vectors
+(e.g. <code>"123456789"→0x31C3</code>, <code>{user1000}</code> hashtag
+extraction routes to same slot as <code>user1000</code>); mutation =
+drop the <code>{}</code>-hashtag carve-out or change modulus → hashtag
+co-location and vector tests fail.</p>
+<h3 id="pkgvoting-largest-subcluster-wins-quorum-g-19-p0">2.
+<code>pkg/voting</code> — largest-subcluster-wins quorum (G-19, P0)</h3>
+<p><strong>Target dir:</strong> <code>pkg/voting/</code>. In-memory vote
+store with per-voter TTL (3s) and a
+<code>Resolve(view []Membership) Decision</code> that grants survival to
+the partition holding a strict majority of registered votes (tie →
+deterministic lowest-ID loses, all-fence). Pure logic over an injected
+clock. <strong>Acceptance test:</strong> 5-node set partitioned 3/2 →
+3-side <code>Survive</code>, 2-side <code>Fence</code>; even 2/2 split →
+both fence. Mutation = flip <code>&gt;</code> to <code>&gt;=</code> in
+the majority check → the 2/2 split test (which must NOT grant survival)
+fails.</p>
+<h3
+id="pkgbackfill-slurm-style-backfill-over-an-availability-timeline-g-02-p0">3.
+<code>pkg/backfill</code> — SLURM-style backfill over an availability
+timeline (G-02, P0)</h3>
+<p><strong>Target dir:</strong> <code>pkg/backfill/</code>. Build a
+resource-availability timeline from running jobs’ (end-time,
+freed-resources); EASY-backfill lower-priority jobs into gaps
+<strong>iff</strong> they do not delay the highest-priority reserved
+job. Pure scheduling math against existing <code>pkg/scheduler</code>
+<code>Job</code>/<code>Node</code> types. <strong>Acceptance
+test:</strong> craft a queue where a small short job fits a gap before
+the head reservation (must backfill) vs. a long job that would delay it
+(must NOT). Mutation = remove the “does not delay reservation” guard →
+the long-job-must-not-backfill test fails.</p>
+<h3 id="pkghealth-startup-tier-gpu-grace-g-04-p1">4.
+<code>pkg/health</code> Startup tier + GPU grace (G-04, P1)</h3>
+<p><strong>Target dir:</strong> <code>pkg/health/</code> (extend
+<code>rollup.go</code>). Add <code>Startup CheckKind</code> +
+<code>CheckStartup(ctx)</code> plus a per-dependency
+<code>GracePeriod</code> so startup failures are tolerated until
+elapsed. <strong>Acceptance test:</strong> a dep failing within grace
+reports <code>Healthy</code> under <code>CheckStartup</code> but the
+<em>same</em> dep fails <code>CheckReadiness</code>; after grace elapses
+(injected clock) startup turns <code>Unhealthy</code>. Mutation = ignore
+<code>GracePeriod</code> → pre-grace startup test fails.</p>
+<h3 id="swim-majority-pfailfail-confirmation-g-23-p1">5. SWIM majority
+PFAIL→FAIL confirmation (G-23, P1)</h3>
+<p><strong>Target dir:</strong> <code>pkg/swim/</code> (extend
+suspicion). Add <code>FailureVotes</code> so a member only transitions
+Suspect→Dead after ≥⌈N/2⌉ distinct gossiped suspicions (PFAIL→FAIL), not
+on a single node’s timeout. <strong>Acceptance test:</strong> with N=5,
+2 suspicions keep state Suspect; the 3rd promotes to Dead and fires
+<code>OnDead</code> once. Mutation = lower threshold to 1 → the “2
+suspicions must stay Suspect” assertion fails.</p>
+<h3
+id="pkgcrdt-standalone-delta-state-crdt-set-g-01-partial-g-18-phase-8-dep-p2">6.
+<code>pkg/crdt</code> — standalone delta-state CRDT set (G-01 partial /
+G-18 Phase-8 dep, P2)</h3>
+<p><strong>Target dir:</strong> <code>pkg/crdt/</code>. Implement
+G-counter, PN-counter, and OR-set with <code>Merge</code> and delta
+extraction (<code>Delta(sinceVersion)</code>). Generalizes the LWW logic
+already proven in <code>pkg/session/convergence_test.go</code>.
+<strong>Acceptance test:</strong> property tests for
+commutativity/associativity/idempotency of <code>Merge</code> (mirror
+<code>convergence_test.go:102-209</code>); OR-set add-then-remove across
+reordered deltas converges. Mutation = make OR-set removal drop the
+unique-tag set → concurrent add/remove convergence test fails.</p>
+<h3
+id="internaladvisory-trust-new-internaltrust-boinc-redundant-execution-scorer-g-09-p1">7.
+<code>internal/advisory</code>-trust → new <code>internal/trust</code>
+BOINC redundant-execution scorer (G-09, P1)</h3>
+<p><strong>Target dir:</strong> <code>internal/trust/</code> (avoid the
+lock-service name collision). Track per-node trust from result agreement
+across redundant executions: quorum match raises trust, disagreement
+(outlier) lowers it; expose <code>Trusted(nodeID) bool</code> gated on a
+threshold. Pure scoring logic. <strong>Acceptance test:</strong> 3 nodes
+return result R, 1 returns R’; the outlier’s trust drops below threshold
+and is quarantined while the 3 stay trusted. Mutation = score the
+outlier as if it agreed → quarantine assertion fails.</p>
+<h3 id="pkgadmissioncontrol-failover-capacity-reservation-g-22-p1">8.
+<code>pkg/admissioncontrol</code> — failover capacity reservation (G-22,
+P1)</h3>
+<p><strong>Target dir:</strong> <code>pkg/admissioncontrol/</code>.
+Before accepting a workload, verify the cluster retains enough slack to
+absorb the loss of the K largest nodes (vSphere “N+K”); reject admission
+that would breach the reserve. Pure arithmetic over
+<code>pkg/scheduler</code> <code>Node</code> capacities.
+<strong>Acceptance test:</strong> admit while N+1 slack holds; reject
+the request that would consume the reserved failover headroom. Mutation
+= drop the reserved-headroom subtraction → the over-admit-rejection test
+fails.</p>
+<hr />
+<h2
+id="deferred-need-external-infra-hardware-non-go-6-clusters">DEFERRED
+(need external infra / hardware / non-Go) — 6 clusters</h2>
+<ul>
+<li><strong>DST framework + BUGGIFY + 1,000 sim/commit (G-14/15,
+P0):</strong> DEFERRED — requires a deterministic-simulation harness and
+CI-gate wiring (Turmoil-class); large cross-cutting effort, not a single
+Go unit. A <em>toy</em> deterministic scheduler-sim is implementable but
+the roadmap’s CI gate is infra.</li>
+<li><strong>Porcupine linearizability in CI (G-16, P1):</strong>
+DEFERRED — depends on the <code>porcupine</code> checker + CI pipeline
+gating; history-recorder shim is Go-implementable but the gate is
+infra.</li>
+<li><strong>Nightly chaos pipeline <code>internal/chaos</code>
+(G-15):</strong> DEFERRED — needs GitHub Actions + Chaos Mesh / live
+cluster (pod kill, partition, disk stall, clock skew).</li>
+<li><strong>STONITH fencing agents <code>pkg/stonith</code> (G-19,
+P1):</strong> DEFERRED — IPMI / AWS EC2 / Azure ARM / SBD shared-disk
+drivers require real hardware/cloud endpoints. (A pluggable
+<em>interface</em> + a no-op/mock agent is Go-only, but real fencing is
+infra.)</li>
+<li><strong>Multi-Raft + MVCC bbolt backend (G-01/G-08, P0):</strong>
+PARTIALLY DEFERRED — a Go implementation is possible but is a major
+storage-engine subsystem (raft groups, persistent watch streams, B-tree)
+far beyond a mutation-pairable unit; recommend staging behind the
+smaller wins above.</li>
+<li><strong>TLA+ specs + GPU NUMA/NVLink topology (G-18/P2):</strong>
+DEFERRED — TLA+ is non-Go (TLC model checker); NVLink/NUMA scoring needs
+real topology data from GPU hardware.</li>
+</ul>
+</body>
+</html>

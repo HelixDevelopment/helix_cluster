@@ -185,6 +185,49 @@ href="https://semver.org/spec/v2.0.0.html">Semantic Versioning</a>.</p>
 <h2 id="unreleased">[Unreleased]</h2>
 <h3 id="added">Added</h3>
 <ul>
+<li><strong>Wave 94 — autonomous completion loop (subagent-driven):
+defect fixes + concurrency hardening + unfinished-work report
+(conductor-gated, per-package <code>-race</code>):</strong>
+<ul>
+<li><strong>HXC-1637:</strong> <code>make build</code> now compiles
+every real <code>./cmd/*</code> Go binary into <code>bin/</code> (was a
+non-existent <code>./cmd/helix-cluster</code>); the
+<code>zig</code>/<code>cmake</code> steps are guarded by
+<code>command -v</code> so a missing native toolchain no longer
+hard-fails the build. Verified <code>go build -o bin/ ./cmd/...</code>
+(22 binaries).</li>
+<li><strong>HXC-1638:</strong> new real <code>cmd/helixctl</code> — a
+cobra gRPC <strong>client</strong> for the BuildService
+(<code>build submit</code>/<code>status</code>/<code>cancel</code>/<code>logs</code>)
+with in-process round-trip tests under <code>-race</code> (no
+PASS-bluff: <code>list</code> omitted because no <code>ListBuilds</code>
+RPC exists). <code>docs/guides/getting-started.md</code> +
+<code>docs/USER_MANUAL.md</code> corrected to the real command
+surface.</li>
+<li><strong>Concurrency hardening (audit findings F1–F7), each TDD +
+<code>go test -race</code> green:</strong> SWIM
+<code>Stop()</code>/<code>Leave()</code> double-close panic →
+<code>sync.Once</code>-guarded teardown (F1); SWIM
+<code>HealthyMembers</code> data race on <code>Member.State</code> →
+read via <code>m.IsHealthy()</code> (F2); SWIM probe goroutine now
+ctx-aware + <code>wg</code>-tracked (F3);
+<code>FailureDetector.Confirm/Refute</code> no longer hold
+<code>fd.mu</code> across the protocol callback — fixes the
+<code>fd.mu→p.mu</code> lock-order self-deadlock (F4); native session
+PTY double-close / use-after-close → close-once under
+<code>sess.mu</code> + I/O serialized against close (F5); scheduler
+<code>placements</code> map unbounded growth →
+<code>Complete</code>/<code>Release</code> completion path (F6);
+EventBus <code>PublishAsync</code> unbounded goroutines → bounded
+dispatcher + non-blocking <code>trySend</code> fast path (F7/F10,
+EventBus submodule).</li>
+<li><strong><code>docs/UNFINISHED_WORK_REPORT.md</code></strong> —
+comprehensive grounded inventory + phased completion plan:
+dead-code/orphaned-feature finding (178 of 212 <code>pkg/</code>
+packages unwired, ~51.4k LOC; <code>helixd</code> a hollow shell),
+coverage gaps, Snyk/SonarQube-via-Podman plan, registry Bucket A/B/C
+split, PRR gaps, and the owner-decision gates.</li>
+</ul></li>
 <li><strong>Documentation completeness pass — full operator+user docs,
 SQL schema, diagrams, test-coverage report (all md+html+pdf+docx,
 docs_chain-tracked):</strong>
