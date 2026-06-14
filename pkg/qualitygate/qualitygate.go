@@ -212,12 +212,20 @@ func Validate(metrics map[string]float64) Report {
 		threshold := rule.evalThreshold(metrics)
 
 		breached := false
-		switch rule.comparator {
-		case cmpGTE:
+		switch {
+		case math.IsNaN(actual) || math.IsNaN(threshold):
+			// FAIL CLOSED on a non-finite metric or NaN-poisoned dynamic
+			// threshold. Every ordered comparison against NaN is false, so without
+			// this a NaN actual would record NO breach and a CRITICAL rule would
+			// PASS on a poisoned safety metric (a CLAUDE-1 gate PASS-bluff that
+			// reaches the CI verdict via cmd/helix-gate). A NaN cannot satisfy any
+			// rule, so treat it as a breach.
+			breached = true
+		case rule.comparator == cmpGTE:
 			breached = actual < threshold
-		case cmpEQ:
+		case rule.comparator == cmpEQ:
 			breached = actual != threshold
-		case cmpLT:
+		case rule.comparator == cmpLT:
 			breached = actual >= threshold
 		}
 

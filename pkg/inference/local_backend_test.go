@@ -67,7 +67,10 @@ func TestLocalBackendAvailableTracksLoadedState(t *testing.T) {
 // fails because the sentinel is gone.
 func TestLocalBackendInferRequiresLoaded(t *testing.T) {
 	t.Parallel()
-	mgr := llm.NewManager()
+	// Wire a real Generate backend: internal/llm.Manager no longer returns a
+	// synthetic stub, so a loaded model only produces output when a Backend is
+	// installed (HXC-1840 — stale tests predated that honesty change).
+	mgr := llm.WithBackend(echoGen{})
 	must(t, mgr.RegisterModel("phi-2", "/models/phi-2", "gguf"))
 	lb := NewLocalBackend("local", mgr)
 
@@ -116,7 +119,8 @@ func TestLocalBackendInferUnknownModel(t *testing.T) {
 // instead of the reference response; resp.Backend=="ref" fails.
 func TestRouterFallsBackFromLocalToReference(t *testing.T) {
 	t.Parallel()
-	mgr := llm.NewManager()
+	// Real backend so the loaded local model actually serves (see HXC-1840).
+	mgr := llm.WithBackend(echoGen{})
 	must(t, mgr.RegisterModel("shared", "/models/shared", "gguf")) // registered, NOT loaded
 	local := NewLocalBackend("local", mgr)
 
