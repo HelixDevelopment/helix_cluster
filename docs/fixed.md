@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 202
-**Last modified:** 2026-06-14T19:58:24Z
+**Revision:** 203
+**Last modified:** 2026-06-14T20:06:56Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **744**.
+Total completed: **748**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -675,6 +675,10 @@ Total completed: **744**.
 | HXC-1848 | Task | P3 | devicemap: adversarial concurrency test, pure stateless conversion (no bug) | 1eabe72 |
 | HXC-1849 | Task | P3 | fedtopology: adversarial test, deterministic immutable topology (no bug) | 1eabe72 |
 | HXC-1850 | Task | P3 | thermalwarm: adversarial test, duration-based warm-up boundary correct (no bug) | 1eabe72 |
+| HXC-1851 | Bug | P2 | tracing: Span.Duration() ignores endTime -> finished span duration grows with wall-clock (wrong latency) | 204f871 |
+| HXC-1852 | Bug | P2 | agentprovision: ModeManager.Submit no duplicate-ID guard -> double-provision + silent live-job eviction | 204f871 |
+| HXC-1853 | Task | P3 | chaosexp: adversarial test, conservation + determinism (no bug) | 204f871 |
+| HXC-1854 | Task | P3 | errors: adversarial test, Is/As wrap-chain + Wrap(nil)==nil (no bug) | 204f871 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
