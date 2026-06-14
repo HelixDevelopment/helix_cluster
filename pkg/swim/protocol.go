@@ -431,6 +431,20 @@ func (p *Protocol) handleAlive(msg *Message, addr net.Addr) {
 
 func (p *Protocol) handleDead(msg *Message, addr net.Addr) {
 	p.mu.Lock()
+	if msg.TargetID == p.localID {
+		// Refute a death rumour about ourselves: a node is the authority on its
+		// own liveness and MUST NOT accept being declared Dead (mirrors
+		// handleSuspect's self-refute). Without this, a single stale/hostile/
+		// partition-induced Dead permanently marks the local node Dead in its own
+		// table — it then drops out of HealthyMembers() and cannot gossip its own
+		// Alive (a self-inflicted denial of liveness). Bump incarnation, broadcast
+		// Alive, and do not apply the Dead state locally.
+		p.incarnation++
+		inc := p.incarnation
+		p.mu.Unlock()
+		p.broadcastAlive(inc)
+		return
+	}
 	if m, ok := p.members[msg.TargetID]; ok {
 		m.UpdateState(StateDead, msg.Incarnation)
 		p.gossipBuffer.Add(GossipEvent{

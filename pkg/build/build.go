@@ -272,6 +272,19 @@ func (s *Service) Get(id string) (*Job, error) {
 	return j.clone(), nil
 }
 
+// cloneStringMap returns an independent copy of m (nil-safe), so a snapshot's
+// map cannot alias the canonical job's map.
+func cloneStringMap(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
 // clone returns a deep copy of the job (logs copied, mutex zeroed).
 func (j *Job) clone() *Job {
 	j.mu.RLock()
@@ -281,7 +294,7 @@ func (j *Job) clone() *Job {
 		RepoURL:        j.RepoURL,
 		Ref:            j.Ref,
 		DockerfilePath: j.DockerfilePath,
-		BuildArgs:      j.BuildArgs,
+		BuildArgs:      cloneStringMap(j.BuildArgs),
 		State:          j.State,
 		ImageTag:       j.ImageTag,
 		CreatedAt:      j.CreatedAt,
