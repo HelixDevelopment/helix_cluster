@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 186
-**Last modified:** 2026-06-14T13:39:31Z
+**Revision:** 187
+**Last modified:** 2026-06-14T13:52:57Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **687**.
+Total completed: **691**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -618,6 +618,10 @@ Total completed: **687**.
 | HXC-1791 | Bug | P1 | budgetcap: NaN cost bypasses MaxCostPerHour cap (unbounded over-spend) | bd0936a |
 | HXC-1792 | Task | P3 | metering: adversarial test pinning documented single-goroutine contract | bd0936a |
 | HXC-1793 | Task | P3 | inferenceproxy: adversarial concurrency/edge hardening test | bd0936a |
+| HXC-1794 | Bug | P1 | ewmarank: NaN sample poisons EWMA and breaks Rank total order (mis-routes traffic) | 14a8267 |
+| HXC-1795 | Bug | P1 | admissioncontrol: int64 reserve-sum overflow bypasses N+K capacity cap | 14a8267 |
+| HXC-1796 | Task | P3 | auctionplace: adversarial test, FCFS board contract pinned (no bug) | 14a8267 |
+| HXC-1797 | Task | P3 | flowcontrol: adversarial test, APF round-robin cursor survives resort (no bug) | 14a8267 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
