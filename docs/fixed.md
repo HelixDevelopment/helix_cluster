@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 163
-**Last modified:** 2026-06-14T08:48:02Z
+**Revision:** 164
+**Last modified:** 2026-06-14T08:53:56Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **614**.
+Total completed: **617**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -545,6 +545,9 @@ Total completed: **614**.
 | HXC-1718 | Task | P1 | correlation audit-trail adversarial tests | 0a504e5 |
 | HXC-1719 | Task | P1 | modelretry classification adversarial tests | 0a504e5 |
 | HXC-1720 | Task | P1 | workloadrouter routing+concurrency adversarial tests | 0a504e5 |
+| HXC-1721 | Task | P1 | streamfailover orchestration adversarial tests | 4244b6d |
+| HXC-1722 | Task | P1 | burstcapacity spillover-estimator adversarial tests | 4244b6d |
+| HXC-1723 | Task | P1 | powergater night-window/state adversarial tests | 4244b6d |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
