@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 192
-**Last modified:** 2026-06-14T14:51:30Z
+**Revision:** 193
+**Last modified:** 2026-06-14T15:07:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **711**.
+Total completed: **715**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -642,6 +642,10 @@ Total completed: **711**.
 | HXC-1815 | Task | P3 | failconfirm: adversarial test, strict-majority quorum + reporter dedup correct (no bug) | ba52783 |
 | HXC-1816 | Task | P3 | etcd: adversarial test, thin clientv3 wrapper + key-scheme pins (no bug) | ba52783 |
 | HXC-1817 | Task | P3 | deviceplugin: adversarial test, Registry no-double-alloc + conservation (no bug) | ba52783 |
+| HXC-1818 | Bug | P2 | gitops: PlanRollingSync silently drops apps with unknown/typo/empty tier label | e69663c |
+| HXC-1819 | Bug | P2 | hxcregistry: CreateItem/UpdateItem non-atomic -> orphan item rows with no audit history | e69663c |
+| HXC-1820 | Task | P3 | fmea: adversarial test, int-only RPN scoring (no bug) | e69663c |
+| HXC-1821 | Task | P3 | gpu: adversarial test, provider-adapter registry RWMutex-guarded (no bug) | e69663c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
