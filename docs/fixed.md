@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 208
-**Last modified:** 2026-06-14T20:46:59Z
+**Revision:** 209
+**Last modified:** 2026-06-14T23:11:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **765**.
+Total completed: **769**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -696,6 +696,10 @@ Total completed: **765**.
 | HXC-1869 | Task | P3 | compliancedoc: adversarial test, deterministic model card, no fabricated verdict (no bug) | f098b4a |
 | HXC-1870 | Task | P3 | e2eebench: adversarial test, nearest-rank percentile + ML-KEM key-agreement guard (no bug) | f098b4a |
 | HXC-1871 | Task | P3 | resources: adversarial test, CLAUDE-2 darwin parity VERIFIED REAL (no bug) — completes pkg/ 196/196 | 84b13ea |
+| HXC-1872 | Bug | P1 | internal/node: UpdateNodeStatus mutates shared registry *Node pointer in place -> data race (live in gRPC server) | 556aa60 |
+| HXC-1873 | Task | P3 | internal/gpu: adversarial test, GPU allocator no over-commit + CLAUDE-2 probe REAL (no bug) | 556aa60 |
+| HXC-1874 | Task | P3 | internal/gateway: adversarial test, authorize fail-CLOSED (no bug) | 556aa60 |
+| HXC-1875 | Task | P3 | internal/security: adversarial test, identity/authz/policy all fail-CLOSED (no bug) | 556aa60 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
