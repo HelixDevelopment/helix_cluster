@@ -13,6 +13,7 @@ package hlc
 import (
 	"encoding/binary"
 	"errors"
+	"math"
 	"sync"
 	"time"
 )
@@ -144,10 +145,30 @@ func (c *Clock) Now() Timestamp {
 	} else {
 		// Physical clock did not advance: keep the (larger) last physical
 		// component and bump the logical counter so the result is strictly
-		// greater than the previous one.
-		c.last = Timestamp{Physical: c.last.Physical, Logical: c.last.Logical + 1}
+		// greater than the previous one. bumpLogical carries into the physical
+		// component if the logical counter is at its uint32 ceiling, so the
+		// clock never wraps (strict monotonicity is preserved unconditionally).
+		p, l := bumpLogical(c.last.Physical, c.last.Logical)
+		c.last = Timestamp{Physical: p, Logical: l}
 	}
 	return c.last
+}
+
+// bumpLogical returns the (physical, logical) pair that is the smallest
+// timestamp strictly greater than (physical, base). Normally that is
+// (physical, base+1); but when base is already at the uint32 ceiling, a plain
+// base+1 would WRAP to 0 and silently violate the HLC's strict-domination
+// contract (a real, externally reachable defect, since `base` can come from
+// peer/attacker-controlled wire data via Update). Instead we carry the overflow
+// into the physical component: (physical+1, 0). This preserves a strict total
+// order and the fixed 12-byte wire format. A logical ceiling is only reachable
+// pathologically (~4.29e9 same-physical-tick events, or a crafted remote
+// timestamp), and the carry is a single-nanosecond physical adjustment.
+func bumpLogical(physical int64, base uint32) (int64, uint32) {
+	if base == math.MaxUint32 {
+		return physical + 1, 0
+	}
+	return physical, base + 1
 }
 
 // Update merges a timestamp received from a remote node and returns a new
@@ -193,19 +214,19 @@ func (c *Clock) Update(remote Timestamp) Timestamp {
 	case maxPhys == c.last.Physical && maxPhys == remotePhys:
 		// Both local and remote (possibly clamped) sit at the winning physical
 		// time: take the larger logical and bump past it.
-		logical = c.last.Logical
-		if remote.Logical > logical {
-			logical = remote.Logical
+		base := c.last.Logical
+		if remote.Logical > base {
+			base = remote.Logical
 		}
-		logical++
+		maxPhys, logical = bumpLogical(maxPhys, base)
 	case maxPhys == c.last.Physical:
 		// Only the prior local timestamp is at the winning physical time.
-		logical = c.last.Logical + 1
+		maxPhys, logical = bumpLogical(maxPhys, c.last.Logical)
 	case maxPhys == remotePhys:
 		// Only the remote (possibly clamped) timestamp is at the winning
 		// physical time; bump past it so the local event is causally after the
 		// received message.
-		logical = remote.Logical + 1
+		maxPhys, logical = bumpLogical(maxPhys, remote.Logical)
 	default:
 		// The physical clock strictly advanced past both: fresh logical run.
 		logical = 0
