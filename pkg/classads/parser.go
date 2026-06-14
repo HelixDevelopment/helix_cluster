@@ -7,10 +7,23 @@ import (
 	"unicode"
 )
 
+// maxParseDepth bounds recursive-descent nesting. The grammar recurses through
+// parseOr (each parenthesized sub-expression) and parseUnary (each chained !/-),
+// neither of which had a depth limit — so a deeply nested hostile expression
+// (e.g. ~500k nested parens, a ~1 MB string) drove the goroutine stack past Go's
+// 1 GB limit and aborted the process with an UNRECOVERABLE `fatal error: stack
+// overflow` — a remotely-triggerable DoS via the public Eval/Parse API. The cap
+// is far above any legitimate expression (hundreds of levels) yet well below the
+// depth that overflows the stack, so pathological input is rejected with a clean
+// error instead of crashing. It also transitively bounds AST depth, keeping the
+// recursive evalExpr safe for anything Parse can produce.
+const maxParseDepth = 10000
+
 // Parser parses ClassAd expression strings into an AST.
 type Parser struct {
 	input string
 	pos   int
+	depth int // current recursion depth, bounded by maxParseDepth
 }
 
 // NewParser creates a new parser for the given input.
@@ -61,6 +74,12 @@ func (p *Parser) consume(s string) bool {
 }
 
 func (p *Parser) parseOr() (Expr, error) {
+	if p.depth >= maxParseDepth {
+		return nil, fmt.Errorf("classads: expression nesting exceeds depth limit %d (possible denial-of-service input)", maxParseDepth)
+	}
+	p.depth++
+	defer func() { p.depth-- }()
+
 	left, err := p.parseAnd()
 	if err != nil {
 		return nil, err
@@ -203,6 +222,12 @@ func (p *Parser) parseMultiplicative() (Expr, error) {
 }
 
 func (p *Parser) parseUnary() (Expr, error) {
+	if p.depth >= maxParseDepth {
+		return nil, fmt.Errorf("classads: expression nesting exceeds depth limit %d (possible denial-of-service input)", maxParseDepth)
+	}
+	p.depth++
+	defer func() { p.depth-- }()
+
 	p.skipWhitespace()
 	if p.consume("!") {
 		expr, err := p.parseUnary()

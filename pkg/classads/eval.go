@@ -33,7 +33,23 @@ func Match(requirements string, attrs map[string]interface{}) (bool, error) {
 	return b, nil
 }
 
+// maxEvalDepth bounds evalExpr recursion as defense-in-depth. The public Eval
+// path is already protected by the parser's maxParseDepth (which bounds AST
+// depth), but the AST node types are exported, so a deeply nested AST built
+// directly — or deserialized from elsewhere — would otherwise drive evalExpr's
+// recursion past Go's goroutine stack limit and abort the process with a fatal,
+// unrecoverable stack overflow. The guard returns a clean error instead.
+const maxEvalDepth = 10000
+
 func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
+	return evalExprD(e, attrs, 0)
+}
+
+func evalExprD(e Expr, attrs map[string]interface{}, depth int) (interface{}, error) {
+	if depth > maxEvalDepth {
+		return nil, fmt.Errorf("classads: expression too deeply nested to evaluate (limit %d)", maxEvalDepth)
+	}
+	depth++
 	switch n := e.(type) {
 	case Literal:
 		return n.Value, nil
@@ -44,7 +60,7 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 		}
 		return v, nil
 	case UnaryOp:
-		v, err := evalExpr(n.Expr, attrs)
+		v, err := evalExprD(n.Expr, attrs, depth)
 		if err != nil {
 			return nil, err
 		}
@@ -69,7 +85,7 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 			return nil, fmt.Errorf("unknown unary op: %s", n.Op)
 		}
 	case BinaryOp:
-		left, err := evalExpr(n.Left, attrs)
+		left, err := evalExprD(n.Left, attrs, depth)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +98,7 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 			if !lb {
 				return false, nil
 			}
-			right, err := evalExpr(n.Right, attrs)
+			right, err := evalExprD(n.Right, attrs, depth)
 			if err != nil {
 				return nil, err
 			}
@@ -100,7 +116,7 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 			if lb {
 				return true, nil
 			}
-			right, err := evalExpr(n.Right, attrs)
+			right, err := evalExprD(n.Right, attrs, depth)
 			if err != nil {
 				return nil, err
 			}
@@ -110,13 +126,13 @@ func evalExpr(e Expr, attrs map[string]interface{}) (interface{}, error) {
 			}
 			return rb, nil
 		}
-		right, err := evalExpr(n.Right, attrs)
+		right, err := evalExprD(n.Right, attrs, depth)
 		if err != nil {
 			return nil, err
 		}
 		return evalBinary(n.Op, left, right)
 	case FunctionCall:
-		return evalFunction(n, attrs)
+		return evalFunction(n, attrs, depth)
 	default:
 		return nil, fmt.Errorf("unknown expression type: %T", e)
 	}
@@ -169,10 +185,10 @@ func evalBinary(op string, left, right interface{}) (interface{}, error) {
 	return nil, fmt.Errorf("unknown binary op: %s", op)
 }
 
-func evalFunction(fc FunctionCall, attrs map[string]interface{}) (interface{}, error) {
+func evalFunction(fc FunctionCall, attrs map[string]interface{}, depth int) (interface{}, error) {
 	args := make([]interface{}, len(fc.Args))
 	for i, a := range fc.Args {
-		v, err := evalExpr(a, attrs)
+		v, err := evalExprD(a, attrs, depth)
 		if err != nil {
 			return nil, err
 		}
