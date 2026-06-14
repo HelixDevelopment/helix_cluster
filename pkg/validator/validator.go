@@ -4,6 +4,7 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"math"
 	"net/mail"
 	"reflect"
 	"regexp"
@@ -193,7 +194,11 @@ func (v *Validator) checkMin(name, strVal string, val reflect.Value, arg string)
 		}
 	case reflect.Float32, reflect.Float64:
 		n, _ := strconv.ParseFloat(arg, 64)
-		if val.Float() < n {
+		// math.IsNaN guard: a NaN value satisfies neither `< n` nor `> n` (every
+		// NaN comparison is false), so without this it would silently pass BOTH
+		// the min and max range checks — a fail-open admission of an out-of-range
+		// poison value (scores/weights/ratios from float arithmetic).
+		if f := val.Float(); math.IsNaN(f) || f < n {
 			return fmt.Errorf("field %s must be >= %f: %w", name, n, ErrMinExceeded)
 		}
 	default:
@@ -219,7 +224,9 @@ func (v *Validator) checkMax(name, strVal string, val reflect.Value, arg string)
 		}
 	case reflect.Float32, reflect.Float64:
 		n, _ := strconv.ParseFloat(arg, 64)
-		if val.Float() > n {
+		// math.IsNaN guard (see checkMin): NaN passes `> n` as false, so it would
+		// otherwise slip the max bound — fail-open on an out-of-range value.
+		if f := val.Float(); math.IsNaN(f) || f > n {
 			return fmt.Errorf("field %s must be <= %f: %w", name, n, ErrMaxExceeded)
 		}
 	default:

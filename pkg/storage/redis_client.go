@@ -44,6 +44,11 @@ func (g *goRedisSeam) Expire(ctx context.Context, key string, ttl time.Duration)
 	return g.client.Expire(ctx, key, ttl).Err()
 }
 
+// Del removes key (used to compensate a committed HSet on Expire failure).
+func (g *goRedisSeam) Del(ctx context.Context, key string) error {
+	return g.client.Del(ctx, key).Err()
+}
+
 // HGetAll returns all field-value pairs from the hash at key.
 func (g *goRedisSeam) HGetAll(ctx context.Context, key string) (map[string]string, error) {
 	result, err := g.client.HGetAll(ctx, key).Result()

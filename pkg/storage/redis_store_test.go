@@ -81,6 +81,20 @@ func (f *fakeRedisSeam) Expire(_ context.Context, key string, ttl time.Duration)
 	return nil
 }
 
+// Del drops any recorded HSet rows for key (compensation path).
+func (f *fakeRedisSeam) Del(_ context.Context, key string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	kept := f.hsets[:0]
+	for _, h := range f.hsets {
+		if h.Key != key {
+			kept = append(kept, h)
+		}
+	}
+	f.hsets = kept
+	return nil
+}
+
 func (f *fakeRedisSeam) HGetAll(_ context.Context, key string) (map[string]string, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()

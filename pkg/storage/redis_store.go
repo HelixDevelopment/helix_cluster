@@ -59,6 +59,9 @@ type hashSetter interface {
 	HSet(ctx context.Context, key string, fields map[string]string) error
 	// Expire sets the TTL on key.
 	Expire(ctx context.Context, key string, ttl time.Duration) error
+	// Del removes key. Used to compensate a committed HSet when the follow-up
+	// Expire fails, so SetSessionRouting never leaves an un-expiring orphan hash.
+	Del(ctx context.Context, key string) error
 }
 
 // hashGetter is the read half used by GetSessionRouting.
@@ -130,6 +133,11 @@ func (r *RedisStore) SetSessionRouting(ctx context.Context, sessionID string, fi
 		return fmt.Errorf("SetSessionRouting HSET: %w", err)
 	}
 	if err := r.seam.Expire(ctx, key, ttl); err != nil {
+		// The HSet already committed; without a TTL it would be an immortal orphan
+		// pinning a stale session->node route. Compensate by deleting the key so
+		// the operation is all-or-nothing, matching the documented "stores fields
+		// AND sets its TTL" contract.
+		_ = r.seam.Del(ctx, key)
 		return fmt.Errorf("SetSessionRouting EXPIRE: %w", err)
 	}
 	return nil

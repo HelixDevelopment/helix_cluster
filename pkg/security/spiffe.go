@@ -69,10 +69,14 @@ func IsValidTrustDomain(td string) bool {
 	if td == "" {
 		return false
 	}
-	// Reject spaces and control characters.
+	// Reject spaces, control characters, and the SPIFFE URI authority/path
+	// separator '/'. A trust domain is the URI authority and can never
+	// structurally contain '/': without this guard "example.org/evil" passes
+	// well-formedness and Validate returns a VALID verdict for a malformed
+	// identity authority (a fail-open primitive).
 	for i := 0; i < len(td); i++ {
 		c := td[i]
-		if c <= ' ' || c == 0x7f {
+		if c <= ' ' || c == 0x7f || c == '/' {
 			return false
 		}
 	}
