@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 184
-**Last modified:** 2026-06-14T13:17:02Z
+**Revision:** 185
+**Last modified:** 2026-06-14T13:28:54Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **681**.
+Total completed: **684**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -612,6 +612,9 @@ Total completed: **681**.
 | HXC-1785 | Bug | P1 | costtracker unsynchronized accumulator: data race + cost non-conservation — FIXED | ccab647 |
 | HXC-1786 | Task | P1 | providerchain fallback adversarial tests | ccab647 |
 | HXC-1787 | Task | P1 | modelrouter selection adversarial tests | ccab647 |
+| HXC-1788 | Bug | P1 | dataplane Distributor.SendToWorker concurrent-send libzmq SIGABRT — FIXED | 96f86cd |
+| HXC-1789 | Task | P1 | marketplaceadapter translation-fidelity adversarial tests | 96f86cd |
+| HXC-1790 | Task | P1 | raftleader election-safety adversarial tests | 96f86cd |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
