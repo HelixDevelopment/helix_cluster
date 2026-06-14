@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 197
-**Last modified:** 2026-06-14T18:36:45Z
+**Revision:** 198
+**Last modified:** 2026-06-14T18:55:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **725**.
+Total completed: **728**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -656,6 +656,9 @@ Total completed: **725**.
 | HXC-1829 | Task | P3 | stonith: adversarial test, fencing confirms sink-side (no fail-open) (no bug) | 347c22a |
 | HXC-1830 | Task | P3 | metrics: adversarial test, atomic counters + mutex histograms conserve under race (no bug) | ad81091 |
 | HXC-1831 | Task | P3 | session: adversarial test, Manager RWMutex-guarded + deep-copy Get + crypto-rand IDs (no bug) | ad81091 |
+| HXC-1832 | Bug | P2 | retry: exponential/linear backoff overflows time.Duration -> negative delay bypasses MaxDelay cap (hot loop) | 4e6af81 |
+| HXC-1833 | Task | P3 | crypto: adversarial test, Ed25519/AES-GCM/PBKDF2 wrapper rejects tampered (no bug) | 4e6af81 |
+| HXC-1834 | Task | P3 | workerpool: adversarial test, bounded pool correct (no bug) | 4e6af81 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
