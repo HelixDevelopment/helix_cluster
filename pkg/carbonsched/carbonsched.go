@@ -4,7 +4,10 @@
 // resulting energy use (kWh) and carbon emission (grams CO2).
 package carbonsched
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 // Region describes a candidate placement target.
 //
@@ -57,6 +60,15 @@ func Place(job Job, regions []Region) (Placement, error) {
 		r := &regions[i]
 		if r.LatencyMS > job.MaxLatencyMS {
 			continue // latency-ineligible
+		}
+		if math.IsNaN(r.CarbonIntensity) {
+			// A NaN carbon intensity is an unknown/sensor-error reading. Every
+			// comparison against NaN is false, so without this guard a NaN region
+			// scanned first would become `best` and never be displaced — it would
+			// be selected as "greenest" and emit a NaN GramsCO2, and selection
+			// would become input-order-dependent, violating the documented
+			// lowest-intensity total order. Treat it as never selectable.
+			continue
 		}
 		if best == nil ||
 			r.CarbonIntensity < best.CarbonIntensity ||
