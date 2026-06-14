@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 148
-**Last modified:** 2026-06-14T02:50:14Z
+**Revision:** 149
+**Last modified:** 2026-06-14T02:51:09Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **586**.
+Total completed: **587**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -517,6 +517,7 @@ Total completed: **586**.
 | HXC-1690 | Bug | P1 | FIX pkg/qos intransitive near-tie comparator (order-dependent QoS selection) | 1d5f748 |
 | HXC-1691 | Feature | P1 | pkg/latencysched comparator transitivity audit + order-independence test (transitive, no band) | b34d938 |
 | HXC-1692 | Feature | P1 | pkg/gpupool comparator transitivity audit + order-independence test (transitive, no band) | 9ab1d54 |
+| HXC-1693 | Feature | P1 | pkg/smartrouter dual audit (comparator transitivity + partial-lock) clean on both | 40ad3c5 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
