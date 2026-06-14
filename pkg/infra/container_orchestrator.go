@@ -517,6 +517,13 @@ func (o *containerOrchestrator) Logs(ctx context.Context, service string, follow
 // named "<service>-<n>" are running. After adjusting, it queries the runtime
 // List to count how many are actually running and reports that count.
 func (o *containerOrchestrator) Scale(ctx context.Context, service string, replicas int) (ServiceStatus, error) {
+	// Reject a negative replica count before any work: a negative `replicas`
+	// makes `current[replicas:]` (below) a negative slice low-bound, panicking
+	// the process with "slice bounds out of range". Validate at the orchestrator
+	// boundary, not only in the CLI caller.
+	if replicas < 0 {
+		return ServiceStatus{}, fmt.Errorf("scale %s: replicas must be >= 0, got %d", service, replicas)
+	}
 	// List currently running replicas for this service.
 	filter := runtime.ListFilter{
 		All:    false,

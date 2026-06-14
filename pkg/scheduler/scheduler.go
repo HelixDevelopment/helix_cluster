@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 )
 
@@ -106,6 +107,11 @@ func (s *Scheduler) Schedule(job *Job) (*ScheduleResult, error) {
 	for _, n := range s.nodes {
 		candidates = append(candidates, n)
 	}
+	// Deterministic iteration for stable placement (matches bestNodeAmong /
+	// scheduleGangLocked): ranging s.nodes directly is map-iteration order, so
+	// two nodes that tie on score get a RANDOMIZED placement per request. Sort by
+	// node ID and select with strict `>` (first-max-wins) for a stable tiebreak.
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].ID < candidates[j].ID })
 
 	var bestNode *Node
 	bestScore := -1
@@ -163,10 +169,18 @@ func (s *Scheduler) ScheduleOptimistic(job *Job, expectedVersion uint64) (*Sched
 	}
 
 	// Reuse core logic inline to keep version locked.
+	// Deterministic candidate order (see Schedule): ranging s.nodes directly
+	// randomizes the placement of equal-score nodes per request.
+	candidates := make([]*Node, 0, len(s.nodes))
+	for _, n := range s.nodes {
+		candidates = append(candidates, n)
+	}
+	sort.Slice(candidates, func(i, j int) bool { return candidates[i].ID < candidates[j].ID })
+
 	var bestNode *Node
 	bestScore := -1
 
-	for _, node := range s.nodes {
+	for _, node := range candidates {
 		if !s.runFiltersLocked(job, node) {
 			continue
 		}

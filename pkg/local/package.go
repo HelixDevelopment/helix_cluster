@@ -34,6 +34,7 @@ package local
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 )
 
@@ -91,6 +92,16 @@ func (g GPU) validate() error {
 		return fmt.Errorf("%w: empty id", ErrInvalidGPU)
 	case g.Count < 1:
 		return fmt.Errorf("%w: count %d < 1", ErrInvalidGPU, g.Count)
+	case math.IsNaN(g.PurchasePrice) || math.IsInf(g.PurchasePrice, 0) ||
+		math.IsNaN(g.LifespanYears) || math.IsInf(g.LifespanYears, 0) ||
+		math.IsNaN(g.PowerDrawWatts) || math.IsInf(g.PowerDrawWatts, 0) ||
+		math.IsNaN(g.PowerPriceKWh) || math.IsInf(g.PowerPriceKWh, 0) ||
+		math.IsNaN(g.Utilization) || math.IsInf(g.Utilization, 0):
+		// Non-finite (NaN/±Inf) fields slip the ordered comparisons below (every
+		// NaN comparison is false), get stored, and poison the TCO so
+		// CheaperThanCloud (NaN < cloudHourly is always false) silently pins the
+		// card local forever. Reject them up front.
+		return fmt.Errorf("%w: non-finite numeric field", ErrInvalidGPU)
 	case g.PurchasePrice <= 0:
 		return fmt.Errorf("%w: purchase price %.2f <= 0", ErrInvalidGPU, g.PurchasePrice)
 	case g.LifespanYears <= 0:
