@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 166
-**Last modified:** 2026-06-14T09:05:52Z
+**Revision:** 167
+**Last modified:** 2026-06-14T09:13:31Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **623**.
+Total completed: **626**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -554,6 +554,9 @@ Total completed: **623**.
 | HXC-1727 | Task | P1 | devicecatalog lookup adversarial tests | 1810b72 |
 | HXC-1728 | Task | P1 | gputopo topology-selection adversarial tests | 1810b72 |
 | HXC-1729 | Task | P1 | configsync CRDT store concurrency adversarial tests | 1810b72 |
+| HXC-1730 | Task | P1 | config defaults/validation adversarial tests | 0043627 |
+| HXC-1731 | Task | P1 | deviceprofile YAML-load adversarial tests | 0043627 |
+| HXC-1732 | Task | P1 | gpucatalog scoring/multiplier adversarial tests | 0043627 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
