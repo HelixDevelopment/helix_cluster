@@ -86,6 +86,18 @@ func (s *Span) IsFinished() bool {
 // Duration returns the elapsed time since the span started. It returns zero if
 // the span has not been started.
 func (s *Span) Duration() time.Duration {
+	// Once finished, freeze the duration at endTime-StartTime. Returning
+	// time.Since(StartTime) for a finished span makes its reported duration keep
+	// growing with wall-clock time, corrupting any consumer that reads a finished
+	// span's latency (dashboards, metrics, logs). end.Sub(StartTime) uses the
+	// monotonic clock captured at Finish.
+	s.mu.RLock()
+	finished := s.finished
+	end := s.endTime
+	s.mu.RUnlock()
+	if finished && !end.IsZero() {
+		return end.Sub(s.StartTime)
+	}
 	return time.Since(s.StartTime)
 }
 

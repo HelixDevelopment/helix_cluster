@@ -92,6 +92,14 @@ func (m *ModeManager) Submit(j Job) (admitted bool, preemptedID string, reason s
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Idempotency / identity guard: a job ID already in the pool must not be
+	// re-admitted. Without this, a duplicate ID silently clobbers the existing
+	// m.running[j.ID] record — double-confirming admission for one slot and, in
+	// the preemption path, evicting a live job with no preemption bookkeeping.
+	if _, exists := m.running[j.ID]; exists {
+		return false, "", fmt.Sprintf("rejected: job %q already running", j.ID)
+	}
+
 	// Case 1: free slot.
 	if len(m.running) < m.slots {
 		m.admitSeq++
