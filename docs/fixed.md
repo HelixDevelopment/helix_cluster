@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 165
-**Last modified:** 2026-06-14T08:59:25Z
+**Revision:** 166
+**Last modified:** 2026-06-14T09:05:52Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **620**.
+Total completed: **623**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -551,6 +551,9 @@ Total completed: **620**.
 | HXC-1724 | Task | P1 | residency data-residency compliance adversarial tests | bad44dc |
 | HXC-1725 | Task | P1 | watchtower tamper-integrity adversarial tests | bad44dc |
 | HXC-1726 | Task | P1 | fsresidency file content-integrity adversarial tests | bad44dc |
+| HXC-1727 | Task | P1 | devicecatalog lookup adversarial tests | 1810b72 |
+| HXC-1728 | Task | P1 | gputopo topology-selection adversarial tests | 1810b72 |
+| HXC-1729 | Task | P1 | configsync CRDT store concurrency adversarial tests | 1810b72 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
