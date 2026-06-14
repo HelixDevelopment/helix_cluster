@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 168
-**Last modified:** 2026-06-14T09:18:51Z
+**Revision:** 169
+**Last modified:** 2026-06-14T09:25:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **629**.
+Total completed: **632**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -560,6 +560,9 @@ Total completed: **629**.
 | HXC-1733 | Task | P1 | healthprobe grace-window adversarial tests | c09c24d |
 | HXC-1734 | Task | P1 | devicemap round-trip mapping adversarial tests | c09c24d |
 | HXC-1735 | Task | P1 | burst autoscaling-hysteresis adversarial tests | c09c24d |
+| HXC-1736 | Task | P1 | archlint doc-vs-disk linter adversarial tests | 3b8f1d1 |
+| HXC-1737 | Task | P1 | etcdlint import-ban linter adversarial tests | 3b8f1d1 |
+| HXC-1738 | Task | P1 | tierdetect per-OS detection adversarial tests | 3b8f1d1 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
