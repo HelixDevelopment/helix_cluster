@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 169
-**Last modified:** 2026-06-14T09:25:42Z
+**Revision:** 170
+**Last modified:** 2026-06-14T09:31:20Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **632**.
+Total completed: **635**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -563,6 +563,9 @@ Total completed: **632**.
 | HXC-1736 | Task | P1 | archlint doc-vs-disk linter adversarial tests | 3b8f1d1 |
 | HXC-1737 | Task | P1 | etcdlint import-ban linter adversarial tests | 3b8f1d1 |
 | HXC-1738 | Task | P1 | tierdetect per-OS detection adversarial tests | 3b8f1d1 |
+| HXC-1739 | Task | P1 | llmadapter translation-fidelity adversarial tests | 75ac469 |
+| HXC-1740 | Task | P1 | passthrough streaming-fidelity adversarial tests | 75ac469 |
+| HXC-1741 | Task | P1 | grpcutil auth-interceptor adversarial tests | 75ac469 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
