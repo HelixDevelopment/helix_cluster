@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 197 <strong>Last modified:</strong>
-2026-06-14T18:36:45Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 199 <strong>Last modified:</strong>
+2026-06-14T19:23:28Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>725</strong>.</p>
+<p>Total completed: <strong>732</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5128,6 +5128,61 @@ conserve under race (no bug)</td>
 <td>session: adversarial test, Manager RWMutex-guarded + deep-copy Get +
 crypto-rand IDs (no bug)</td>
 <td>ad81091</td>
+</tr>
+<tr>
+<td>HXC-1832</td>
+<td>Bug</td>
+<td>P2</td>
+<td>retry: exponential/linear backoff overflows time.Duration -&gt;
+negative delay bypasses MaxDelay cap (hot loop)</td>
+<td>4e6af81</td>
+</tr>
+<tr>
+<td>HXC-1833</td>
+<td>Task</td>
+<td>P3</td>
+<td>crypto: adversarial test, Ed25519/AES-GCM/PBKDF2 wrapper rejects
+tampered (no bug)</td>
+<td>4e6af81</td>
+</tr>
+<tr>
+<td>HXC-1834</td>
+<td>Task</td>
+<td>P3</td>
+<td>workerpool: adversarial test, bounded pool correct (no bug)</td>
+<td>4e6af81</td>
+</tr>
+<tr>
+<td>HXC-1835</td>
+<td>Bug</td>
+<td>P1</td>
+<td>tiersec: tierRank Sscanf admits malformed tier names -&gt; fail-open
+clearance grant</td>
+<td>f898048</td>
+</tr>
+<tr>
+<td>HXC-1836</td>
+<td>Task</td>
+<td>P3</td>
+<td>tieredcache: adversarial test, LRU bound/eviction/recency correct
+(no bug)</td>
+<td>f898048</td>
+</tr>
+<tr>
+<td>HXC-1837</td>
+<td>Task</td>
+<td>P3</td>
+<td>doublecrypt: adversarial test, mTLS-over-WireGuard tamper/auth
+enforced (no bug)</td>
+<td>f898048</td>
+</tr>
+<tr>
+<td>HXC-1838</td>
+<td>Task</td>
+<td>P3</td>
+<td>covgate: adversarial test, threshold &gt;= boundary + NaN
+fail-closed (no bug)</td>
+<td>f898048</td>
 </tr>
 <tr>
 <td>HXC-902</td>
