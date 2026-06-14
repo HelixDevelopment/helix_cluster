@@ -144,7 +144,12 @@ func (m *Manager) Admit() []string {
 
 	admitted := make([]string, 0, len(pending))
 	for _, j := range pending {
-		if m.used+j.Request <= m.quota.Total {
+		// Overflow-safe admission check. Never compute used+Request: a near-MaxInt
+		// Request would overflow to a NEGATIVE sum that passes `<= Total`, admitting
+		// an oversized job and poisoning `used` negative so every later job is
+		// wrongly admitted (total cap bypass). `used` is held in [0, Total] and
+		// Request >= 0, so Total-used cannot overflow.
+		if j.Request <= m.quota.Total-m.used {
 			m.used += j.Request
 			m.state[j.ID] = StateAdmitted
 			admitted = append(admitted, j.ID)

@@ -23,8 +23,36 @@ package smartrouter
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 )
+
+// betterMin reports whether candidate should replace incumbent in a "lowest
+// wins" scan. A non-finite (NaN/±Inf) candidate never wins; a finite candidate
+// always beats a non-finite incumbent. This keeps the selection a strict weak
+// ordering: a raw `candidate < incumbent` is false whenever either is NaN, so a
+// NaN-keyed model latched at index 0 would never be displaced and would seize
+// the route (mis-routing), order-dependently.
+func betterMin(candidate, incumbent float64) bool {
+	if math.IsNaN(candidate) || math.IsInf(candidate, 0) {
+		return false
+	}
+	if math.IsNaN(incumbent) || math.IsInf(incumbent, 0) {
+		return true
+	}
+	return candidate < incumbent
+}
+
+// betterMax is betterMin for a "highest wins" scan.
+func betterMax(candidate, incumbent float64) bool {
+	if math.IsNaN(candidate) || math.IsInf(candidate, 0) {
+		return false
+	}
+	if math.IsNaN(incumbent) || math.IsInf(incumbent, 0) {
+		return true
+	}
+	return candidate > incumbent
+}
 
 // Strategy names the algorithm used to select a model.
 type Strategy string
@@ -160,7 +188,7 @@ func (r *Router) Route(runID string, s Strategy) (string, error) {
 func routeLatency(pool []Model) (string, error) {
 	best := pool[0]
 	for _, m := range pool[1:] {
-		if m.TTFTMillis < best.TTFTMillis { // MUTATION TARGET: invert (<→>) kills TestLatencyPicksLowestTTFT
+		if betterMin(m.TTFTMillis, best.TTFTMillis) { // MUTATION TARGET: invert (<→>) kills TestLatencyPicksLowestTTFT
 			best = m
 		}
 	}
@@ -171,7 +199,7 @@ func routeLatency(pool []Model) (string, error) {
 func routeThroughput(pool []Model) (string, error) {
 	best := pool[0]
 	for _, m := range pool[1:] {
-		if m.ThroughputTokS > best.ThroughputTokS {
+		if betterMax(m.ThroughputTokS, best.ThroughputTokS) {
 			best = m
 		}
 	}
@@ -183,7 +211,7 @@ func routeThroughput(pool []Model) (string, error) {
 func routeCost(pool []Model) (string, error) {
 	best := pool[0]
 	for _, m := range pool[1:] {
-		if m.CostPerMTokens < best.CostPerMTokens { // MUTATION TARGET: invert (<→>) kills TestCostPicksCheapest
+		if betterMin(m.CostPerMTokens, best.CostPerMTokens) { // MUTATION TARGET: invert (<→>) kills TestCostPicksCheapest
 			best = m
 		}
 	}
@@ -219,6 +247,12 @@ func routeBalanced(pool []Model) (string, error) {
 			continue
 		}
 		score := wTTFT*(1/m.TTFTMillis) + wTput*m.ThroughputTokS + wCost*(1/m.CostPerMTokens)
+		// Skip a non-finite score (a NaN/±Inf input metric): it would otherwise
+		// either dominate (+Inf) or, as NaN, latch an incumbent that `>` can never
+		// displace — both mis-route. A finite score is required to win.
+		if math.IsNaN(score) || math.IsInf(score, 0) {
+			continue
+		}
 		if score > bestScore {
 			bestScore = score
 			bestID = m.ID
