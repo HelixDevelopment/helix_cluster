@@ -18,6 +18,8 @@
 // caller.
 package forecast
 
+import "math"
+
 // slopeEpsilon is a deadband below which a fitted slope is treated as flat.
 // Least-squares fitting of a genuinely constant (or near-constant) trace can
 // yield a slope on the order of floating-point rounding noise (~1e-15) rather
@@ -33,6 +35,15 @@ const slopeEpsilon = 1e-9
 // Zero value is not usable; construct with a positive Window, a Threshold, and
 // a positive Lead. The zero value of internal bookkeeping fields is valid (no
 // pre-warm yet).
+//
+// Non-finite (NaN or ±Inf) utilization samples are REJECTED by Observe: they are
+// not added to the trailing window. A single non-finite sample would otherwise
+// poison the least-squares sums so that slope (and every projection) becomes NaN
+// for as long as it remains in the window — and because the fire gate requires
+// slope > slopeEpsilon (which NaN never satisfies), it would silently SUPPRESS
+// legitimate PreWarm signals for the in-range samples that follow. Utilization
+// is defined on [0,1]; a non-finite reading is a sensor error, so the safe,
+// trend-preserving behavior is to drop it.
 type Forecaster struct {
 	// Window is the number of trailing samples used to fit the trend line.
 	// Must be >= 2 for a slope to be defined.
@@ -72,6 +83,19 @@ type sample struct {
 // defined (fewer than 2 samples) the projection equals the current value and
 // PreWarm is false.
 func (f *Forecaster) Observe(tick int, util float64) (preWarm bool, projected float64) {
+	// Reject a non-finite (NaN/±Inf) sample: appending it would poison the OLS
+	// sums for the whole window (slope -> NaN), and since NaN never satisfies the
+	// fire gate (slope > slopeEpsilon), it would silently suppress legitimate
+	// PreWarm signals for in-range follow-up samples. Leave the window unchanged,
+	// never fire, and report the last in-window utilization (finite, or 0 when
+	// no sample has been observed yet).
+	if math.IsNaN(util) || math.IsInf(util, 0) {
+		if n := len(f.samples); n > 0 {
+			return false, f.samples[n-1].util
+		}
+		return false, 0
+	}
+
 	// Append and trim to the trailing window.
 	f.samples = append(f.samples, sample{tick: tick, util: util})
 	if f.Window > 0 && len(f.samples) > f.Window {
