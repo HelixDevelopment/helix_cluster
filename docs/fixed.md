@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 201
-**Last modified:** 2026-06-14T19:50:40Z
+**Revision:** 202
+**Last modified:** 2026-06-14T19:58:24Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **740**.
+Total completed: **744**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -671,6 +671,10 @@ Total completed: **740**.
 | HXC-1844 | Task | P3 | device: adversarial test, deterministic classifier + real per-OS probe, CLAUDE-2 verified (no bug) | 386489c |
 | HXC-1845 | Task | P3 | dst: adversarial test, deterministic-simulation harness is genuinely deterministic (no bug) | 386489c |
 | HXC-1846 | Task | P3 | provider: adversarial test, pure HTTP adapter no selector/registry (no bug) | 386489c |
+| HXC-1847 | Bug | P2 | timefault: abs64(MinInt64) overflow misses max-skew detection -> grants lease to faulty clock (split-brain) | 1eabe72 |
+| HXC-1848 | Task | P3 | devicemap: adversarial concurrency test, pure stateless conversion (no bug) | 1eabe72 |
+| HXC-1849 | Task | P3 | fedtopology: adversarial test, deterministic immutable topology (no bug) | 1eabe72 |
+| HXC-1850 | Task | P3 | thermalwarm: adversarial test, duration-based warm-up boundary correct (no bug) | 1eabe72 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
