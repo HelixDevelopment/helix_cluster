@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 135
-**Last modified:** 2026-06-14T02:19:28Z
+**Revision:** 136
+**Last modified:** 2026-06-14T02:19:59Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **573**.
+Total completed: **574**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -504,6 +504,7 @@ Total completed: **573**.
 | HXC-1677 | Bug | P1 | FIX pkg/thermalwarm concurrent-map + state-field race (dispatch/state raced warming) | 0c820ba |
 | HXC-1678 | Feature | P1 | pkg/phasegate concurrent read-safety + gating-correctness test (immutable-after-build) | 79db281 |
 | HXC-1679 | Feature | P1 | pkg/dataplane partial-lock audit + concurrent race test (Distributor.pending fully guarded) | facc96f |
+| HXC-1680 | Feature | P1 | pkg/inferenceproxy partial-lock audit + concurrent race test (MemAudit fully guarded) | c526da2 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

@@ -1,7 +1,7 @@
 # Issues
 
-**Revision:** 135
-**Last modified:** 2026-06-14T02:19:28Z
+**Revision:** 136
+**Last modified:** 2026-06-14T02:19:59Z
 **Description:** Active workable-item registry for Helix Cluster OS
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
