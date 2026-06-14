@@ -113,10 +113,24 @@ func (d *Distributor) Dispatch(t Task, timeout time.Duration) (Reply, error) {
 
 // SendToWorker sends a task to a specific worker identified by workerID
 // (the ZMQ DEALER identity frame).
+//
+// The send is serialized by d.mu: a ZMQ socket is NOT thread-safe, and two
+// goroutines issuing a multipart SendMessage on the same ROUTER socket
+// concurrently interleave their frames and trip libzmq's internal
+// "!_current_out (router.cpp)" assertion, which is a FATAL, uncatchable SIGABRT
+// that kills the whole process — not a recoverable Go panic. Holding d.mu across
+// the send makes concurrent SendToWorker calls safe, honoring this type's
+// documented "safe for concurrent use" contract. d.mu is never held across the
+// blocking RecvReply/RecvWorkerRegistration receives, so this cannot deadlock.
+// (Full send-vs-receive serialization for a single shared socket is a larger
+// design change — a dedicated socket I/O goroutine — and is out of scope here;
+// this fix closes the proven, deterministic concurrent-send abort.)
 func (d *Distributor) SendToWorker(workerID []byte, t Task) error {
 	// ROUTER multipart: [identity][empty-delimiter][corrID][payload]
 	// pebbe/zmq4 ROUTER: SendMessage handles the identity frame directly.
+	d.mu.Lock()
 	_, err := d.sock.SendMessage(workerID, "", t.CorrelationID, t.Payload)
+	d.mu.Unlock()
 	if err != nil {
 		return fmt.Errorf("dataplane: distributor send: %w", err)
 	}
