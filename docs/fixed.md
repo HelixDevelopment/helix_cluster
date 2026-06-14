@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 193
-**Last modified:** 2026-06-14T15:07:42Z
+**Revision:** 194
+**Last modified:** 2026-06-14T15:19:48Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **715**.
+Total completed: **718**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -646,6 +646,9 @@ Total completed: **715**.
 | HXC-1819 | Bug | P2 | hxcregistry: CreateItem/UpdateItem non-atomic -> orphan item rows with no audit history | e69663c |
 | HXC-1820 | Task | P3 | fmea: adversarial test, int-only RPN scoring (no bug) | e69663c |
 | HXC-1821 | Task | P3 | gpu: adversarial test, provider-adapter registry RWMutex-guarded (no bug) | e69663c |
+| HXC-1822 | Bug | P2 | jobadmit: used+Request int overflow bypasses quota cap (over-admit + total poison) | c9f397d |
+| HXC-1823 | Bug | P2 | smartrouter: NaN/Inf score latched at index 0 mis-routes (breaks all 4 strategies) | c9f397d |
+| HXC-1824 | Task | P3 | voting: adversarial test, strict-majority quorum + dedup + deterministic tiebreak (no bug) | c9f397d |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
