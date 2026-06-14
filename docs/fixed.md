@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 152
-**Last modified:** 2026-06-14T07:41:05Z
+**Revision:** 153
+**Last modified:** 2026-06-14T07:46:05Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **590**.
+Total completed: **591**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -521,6 +521,7 @@ Total completed: **590**.
 | HXC-1694 | Feature | P1 | pkg/bursthysteresis exhaustive hysteresis-boundary test (no flap, inclusive thresholds) | 35fafe3 |
 | HXC-1695 | Feature | P1 | pkg/healthmonitor FSM transition-matrix + concurrency test (edge-triggered, fully guarded) | 7c08ddf |
 | HXC-1696 | Feature | P1 | pkg/balancemonitor event-log conservation + concurrency test (no lost append, strict threshold) | b41a6fe |
+| HXC-1697 | Feature | P1 | pkg/hybridkex adversarial hybrid-binding test (X25519+ML-KEM-768, both components bind) | c122650 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
