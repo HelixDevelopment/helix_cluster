@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 167
-**Last modified:** 2026-06-14T09:13:31Z
+**Revision:** 168
+**Last modified:** 2026-06-14T09:18:51Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **626**.
+Total completed: **629**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -557,6 +557,9 @@ Total completed: **626**.
 | HXC-1730 | Task | P1 | config defaults/validation adversarial tests | 0043627 |
 | HXC-1731 | Task | P1 | deviceprofile YAML-load adversarial tests | 0043627 |
 | HXC-1732 | Task | P1 | gpucatalog scoring/multiplier adversarial tests | 0043627 |
+| HXC-1733 | Task | P1 | healthprobe grace-window adversarial tests | c09c24d |
+| HXC-1734 | Task | P1 | devicemap round-trip mapping adversarial tests | c09c24d |
+| HXC-1735 | Task | P1 | burst autoscaling-hysteresis adversarial tests | c09c24d |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
