@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 171
-**Last modified:** 2026-06-14T09:38:34Z
+**Revision:** 172
+**Last modified:** 2026-06-14T09:44:42Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **638**.
+Total completed: **641**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -569,6 +569,9 @@ Total completed: **638**.
 | HXC-1742 | Task | P1 | middleware panic-recovery/chain adversarial tests | e534ad3 |
 | HXC-1743 | Task | P1 | llmfailover failover-path/hint adversarial tests | e534ad3 |
 | HXC-1744 | Task | P1 | capability manifest/negotiate adversarial tests | e534ad3 |
+| HXC-1745 | Task | P1 | sandbox capability-isolation adversarial tests | 5cb37ea |
+| HXC-1746 | Task | P1 | splitbrainalert detection adversarial tests | 5cb37ea |
+| HXC-1747 | Task | P1 | serde capnp serialization adversarial tests | 5cb37ea |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
