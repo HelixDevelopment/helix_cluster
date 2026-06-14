@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 143
-**Last modified:** 2026-06-14T02:34:45Z
+**Revision:** 144
+**Last modified:** 2026-06-14T02:39:35Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **581**.
+Total completed: **582**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -512,6 +512,7 @@ Total completed: **581**.
 | HXC-1685 | Feature | P1 | pkg/carbonsched oracle selection test (lowest-carbon argmin, order-independent) | 782b3a0 |
 | HXC-1686 | Feature | P1 | pkg/costsched oracle selection test (lowest-cost, lex tie-break; closes unstable-sort gap) | d6303ed |
 | HXC-1687 | Feature | P1 | pkg/suitability exhaustive placement test (HPC never remote/non-low-latency hard rule) | 39895b8 |
+| HXC-1688 | Feature | P1 | pkg/revenueopt adversarial pricing test (TEE->Chutes bonus, oracle winner+revenue) | 2f7d65e |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
