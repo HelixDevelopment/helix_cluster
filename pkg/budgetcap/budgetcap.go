@@ -11,6 +11,7 @@ package budgetcap
 
 import (
 	"errors"
+	"math"
 	"sync"
 )
 
@@ -22,9 +23,10 @@ var ErrWouldExceedBudget = errors.New("budgetcap: allocation would exceed MaxCos
 // same id is already active. This prevents double-counting on re-allocation.
 var ErrDuplicateAllocation = errors.New("budgetcap: allocation id already active")
 
-// ErrInvalidCost is returned by Allocate when cost is negative or NaN-like
-// (non-finite is not representable here without math import; negative guarded).
-var ErrInvalidCost = errors.New("budgetcap: cost must be non-negative")
+// ErrInvalidCost is returned by Allocate when cost is negative or non-finite
+// (NaN or ±Inf). Non-finite costs are rejected because a NaN would otherwise
+// silently poison the running total and bypass the cap entirely.
+var ErrInvalidCost = errors.New("budgetcap: cost must be non-negative and finite")
 
 // BudgetCap enforces a global MaxCostPerHour ceiling over active allocations.
 // The zero value is not usable; construct one with NewBudgetCap.
@@ -48,7 +50,13 @@ func NewBudgetCap(maxPerHour float64) *BudgetCap {
 // ErrWouldExceedBudget and does NOT change committed. A duplicate id is
 // rejected with ErrDuplicateAllocation; a negative cost with ErrInvalidCost.
 func (b *BudgetCap) Allocate(id string, cost float64) error {
-	if cost < 0 {
+	// Reject negative AND non-finite (NaN/±Inf) costs. NaN is the dangerous one:
+	// NaN<0 is false and committed+NaN>maxPerHour is false (every NaN comparison
+	// is false), so a single NaN cost would pass admission, poison `committed` to
+	// NaN permanently, and thereafter admit EVERY allocation regardless of size —
+	// a total cap bypass / unbounded over-spend. (The ErrInvalidCost contract
+	// already documents "negative or NaN-like"; this makes the code honor it.)
+	if cost < 0 || math.IsNaN(cost) || math.IsInf(cost, 0) {
 		return ErrInvalidCost
 	}
 	b.mu.Lock()
