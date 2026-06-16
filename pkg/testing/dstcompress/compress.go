@@ -88,10 +88,16 @@ func Measure(eng *dst.Engine, maxEvents int) CompressionMetrics {
 // Each payload in the slice becomes the Payload of one event.
 // The returned slice contains the event IDs in the same order as payloads.
 //
-// Events are independent in the sense that they share only their timestamp;
-// the engine dispatches them in the order they were inserted (FIFO within a
-// timestamp tier because the min-heap is stable for equal timestamps by
-// insertion order via the monotonically incrementing event ID).
+// Events are independent in the sense that they share only their timestamp.
+//
+// Dispatch order within a single timestamp tier is DETERMINISTIC (reproducible
+// for a given input) but is NOT insertion-order / FIFO. The engine's event
+// queue (dst.EventQueue) is a container/heap min-heap whose Less compares only
+// Timestamp and never breaks ties on the monotonic event ID, so equal-timestamp
+// events are dispatched in container/heap's pop order, not the order they were
+// scheduled. Callers MUST treat same-timestamp batch events as an unordered set
+// and MUST NOT rely on payloads being delivered in slice order. (A true FIFO
+// tie-break would require dst.EventQueue.Less to compare ID on equal Timestamp.)
 func BatchSchedule(eng *dst.Engine, kind string, payloads []interface{}, delay int64) []int64 {
 	ids := make([]int64, len(payloads))
 	for i, p := range payloads {

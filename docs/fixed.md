@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 222
-**Last modified:** 2026-06-16T20:58:34Z
+**Revision:** 223
+**Last modified:** 2026-06-16T21:05:32Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **807**.
+Total completed: **809**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -738,6 +738,8 @@ Total completed: **807**.
 | HXC-1911 | Bug | P1 | provider/runpod: duplicate worker-ID bypasses Capacity quota -> leaks billable workers (fail-open) |  |
 | HXC-1912 | Task | P2 | Adversarial coverage: pkg/tofu TOFU verifier (no bug; 5 mutation-proven contracts) |  |
 | HXC-1913 | Task | P2 | Adversarial coverage wave 6: testing/{scenario,sessionfsm,turmoil} (no bug; determinism verified real) |  |
+| HXC-1914 | Bug | P2 | testing/dstcompress: BatchSchedule doc falsely claimed FIFO same-timestamp dispatch (doc-sync fix) |  |
+| HXC-1915 | Task | P2 | Adversarial coverage wave 7: testing/{dstworkload,dstscale} (no bug; determinism verified real) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
