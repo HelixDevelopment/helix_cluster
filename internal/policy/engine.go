@@ -179,15 +179,29 @@ func (e *Engine) Evaluate(ctx context.Context, name string, input map[string]int
 // buildReason constructs a human-readable explanation.  For the scheduling
 // policy the node.health field drives the message; for other policies a
 // generic allow/deny string is returned.
+//
+// The scheduling-specific "health >= 50 / < 50" rationale is emitted ONLY for
+// the actual scheduling policy. Emitting it for any policy that merely happens
+// to carry a numeric input.node.health produced a fabricated audit reason: the
+// hard-coded "50" threshold and the "scheduling" attribution belong to the
+// scheduling policy alone, so for an unrelated policy the message could assert a
+// mathematically false comparison (e.g. "health 10 >= 50, scheduling allowed")
+// and misattribute the verdict to a health threshold that never applied. Since
+// Decision.Reason is forwarded verbatim into the DecisionLogEntry audit sink
+// (§7.1 evidence integrity), that false rationale is a sink-side defect.
 func buildReason(policyName string, allow bool, input map[string]interface{}) string {
-	// Attempt to extract node.health for a scheduling-specific message.
-	if node, ok := input["node"]; ok {
-		if nodeMap, ok := node.(map[string]interface{}); ok {
-			if health, ok := toFloat(nodeMap["health"]); ok {
-				if allow {
-					return fmt.Sprintf("policy %q: node health %.0f >= 50, scheduling allowed", policyName, health)
+	// Attempt to extract node.health for a scheduling-specific message — but
+	// only for the scheduling policy, whose rule is the source of the 50
+	// threshold this message describes.
+	if policyName == SchedulingPolicyName {
+		if node, ok := input["node"]; ok {
+			if nodeMap, ok := node.(map[string]interface{}); ok {
+				if health, ok := toFloat(nodeMap["health"]); ok {
+					if allow {
+						return fmt.Sprintf("policy %q: node health %.0f >= 50, scheduling allowed", policyName, health)
+					}
+					return fmt.Sprintf("policy %q: node health %.0f < 50, scheduling denied (health threshold)", policyName, health)
 				}
-				return fmt.Sprintf("policy %q: node health %.0f < 50, scheduling denied (health threshold)", policyName, health)
 			}
 		}
 	}

@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 233
-**Last modified:** 2026-06-16T22:26:36Z
+**Revision:** 234
+**Last modified:** 2026-06-16T22:33:13Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **835**.
+Total completed: **838**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -766,6 +766,9 @@ Total completed: **835**.
 | HXC-1939 | Bug | P1 | internal/gpu: health Monitor flipping a held GPU to Unhealthy causes double-allocation + permanent leak |  |
 | HXC-1940 | Bug | P0 | pkg/storage: FileStore key path traversal — Put/Get/Delete escape the store root (arbitrary file write/read/delete) |  |
 | HXC-1941 | Bug | P1 | internal/federation: cell-selection trust gate FAILS OPEN on unknown/empty liveness (default-allow admission) |  |
+| HXC-1942 | Bug | P1 | internal/messaging: a panicking subscriber handler crashes the whole bus process (no recover) + Publish sink-side bluff |  |
+| HXC-1943 | Bug | P2 | internal/policy: buildReason fabricates scheduling health rationale for non-scheduling policies (forensic audit reason-bluff) |  |
+| HXC-1944 | Bug | P2 | pkg/admissioncontrol: zero-capacity request wrongly rejected when reserve>free (contract violation, fail-closed) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

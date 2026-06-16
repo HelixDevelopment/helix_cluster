@@ -134,6 +134,16 @@ func (b *Bus) Publish(ctx context.Context, topic string, msg *Message) error {
 		wg.Add(1)
 		go func(s *subscription) {
 			defer wg.Done()
+			// Recover a panicking handler so one misbehaving subscriber cannot
+			// crash the process (and thereby kill delivery to every other
+			// subscriber and topic). A panic is surfaced as that handler's
+			// error, exactly like a returned error, so Publish stays sink-side
+			// honest and the bus keeps running.
+			defer func() {
+				if r := recover(); r != nil {
+					errCh <- fmt.Errorf("handler %s panicked: %v", s.id, r)
+				}
+			}()
 			if err := s.handler(ctx, msg); err != nil {
 				errCh <- fmt.Errorf("handler %s failed: %w", s.id, err)
 			}

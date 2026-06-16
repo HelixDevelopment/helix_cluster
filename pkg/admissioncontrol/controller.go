@@ -183,6 +183,16 @@ func (c *Controller) Admit(requestedCapacity int64) Decision {
 		return d
 	}
 
+	// A zero-capacity request consumes nothing, so it cannot erode the reserve and
+	// is always admitted (per the contract above). Short-circuit BEFORE the
+	// headroom check: when the cluster is already over-reserved (reserve > free,
+	// reachable after node failures), the `free - 0 >= reserve` test would be
+	// false and wrongly REJECT a no-cost job that changes nothing.
+	if requestedCapacity == 0 {
+		d.Admitted = true
+		return d
+	}
+
 	// Invariant: free capacity AFTER placing the job must still cover the reserve.
 	if free-requestedCapacity >= reserve {
 		d.Admitted = true
