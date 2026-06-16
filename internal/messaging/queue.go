@@ -16,7 +16,7 @@ import (
 // closure, so no enqueued-and-accepted message is silently dropped on Close.
 type Queue struct {
 	ch     chan *Message
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	closed bool
 }
 
@@ -38,12 +38,17 @@ func (q *Queue) Enqueue(ctx context.Context, msg *Message) error {
 	if msg == nil {
 		return fmt.Errorf("message cannot be nil")
 	}
-	q.mu.Lock()
+	// Hold the read lock ACROSS the send. The old code checked q.closed, then
+	// released the lock before `q.ch <- msg`, so Close could set closed=true and
+	// close(q.ch) in that window -> send on a closed channel (panic + data race).
+	// RLock is mutually exclusive with Close's write-lock, so the channel cannot
+	// be closed mid-send. No deadlock: Dequeue takes no lock, so a full-buffer
+	// Enqueue still drains and unblocks a concurrent Close.
+	q.mu.RLock()
+	defer q.mu.RUnlock()
 	if q.closed {
-		q.mu.Unlock()
 		return fmt.Errorf("queue is closed")
 	}
-	q.mu.Unlock()
 
 	select {
 	case q.ch <- msg:

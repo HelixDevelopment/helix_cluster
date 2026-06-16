@@ -27,6 +27,7 @@ package scheduling
 default allow = false
 
 allow {
+	is_number(input.node.health)
 	input.node.health >= 50
 }
 `
