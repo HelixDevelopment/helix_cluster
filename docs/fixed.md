@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 240
-**Last modified:** 2026-06-16T23:32:53Z
+**Revision:** 241
+**Last modified:** 2026-06-16T23:42:27Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **852**.
+Total completed: **853**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -783,6 +783,7 @@ Total completed: **852**.
 | HXC-1956 | Bug | P0 | internal/gateway: path-traversal auth-scope bypass — un-normalized path lets a weak-scope token reach an admin endpoint |  |
 | HXC-1957 | Bug | P1 | pkg/discovery: Lookup returns TTL-expired instances as healthy (stale->dead node) + Metadata map aliasing corrupts the registry |  |
 | HXC-1958 | Bug | P1 | internal/costbroker: NaN/Inf/negative LatencyMs or Reliability bypasses selection -> pins min-search + overcharges |  |
+| HXC-1959 | Task | P2 | Deep re-audit: pkg/{jwt,security,smartrouter} (no bug; security PRIMITIVES fail-closed, mutation-proven) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
