@@ -203,7 +203,10 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 	reg := metrics.NewServiceRegistry("llm")
 	llmMux := s.newMux()
 	metrics.Mount(llmMux, reg)
-	httpServer := &http.Server{Handler: llmMux}
+	httpServer := &http.Server{
+		Handler:           llmMux,
+		ReadHeaderTimeout: 10 * time.Second, // G112: bound slow-header (Slowloris) reads
+	}
 
 	if ready != nil {
 		ready(lis.Addr().String())

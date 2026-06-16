@@ -184,7 +184,10 @@ func run(ctx context.Context, cfg Config, ready func(addr net.Addr)) error {
 	reg := metrics.NewServiceRegistry("policy")
 	mux := newHandler(engine)
 	metrics.Mount(mux, reg)
-	server := &http.Server{Handler: mux}
+	server := &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: 10 * time.Second, // G112: bound slow-header (Slowloris) reads
+	}
 
 	lis, err := net.Listen("tcp", cfg.Addr)
 	if err != nil {

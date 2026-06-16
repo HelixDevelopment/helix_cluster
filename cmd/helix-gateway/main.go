@@ -38,6 +38,13 @@ const defaultPort = 8080
 // requests to drain during graceful shutdown before returning.
 const defaultShutdownTimeout = 10 * time.Second
 
+// defaultReadHeaderTimeout bounds how long a client may take to send the
+// request headers. It defends the gateway against Slowloris-style slow-header
+// DoS: without it, http.Server reads request headers with no deadline, so a
+// peer that dribbles header bytes forever pins a connection (and a goroutine)
+// indefinitely.
+const defaultReadHeaderTimeout = 10 * time.Second
+
 // Config holds the validated runtime configuration for the gateway service.
 type Config struct {
 	// Host is the bind host. Empty means all interfaces (":port").
@@ -124,7 +131,15 @@ func run(ctx context.Context, cfg Config, ready func(addr string)) error {
 		return fmt.Errorf("listen %s: %w", cfg.Addr(), err)
 	}
 
-	srv := &http.Server{Handler: mux}
+	// ReadHeaderTimeout bounds how long a client may take to send the request
+	// headers, closing the Slowloris (slow-header) DoS hole that an unbounded
+	// http.Server leaves open (a peer that dribbles headers forever would
+	// otherwise pin a connection indefinitely). Matches the timeout other Helix
+	// HTTP entrypoints set (e2ee-proxy, helix-raftd, helix-health, helixd).
+	srv := &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: defaultReadHeaderTimeout,
+	}
 
 	if ready != nil {
 		ready(lis.Addr().String())

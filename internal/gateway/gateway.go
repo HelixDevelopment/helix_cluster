@@ -186,7 +186,10 @@ func (g *Gateway) ListenAndServe(ctx context.Context, addr string) error {
 	if err != nil {
 		return fmt.Errorf("gateway listen %s: %w", addr, err)
 	}
-	srv := &http.Server{Handler: g}
+	srv := &http.Server{
+		Handler:           g,
+		ReadHeaderTimeout: 10 * time.Second, // G112: bound slow-header (Slowloris) reads
+	}
 	log.Printf("gateway listening on %s", ln.Addr())
 
 	errCh := make(chan error, 1)
@@ -209,7 +212,10 @@ func (g *Gateway) ListenAndServe(ctx context.Context, addr string) error {
 // the listener so tests can obtain the real port via ln.Addr(). Context
 // cancellation triggers graceful shutdown with a 30 s drain.
 func (g *Gateway) Serve(ctx context.Context, ln net.Listener) error {
-	srv := &http.Server{Handler: g}
+	srv := &http.Server{
+		Handler:           g,
+		ReadHeaderTimeout: 10 * time.Second, // G112: bound slow-header (Slowloris) reads
+	}
 	log.Printf("gateway serving on %s", ln.Addr())
 
 	errCh := make(chan error, 1)

@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 226
-**Last modified:** 2026-06-16T21:30:28Z
+**Revision:** 227
+**Last modified:** 2026-06-16T21:38:35Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **817**.
+Total completed: **819**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -748,6 +748,8 @@ Total completed: **817**.
 | HXC-1921 | Bug | P2 | testing/device: Pool.provisionAndTrack leaks an already-provisioned device when Claim fails |  |
 | HXC-1922 | Task | P2 | Adversarial coverage: testing/instance lifecycle FSM (no bug; mutation-proven) |  |
 | HXC-1923 | Task | P2 | Adversarial coverage wave 10: cmd/{helix-security,e2ee-proxy,helix-scheduler} (no bug; thin wiring fail-closed) |  |
+| HXC-1924 | Bug | P1 | Slowloris/G112 hardening: 5 HTTP servers lacked a read timeout (helix-gateway, helix-llm, helix-policy, internal/gateway x2) |  |
+| HXC-1925 | Task | P2 | Adversarial coverage wave 11: cmd/{gpu-pool-manager,helix-node} (no bug; selection + validation correct) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
