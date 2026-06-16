@@ -135,8 +135,8 @@ func TestChaosRunner(t *testing.T) {
 	}
 
 	active := cr.ActiveFaults()
-	if len(active) != 1 {
-		t.Errorf("expected 1 active fault (NodeCrash), got %d", len(active))
+	if len(active) != 2 {
+		t.Errorf("expected 2 active faults (NetworkPartition + NodeCrash, both applied), got %d", len(active))
 	}
 
 	if err := cr.RestoreAll(); err != nil {

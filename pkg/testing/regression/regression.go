@@ -122,6 +122,23 @@ var ErrInsufficientData = errors.New("regression: each sample needs at least 2 o
 // standard error zero and the t-statistic undefined.
 var ErrDegenerate = errors.New("regression: zero combined variance; t-statistic undefined")
 
+// ErrNonFinite is returned when a sample contains a non-finite observation
+// (NaN or ±Inf). Such a value poisons the mean/variance and would otherwise
+// produce a NaN t-statistic and NaN p-value; because `NaN < Alpha` is false the
+// detector would silently classify a corrupt benchmark as NO-CHANGE — a
+// false-negative. We reject the input instead of bluffing an all-clear verdict.
+var ErrNonFinite = errors.New("regression: sample contains a non-finite value (NaN or Inf)")
+
+// allFinite reports whether every observation in x is finite (no NaN, no ±Inf).
+func allFinite(x []float64) bool {
+	for _, v := range x {
+		if math.IsNaN(v) || math.IsInf(v, 0) {
+			return false
+		}
+	}
+	return true
+}
+
 // meanVar returns the sample mean and unbiased (n-1) variance of x.
 func meanVar(x []float64) (mean, variance float64) {
 	n := float64(len(x))
@@ -143,6 +160,9 @@ func meanVar(x []float64) (mean, variance float64) {
 func Detect(baseline, candidate []float64, opts Options) (Result, error) {
 	if len(baseline) < 2 || len(candidate) < 2 {
 		return Result{}, ErrInsufficientData
+	}
+	if !allFinite(baseline) || !allFinite(candidate) {
+		return Result{}, ErrNonFinite
 	}
 
 	mb, vb := meanVar(baseline)

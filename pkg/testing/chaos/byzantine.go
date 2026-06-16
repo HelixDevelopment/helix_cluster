@@ -73,3 +73,7 @@ func (f *ByzantineFault) Query(peer string) string {
 	idx := int(h % uint64(len(f.Values))) //gosec:disable G115 -- len is non-negative and the mod result is < len, so the conversions are value-bounded
 	return f.Values[idx]
 }
+
+// IsActive reports whether the equivocation is currently armed, so
+// ChaosRunner.ActiveFaults reports an applied ByzantineFault.
+func (f *ByzantineFault) IsActive() bool { return f.st.isApplied() }

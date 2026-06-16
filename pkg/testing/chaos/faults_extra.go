@@ -62,6 +62,10 @@ func (s *applyState) isApplied() bool {
 	return s.applied
 }
 
+// IsActive is the exported view of isApplied. Faults that embed applyState via a
+// named st field forward to it so ChaosRunner.ActiveFaults can report them.
+func (s *applyState) IsActive() bool { return s.isApplied() }
+
 // ---------------------------------------------------------------------------
 // Network faults
 // ---------------------------------------------------------------------------
@@ -857,3 +861,71 @@ func CatalogByCategory(seed int64) map[Category][]string {
 	}
 	return out
 }
+
+// ---------------------------------------------------------------------------
+// IsActive reporters: forward to the embedded applyState so that
+// ChaosRunner.ActiveFaults reports every applied fault, not just NodeCrash.
+// ---------------------------------------------------------------------------
+
+// IsActive reports whether the fault is currently applied.
+func (f *PacketReorder) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *PacketDuplication) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *BandwidthThrottle) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *AsymmetricPartition) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *DNSBlackhole) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ProcessPause) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *OOMKill) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *SlowDisk) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ClockSkew) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ClockFreeze) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ClockJump) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *CPUHog) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *MemPressure) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *FDExhaust) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *DiskCorruption) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *DiskFull) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ReadOnlyMount) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *FsyncLoss) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *RPCError) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *RPCTimeout) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *RPCMalformed) IsActive() bool { return f.st.isApplied() }

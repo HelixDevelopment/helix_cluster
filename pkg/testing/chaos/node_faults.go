@@ -118,3 +118,15 @@ func (f *ProcessTerminate) Restore() error {
 // Killed reports whether the process is currently dead.
 // True between Apply and Restore; false otherwise.
 func (f *ProcessTerminate) Killed() bool { return f.killed }
+
+// ---------------------------------------------------------------------------
+
+// IsActive reports whether the fault is currently applied (forwards to
+// applyState so ChaosRunner.ActiveFaults reports it).
+func (f *NodeRestart) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *DiskSpaceExhaustion) IsActive() bool { return f.st.isApplied() }
+
+// IsActive reports whether the fault is currently applied.
+func (f *ProcessTerminate) IsActive() bool { return f.st.isApplied() }

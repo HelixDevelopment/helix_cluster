@@ -22,12 +22,31 @@ func NewManager(baseDir string) *Manager {
 	return &Manager{baseDir: baseDir}
 }
 
+// resolve maps a snapshot name to its on-disk .golden path, guaranteeing the
+// result stays within baseDir. A name that escapes the base directory (e.g.
+// via ".." or an absolute path) is rejected: such a snapshot would be written
+// outside the managed tree, invisible to List, and could clobber or delete
+// unrelated files. Returning an error here keeps Create/Restore/Compare/Delete
+// confined to baseDir so the create/list/restore round-trip stays consistent.
+func (m *Manager) resolve(name string) (string, error) {
+	path := filepath.Join(m.baseDir, name+".golden")
+	base := filepath.Clean(m.baseDir)
+	cleaned := filepath.Clean(path)
+	if cleaned != base && !strings.HasPrefix(cleaned, base+string(filepath.Separator)) {
+		return "", fmt.Errorf("snapshot name %q escapes base directory", name)
+	}
+	return path, nil
+}
+
 // Create writes data to a golden snapshot file. If update is true, it overwrites existing files.
 func (m *Manager) Create(name string, data []byte, update bool) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	path := filepath.Join(m.baseDir, name+".golden")
+	path, err := m.resolve(name)
+	if err != nil {
+		return "", err
+	}
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
 		return "", fmt.Errorf("mkdir: %w", err)
 	}
@@ -49,7 +68,10 @@ func (m *Manager) Restore(name string) ([]byte, error) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 
-	path := filepath.Join(m.baseDir, name+".golden")
+	path, err := m.resolve(name)
+	if err != nil {
+		return nil, err
+	}
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("read snapshot: %w", err)
@@ -106,7 +128,10 @@ func (m *Manager) Delete(name string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
-	path := filepath.Join(m.baseDir, name+".golden")
+	path, err := m.resolve(name)
+	if err != nil {
+		return err
+	}
 	if err := os.Remove(path); err != nil {
 		return fmt.Errorf("delete snapshot: %w", err)
 	}

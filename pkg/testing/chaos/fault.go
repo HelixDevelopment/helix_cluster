@@ -50,6 +50,9 @@ func (np *NetworkPartition) Restore() error {
 	return nil
 }
 
+// IsActive reports whether the partition is currently applied.
+func (np *NetworkPartition) IsActive() bool { return np.applied }
+
 // PacketLoss drops a percentage of packets between nodes.
 type PacketLoss struct {
 	From    string
@@ -90,6 +93,13 @@ func (pl *PacketLoss) Restore() error {
 	}
 	pl.applied = false
 	return nil
+}
+
+// IsActive reports whether packet loss is currently applied.
+func (pl *PacketLoss) IsActive() bool {
+	pl.mu.Lock()
+	defer pl.mu.Unlock()
+	return pl.applied
 }
 
 // ShouldDrop returns true if the next packet should be dropped.
@@ -145,6 +155,13 @@ func (li *LatencyInjection) Restore() error {
 	return nil
 }
 
+// IsActive reports whether latency injection is currently applied.
+func (li *LatencyInjection) IsActive() bool {
+	li.mu.Lock()
+	defer li.mu.Unlock()
+	return li.applied
+}
+
 // NextDelay returns the delay for the next message.
 func (li *LatencyInjection) NextDelay() time.Duration {
 	li.mu.Lock()
@@ -193,6 +210,9 @@ func (nc *NodeCrash) IsCrashed() bool {
 	return nc.applied
 }
 
+// IsActive reports whether the crash is currently applied.
+func (nc *NodeCrash) IsActive() bool { return nc.applied }
+
 // ResourceExhaustion simulates CPU or memory exhaustion on a node.
 type ResourceExhaustion struct {
 	NodeID   string
@@ -223,6 +243,9 @@ func (re *ResourceExhaustion) Restore() error {
 	re.applied = false
 	return nil
 }
+
+// IsActive reports whether resource exhaustion is currently applied.
+func (re *ResourceExhaustion) IsActive() bool { return re.applied }
 
 // ChaosRunner orchestrates multiple faults.
 type ChaosRunner struct {
@@ -277,19 +300,26 @@ func (cr *ChaosRunner) ListFaults() []string {
 	return out
 }
 
-// ActiveFaults returns faults that are currently applied.
+// activeReporter is implemented by every fault that can report whether it is
+// currently applied. ActiveFaults consults it so that ALL applied faults — not
+// just NodeCrash — are reported as active. A fault that omits IsActive() would
+// be silently invisible to ActiveFaults (a CLAUDE-1 sink-side bluff: the runner
+// would claim nothing is active while the fault is in fact perturbing the
+// system), so every concrete fault in this package implements it.
+type activeReporter interface {
+	IsActive() bool
+}
+
+// ActiveFaults returns faults that are currently applied, preserving insertion
+// order. Every concrete fault type implements activeReporter; any fault that
+// does not is conservatively treated as inactive.
 func (cr *ChaosRunner) ActiveFaults() []Fault {
 	cr.mu.RLock()
 	defer cr.mu.RUnlock()
 	var out []Fault
 	for _, f := range cr.faults {
-		switch ft := f.(type) {
-		case *NodeCrash:
-			if ft.IsCrashed() {
-				out = append(out, f)
-			}
-		default:
-			// Other fault types don't expose applied state directly in interface.
+		if ar, ok := f.(activeReporter); ok && ar.IsActive() {
+			out = append(out, f)
 		}
 	}
 	return out

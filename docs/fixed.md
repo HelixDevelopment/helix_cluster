@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 223
-**Last modified:** 2026-06-16T21:05:32Z
+**Revision:** 224
+**Last modified:** 2026-06-16T21:12:37Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **809**.
+Total completed: **812**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -740,6 +740,9 @@ Total completed: **809**.
 | HXC-1913 | Task | P2 | Adversarial coverage wave 6: testing/{scenario,sessionfsm,turmoil} (no bug; determinism verified real) |  |
 | HXC-1914 | Bug | P2 | testing/dstcompress: BatchSchedule doc falsely claimed FIFO same-timestamp dispatch (doc-sync fix) |  |
 | HXC-1915 | Task | P2 | Adversarial coverage wave 7: testing/{dstworkload,dstscale} (no bug; determinism verified real) |  |
+| HXC-1916 | Bug | P1 | testing/snapshot: name path-escape — Create/Delete outside baseDir (invisible snapshot + arbitrary file delete) |  |
+| HXC-1917 | Bug | P0 | testing/regression: NaN/Inf sample silently bluffs NO-CHANGE — regression detector hides real regressions (CLAUDE-1) |  |
+| HXC-1918 | Bug | P1 | testing/chaos: ActiveFaults() only reported NodeCrash — every other applied fault silently dropped (no-op bluff) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
