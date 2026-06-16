@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 238
-**Last modified:** 2026-06-16T23:09:59Z
+**Revision:** 239
+**Last modified:** 2026-06-16T23:17:24Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **847**.
+Total completed: **849**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -778,6 +778,8 @@ Total completed: **847**.
 | HXC-1951 | Bug | P2 | internal/build: runViaSeam test helper 5s Eventually deadline too tight -> RealGoBuild flakes under -race |  |
 | HXC-1952 | Bug | P1 | internal/llm: Route comparator (score > best) lets a NaN routing metric seize the pick -> non-deterministic mis-route |  |
 | HXC-1953 | Task | P2 | Deep re-audit: pkg/jobadmit + pkg/antientropy (no new bug; prior fixes hold; pins + 1 latent risk) |  |
+| HXC-1954 | Bug | P1 | internal/gpu: Reservation.AvailableFor(Batch) over-reports headroom that Admit denies (anti-starvation breach) |  |
+| HXC-1955 | Task | P2 | Deep re-audit: internal/trust + internal/verifier (no bug; security gates fail-closed, mutation-proven) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

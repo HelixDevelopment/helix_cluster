@@ -392,33 +392,36 @@ func (r *Reservation) AvailableFor(class WorkloadClass) int {
 		return poolFree
 
 	case Batch:
-		batchCeiling := r.reserve[Batch]
-		// If load is already at/above high-water, the hard cap applies to the
-		// CURRENT state. Otherwise, adding batch units could cross the high-water
-		// mark, at which point the hard cap applies to the post-add state. We take
-		// the binding constraint by probing the smallest ceiling that holds.
-		// Simplest correct form: the batch ceiling under the hard cap is
-		// min(batchReserve, batchHardCapUse) whenever any admitted unit would put
-		// total load at/above high-water; below that, it's batchReserve.
-		headroomToReserve := batchCeiling - r.used[Batch]
-		if headroomToReserve <= 0 {
-			return 0
-		}
-		// Determine whether reserving even one unit reaches the high-water mark.
-		crossesHighWater := r.totalUsedLocked()+1 >= r.highWaterUnits
-		if crossesHighWater {
-			capped := r.batchHardCapUse - r.used[Batch]
-			if capped < 0 {
-				capped = 0
+		// Batch admission is governed by the interaction of three constraints
+		// (pool capacity, the batch reserve, and the load-gated starvation hard
+		// cap). A previous closed-form here computed whether the hard cap engages
+		// from a SINGLE-unit high-water probe (totalUsed+1 >= highWater). That was
+		// wrong for MULTI-UNIT grants: an n-unit grant that itself crosses the
+		// high-water mark engages the hard cap inside admitLocked, but the
+		// single-unit probe missed it, so AvailableFor OVER-reported headroom that
+		// Admit then denied (a breach of this method's documented Admit-consistency
+		// contract and of the interactive starvation guarantee). A naive "always
+		// apply the cap if the grant could cross high-water" correction instead
+		// UNDER-reports (the below-high-water reserve grants are still admissible).
+		//
+		// The authoritative, bluff-proof definition of "how many more units could
+		// Batch reserve" is exactly the largest n for which admitLocked(Batch, n)
+		// is admitted. admitLocked is monotonic in n — increasing n can only raise
+		// the prospective total (toward the capacity ceiling) and the prospective
+		// class use (toward whichever ceiling applies), and can only flip the
+		// load-gate from the looser reserve branch to the tighter hard-cap branch;
+		// never the reverse. So the admissible set is a prefix [1..A], and a linear
+		// probe up to poolFree finds A precisely, by construction consistent with
+		// Admit. poolFree is small (bounded by capacity), so the probe is cheap.
+		best := 0
+		for n := 1; n <= poolFree; n++ {
+			if r.admitLocked(Batch, n).Admitted {
+				best = n
+			} else {
+				break
 			}
-			if capped < headroomToReserve {
-				headroomToReserve = capped
-			}
 		}
-		if headroomToReserve > poolFree {
-			headroomToReserve = poolFree
-		}
-		return headroomToReserve
+		return best
 
 	default:
 		return 0
