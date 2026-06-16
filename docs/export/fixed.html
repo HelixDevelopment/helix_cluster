@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 220 <strong>Last modified:</strong>
-2026-06-16T20:36:13Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 221 <strong>Last modified:</strong>
+2026-06-16T20:51:13Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>803</strong>.</p>
+<p>Total completed: <strong>806</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5750,6 +5750,30 @@ empty-digest-targets-root (content-integrity/security)</td>
 <td>Adversarial coverage sweep waves 3-4: crdt/merkle,
 provider/{chutes,aws,ionet}, session/backends (no prod bug;
 mutation-proven)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1910</td>
+<td>Bug</td>
+<td>P1</td>
+<td>testing/dst determinism bluff: KillNode reschedule order
+non-deterministic for fixed seed (map-iteration leak)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1911</td>
+<td>Bug</td>
+<td>P1</td>
+<td>provider/runpod: duplicate worker-ID bypasses Capacity quota -&gt;
+leaks billable workers (fail-open)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1912</td>
+<td>Task</td>
+<td>P2</td>
+<td>Adversarial coverage: pkg/tofu TOFU verifier (no bug; 5
+mutation-proven contracts)</td>
 <td></td>
 </tr>
 <tr>
