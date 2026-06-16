@@ -12,6 +12,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -21,6 +22,16 @@ import (
 
 // ErrNoSamples is returned by Run when the samples slice is empty.
 var ErrNoSamples = errors.New("burst-controller: no samples provided")
+
+// ErrNonFiniteSample is returned by Run when any sample is NaN or ±Inf.
+// A non-finite value is never a valid utilization sample: NaN bypasses every
+// numeric comparison in the hysteresis controller (NaN >= SpillHigh and
+// NaN <= RecoverLow are both false), so it is silently swallowed in MONITOR
+// and can wedge the controller in SPILL (no finite RecoverLow guard can ever
+// match it again); +Inf trivially clears SpillHigh and fires a real burst
+// allocation request on garbage, and -Inf trivially fires RECOVER. Rejecting
+// non-finite input keeps a bogus value from ever driving a control decision.
+var ErrNonFiniteSample = errors.New("burst-controller: sample must be a finite number (got NaN or Inf)")
 
 // Run feeds every sample in order into a BurstController built from
 // bursthysteresis.DefaultConfig(runID).
@@ -41,6 +52,18 @@ var ErrNoSamples = errors.New("burst-controller: no samples provided")
 func Run(runID string, samples []float64, out io.Writer) error {
 	if len(samples) == 0 {
 		return ErrNoSamples
+	}
+
+	// CLASS-D NUMERIC GUARD (pinned by TestRunRejectsNaNSample /
+	// TestRunRejectsPosInfSample / TestRunRejectsNegInfSample):
+	// Reject any non-finite sample BEFORE building the controller so that a
+	// NaN/±Inf can never silently mis-decide or wedge the state machine.
+	// Removing this loop lets a +Inf sample emit a bogus "burst allocation
+	// request" and a NaN be silently swallowed — both real mis-decisions.
+	for i, s := range samples {
+		if math.IsNaN(s) || math.IsInf(s, 0) {
+			return fmt.Errorf("%w: index %d = %v", ErrNonFiniteSample, i, s)
+		}
 	}
 
 	cfg := bursthysteresis.DefaultConfig(runID)

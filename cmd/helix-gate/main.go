@@ -211,7 +211,16 @@ func runCovgate(root string, args []string) bool {
 	pkgs := make([]string, 0, len(cases))
 	for _, c := range cases {
 		pkgs = append(pkgs, c.Pkg)
-		dir := filepath.Join(root, filepath.FromSlash(strings.TrimPrefix(c.Pkg, "./")))
+		// An empty (or "./"-only) package path must NOT be accepted: it would
+		// resolve via filepath.Join(root, "") to the repo root itself, which is
+		// a directory, and silently pass the audit as a "real package". That is
+		// a PASS-bluff (CLAUDE-1) — a catalog entry that pins NO package.
+		rel := strings.TrimPrefix(c.Pkg, "./")
+		if strings.TrimSpace(rel) == "" {
+			badCases = append(badCases, fmt.Sprintf("%s -> empty package path", c.ID))
+			continue
+		}
+		dir := filepath.Join(root, filepath.FromSlash(rel))
 		info, statErr := os.Stat(dir)
 		if statErr != nil || !info.IsDir() {
 			badCases = append(badCases, fmt.Sprintf("%s -> missing package %s", c.ID, c.Pkg))
