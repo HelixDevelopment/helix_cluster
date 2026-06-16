@@ -110,6 +110,14 @@ func RunChallenge(cfg ChallengeConfig, stdout, stderr io.Writer) (string, int) {
 
 	result.Status = "PASS"
 	evidencePath := writeEvidence(cfg, result, stderr)
+	if evidencePath == "" {
+		// writeEvidence returns "" when capturing the evidence file failed. A
+		// Challenge PASS without sink-side evidence is a CLAUDE-1 PASS-bluff
+		// (rule 6: captured evidence is required before declaring a feature
+		// works). Refuse to report PASS without proof.
+		fmt.Fprintf(stderr, "FAIL [%s] %s: evidence capture failed; refusing to report PASS without sink-side proof\n", runID, cfg.Name)
+		return "", 1
+	}
 	fmt.Fprintf(stdout, "PASS [%s] %s evidence=%s\n", runID, cfg.Name, evidencePath)
 	return evidencePath, 0
 }
