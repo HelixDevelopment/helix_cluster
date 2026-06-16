@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 216
-**Last modified:** 2026-06-16T16:03:25Z
+**Revision:** 217
+**Last modified:** 2026-06-16T16:10:17Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **794**.
+Total completed: **798**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -725,6 +725,10 @@ Total completed: **794**.
 | HXC-1898 | Task | P3 | cmd/helix-policy: adversarial test, HTTP handler fail-CLOSED + HXC-1876 pinned at HTTP layer (no bug) | d991593 |
 | HXC-1899 | Task | P3 | cmd/hxc-registry: adversarial test, enum validation + atomicity + numeric NextHXCID (no bug) | d991593 |
 | HXC-1900 | Task | P3 | cmd/helix-setup: adversarial test, config validation + YAML injection-safe + deterministic gen (no bug) | d991593 |
+| HXC-1901 | Bug | P1 | cmd/helix-test: RunChallenge reports PASS+exit0 when evidence capture FAILS (CLAUDE-1 PASS-bluff in the QA harness) | 0fcdfe0 |
+| HXC-1902 | Task | P3 | cmd/helix-health: adversarial test, /readyz /livez map non-Healthy -> 503 (no bug) | 0fcdfe0 |
+| HXC-1903 | Task | P3 | cmd/helix-raftctl: adversarial test, non-2xx/garbage response -> exit 1 (no fail-open) (no bug) | 0fcdfe0 |
+| HXC-1904 | Task | P3 | cmd/helixd: adversarial test, config fail-closed + clean shutdown + race-clean (no bug) | 0fcdfe0 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
