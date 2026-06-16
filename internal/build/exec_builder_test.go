@@ -44,11 +44,16 @@ func runViaSeam(t *testing.T, b *ExecBuilder, j *pkgbuild.Job) *pkgbuild.Job {
 	t.Cleanup(svc.Stop)
 
 	require.NoError(t, svc.Submit(j))
+	// 60s (not 5s): most callers use a fast fake builder and terminate in
+	// milliseconds (Eventually returns as soon as the job is terminal, so the
+	// larger ceiling costs them nothing), but the RealGoBuild tests drive the
+	// real Go toolchain through this seam — a hermetic `go build` under -race
+	// instrumentation can exceed 5s on a busy machine, causing a spurious flake.
 	require.Eventually(t, func() bool {
 		got, err := svc.Get(j.ID)
 		// got is a clone; got.IsTerminal reads clone.State with no contention.
 		return err == nil && got.IsTerminal()
-	}, 5*time.Second, 10*time.Millisecond)
+	}, 60*time.Second, 10*time.Millisecond)
 
 	got, err := svc.Get(j.ID)
 	require.NoError(t, err)

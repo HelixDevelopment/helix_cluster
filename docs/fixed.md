@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 236
-**Last modified:** 2026-06-16T22:55:13Z
+**Revision:** 237
+**Last modified:** 2026-06-16T23:00:11Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **844**.
+Total completed: **845**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -775,6 +775,7 @@ Total completed: **844**.
 | HXC-1948 | Bug | P2 | internal/build: orchestrator worker pool unbounded -> HELIX_BUILD_WORKERS=1e9 spawns ~1e9 goroutines (DoS) |  |
 | HXC-1949 | Bug | P1 | internal/node: memRegistry aliases the caller's *Node pointer -> a mutation by any holder corrupts the stored node + all readers |  |
 | HXC-1950 | Task | P2 | Deep re-audit: internal/health (no new bug; aggregation fail-closed confirmed, 8 pins) |  |
+| HXC-1951 | Bug | P2 | internal/build: runViaSeam test helper 5s Eventually deadline too tight -> RealGoBuild flakes under -race |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
