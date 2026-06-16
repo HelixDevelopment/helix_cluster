@@ -24,6 +24,26 @@ func Digest(data []byte) string {
 	return hex.EncodeToString(h[:])
 }
 
+// validDigest reports whether digest is a well-formed content key: a non-empty
+// lowercase-hex string, which is exactly what Digest produces. Rejecting anything
+// else (path separators, "..", "", uppercase, any non-hex byte) prevents a
+// caller-supplied key from (a) escaping the DiskCache root via path traversal,
+// (b) colliding with a distinct key after filepath cleaning, or (c) resolving to
+// the cache root itself ("" -> root). The DiskCache is content-addressable, so a
+// rejected/unknown key is a clean miss/no-op, never a security foot-gun.
+func validDigest(digest string) bool {
+	if digest == "" {
+		return false
+	}
+	for i := 0; i < len(digest); i++ {
+		c := digest[i]
+		if (c < '0' || c > '9') && (c < 'a' || c > 'f') {
+			return false
+		}
+	}
+	return true
+}
+
 // MemoryCache is an in-memory Cache implementation.
 type MemoryCache struct {
 	mu   sync.RWMutex
@@ -93,8 +113,8 @@ func NewDiskCache(root string) (*DiskCache, error) {
 
 // Put stores data under the given digest.
 func (c *DiskCache) Put(digest string, data []byte) error {
-	if digest == "" {
-		return fmt.Errorf("digest cannot be empty")
+	if !validDigest(digest) {
+		return fmt.Errorf("invalid digest %q: must be a non-empty lowercase-hex content key", digest)
 	}
 	path := c.digestPath(digest)
 	c.mu.Lock()
@@ -110,6 +130,9 @@ func (c *DiskCache) Put(digest string, data []byte) error {
 
 // Get retrieves data by digest.
 func (c *DiskCache) Get(digest string) ([]byte, error) {
+	if !validDigest(digest) {
+		return nil, fmt.Errorf("digest not found: %s", digest)
+	}
 	path := c.digestPath(digest)
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -125,6 +148,9 @@ func (c *DiskCache) Get(digest string) ([]byte, error) {
 
 // Has checks if a digest exists.
 func (c *DiskCache) Has(digest string) bool {
+	if !validDigest(digest) {
+		return false
+	}
 	path := c.digestPath(digest)
 	c.mu.RLock()
 	defer c.mu.RUnlock()
@@ -134,6 +160,9 @@ func (c *DiskCache) Has(digest string) bool {
 
 // Delete removes a digest.
 func (c *DiskCache) Delete(digest string) error {
+	if !validDigest(digest) {
+		return nil
+	}
 	path := c.digestPath(digest)
 	c.mu.Lock()
 	defer c.mu.Unlock()
