@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 211
-**Last modified:** 2026-06-16T15:17:22Z
+**Revision:** 212
+**Last modified:** 2026-06-16T15:32:56Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **777**.
+Total completed: **781**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -708,6 +708,10 @@ Total completed: **777**.
 | HXC-1881 | Bug | P2 | internal/federation: scoreCell NaN score breaks cell-selection total order -> malformed cell admitted as Chosen | 6327fc3 |
 | HXC-1882 | Bug | P1 | internal/health: aggregate switch has no default -> malformed/unknown status folds to HEALTHY (fail-open readiness/liveness) | 6327fc3 |
 | HXC-1883 | Task | P3 | internal/console: adversarial test, Registrar stateless no shared-pointer race (no bug) | 6327fc3 |
+| HXC-1884 | Task | P3 | internal/schema: adversarial test, structural verifier rejects malformed + deterministic migrations (no bug) | bca8e8c |
+| HXC-1885 | Task | P3 | internal/backup: adversarial test, round-trip byte-identical + correct argv (no bug); 2 latent atomicity risks | bca8e8c |
+| HXC-1886 | Task | P3 | internal/trust: adversarial test, unknown node untrusted by default, NaN fails closed (no bug) | bca8e8c |
+| HXC-1887 | Task | P3 | internal/advisory: adversarial test, distributed-lock service mutual exclusion + fail-open (no bug) | bca8e8c |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
