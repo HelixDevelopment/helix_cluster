@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 210
-**Last modified:** 2026-06-16T15:06:08Z
+**Revision:** 211
+**Last modified:** 2026-06-16T15:17:22Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **773**.
+Total completed: **777**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -704,6 +704,10 @@ Total completed: **773**.
 | HXC-1877 | Bug | P2 | internal/messaging: Queue.Enqueue releases lock before send -> send-on-closed panic racing Close (teardown race) | b02141e |
 | HXC-1878 | Task | P3 | internal/scheduler: adversarial test, gRPC ScheduleJob serialized no over-commit (no bug) | b02141e |
 | HXC-1879 | Task | P3 | internal/llm: adversarial test, Manager RWMutex-guarded + fail-closed inference (no bug) | b02141e |
+| HXC-1880 | Bug | P2 | internal/build: SubmitBuild stores spec.BuildArgs by reference -> caller mutation races worker read (shared-pointer alias) | 6327fc3 |
+| HXC-1881 | Bug | P2 | internal/federation: scoreCell NaN score breaks cell-selection total order -> malformed cell admitted as Chosen | 6327fc3 |
+| HXC-1882 | Bug | P1 | internal/health: aggregate switch has no default -> malformed/unknown status folds to HEALTHY (fail-open readiness/liveness) | 6327fc3 |
+| HXC-1883 | Task | P3 | internal/console: adversarial test, Registrar stateless no shared-pointer race (no bug) | 6327fc3 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
