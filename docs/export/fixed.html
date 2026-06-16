@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 215 <strong>Last modified:</strong>
-2026-06-16T15:54:28Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 217 <strong>Last modified:</strong>
+2026-06-16T16:10:17Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>790</strong>.</p>
+<p>Total completed: <strong>798</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5645,6 +5645,70 @@ value (no bug)</td>
 <td>cmd/helix-session: runBridge 2 goroutines write same websocket.Conn
 w/o mutex -&gt; concurrent-write panic (server-side)</td>
 <td>c01735e</td>
+</tr>
+<tr>
+<td>HXC-1897</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-agent: adversarial test, validation fail-closed + teardown
+no-panic (no bug)</td>
+<td>d991593</td>
+</tr>
+<tr>
+<td>HXC-1898</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-policy: adversarial test, HTTP handler fail-CLOSED +
+HXC-1876 pinned at HTTP layer (no bug)</td>
+<td>d991593</td>
+</tr>
+<tr>
+<td>HXC-1899</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/hxc-registry: adversarial test, enum validation + atomicity +
+numeric NextHXCID (no bug)</td>
+<td>d991593</td>
+</tr>
+<tr>
+<td>HXC-1900</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-setup: adversarial test, config validation + YAML
+injection-safe + deterministic gen (no bug)</td>
+<td>d991593</td>
+</tr>
+<tr>
+<td>HXC-1901</td>
+<td>Bug</td>
+<td>P1</td>
+<td>cmd/helix-test: RunChallenge reports PASS+exit0 when evidence
+capture FAILS (CLAUDE-1 PASS-bluff in the QA harness)</td>
+<td>0fcdfe0</td>
+</tr>
+<tr>
+<td>HXC-1902</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-health: adversarial test, /readyz /livez map non-Healthy
+-&gt; 503 (no bug)</td>
+<td>0fcdfe0</td>
+</tr>
+<tr>
+<td>HXC-1903</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-raftctl: adversarial test, non-2xx/garbage response -&gt;
+exit 1 (no fail-open) (no bug)</td>
+<td>0fcdfe0</td>
+</tr>
+<tr>
+<td>HXC-1904</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helixd: adversarial test, config fail-closed + clean shutdown +
+race-clean (no bug)</td>
+<td>0fcdfe0</td>
 </tr>
 <tr>
 <td>HXC-902</td>
