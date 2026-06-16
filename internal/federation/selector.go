@@ -292,6 +292,15 @@ func scoreCell(cell Cell, c Constraints, w Weights) CellScore {
 	cs.Components["compliance"] = round(w.Compliance * complianceScore)
 	cs.Score = round(cs.Components["dataLocality"] + cs.Components["latency"] +
 		cs.Components["cost"] + cs.Components["compliance"])
+	// A cell whose score cannot be computed (NaN, from malformed NaN telemetry in
+	// a measured field) must not be admitted: NaN comparisons are non-transitive
+	// and would make the ranking order-dependent, letting an unmeasurable/hostile
+	// cell win by input order. Filter it so the decision stays reproducible.
+	if math.IsNaN(cs.Score) {
+		cs.Filtered = true
+		cs.Reason = "filtered: uncomputable score (NaN in a measured field)"
+		cs.Score = 0
+	}
 	return cs
 }
 

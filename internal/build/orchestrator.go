@@ -236,7 +236,11 @@ func (o *Orchestrator) SubmitBuild(ctx context.Context, spec BuildSpec) (*Job, e
 		RepoURL:        spec.RepoURL,
 		Ref:            spec.Ref,
 		DockerfilePath: spec.DockerfilePath,
-		BuildArgs:      spec.BuildArgs,
+		// Deep-copy: storing spec.BuildArgs by reference aliases the caller's map,
+		// so a caller mutating its map after SubmitBuild returns races the worker's
+		// read of j.BuildArgs and corrupts the recorded build inputs. cloneArgs
+		// snapshots it (clone() already deep-copies for the same reason).
+		BuildArgs: cloneArgs(spec.BuildArgs),
 	}
 
 	o.mu.Lock()

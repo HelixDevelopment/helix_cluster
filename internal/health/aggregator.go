@@ -143,6 +143,14 @@ func (a *Aggregator) getStatusLocked() Status {
 			if overall == Healthy {
 				overall = Unknown
 			}
+		case Healthy:
+			// keep current overall (Healthy is the baseline)
+		default:
+			// An unrecognised/malformed status must NEVER fold to Healthy
+			// (fail-open). Downgrade the baseline to Unknown.
+			if overall == Healthy {
+				overall = Unknown
+			}
 		}
 	}
 	return overall

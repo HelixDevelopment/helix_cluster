@@ -88,6 +88,14 @@ func (a *Aggregator) rollupLocked(selector func(CheckKind) bool, empty Status) S
 			if overall == Healthy {
 				overall = Unknown
 			}
+		case Healthy:
+			// keep current overall (Healthy is the baseline)
+		default:
+			// An unrecognised/malformed status must NEVER fold to Healthy
+			// (fail-open). Downgrade the baseline to Unknown.
+			if overall == Healthy {
+				overall = Unknown
+			}
 		}
 	}
 	if !matched {
