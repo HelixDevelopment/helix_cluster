@@ -11,6 +11,7 @@ package costbroker
 import (
 	"errors"
 	"fmt"
+	"math"
 	"sync"
 )
 
@@ -97,6 +98,14 @@ func effectiveCost(o Offer, req Requirement) float64 {
 // qualifies reports whether an offer is eligible under the requirement: it must
 // have non-negative price, meet the capacity floor, and not exceed the budget.
 func qualifies(o Offer, req Requirement) bool {
+	// Reject a non-finite price FIRST: a NaN slips both the `< 0` guard and the
+	// `> MaxPricePer` budget cap (every NaN comparison is false), so it would be
+	// admitted, selected, and poison the cumulative spend to NaN permanently — a
+	// cap bypass + billing corruption. (+Inf is caught by the cap, but guard both
+	// here for clarity.)
+	if math.IsNaN(o.PricePerHr) || math.IsInf(o.PricePerHr, 0) {
+		return false
+	}
 	if o.PricePerHr < 0 || o.Capacity < 0 {
 		return false
 	}
