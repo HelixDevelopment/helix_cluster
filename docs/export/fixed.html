@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 232 <strong>Last modified:</strong>
-2026-06-16T22:18:47Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 233 <strong>Last modified:</strong>
+2026-06-16T22:26:36Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>832</strong>.</p>
+<p>Total completed: <strong>835</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5985,6 +5985,30 @@ multi-plugin Bind failure (no rollback)</td>
 <td>P2</td>
 <td>Deep re-audit: pkg/raftleader (no bug; 7 adapter-layer contract pins
 mutation-proven)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1939</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/gpu: health Monitor flipping a held GPU to Unhealthy causes
+double-allocation + permanent leak</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1940</td>
+<td>Bug</td>
+<td>P0</td>
+<td>pkg/storage: FileStore key path traversal — Put/Get/Delete escape
+the store root (arbitrary file write/read/delete)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1941</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/federation: cell-selection trust gate FAILS OPEN on
+unknown/empty liveness (default-allow admission)</td>
 <td></td>
 </tr>
 <tr>
