@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 215
-**Last modified:** 2026-06-16T15:54:28Z
+**Revision:** 216
+**Last modified:** 2026-06-16T16:03:25Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **790**.
+Total completed: **794**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -721,6 +721,10 @@ Total completed: **790**.
 | HXC-1894 | Task | P3 | cmd/helix-raftd: adversarial test, leader-gate 421 + validation defense-in-depth (no bug) | 0300e6d |
 | HXC-1895 | Task | P3 | cmd/helix_infra: adversarial test, CLI arg parsers check err before value (no bug) | 0300e6d |
 | HXC-1896 | Bug | P2 | cmd/helix-session: runBridge 2 goroutines write same websocket.Conn w/o mutex -> concurrent-write panic (server-side) | c01735e |
+| HXC-1897 | Task | P3 | cmd/helix-agent: adversarial test, validation fail-closed + teardown no-panic (no bug) | d991593 |
+| HXC-1898 | Task | P3 | cmd/helix-policy: adversarial test, HTTP handler fail-CLOSED + HXC-1876 pinned at HTTP layer (no bug) | d991593 |
+| HXC-1899 | Task | P3 | cmd/hxc-registry: adversarial test, enum validation + atomicity + numeric NextHXCID (no bug) | d991593 |
+| HXC-1900 | Task | P3 | cmd/helix-setup: adversarial test, config validation + YAML injection-safe + deterministic gen (no bug) | d991593 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
