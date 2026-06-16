@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 221
-**Last modified:** 2026-06-16T20:51:13Z
+**Revision:** 222
+**Last modified:** 2026-06-16T20:58:34Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **806**.
+Total completed: **807**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -737,6 +737,7 @@ Total completed: **806**.
 | HXC-1910 | Bug | P1 | testing/dst determinism bluff: KillNode reschedule order non-deterministic for fixed seed (map-iteration leak) |  |
 | HXC-1911 | Bug | P1 | provider/runpod: duplicate worker-ID bypasses Capacity quota -> leaks billable workers (fail-open) |  |
 | HXC-1912 | Task | P2 | Adversarial coverage: pkg/tofu TOFU verifier (no bug; 5 mutation-proven contracts) |  |
+| HXC-1913 | Task | P2 | Adversarial coverage wave 6: testing/{scenario,sessionfsm,turmoil} (no bug; determinism verified real) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
