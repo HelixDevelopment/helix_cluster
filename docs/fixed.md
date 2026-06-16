@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 212
-**Last modified:** 2026-06-16T15:32:56Z
+**Revision:** 213
+**Last modified:** 2026-06-16T15:40:10Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **781**.
+Total completed: **785**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -712,6 +712,10 @@ Total completed: **781**.
 | HXC-1885 | Task | P3 | internal/backup: adversarial test, round-trip byte-identical + correct argv (no bug); 2 latent atomicity risks | bca8e8c |
 | HXC-1886 | Task | P3 | internal/trust: adversarial test, unknown node untrusted by default, NaN fails closed (no bug) | bca8e8c |
 | HXC-1887 | Task | P3 | internal/advisory: adversarial test, distributed-lock service mutual exclusion + fail-open (no bug) | bca8e8c |
+| HXC-1888 | Bug | P2 | internal/costbroker: NaN price slips budget cap -> admitted, selected, poisons cumulative spend to NaN (cap bypass) | 0655c39 |
+| HXC-1889 | Task | P3 | internal/session: adversarial test, gRPC server stateless, Manager deep-copy+lock (no bug) | 0655c39 |
+| HXC-1890 | Task | P3 | internal/verifier: adversarial test, VerifyResult fail-CLOSED on zero/unknown trust + tamper (no bug) | 0655c39 |
+| HXC-1891 | Task | P3 | internal/chaos: adversarial test, single-use sequential runner, canary guard strict (no bug) | 0655c39 |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
