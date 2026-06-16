@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 204 <strong>Last modified:</strong>
-2026-06-14T20:17:40Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 211 <strong>Last modified:</strong>
+2026-06-16T15:17:22Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>752</strong>.</p>
+<p>Total completed: <strong>777</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5341,6 +5341,206 @@ bug)</td>
 <td>bootstrap: adversarial test, peer-rendezvous deterministic + no
 fail-open (no bug)</td>
 <td>442090c</td>
+</tr>
+<tr>
+<td>HXC-1859</td>
+<td>Task</td>
+<td>P3</td>
+<td>wireguard: adversarial test, CLAUDE-2 darwin parity REAL
+(wireguard-go), teardown race-clean (no bug)</td>
+<td>53bd7ff</td>
+</tr>
+<tr>
+<td>HXC-1860</td>
+<td>Task</td>
+<td>P3</td>
+<td>grafanadash: adversarial test, deterministic JSON + escaping safe
+(no bug)</td>
+<td>53bd7ff</td>
+</tr>
+<tr>
+<td>HXC-1861</td>
+<td>Task</td>
+<td>P3</td>
+<td>helixtask: adversarial test, pure stateless decorator (no bug)</td>
+<td>53bd7ff</td>
+</tr>
+<tr>
+<td>HXC-1862</td>
+<td>Task</td>
+<td>P3</td>
+<td>chutesaccount: adversarial test, read-only client no money-mutation
+surface (no bug)</td>
+<td>53bd7ff</td>
+</tr>
+<tr>
+<td>HXC-1863</td>
+<td>Bug</td>
+<td>P2</td>
+<td>scheduler: Schedule/ScheduleOptimistic rank over map iteration -&gt;
+nondeterministic placement on score ties</td>
+<td>8f9ff6c</td>
+</tr>
+<tr>
+<td>HXC-1864</td>
+<td>Bug</td>
+<td>P2</td>
+<td>infra: containerOrchestrator.Scale no negative-replicas guard -&gt;
+slice-bounds panic (process crash)</td>
+<td>8f9ff6c</td>
+</tr>
+<tr>
+<td>HXC-1865</td>
+<td>Bug</td>
+<td>P2</td>
+<td>local: GPU.validate() lets NaN/Inf slip ordered guards -&gt; poisons
+TCO, pins card local forever</td>
+<td>8f9ff6c</td>
+</tr>
+<tr>
+<td>HXC-1866</td>
+<td>Task</td>
+<td>P3</td>
+<td>phase7matrix: adversarial test, recompute + boundary correct,
+fail-closed (no bug)</td>
+<td>8f9ff6c</td>
+</tr>
+<tr>
+<td>HXC-1867</td>
+<td>Bug</td>
+<td>P2</td>
+<td>context: Detach leaks parent Deadline() despite ‘never cancelled’
+-&gt; self-contradictory fail-open</td>
+<td>f098b4a</td>
+</tr>
+<tr>
+<td>HXC-1868</td>
+<td>Task</td>
+<td>P3</td>
+<td>benchmark: adversarial test, CoefficientOfVariation Bessel/zero-mean
+correct (no bug)</td>
+<td>f098b4a</td>
+</tr>
+<tr>
+<td>HXC-1869</td>
+<td>Task</td>
+<td>P3</td>
+<td>compliancedoc: adversarial test, deterministic model card, no
+fabricated verdict (no bug)</td>
+<td>f098b4a</td>
+</tr>
+<tr>
+<td>HXC-1870</td>
+<td>Task</td>
+<td>P3</td>
+<td>e2eebench: adversarial test, nearest-rank percentile + ML-KEM
+key-agreement guard (no bug)</td>
+<td>f098b4a</td>
+</tr>
+<tr>
+<td>HXC-1871</td>
+<td>Task</td>
+<td>P3</td>
+<td>resources: adversarial test, CLAUDE-2 darwin parity VERIFIED REAL
+(no bug) — completes pkg/ 196/196</td>
+<td>84b13ea</td>
+</tr>
+<tr>
+<td>HXC-1872</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/node: UpdateNodeStatus mutates shared registry *Node
+pointer in place -&gt; data race (live in gRPC server)</td>
+<td>556aa60</td>
+</tr>
+<tr>
+<td>HXC-1873</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/gpu: adversarial test, GPU allocator no over-commit +
+CLAUDE-2 probe REAL (no bug)</td>
+<td>556aa60</td>
+</tr>
+<tr>
+<td>HXC-1874</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/gateway: adversarial test, authorize fail-CLOSED (no
+bug)</td>
+<td>556aa60</td>
+</tr>
+<tr>
+<td>HXC-1875</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/security: adversarial test, identity/authz/policy all
+fail-CLOSED (no bug)</td>
+<td>556aa60</td>
+</tr>
+<tr>
+<td>HXC-1876</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/policy: scheduling rego permits non-numeric node.health
+-&gt; remote fail-open (schedules unhealthy node)</td>
+<td>b02141e</td>
+</tr>
+<tr>
+<td>HXC-1877</td>
+<td>Bug</td>
+<td>P2</td>
+<td>internal/messaging: Queue.Enqueue releases lock before send -&gt;
+send-on-closed panic racing Close (teardown race)</td>
+<td>b02141e</td>
+</tr>
+<tr>
+<td>HXC-1878</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/scheduler: adversarial test, gRPC ScheduleJob serialized no
+over-commit (no bug)</td>
+<td>b02141e</td>
+</tr>
+<tr>
+<td>HXC-1879</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/llm: adversarial test, Manager RWMutex-guarded +
+fail-closed inference (no bug)</td>
+<td>b02141e</td>
+</tr>
+<tr>
+<td>HXC-1880</td>
+<td>Bug</td>
+<td>P2</td>
+<td>internal/build: SubmitBuild stores spec.BuildArgs by reference -&gt;
+caller mutation races worker read (shared-pointer alias)</td>
+<td>6327fc3</td>
+</tr>
+<tr>
+<td>HXC-1881</td>
+<td>Bug</td>
+<td>P2</td>
+<td>internal/federation: scoreCell NaN score breaks cell-selection total
+order -&gt; malformed cell admitted as Chosen</td>
+<td>6327fc3</td>
+</tr>
+<tr>
+<td>HXC-1882</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/health: aggregate switch has no default -&gt;
+malformed/unknown status folds to HEALTHY (fail-open
+readiness/liveness)</td>
+<td>6327fc3</td>
+</tr>
+<tr>
+<td>HXC-1883</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/console: adversarial test, Registrar stateless no
+shared-pointer race (no bug)</td>
+<td>6327fc3</td>
 </tr>
 <tr>
 <td>HXC-902</td>
