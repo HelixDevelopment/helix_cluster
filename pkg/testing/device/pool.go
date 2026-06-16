@@ -140,6 +140,12 @@ func (p *Pool) provisionAndTrack(ctx context.Context, spec DeviceSpec) (*Device,
 	// Mark the provisioner-side device as claimed (Ready->InUse) when supported.
 	if c, ok := p.prov.(interface{ Claim(*Device) error }); ok {
 		if err := c.Claim(d); err != nil {
+			// Claim failed after the device was already provisioned. It was never
+			// tracked in p.live (so no slot leaks), but the backend resource is
+			// live and would otherwise be stranded. Tear it down best-effort on a
+			// detached context, exactly as the lost-race branch above does, so the
+			// orphaned device is reclaimed rather than leaked.
+			go func() { _ = p.prov.Release(context.Background(), d) }() //gosec:disable G118 -- detached best-effort teardown of an orphaned (unclaimed, untracked) device; request-scoped ctx is intentionally NOT used so cleanup survives a cancelled request
 			return nil, fmt.Errorf("device %s: claim: %w", d.ID, err)
 		}
 	}

@@ -137,7 +137,20 @@ func (e *Evidence) ProvePositive(label, haystack, needle string) error {
 // Artifact writes a captured-evidence file into the run directory and returns
 // its path (§7.1 #5).
 func (e *Evidence) Artifact(name string, data []byte) (string, error) {
+	if name == "" {
+		return "", fmt.Errorf("evidence: artifact name must be non-empty")
+	}
+	// name is a sink path under the run dir; reject anything that could escape
+	// it (absolute paths, traversal). Distinct keys must not collide onto one
+	// file, so the cleaned join must stay strictly under e.dir.
+	if filepath.IsAbs(name) || name == ".." || strings.Contains(name, "..") {
+		return "", fmt.Errorf("evidence: artifact name %q must not be absolute or contain traversal", name)
+	}
 	p := filepath.Join(e.dir, name)
+	cleanDir := filepath.Clean(e.dir)
+	if rel, err := filepath.Rel(cleanDir, p); err != nil || rel == "." || rel == ".." || strings.HasPrefix(rel, ".."+string(os.PathSeparator)) {
+		return "", fmt.Errorf("evidence: artifact %q escapes run dir %q", name, cleanDir)
+	}
 	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 		return "", fmt.Errorf("evidence: artifact mkdir: %w", err)
 	}

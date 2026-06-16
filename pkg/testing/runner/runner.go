@@ -114,7 +114,11 @@ func (r *TestRunner) Run(ctx context.Context) Report {
 			defer func() { <-sem }()
 
 			start := time.Now()
-			res := ns.suite(ctx)
+			// A panicking suite must be recorded as a FAILED result, never
+			// allowed to escape this goroutine — an unrecovered panic would
+			// crash the entire runner process and discard every other suite's
+			// result (a total result-reporting integrity failure).
+			res := runSuite(ctx, ns.suite)
 			dur := time.Since(start)
 
 			sr := SuiteResult{
@@ -162,4 +166,19 @@ done:
 		Suites:      results,
 		MaxDuration: maxDur,
 	}
+}
+
+// ErrSuitePanicked wraps the value recovered from a suite that panicked, so a
+// crashing suite surfaces as a FAILED Result instead of taking down the runner.
+var ErrSuitePanicked = errors.New("runner: suite panicked")
+
+// runSuite executes a Suite and converts any panic into a failed Result so the
+// panic can never escape the worker goroutine and crash the whole run.
+func runSuite(ctx context.Context, s Suite) (res Result) {
+	defer func() {
+		if p := recover(); p != nil {
+			res = Result{Passed: false, Err: fmt.Errorf("%w: %v", ErrSuitePanicked, p)}
+		}
+	}()
+	return s(ctx)
 }

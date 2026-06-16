@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 224
-**Last modified:** 2026-06-16T21:12:37Z
+**Revision:** 225
+**Last modified:** 2026-06-16T21:19:29Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **812**.
+Total completed: **816**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -743,6 +743,10 @@ Total completed: **812**.
 | HXC-1916 | Bug | P1 | testing/snapshot: name path-escape — Create/Delete outside baseDir (invisible snapshot + arbitrary file delete) |  |
 | HXC-1917 | Bug | P0 | testing/regression: NaN/Inf sample silently bluffs NO-CHANGE — regression detector hides real regressions (CLAUDE-1) |  |
 | HXC-1918 | Bug | P1 | testing/chaos: ActiveFaults() only reported NodeCrash — every other applied fault silently dropped (no-op bluff) |  |
+| HXC-1919 | Bug | P1 | testing/runner: a panicking suite crashes the whole runner (no recover) -> all results lost |  |
+| HXC-1920 | Bug | P1 | testing/evidence: Artifact() name path-escape — anti-bluff evidence sink writable outside base / collidable |  |
+| HXC-1921 | Bug | P2 | testing/device: Pool.provisionAndTrack leaks an already-provisioned device when Claim fails |  |
+| HXC-1922 | Task | P2 | Adversarial coverage: testing/instance lifecycle FSM (no bug; mutation-proven) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
