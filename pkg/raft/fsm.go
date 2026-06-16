@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"unicode/utf8"
 
 	hraft "github.com/hashicorp/raft"
 )
@@ -40,7 +41,24 @@ type Command struct {
 }
 
 // Encode serializes a Command for submission to Raft.
+//
+// The wire encoding is JSON. JSON string values MUST be valid UTF-8; Go's
+// encoding/json SILENTLY replaces any invalid-UTF-8 byte with the Unicode
+// replacement character U+FFFD (0xEF 0xBF 0xBD) instead of erroring. Because a
+// Command flows leader→log→every FSM, an unchecked invalid-UTF-8 Key/Value would
+// be committed in CORRUPTED form on every replica while Apply still reported
+// success — a silent, deterministic data-loss "PASS-bluff". To keep the
+// replicated KV store byte-faithful for the values it accepts, Encode rejects
+// non-UTF-8 Key/Value up front with an explicit error rather than letting the
+// marshaler mangle them. Every valid-UTF-8 value (all real callers + config/text)
+// round-trips byte-for-byte exactly as before.
 func (c Command) Encode() ([]byte, error) {
+	if !utf8.ValidString(c.Key) {
+		return nil, fmt.Errorf("raft: command key is not valid UTF-8 (JSON encoding would corrupt it)")
+	}
+	if !utf8.ValidString(c.Value) {
+		return nil, fmt.Errorf("raft: command value is not valid UTF-8 (JSON encoding would corrupt it)")
+	}
 	return json.Marshal(c)
 }
 

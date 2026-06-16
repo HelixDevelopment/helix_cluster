@@ -48,6 +48,17 @@ func (p *PolicyEnforcer) EnforcePolicy(_ context.Context, policy *Policy, resour
 	if policy == nil {
 		return fmt.Errorf("denied: no policy provided")
 	}
+	// Deny-by-default on a degenerate request: an empty action or empty resource
+	// is never a legitimate authorizable operation. Without this guard a role
+	// carrying a zero-value Permission{} (Action:"", Resource:"") — which
+	// LoadRole accepts, since it only validates the role Name — would MATCH an
+	// empty (action,resource) pair and silently ALLOW it. The gRPC Authorize
+	// façade forwards req.Action/req.Resource verbatim and does not reject empty
+	// values, so this fail-open is reachable from the request boundary. Reject
+	// here so a malformed permission can never grant the empty operation.
+	if action == "" || resource == "" {
+		return fmt.Errorf("denied: empty action or resource is not authorizable (action=%q resource=%q)", action, resource)
+	}
 
 	p.mu.RLock()
 	defer p.mu.RUnlock()

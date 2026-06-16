@@ -202,17 +202,26 @@ func (s *Server) CancelJob(ctx context.Context, req *helixv1.CancelJobRequest) (
 // PreemptJob is an exported method (not a gRPC RPC) so tests and internal
 // scheduler policy can drive preemption without needing a proto extension.
 func (s *Server) PreemptJob(ctx context.Context, jobID string) error {
+	// Hold s.mu across the ENTIRE preemption, including the resource restore.
+	// The restore is a read-modify-write on the node (GetNode returns a copy,
+	// RegisterNode overwrites it); releasing s.mu before it would let a
+	// concurrent ScheduleJob — which debits the same node under s.mu inside
+	// s.sched.Schedule -> Bind — interleave between the GetNode read and the
+	// RegisterNode write. That Schedule's debit would then be silently clobbered
+	// by this stale copy + restore, inflating residual capacity and permitting
+	// OVER-COMMIT. CancelJob already restores under the lock for this reason;
+	// PreemptJob must match it.
 	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	rec, ok := s.jobs[jobID]
 	if !ok {
-		s.mu.Unlock()
 		return status.Errorf(codes.NotFound, "job %s not found", jobID)
 	}
 	lc := rec.lifecycle
 	nodeID := rec.nodeID
 	resources := rec.resources
 	delete(s.jobs, jobID)
-	s.mu.Unlock()
 
 	// Return the resources this job consumed to the node so preemption does not
 	// permanently leak cluster capacity — identical semantics to CancelJob.

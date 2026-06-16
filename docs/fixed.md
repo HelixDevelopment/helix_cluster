@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 230
-**Last modified:** 2026-06-16T21:59:50Z
+**Revision:** 231
+**Last modified:** 2026-06-16T22:11:21Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **826**.
+Total completed: **829**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -757,6 +757,9 @@ Total completed: **826**.
 | HXC-1930 | Task | P2 | Adversarial coverage wave 13: cmd/helix-advisory (no bug; thin gRPC wiring) |  |
 | HXC-1931 | Bug | P0 | cmd/dst-sim: Gate with seeds<=0 vacuously reports 'OK: all seeds linearizable' exit 0 (CI gate PASS-bluff) |  |
 | HXC-1932 | Task | P2 | Adversarial coverage: cmd/raftkv-demo KV (no bug; sink-side fidelity + determinism pinned) |  |
+| HXC-1933 | Bug | P0 | internal/scheduler: PreemptJob drops the lock before resource-restore -> double-placement / capacity over-commit (race) |  |
+| HXC-1934 | Bug | P1 | pkg/raft: Command.Encode (json.Marshal) silently corrupts invalid-UTF-8 values to U+FFFD on every replica |  |
+| HXC-1935 | Bug | P0 | internal/security: EnforcePolicy authz FAIL-OPEN — grants the empty operation (action=='' && resource=='') at the live gRPC sink |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
