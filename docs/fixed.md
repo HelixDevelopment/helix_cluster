@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 220
-**Last modified:** 2026-06-16T20:36:13Z
+**Revision:** 221
+**Last modified:** 2026-06-16T20:51:13Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **803**.
+Total completed: **806**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -734,6 +734,9 @@ Total completed: **803**.
 | HXC-1907 | Task | P2 | Adversarial coverage sweep: semaphore/lru/bursthysteresis/gpuattest/modelintegrity/redundantexec (no prod bug; contracts pinned) |  |
 | HXC-1908 | Bug | P1 | build/cache DiskCache: path-traversal key + collision + empty-digest-targets-root (content-integrity/security) |  |
 | HXC-1909 | Task | P2 | Adversarial coverage sweep waves 3-4: crdt/merkle, provider/{chutes,aws,ionet}, session/backends (no prod bug; mutation-proven) |  |
+| HXC-1910 | Bug | P1 | testing/dst determinism bluff: KillNode reschedule order non-deterministic for fixed seed (map-iteration leak) |  |
+| HXC-1911 | Bug | P1 | provider/runpod: duplicate worker-ID bypasses Capacity quota -> leaks billable workers (fail-open) |  |
+| HXC-1912 | Task | P2 | Adversarial coverage: pkg/tofu TOFU verifier (no bug; 5 mutation-proven contracts) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

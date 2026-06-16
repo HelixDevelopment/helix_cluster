@@ -285,6 +285,14 @@ func (p *RunPodProvider) Provision(ctx context.Context, spec pool.Spec) (pool.In
 	if w.ID == "" {
 		return pool.Instance{}, fmt.Errorf("runpod: cold provision: %w: empty worker id", ErrColdProvisionFailed)
 	}
+	// Fail closed on a duplicate worker ID. recordLeasedLocked is a map insert
+	// keyed by w.ID, so a control plane that (mis)returns an already-tracked ID
+	// would silently OVERWRITE the existing entry, leaving liveLocked() under-
+	// counting real billable workers and letting the Capacity quota be exceeded.
+	// A conformant backend mints unique IDs, so this never fires in normal use.
+	if _, dup := p.leased[w.ID]; dup {
+		return pool.Instance{}, fmt.Errorf("runpod: cold provision: %w: duplicate worker id %q", ErrColdProvisionFailed, w.ID)
+	}
 	return p.recordLeasedLocked(w, OriginCold), nil
 }
 

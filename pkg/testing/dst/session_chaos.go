@@ -248,6 +248,10 @@ func (sc *SimCluster) KillNode(nodeID string) error {
 	})
 
 	// Find sessions assigned to the dead node and schedule rescheduling.
+	// NOTE: Go map iteration order is randomized, so we MUST sort the affected
+	// session IDs before rescheduling. Otherwise the reschedule order (and the
+	// resulting RecoveryTimeline event order) would differ run-to-run for the
+	// same seed, breaking the "fully deterministic" contract of this DST harness.
 	var affected []string
 	for sid, sess := range sc.sessions {
 		if sess.AssignedNode == nodeID && sess.Active {
@@ -255,6 +259,7 @@ func (sc *SimCluster) KillNode(nodeID string) error {
 			affected = append(affected, sid)
 		}
 	}
+	sort.Strings(affected) // deterministic reschedule order (seed-reproducible)
 	sc.mu.Unlock()
 
 	// Reschedule affected sessions onto a surviving node.
