@@ -102,6 +102,18 @@ func streamSession(sessionID, wsAddr string, se streamEnv) error {
 	}
 	defer conn.Close()
 
+	// gorilla/websocket forbids concurrent writers (it panics "concurrent write
+	// to websocket connection"). The keystroke-input and SIGWINCH-resize
+	// goroutines below both write to conn, so a resize coinciding with a
+	// keystroke would crash the client. Serialize ALL writes through one mutex.
+	var writeMu sync.Mutex
+	writeEnvelope := func(deadline time.Time, env wsenv.Envelope) error {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		conn.SetWriteDeadline(deadline)
+		return conn.WriteMessage(gws.BinaryMessage, wsenv.EncodeEnvelope(env))
+	}
+
 	// Enter raw mode if stdin is a real terminal.
 	var oldState *term.State
 	if se.streamStdinFd >= 0 && term.IsTerminal(se.streamStdinFd) {
@@ -153,8 +165,7 @@ func streamSession(sessionID, wsAddr string, se streamEnv) error {
 					Timestamp: uint64(time.Now().UnixNano()),
 					Payload:   append([]byte(nil), buf[:n]...),
 				}
-				conn.SetWriteDeadline(time.Now().Add(5 * time.Second))
-				if werr := conn.WriteMessage(gws.BinaryMessage, wsenv.EncodeEnvelope(env)); werr != nil {
+				if werr := writeEnvelope(time.Now().Add(5*time.Second), env); werr != nil {
 					return
 				}
 			}
@@ -190,8 +201,7 @@ func streamSession(sessionID, wsAddr string, se streamEnv) error {
 					Timestamp: uint64(time.Now().UnixNano()),
 					Payload:   payload,
 				}
-				conn.SetWriteDeadline(time.Now().Add(2 * time.Second))
-				_ = conn.WriteMessage(gws.BinaryMessage, wsenv.EncodeEnvelope(env))
+				_ = writeEnvelope(time.Now().Add(2*time.Second), env)
 			}
 		}
 	}()
