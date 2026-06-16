@@ -87,13 +87,38 @@ func instanceKey(service, id string) string {
 	return fmt.Sprintf("%s/%s", service, id)
 }
 
+// cloneInstance returns a deep copy of inst, including an independent copy of
+// the Metadata map. This isolates the registry's stored value from callers:
+// neither a caller mutating the map it passed to Register nor a caller writing
+// through the map returned by Lookup can corrupt the store (or any other
+// reader). inst must not be nil.
+func cloneInstance(inst *Instance) *Instance {
+	cp := *inst
+	cp.Metadata = cloneMetadata(inst.Metadata)
+	return &cp
+}
+
+// cloneMetadata returns an independent copy of m (nil stays nil).
+func cloneMetadata(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		out[k] = v
+	}
+	return out
+}
+
 // Put stores an instance.
 func (b *InMemoryBackend) Put(ctx context.Context, key string, inst *Instance) error {
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	copyInst := *inst
-	b.data[key] = &copyInst
-	b.notify(key, BackendEvent{Type: EventRegister, Key: key, Instance: &copyInst})
+	stored := cloneInstance(inst)
+	b.data[key] = stored
+	// Hand watchers an independent copy too, so an event consumer cannot mutate
+	// the stored value through the notified Instance.
+	b.notify(key, BackendEvent{Type: EventRegister, Key: key, Instance: cloneInstance(stored)})
 	return nil
 }
 
@@ -117,8 +142,7 @@ func (b *InMemoryBackend) List(ctx context.Context, prefix string) ([]*Instance,
 	var out []*Instance
 	for k, v := range b.data {
 		if len(prefix) == 0 || len(k) >= len(prefix) && k[:len(prefix)] == prefix {
-			copyInst := *v
-			out = append(out, &copyInst)
+			out = append(out, cloneInstance(v))
 		}
 	}
 	return out, nil
@@ -319,17 +343,19 @@ func (r *ServiceRegistry) Register(ctx context.Context, inst *Instance) error {
 		Service:  inst.Service,
 		Address:  inst.Address,
 		Port:     inst.Port,
-		Metadata: inst.Metadata,
+		Metadata: cloneMetadata(inst.Metadata), // isolate caller's map from the store
 		Healthy:  true,
 		LastSeen: inst.LastSeen,
 		TTL:      inst.TTL,
 		Weight:   inst.Weight,
 	}
 	r.instances[key] = cacheInst
-	backendInst := *cacheInst
+	// backendInst gets its own independent Metadata copy so cache and backend
+	// never share a map.
+	backendInst := cloneInstance(cacheInst)
 	r.mu.Unlock()
 
-	return r.backend.Put(ctx, key, &backendInst)
+	return r.backend.Put(ctx, key, backendInst)
 }
 
 // Deregister removes an instance.
@@ -348,12 +374,19 @@ func (r *ServiceRegistry) Lookup(ctx context.Context, service string) ([]*Instan
 	if err != nil {
 		return nil, err
 	}
+	now := r.now()
 	var out []*Instance
 	for _, inst := range all {
-		copyInst := *inst
-		if copyInst.Healthy {
-			out = append(out, &copyInst)
+		if !inst.Healthy {
+			continue
 		}
+		// Exclude lease-expired instances even when no TTL sweep has run yet, so
+		// a stale entry is never handed out as a live endpoint (same strict `>`
+		// eligibility used by Select/SweepExpired).
+		if inst.TTL > 0 && !inst.LastSeen.IsZero() && now.Sub(inst.LastSeen) > inst.TTL {
+			continue
+		}
+		out = append(out, cloneInstance(inst))
 	}
 	return out, nil
 }

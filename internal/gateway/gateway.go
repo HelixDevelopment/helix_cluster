@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"path"
 	"strings"
 	"sync"
 	"time"
@@ -117,8 +118,45 @@ func newReverseProxy(target *url.URL) *httputil.ReverseProxy {
 	return proxy
 }
 
+// isCanonicalPath reports whether p is already in canonical form: an
+// absolute path with no "." / ".." segments and no empty ("//") segments.
+//
+// The gateway makes its auth-scope and routing decisions with
+// strings.HasPrefix on r.URL.Path, while the upstream (or any downstream mux /
+// file server / second proxy) typically NORMALIZES the path before acting on
+// it. A request such as "/api/v1/scheduler/foo/../admin/purge" matches only the
+// broader "/api/v1/scheduler/" auth prefix here (weaker scope), yet normalizes
+// to "/api/v1/scheduler/admin/purge" at the backend — defeating a stronger
+// "/api/v1/scheduler/admin/" rule. Treating any non-canonical path as a
+// rejected request closes that traversal/scope-bypass class before any auth or
+// routing decision is taken.
+func isCanonicalPath(p string) bool {
+	if p == "" || p[0] != '/' {
+		return false
+	}
+	cleaned := path.Clean(p)
+	// path.Clean strips a trailing slash; preserve a single legitimate one so
+	// canonical prefixes like "/api/v1/scheduler/" are not falsely rejected.
+	if cleaned != "/" && strings.HasSuffix(p, "/") {
+		cleaned += "/"
+	}
+	return cleaned == p
+}
+
 // ServeHTTP implements http.Handler.
 func (g *Gateway) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Reject non-canonical paths (".."/"."/"//" segments) BEFORE any auth,
+	// REST/inference dispatch, or routing decision. Otherwise a traversal
+	// segment can defeat a longest-prefix auth rule while the backend
+	// normalizes the path back onto the protected route (auth-scope bypass).
+	if !isCanonicalPath(r.URL.Path) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set(gatewayHeader, "true")
+		w.WriteHeader(http.StatusBadRequest)
+		_, _ = w.Write([]byte(`{"error":"non-canonical request path","status":400}`))
+		return
+	}
+
 	if r.URL.Path == "/health" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

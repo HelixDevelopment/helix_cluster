@@ -1,18 +1,18 @@
 # Fixed Summary
 
-**Revision:** 239
-**Last modified:** 2026-06-16T23:17:24Z
+**Revision:** 240
+**Last modified:** 2026-06-16T23:32:53Z
 **Description:** Counts of completed workable items
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-**Total completed:** 849
+**Total completed:** 852
 
 ### By type
 
 | Type | Count |
 |---|---|
-| Bug | 151 |
+| Bug | 154 |
 | Docs | 13 |
 | Feature | 404 |
 | Research | 24 |

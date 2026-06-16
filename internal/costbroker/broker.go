@@ -106,6 +106,18 @@ func qualifies(o Offer, req Requirement) bool {
 	if math.IsNaN(o.PricePerHr) || math.IsInf(o.PricePerHr, 0) {
 		return false
 	}
+	// LatencyMs and Reliability feed effectiveCost; a non-finite value there yields
+	// a NaN score. A NaN score is never < bestScore, so a NaN-score offer that lands
+	// first in the scan pins bestIdx and can NEVER be displaced by a genuinely
+	// cheaper offer — the broker then selects (and charges) the wrong offer. This is
+	// the same cap-bypass class as the NaN price above, routed through the score, so
+	// reject non-finite/out-of-contract LatencyMs and Reliability here.
+	if math.IsNaN(o.LatencyMs) || math.IsInf(o.LatencyMs, 0) || o.LatencyMs < 0 {
+		return false
+	}
+	if math.IsNaN(o.Reliability) || math.IsInf(o.Reliability, 0) {
+		return false
+	}
 	if o.PricePerHr < 0 || o.Capacity < 0 {
 		return false
 	}
