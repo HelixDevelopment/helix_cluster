@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 211 <strong>Last modified:</strong>
-2026-06-16T15:17:22Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 215 <strong>Last modified:</strong>
+2026-06-16T15:54:28Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>777</strong>.</p>
+<p>Total completed: <strong>790</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5541,6 +5541,110 @@ readiness/liveness)</td>
 <td>internal/console: adversarial test, Registrar stateless no
 shared-pointer race (no bug)</td>
 <td>6327fc3</td>
+</tr>
+<tr>
+<td>HXC-1884</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/schema: adversarial test, structural verifier rejects
+malformed + deterministic migrations (no bug)</td>
+<td>bca8e8c</td>
+</tr>
+<tr>
+<td>HXC-1885</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/backup: adversarial test, round-trip byte-identical +
+correct argv (no bug); 2 latent atomicity risks</td>
+<td>bca8e8c</td>
+</tr>
+<tr>
+<td>HXC-1886</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/trust: adversarial test, unknown node untrusted by default,
+NaN fails closed (no bug)</td>
+<td>bca8e8c</td>
+</tr>
+<tr>
+<td>HXC-1887</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/advisory: adversarial test, distributed-lock service mutual
+exclusion + fail-open (no bug)</td>
+<td>bca8e8c</td>
+</tr>
+<tr>
+<td>HXC-1888</td>
+<td>Bug</td>
+<td>P2</td>
+<td>internal/costbroker: NaN price slips budget cap -&gt; admitted,
+selected, poisons cumulative spend to NaN (cap bypass)</td>
+<td>0655c39</td>
+</tr>
+<tr>
+<td>HXC-1889</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/session: adversarial test, gRPC server stateless, Manager
+deep-copy+lock (no bug)</td>
+<td>0655c39</td>
+</tr>
+<tr>
+<td>HXC-1890</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/verifier: adversarial test, VerifyResult fail-CLOSED on
+zero/unknown trust + tamper (no bug)</td>
+<td>0655c39</td>
+</tr>
+<tr>
+<td>HXC-1891</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/chaos: adversarial test, single-use sequential runner,
+canary guard strict (no bug)</td>
+<td>0655c39</td>
+</tr>
+<tr>
+<td>HXC-1892</td>
+<td>Bug</td>
+<td>P2</td>
+<td>cmd/htmux: streamSession 2 goroutines write same websocket.Conn w/o
+mutex -&gt; concurrent-write panic</td>
+<td>0300e6d</td>
+</tr>
+<tr>
+<td>HXC-1893</td>
+<td>Task</td>
+<td>P3</td>
+<td>internal/wireguard: adversarial test, mesh RWMutex-guarded + dual
+key-validation (no bug) — internal/ COMPLETE</td>
+<td>0300e6d</td>
+</tr>
+<tr>
+<td>HXC-1894</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix-raftd: adversarial test, leader-gate 421 + validation
+defense-in-depth (no bug)</td>
+<td>0300e6d</td>
+</tr>
+<tr>
+<td>HXC-1895</td>
+<td>Task</td>
+<td>P3</td>
+<td>cmd/helix_infra: adversarial test, CLI arg parsers check err before
+value (no bug)</td>
+<td>0300e6d</td>
+</tr>
+<tr>
+<td>HXC-1896</td>
+<td>Bug</td>
+<td>P2</td>
+<td>cmd/helix-session: runBridge 2 goroutines write same websocket.Conn
+w/o mutex -&gt; concurrent-write panic (server-side)</td>
+<td>c01735e</td>
 </tr>
 <tr>
 <td>HXC-902</td>
