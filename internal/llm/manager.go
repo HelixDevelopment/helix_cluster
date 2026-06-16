@@ -322,9 +322,28 @@ func (m *Manager) Route(strategy Strategy) (string, error) {
 			continue
 		}
 		score := strategyScore(strategy, model.Metrics)
+		// A NaN metric (NaN/Inf raw value fed through strategyScore) is not a
+		// valid measurement: every ordering comparison against NaN is false, so a
+		// naive `score > bestScore` lets a NaN-scored model that happens to be
+		// visited first stick as "best" forever — no finite candidate can ever
+		// displace it (finite > NaN is false; finite == NaN is false). That
+		// mis-routes every request to a model with a corrupt/missing metric. Treat
+		// a NaN score as strictly worse than any comparable score: it may seed the
+		// pick only when nothing comparable exists, and is always displaced by the
+		// first finite candidate. (+Inf for a maximise axis is a legitimately
+		// "best" finite-ordering value and is left to compare normally; -Inf, which
+		// arises from a +Inf latency/cost on a minimise axis, correctly ranks last.)
+		isNaN := score != score // NaN is the only value not equal to itself.
 		switch {
 		case !have:
 			best, bestScore, have = model.Name, score, true
+		case isNaN:
+			// A NaN-scored candidate never displaces an existing pick.
+			continue
+		case bestScore != bestScore:
+			// The incumbent best is NaN but this candidate is comparable: any
+			// comparable score beats a NaN incumbent.
+			best, bestScore = model.Name, score
 		case score > bestScore:
 			best, bestScore = model.Name, score
 		case score == bestScore && model.Name < best:
