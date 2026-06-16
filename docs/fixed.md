@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 225
-**Last modified:** 2026-06-16T21:19:29Z
+**Revision:** 226
+**Last modified:** 2026-06-16T21:30:28Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **816**.
+Total completed: **817**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -747,6 +747,7 @@ Total completed: **816**.
 | HXC-1920 | Bug | P1 | testing/evidence: Artifact() name path-escape — anti-bluff evidence sink writable outside base / collidable |  |
 | HXC-1921 | Bug | P2 | testing/device: Pool.provisionAndTrack leaks an already-provisioned device when Claim fails |  |
 | HXC-1922 | Task | P2 | Adversarial coverage: testing/instance lifecycle FSM (no bug; mutation-proven) |  |
+| HXC-1923 | Task | P2 | Adversarial coverage wave 10: cmd/{helix-security,e2ee-proxy,helix-scheduler} (no bug; thin wiring fail-closed) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
