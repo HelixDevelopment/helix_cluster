@@ -450,40 +450,41 @@ func TestHistogram_UnsortedBuckets(t *testing.T) {
 	}
 }
 
-// TestHistogram_InfObservation: +Inf is <= no finite bound but is counted and
-// added to sum (making sum +Inf).
+// TestHistogram_InfObservation: HARDENED (HXC-1905) — a +Inf observation is
+// DROPPED by Observe (it would otherwise poison sum to +Inf forever), so it is
+// not counted and sum stays finite.
 func TestHistogram_InfObservation(t *testing.T) {
 	h := NewHistogram([]float64{1, 2})
 	h.Observe(math.Inf(1))
 
 	_, counts, sum, count := h.Snapshot()
-	if count != 1 {
-		t.Errorf("expected count 1, got %d", count)
+	if count != 0 {
+		t.Errorf("expected +Inf to be dropped (count 0), got %d", count)
 	}
 	if counts[0] != 0 || counts[1] != 0 {
 		t.Errorf("expected +Inf observation in no finite bucket, got %v", counts)
 	}
-	if !math.IsInf(sum, 1) {
-		t.Errorf("expected sum +Inf, got %g", sum)
+	if math.IsInf(sum, 0) || math.IsNaN(sum) {
+		t.Errorf("expected finite sum after dropped +Inf, got %g", sum)
 	}
 }
 
-// TestHistogram_NaNObservation: NaN compares false against every bound, lands
-// in no finite bucket, increments count, and poisons sum to NaN. This pins the
-// defined (if degenerate) behavior so a silent change is caught.
+// TestHistogram_NaNObservation: HARDENED (HXC-1905) — a NaN observation is
+// DROPPED by Observe (it would otherwise poison sum to NaN forever), so it is not
+// counted and sum stays finite.
 func TestHistogram_NaNObservation(t *testing.T) {
 	h := NewHistogram([]float64{1, 2})
 	h.Observe(math.NaN())
 
 	_, counts, sum, count := h.Snapshot()
-	if count != 1 {
-		t.Errorf("expected count 1, got %d", count)
+	if count != 0 {
+		t.Errorf("expected NaN to be dropped (count 0), got %d", count)
 	}
 	if counts[0] != 0 || counts[1] != 0 {
 		t.Errorf("expected NaN observation in no finite bucket, got %v", counts)
 	}
-	if !math.IsNaN(sum) {
-		t.Errorf("expected sum NaN, got %g", sum)
+	if math.IsNaN(sum) || math.IsInf(sum, 0) {
+		t.Errorf("expected finite sum after dropped NaN, got %g", sum)
 	}
 }
 

@@ -363,3 +363,24 @@ func TestAdversarial_SelfDead_NotRefuted_KNOWNBUG_FailsOnProd(t *testing.T) {
 			"as handleSuspect(self) does; handleDead lacks the self-target guard.", selfState)
 	}
 }
+
+// HARDENED (HXC-1905): bumpIncarnation saturates at MaxUint32 instead of wrapping
+// to 0, so the Protocol can never PRODUCE a wrapped incarnation that a stale
+// pre-wrap message would beat (the resurrection hazard). Regression guard:
+// reverting bumpIncarnation to a raw `inc+1` makes MaxUint32 bump to 0 and this
+// FAILS.
+func TestAdversarial_BumpIncarnation_SaturatesAtMaxUint32(t *testing.T) {
+	const maxU32 = ^uint32(0)
+	if got := bumpIncarnation(maxU32); got != maxU32 {
+		t.Fatalf("bumpIncarnation(MaxUint32) must saturate at MaxUint32, not wrap; got %d", got)
+	}
+	if got := bumpIncarnation(maxU32 - 1); got != maxU32 {
+		t.Fatalf("bumpIncarnation(max-1) must reach MaxUint32; got %d", got)
+	}
+	if got := bumpIncarnation(0); got != 1 {
+		t.Fatalf("bumpIncarnation(0) must be 1 (normal increment); got %d", got)
+	}
+	if got := bumpIncarnation(41); got != 42 {
+		t.Fatalf("bumpIncarnation(41) must be 42; got %d", got)
+	}
+}

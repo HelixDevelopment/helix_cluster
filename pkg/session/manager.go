@@ -279,6 +279,58 @@ func (m *Manager) Terminate(ctx context.Context, id SessionID) error {
 	return nil
 }
 
+// Reap removes every session whose Status is StatusTerminated from the store and
+// returns the number of entries removed.
+//
+// MOTIVATION (resource-leak fix): Terminate intentionally LEAVES the terminated
+// entry in the map (so Get/List still observe it and a double-terminate is
+// rejected). For a long-lived Manager — e.g. the internal/session gRPC server —
+// terminated sessions would otherwise accumulate forever, an unbounded map-growth
+// leak. Reap is the explicit, operator-approved opt-in that releases that memory.
+//
+// CONTRACT: Reaping is NEVER performed implicitly inside Terminate; it happens
+// ONLY when a caller invokes Reap (or ReapOlderThan). This keeps Terminate's
+// documented behavior — and every existing caller/test — unchanged. Active
+// (non-terminated) sessions are always retained.
+//
+// Reap removes ALL terminated sessions regardless of age. Callers that want to
+// retain recently terminated sessions for a grace window should use
+// ReapOlderThan instead.
+func (m *Manager) Reap() int {
+	return m.ReapOlderThan(0)
+}
+
+// ReapOlderThan removes terminated sessions whose last update (UpdatedAt, which
+// Terminate stamps at termination time) is at least d in the past, and returns
+// the number removed. A non-positive d reaps every terminated session
+// immediately (identical to Reap). Active sessions are never removed.
+//
+// This is the grace-window variant of Reap: it lets an operator retain freshly
+// terminated sessions (e.g. for status queries or audit) while still bounding
+// map growth by evicting older tombstones.
+func (m *Manager) ReapOlderThan(d time.Duration) int {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+
+	var cutoff time.Time
+	if d > 0 {
+		cutoff = time.Now().Add(-d)
+	}
+
+	removed := 0
+	for id, s := range m.sessions {
+		if s.Status != StatusTerminated {
+			continue
+		}
+		if d > 0 && s.UpdatedAt.After(cutoff) {
+			continue
+		}
+		delete(m.sessions, id)
+		removed++
+	}
+	return removed
+}
+
 // Migrate initiates session migration to another node.
 func (m *Manager) Migrate(ctx context.Context, id SessionID, targetNode string) error {
 	m.mu.Lock()

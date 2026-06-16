@@ -284,32 +284,29 @@ func TestAdversarial_HistogramBucketBoundary(t *testing.T) {
 // break as a failure.
 // -----------------------------------------------------------------------------
 
-// NaN poisons the histogram sum forever: after one NaN, sum is NaN regardless
-// of subsequent good observations. This is a LATENT RISK note, not a documented
-// contract — assert the observable consequence so the behaviour is pinned.
-func TestAdversarial_HistogramNaNPoisonsSum(t *testing.T) {
+// HARDENED (HXC-1905): a NaN observation is DROPPED by Observe (it would
+// otherwise poison the _sum exposition forever). After Observe(1.0), Observe(NaN),
+// Observe(1.0) the NaN does not advance count and does not poison sum — count==2
+// and sum==2.0 (finite). Regression guard: removing the IsNaN/IsInf guard makes
+// count==3 and sum==NaN and this test FAILS.
+func TestAdversarial_HistogramNaNDroppedNotPoisoned(t *testing.T) {
 	h := NewHistogram(DefaultBuckets())
 	h.Observe(1.0)
 	h.Observe(math.NaN())
 	h.Observe(1.0)
 
-	_, _, sum, count := h.Snapshot()
-	if count != 3 {
-		t.Fatalf("count should still advance past NaN: got=%d want=3", count)
+	_, counts, sum, count := h.Snapshot()
+	if count != 2 {
+		t.Fatalf("NaN observation must be dropped (not counted): got count=%d want=2", count)
 	}
-	// Pin the (latent-risk) reality: NaN propagates into sum. If a future fix
-	// guards against it, this expectation flips and the test must be updated.
-	if !math.IsNaN(sum) {
-		t.Logf("NOTE: NaN no longer poisons sum (sum=%g) — guard added upstream", sum)
-	} else {
-		t.Logf("LATENT RISK pinned: a single NaN observation poisons histogram sum forever (sum=NaN)")
+	if math.IsNaN(sum) || math.IsInf(sum, 0) {
+		t.Fatalf("NaN must not poison sum: got sum=%g want finite 2.0", sum)
 	}
-	// NaN <= b is false for all b, so no finite bucket counts it — verify that
-	// the NaN did NOT inflate any bucket (it must be invisible to <= compare).
-	_, counts, _, _ := h.Snapshot()
-	// Only the two 1.0 observations should be in the top finite bucket.
+	if sum != 2.0 {
+		t.Fatalf("sum should be exactly the two 1.0 observations: got=%g want=2.0", sum)
+	}
 	if counts[len(counts)-1] != 2 {
-		t.Fatalf("NaN leaked into a finite bucket: top bucket=%d want=2", counts[len(counts)-1])
+		t.Fatalf("only the two finite 1.0 observations belong in the top bucket: got=%d want=2", counts[len(counts)-1])
 	}
 }
 
@@ -324,11 +321,14 @@ func TestAdversarial_HistogramPosInf(t *testing.T) {
 			t.Fatalf("+Inf observation leaked into finite bucket[%d]: got=%d want=0", i, c)
 		}
 	}
-	if count != 1 {
-		t.Fatalf("+Inf observation not counted in total: got=%d want=1", count)
+	// HARDENED (HXC-1905): +Inf is dropped by Observe, so it is NOT counted and
+	// sum stays finite (0). Removing the IsInf guard makes count==1 / sum==+Inf
+	// and this FAILS.
+	if count != 0 {
+		t.Fatalf("+Inf observation must be dropped (not counted): got=%d want=0", count)
 	}
-	if !math.IsInf(sum, 1) {
-		t.Logf("NOTE: +Inf no longer propagates into sum (sum=%g)", sum)
+	if math.IsInf(sum, 0) || math.IsNaN(sum) {
+		t.Fatalf("+Inf must not poison sum: got sum=%g want finite 0", sum)
 	}
 }
 

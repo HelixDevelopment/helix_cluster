@@ -3,11 +3,23 @@ package swim
 import (
 	"context"
 	"fmt"
+	"math"
 	"math/rand"
 	"net"
 	"sync"
 	"time"
 )
+
+// bumpIncarnation increments inc, saturating at math.MaxUint32 instead of
+// wrapping back to 0. UpdateState orders members by `<` on this uint32, so a
+// wrap-to-0 would let a stale pre-wrap message override (and even resurrect) a
+// newer one. Saturating keeps the monotonic ordering intact at the ceiling.
+func bumpIncarnation(inc uint32) uint32 {
+	if inc == math.MaxUint32 {
+		return math.MaxUint32
+	}
+	return inc + 1
+}
 
 // MessageType defines SWIM message types.
 type MessageType byte
@@ -203,7 +215,7 @@ func (p *Protocol) Join(seedAddrs []string) error {
 // Leave gracefully leaves the cluster.
 func (p *Protocol) Leave() error {
 	p.mu.Lock()
-	p.incarnation++
+	p.incarnation = bumpIncarnation(p.incarnation)
 	inc := p.incarnation
 	p.mu.Unlock()
 
@@ -394,7 +406,7 @@ func (p *Protocol) handleSuspect(msg *Message, addr net.Addr) {
 	}
 	if msg.TargetID == p.localID {
 		// Refute suspicion about self by incrementing incarnation
-		p.incarnation++
+		p.incarnation = bumpIncarnation(p.incarnation)
 		inc := p.incarnation
 		p.mu.Unlock()
 		p.broadcastAlive(inc)
@@ -439,7 +451,7 @@ func (p *Protocol) handleDead(msg *Message, addr net.Addr) {
 		// table — it then drops out of HealthyMembers() and cannot gossip its own
 		// Alive (a self-inflicted denial of liveness). Bump incarnation, broadcast
 		// Alive, and do not apply the Dead state locally.
-		p.incarnation++
+		p.incarnation = bumpIncarnation(p.incarnation)
 		inc := p.incarnation
 		p.mu.Unlock()
 		p.broadcastAlive(inc)
@@ -512,7 +524,7 @@ func (p *Protocol) handleLeave(msg *Message, addr net.Addr) {
 func (p *Protocol) handleConfirm(memberID string) {
 	p.mu.Lock()
 	if m, ok := p.members[memberID]; ok {
-		p.incarnation++
+		p.incarnation = bumpIncarnation(p.incarnation)
 		inc := p.incarnation
 		m.UpdateState(StateDead, inc)
 		p.gossipBuffer.Add(GossipEvent{
@@ -656,7 +668,7 @@ func (p *Protocol) probeRandomMember() {
 	if !<-ackCh {
 		// No ack received, suspect the member
 		p.mu.Lock()
-		p.incarnation++
+		p.incarnation = bumpIncarnation(p.incarnation)
 		inc := p.incarnation
 		p.mu.Unlock()
 

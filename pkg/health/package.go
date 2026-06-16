@@ -95,6 +95,11 @@ func (cc *CompositeChecker) Check() (Status, []CheckResult) {
 			overall = Unhealthy
 		} else if status == Degraded && overall != Unhealthy {
 			overall = Degraded
+		} else if status != Healthy && overall == Healthy {
+			// An unrecognized/malformed status (not Healthy/Degraded/Unhealthy —
+			// e.g. a Starting or typo'd value) must NOT silently fold to Healthy
+			// (a fail-open footgun for the 7 cmd importers). Downgrade to Degraded.
+			overall = Degraded
 		}
 	}
 	return overall, results

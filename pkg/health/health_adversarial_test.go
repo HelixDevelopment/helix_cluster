@@ -170,15 +170,14 @@ func TestAdversarial_CompositeCheckerConcurrent_Race(t *testing.T) {
 // DOCUMENTED CONTRACT (package.go): "Unhealthy if any check is Unhealthy;
 // Degraded if any check is Degraded and none are Unhealthy; Healthy otherwise."
 //
-// The "Healthy otherwise" clause means an UNRECOGNISED status value (e.g. the
-// Starting status, or an empty/garbage Status) is folded to Healthy. This pins
-// that contract HONESTLY: it is a disclaim ("otherwise ⇒ Healthy"), so we do not
-// call it a bug — but we DOCUMENT the sink-side fail-open so a caller cannot be
-// surprised. If a future change tightens the rule (unknown ⇒ not-Healthy) this
-// test will flip and force a doc update.
+// HARDENED (HXC-1905): an UNRECOGNISED status value (the Starting status, or an
+// empty/garbage Status) must NOT fold to Healthy — it fails CLOSED to Degraded.
+// This is the regression guard for the operator-approved fail-open fix: removing
+// the `default`/unrecognised branch in CompositeChecker.Check re-folds unknown to
+// Healthy and this test FAILS.
 // ---------------------------------------------------------------------------
 
-func TestAdversarial_CompositeChecker_UnknownStatusFoldsToHealthy_PinsContract(t *testing.T) {
+func TestAdversarial_CompositeChecker_UnknownStatusFailsClosedToDegraded(t *testing.T) {
 	t.Parallel()
 	cc := NewCompositeChecker()
 	cc.AddCheck("known-healthy", func() Status { return Healthy })
@@ -190,10 +189,10 @@ func TestAdversarial_CompositeChecker_UnknownStatusFoldsToHealthy_PinsContract(t
 	if len(results) != 4 {
 		t.Fatalf("expected 4 results, got %d", len(results))
 	}
-	// SINK-SIDE: per the documented "Healthy otherwise" clause, none of the
-	// unknown statuses raise the overall above Healthy.
-	if overall != Healthy {
-		t.Fatalf("documented contract: unknown statuses fold to Healthy; got overall %q", overall)
+	// SINK-SIDE: an unrecognised status must fail closed — the aggregate is
+	// Degraded (not a silent Healthy/200/SERVING).
+	if overall != Degraded {
+		t.Fatalf("unrecognised status must fail closed to Degraded; got overall %q", overall)
 	}
 	// But the individual non-Healthy statuses ARE preserved in the per-check
 	// results — the fold is only in the AGGREGATE, so a caller inspecting checks

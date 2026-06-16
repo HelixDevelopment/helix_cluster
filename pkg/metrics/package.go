@@ -3,6 +3,7 @@ package metrics
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"sort"
 	"strings"
@@ -90,6 +91,13 @@ func DefaultBuckets() []float64 {
 
 // Observe records a value into the histogram.
 func (h *Histogram) Observe(v float64) {
+	// Drop a non-finite observation: a single Observe(NaN)/Observe(±Inf) would
+	// poison the histogram _sum exposition permanently (every later _sum reads
+	// NaN). A non-finite latency/duration sample is a sensor error; finite
+	// observations are unaffected.
+	if math.IsNaN(v) || math.IsInf(v, 0) {
+		return
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	h.sum += v

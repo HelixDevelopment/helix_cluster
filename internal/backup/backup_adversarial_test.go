@@ -69,22 +69,18 @@ func (s *roundTripSnapshotter) Snapshot(_ context.Context) (io.ReadCloser, error
 // ───────────────────────────────────────────────────────────────────────────────
 // (a) ATOMICITY / PARTIAL-WRITE
 //
-// FINDING — LATENT RISK (atomicity), pinned here, NOT "fixed":
+// HARDENED (operator-approved temp+rename landing):
 //
-// SnapshotEtcd does os.Create(destPath) (truncate) then io.Copy. If the source
-// stream errors MID-COPY, the function returns (n, err) but leaves a PARTIAL
-// file at the canonical destPath. There is no temp-file+rename, no cleanup, and
-// no integrity record. The doc comment (backup.go:60-61) only states the file is
-// the sink-side artifact callers MUST verify; it makes NO atomicity promise and
-// the function correctly returns a non-nil error. So this is NOT a contract
-// violation (the caller is told it failed) — but it IS a latent operational
-// hazard: a dir-listing / "latest snapshot" picker that trusts presence-on-disk
-// would treat the truncated file as a complete backup.
+// SnapshotEtcd now streams to destPath+".tmp", fsync+close, and only on FULL
+// success os.Rename()s it over destPath (atomic on the same filesystem). On ANY
+// mid-copy error it removes the temp file and leaves destPath UNTOUCHED. So a
+// mid-stream failure leaves NO partial file at the canonical destPath (and no
+// leftover temp file), while still returning a non-nil error to the caller.
 //
-// We assert the ACTUAL current sink-side outcome (partial file present, error
-// returned) rather than the ideal (no file). If a future fix makes SnapshotEtcd
-// atomic (write temp, fsync, rename; unlink-on-error), THIS test's
-// partialFilePresent expectation flips and signals the behavior change.
+// This test now PINS the atomic behavior sink-side: after a forced mid-stream
+// failure there is NO file at destPath and NO leftover ".tmp" file. If the fix
+// were reverted to direct os.Create(destPath)+io.Copy, the destPath would again
+// hold the partial bytes and this test FAILS — that is the mutation gate.
 // ───────────────────────────────────────────────────────────────────────────────
 
 func TestAdversarial_SnapshotEtcd_MidStreamFailure_LeavesPartialFile(t *testing.T) {
@@ -97,33 +93,33 @@ func TestAdversarial_SnapshotEtcd_MidStreamFailure_LeavesPartialFile(t *testing.
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "etcd.snap")
 
-	n, err := SnapshotEtcd(context.Background(), snap, dest)
+	_, err := SnapshotEtcd(context.Background(), snap, dest)
 
 	// Contract IS honored: the caller is told the snapshot failed.
 	require.Error(t, err, "mid-stream failure MUST surface an error to the caller")
 	assert.Contains(t, err.Error(), "stream reset mid-snapshot")
 
-	// Sink-side reality: the bytes copied before the failure ARE on disk.
-	got, readErr := os.ReadFile(dest)
-	require.NoError(t, readErr, "current behavior: partial file exists at destPath")
-	assert.Equal(t, prefix, got,
-		"PINNED LATENT RISK: SnapshotEtcd leaves the mid-stream bytes at destPath; "+
-			"returned n must equal the partial length")
-	assert.Equal(t, int64(len(prefix)), n,
-		"returned byte count reflects only the bytes written before failure")
+	// Sink-side reality (HARDENED): no partial canonical file exists at destPath.
+	_, statErr := os.Stat(dest)
+	assert.True(t, os.IsNotExist(statErr),
+		"ATOMIC: a mid-stream failure MUST leave NO partial file at destPath (got statErr=%v)", statErr)
 
-	// The honest danger: the partial file is INDISTINGUISHABLE from a complete
-	// snapshot to any consumer that trusts file presence/size alone (no checksum,
-	// no length sidecar, no temp+rename). This is the latent hazard we surface.
+	// And no leftover temp file is left behind either — the error path cleans it up.
+	_, tmpStatErr := os.Stat(dest + ".tmp")
+	assert.True(t, os.IsNotExist(tmpStatErr),
+		"ATOMIC: the temp file MUST be removed on the error path (got statErr=%v)", tmpStatErr)
 }
 
-// FINDING — LATENT RISK (destructive overwrite-then-fail), pinned:
+// HARDENED (operator-approved temp+rename landing):
 //
-// Because SnapshotEtcd os.Create()-truncates destPath BEFORE streaming, a failed
-// snapshot DESTROYS a previously-good backup at the same path. We prove the prior
-// good content is gone and replaced by the partial bytes. Again the error is
-// returned, so it is not a silent contract break — but operationally a retry that
-// targets the same path can vaporize the last good backup.
+// Because SnapshotEtcd now streams to destPath+".tmp" and only renames over
+// destPath on FULL success, a failed retry to the SAME path does NOT touch the
+// previously-good backup. We prove the prior good content is STILL intact on disk
+// after a mid-stream failure, and that no leftover temp file remains.
+//
+// If the fix were reverted to direct os.Create(destPath)+io.Copy, the prior good
+// backup would be truncated/clobbered and this test FAILS — that is the mutation
+// gate.
 func TestAdversarial_SnapshotEtcd_FailedRetry_ClobbersPriorGoodBackup(t *testing.T) {
 	dir := t.TempDir()
 	dest := filepath.Join(dir, "etcd.snap")
@@ -145,13 +141,17 @@ func TestAdversarial_SnapshotEtcd_FailedRetry_ClobbersPriorGoodBackup(t *testing
 		dest)
 	require.Error(t, err)
 
-	// 3. Sink-side: the prior good backup is GONE; only the partial remains.
+	// 3. Sink-side (HARDENED): the prior good backup is STILL intact; the failed
+	//    retry never touched destPath.
 	after, err := os.ReadFile(dest)
 	require.NoError(t, err)
-	assert.NotEqual(t, good, after,
-		"PINNED LATENT RISK: failed retry truncated the prior good backup at destPath")
-	assert.Equal(t, partial, after,
-		"only the partial bytes from the failed attempt remain — prior good backup lost")
+	assert.Equal(t, good, after,
+		"ATOMIC: failed retry MUST NOT clobber the prior good backup at destPath")
+
+	// And the failed attempt left no leftover temp file behind.
+	_, tmpStatErr := os.Stat(dest + ".tmp")
+	assert.True(t, os.IsNotExist(tmpStatErr),
+		"ATOMIC: the temp file MUST be removed on the failed retry (got statErr=%v)", tmpStatErr)
 }
 
 // ───────────────────────────────────────────────────────────────────────────────

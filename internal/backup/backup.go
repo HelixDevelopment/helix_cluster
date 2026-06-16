@@ -59,6 +59,13 @@ func RealEtcdSnapshotter(cli *clientv3.Client) EtcdSnapshotter {
 //
 // CLAUDE-1 §7.1: the file at destPath is the sink-side artifact; callers MUST
 // assert the file content equals the expected snapshot bytes.
+//
+// Atomicity (§11.4 WIRED hardening): the snapshot is streamed to a sibling temp
+// file (destPath+".tmp"), fsync'd and closed, and only on FULL success renamed
+// over destPath via os.Rename (atomic on the same filesystem). On ANY error the
+// temp file is removed and destPath is left UNTOUCHED — so a mid-stream failure
+// leaves no partial canonical file, and a failed retry to the same destPath does
+// NOT clobber a previously-good backup.
 func SnapshotEtcd(ctx context.Context, snapshotter EtcdSnapshotter, destPath string) (int64, error) {
 	rc, err := snapshotter.Snapshot(ctx)
 	if err != nil {
@@ -66,16 +73,38 @@ func SnapshotEtcd(ctx context.Context, snapshotter EtcdSnapshotter, destPath str
 	}
 	defer rc.Close()
 
-	f, err := os.Create(destPath)
+	tmpPath := destPath + ".tmp"
+
+	f, err := os.Create(tmpPath)
 	if err != nil {
-		return 0, fmt.Errorf("backup: create snapshot file %s: %w", destPath, err)
+		return 0, fmt.Errorf("backup: create snapshot temp file %s: %w", tmpPath, err)
 	}
-	defer f.Close()
+
+	// Until the rename succeeds, ensure the temp file never lingers on disk and
+	// destPath is never touched on any error path. Set to false only after the
+	// atomic rename promotes the temp file to destPath.
+	committed := false
+	defer func() {
+		if !committed {
+			_ = f.Close()
+			_ = os.Remove(tmpPath)
+		}
+	}()
 
 	n, err := io.Copy(f, rc)
 	if err != nil {
-		return n, fmt.Errorf("backup: write snapshot to %s: %w", destPath, err)
+		return n, fmt.Errorf("backup: write snapshot to %s: %w", tmpPath, err)
 	}
+	if err := f.Sync(); err != nil {
+		return n, fmt.Errorf("backup: sync snapshot temp file %s: %w", tmpPath, err)
+	}
+	if err := f.Close(); err != nil {
+		return n, fmt.Errorf("backup: close snapshot temp file %s: %w", tmpPath, err)
+	}
+	if err := os.Rename(tmpPath, destPath); err != nil {
+		return n, fmt.Errorf("backup: rename snapshot %s -> %s: %w", tmpPath, destPath, err)
+	}
+	committed = true
 	return n, nil
 }
 

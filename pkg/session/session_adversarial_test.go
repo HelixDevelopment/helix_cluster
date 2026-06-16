@@ -305,6 +305,188 @@ func TestManager_ContractPin_TerminateKeepsEntry(t *testing.T) {
 	}
 }
 
+// TestManager_Reap_RemovesTerminatedRetainsActive is the (d) reap probe — the
+// SINK-SIDE proof that the operator-approved Reap API fixes the unbounded-growth
+// leak. Create N sessions, Terminate M of them, assert List still has N (Terminate
+// must NOT auto-reap), then call Reap() and assert it returns M and the store now
+// holds exactly N-M sessions — the terminated ones gone, the active ones retained.
+//
+// MUTATION that makes this FAIL: make Reap a no-op (`return 0`) → the returned
+// count is 0 (want M) AND len(List()) stays N (want N-M); both sink assertions trip.
+func TestManager_Reap_RemovesTerminatedRetainsActive(t *testing.T) {
+	const (
+		n = 12 // total sessions created
+		m = 5  // sessions terminated then reaped
+	)
+
+	mgr := NewManager(nil)
+
+	ids := make([]SessionID, 0, n)
+	for i := 0; i < n; i++ {
+		s, err := mgr.Create(context.Background(), &CreateRequest{
+			Name:    fmt.Sprintf("reap-%d", i),
+			Owner:   "grace",
+			Backend: BackendTmux,
+		})
+		if err != nil {
+			t.Fatalf("Create[%d]: %v", i, err)
+		}
+		ids = append(ids, s.ID)
+	}
+
+	// Terminate the first M sessions; the remaining N-M stay Running.
+	terminated := make(map[SessionID]struct{}, m)
+	for i := 0; i < m; i++ {
+		if err := mgr.Terminate(context.Background(), ids[i]); err != nil {
+			t.Fatalf("Terminate[%d]: %v", i, err)
+		}
+		terminated[ids[i]] = struct{}{}
+	}
+
+	// SINK 0 (pre-reap): Terminate did NOT auto-reap — all N entries still present,
+	// M of them flagged Terminated. This pins that reaping is opt-in.
+	if got := len(mgr.List()); got != n {
+		t.Fatalf("pre-reap: List()=%d, want %d (Terminate must not auto-remove entries)", got, n)
+	}
+
+	// SINK 1: Reap returns EXACTLY M (the number of terminated entries removed).
+	if got := mgr.Reap(); got != m {
+		t.Fatalf("Reap() returned %d, want %d (terminated count)", got, m)
+	}
+
+	// SINK 2: the store now holds EXACTLY N-M sessions — actual map contents, via List.
+	rest := mgr.List()
+	if len(rest) != n-m {
+		t.Fatalf("post-reap: List()=%d, want %d (terminated removed, active retained)", len(rest), n-m)
+	}
+
+	// SINK 3: every survivor is an ACTIVE (non-terminated) session, retrievable via
+	// Get; every reaped session is GONE from Get.
+	for _, s := range rest {
+		if _, wasTerminated := terminated[s.ID]; wasTerminated {
+			t.Fatalf("post-reap: terminated session %q survived Reap", s.ID)
+		}
+		if s.Status == StatusTerminated {
+			t.Fatalf("post-reap: survivor %q is Terminated (active sessions only must remain)", s.ID)
+		}
+	}
+	for id := range terminated {
+		if _, err := mgr.Get(id); err == nil {
+			t.Fatalf("post-reap: Get(%q) still resolves a reaped terminated session", id)
+		}
+	}
+	// Active sessions must still be retrievable individually.
+	for i := m; i < n; i++ {
+		if _, err := mgr.Get(ids[i]); err != nil {
+			t.Fatalf("post-reap: active session %q was wrongly removed: %v", ids[i], err)
+		}
+	}
+
+	// SINK 4: a second Reap with nothing terminated removes 0 (idempotent / no
+	// over-eager deletion of active sessions).
+	if got := mgr.Reap(); got != 0 {
+		t.Fatalf("second Reap() returned %d, want 0 (no terminated sessions remain)", got)
+	}
+	if got := len(mgr.List()); got != n-m {
+		t.Fatalf("after idempotent Reap: List()=%d, want %d", got, n-m)
+	}
+}
+
+// TestManager_Reap_ConcurrentRaceClean races Reap against Create / Get /
+// Terminate under -race to prove Reap takes the write lock and is race-clean with
+// every other store operation. The sink-side assertion is CONSERVATION OF THE
+// LIVE SET: after the storm, no ACTIVE (non-terminated) session that was created
+// is missing, and Reap never removed a non-terminated entry.
+func TestManager_Reap_ConcurrentRaceClean(t *testing.T) {
+	const creators = 64
+
+	mgr := NewManager(nil)
+
+	var wg sync.WaitGroup
+	idCh := make(chan SessionID, creators)
+
+	// Creators.
+	wg.Add(creators)
+	for i := 0; i < creators; i++ {
+		go func(i int) {
+			defer wg.Done()
+			s, err := mgr.Create(context.Background(), &CreateRequest{
+				Name:    fmt.Sprintf("reap-race-%d", i),
+				Owner:   "heidi",
+				Backend: BackendTmux,
+			})
+			if err != nil {
+				t.Errorf("Create: %v", err)
+				return
+			}
+			idCh <- s.ID
+		}(i)
+	}
+
+	// Reapers hammering Reap concurrently with everything else.
+	stop := make(chan struct{})
+	wg.Add(4)
+	for r := 0; r < 4; r++ {
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case <-stop:
+					return
+				default:
+					_ = mgr.Reap()
+				}
+			}
+		}()
+	}
+
+	// Terminator: terminate EVERY EVEN-indexed session as IDs arrive; track which
+	// ids we deliberately terminated and which we left active.
+	active := make([]SessionID, 0, creators)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for i := 0; i < creators; i++ {
+			id := <-idCh
+			if i%2 == 0 {
+				// Terminate may race a concurrent Reap that already removed nothing
+				// (the entry is still present until we flip it). It must succeed.
+				if err := mgr.Terminate(context.Background(), id); err != nil {
+					t.Errorf("Terminate(%q): %v", id, err)
+				}
+				_, _ = mgr.Get(id) // read may or may not find it post-reap; must not race
+			} else {
+				active = append(active, id)
+			}
+		}
+		close(stop)
+	}()
+
+	wg.Wait()
+
+	// Final drain reap to settle any straggler terminated entries.
+	_ = mgr.Reap()
+
+	// SINK: every session we deliberately LEFT ACTIVE must still be present (Reap
+	// must never remove a non-terminated session), and none must report Terminated.
+	for _, id := range active {
+		got, err := mgr.Get(id)
+		if err != nil {
+			t.Fatalf("active session %q was wrongly reaped: %v", id, err)
+		}
+		if got.Status == StatusTerminated {
+			t.Fatalf("active session %q unexpectedly Terminated", id)
+		}
+	}
+
+	// And the live set holds NO terminated tombstones after the final reap.
+	for _, s := range mgr.List() {
+		if s.Status == StatusTerminated {
+			t.Fatalf("post-storm: terminated tombstone %q survived final Reap", s.ID)
+		}
+	}
+}
+
 // TestManager_ConcurrentMixed_RaceClean drives Create / Get / List / Update /
 // Terminate concurrently to give -race a wide surface across the whole store.
 // The sink-side assertion is conservation: every successfully created session is

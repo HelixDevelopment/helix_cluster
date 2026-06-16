@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 217
-**Last modified:** 2026-06-16T16:10:17Z
+**Revision:** 218
+**Last modified:** 2026-06-16T19:27:30Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **798**.
+Total completed: **799**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -729,6 +729,7 @@ Total completed: **798**.
 | HXC-1902 | Task | P3 | cmd/helix-health: adversarial test, /readyz /livez map non-Healthy -> 503 (no bug) | 0fcdfe0 |
 | HXC-1903 | Task | P3 | cmd/helix-raftctl: adversarial test, non-2xx/garbage response -> exit 1 (no fail-open) (no bug) | 0fcdfe0 |
 | HXC-1904 | Task | P3 | cmd/helixd: adversarial test, config fail-closed + clean shutdown + race-clean (no bug) | 0fcdfe0 |
+| HXC-1905 | Bug | P1 | WIRED hardenings: health fail-closed, metrics NaN-drop, swim saturating incarnation, backup atomic write, session Reap |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
