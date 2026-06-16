@@ -156,8 +156,14 @@ func (m *Manager) AllocateGPU(jobID string) (*GPU, error) {
 	defer m.mu.Unlock()
 
 	// Honor an existing allocation for this job before consuming a new GPU.
+	// Key on AllocatedTo (the binding fact that the job holds the device), NOT
+	// on Status: if the Monitor flipped this job's GPU to Unhealthy/Offline after
+	// it was handed out, the job STILL holds it. Re-allocating because the status
+	// is no longer exactly Allocated would hand the job a SECOND physical GPU and
+	// leak the first (which stays attributed to the job but is freed by only one
+	// ReleaseGPU) — a double-allocation + accounting leak.
 	for _, gpu := range m.gpus {
-		if gpu.Status == Allocated && gpu.AllocatedTo == jobID {
+		if gpu.AllocatedTo == jobID {
 			return gpu.Clone(), nil
 		}
 	}
@@ -188,8 +194,12 @@ func (m *Manager) AllocateGPUByMemory(jobID string, minMemoryMB int) (*GPU, erro
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
+	// Idempotency keys on AllocatedTo, not Status: a job whose held GPU was
+	// flipped to Unhealthy/Offline by the Monitor still holds it. Matching only
+	// Status==Allocated here would hand the job a SECOND device and leak the
+	// first (see AllocateGPU for the same fix).
 	for _, gpu := range m.gpus {
-		if gpu.Status == Allocated && gpu.AllocatedTo == jobID {
+		if gpu.AllocatedTo == jobID {
 			if gpu.MemoryMB < minMemoryMB {
 				return nil, fmt.Errorf("job %s already holds GPU %s with %dMB < required %dMB", jobID, gpu.ID, gpu.MemoryMB, minMemoryMB)
 			}

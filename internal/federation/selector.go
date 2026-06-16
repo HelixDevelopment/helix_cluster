@@ -186,9 +186,20 @@ func (s *Selector) selectExcluding(cells []Cell, c Constraints, exclude string, 
 			cs.Filtered = true
 			cs.Reason = "excluded: hosting cell marked down"
 			cs.Score = 0
-		} else if cell.Health == CellNotReady {
+		} else if cell.Health != CellReady {
+			// Fail-closed admission: only a cell the hub has affirmatively
+			// reported Ready may be chosen. CellNotReady, an empty/unreported
+			// liveness ("") or any unrecognized state (e.g. "Draining",
+			// "Unknown", or hostile garbage from a remote gateway) is NOT
+			// trusted and must be filtered — admitting an unknown-liveness cell
+			// is a default-allow trust gap (a workload could be placed on a
+			// cell whose gateway state was never confirmed reachable).
 			cs.Filtered = true
-			cs.Reason = "filtered: cell not ready (gateway unreachable)"
+			if cell.Health == CellNotReady {
+				cs.Reason = "filtered: cell not ready (gateway unreachable)"
+			} else {
+				cs.Reason = "filtered: cell liveness not affirmatively Ready (unknown/unreported state)"
+			}
 			cs.Score = 0
 		}
 		ranked = append(ranked, cs)

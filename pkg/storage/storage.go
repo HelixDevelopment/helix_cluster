@@ -14,6 +14,12 @@ import (
 var (
 	ErrEmptyKey    = errors.New("key cannot be empty")
 	ErrKeyNotFound = errors.New("key not found")
+	// ErrUnsafeKey is returned by FileStore when a key would resolve to a path
+	// outside the store root (e.g. a key containing "../"). Keys are opaque
+	// strings in the Store contract, but FileStore maps them onto a filesystem
+	// hierarchy; a traversing key must never be allowed to read, write, or
+	// delete outside the configured root.
+	ErrUnsafeKey = errors.New("key escapes store root")
 )
 
 // Store is the unified key-value storage interface.
@@ -94,7 +100,9 @@ func NewFileStore(root string) (*FileStore, error) {
 	if err := os.MkdirAll(root, 0755); err != nil {
 		return nil, fmt.Errorf("create root: %w", err)
 	}
-	return &FileStore{root: root}, nil
+	// Clean the root so keyPath's confinement check (a HasPrefix against
+	// root+separator) compares against a canonical, separator-normalised path.
+	return &FileStore{root: filepath.Clean(root)}, nil
 }
 
 // Put stores data under key as a file.
@@ -102,7 +110,10 @@ func (s *FileStore) Put(key string, data []byte) error {
 	if key == "" {
 		return fmt.Errorf("key cannot be empty: %w", ErrEmptyKey)
 	}
-	path := s.keyPath(key)
+	path, err := s.keyPath(key)
+	if err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
@@ -116,7 +127,10 @@ func (s *FileStore) Put(key string, data []byte) error {
 
 // Get retrieves data by key.
 func (s *FileStore) Get(key string) ([]byte, error) {
-	path := s.keyPath(key)
+	path, err := s.keyPath(key)
+	if err != nil {
+		return nil, err
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	data, err := os.ReadFile(path)
@@ -131,7 +145,10 @@ func (s *FileStore) Get(key string) ([]byte, error) {
 
 // Delete removes a key file.
 func (s *FileStore) Delete(key string) error {
-	path := s.keyPath(key)
+	path, err := s.keyPath(key)
+	if err != nil {
+		return err
+	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := os.Remove(path); err != nil && !os.IsNotExist(err) {
@@ -177,6 +194,19 @@ func (s *FileStore) List(prefix string) ([]string, error) {
 	return out, nil
 }
 
-func (s *FileStore) keyPath(key string) string {
-	return filepath.Join(s.root, filepath.FromSlash(key))
+// keyPath maps a key to its on-disk path, rejecting any key that would resolve
+// outside the store root. filepath.Join cleans "../" segments but does NOT
+// confine the result to root, so a key like "../../etc/passwd" would otherwise
+// escape; we verify confinement explicitly and return ErrUnsafeKey if it does.
+func (s *FileStore) keyPath(key string) (string, error) {
+	path := filepath.Join(s.root, filepath.FromSlash(key))
+	// path must be strictly under root. rootPrefix uses a trailing separator so
+	// that a sibling like "<root>EVIL" is not mistaken for being inside root,
+	// and so that path == root (a key resolving to the root dir itself) is also
+	// rejected as not a valid object location.
+	rootPrefix := s.root + string(filepath.Separator)
+	if path == s.root || !strings.HasPrefix(path, rootPrefix) {
+		return "", fmt.Errorf("unsafe key %q: %w", key, ErrUnsafeKey)
+	}
+	return path, nil
 }

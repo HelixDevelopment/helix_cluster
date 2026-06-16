@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 232
-**Last modified:** 2026-06-16T22:18:47Z
+**Revision:** 233
+**Last modified:** 2026-06-16T22:26:36Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **832**.
+Total completed: **835**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -763,6 +763,9 @@ Total completed: **832**.
 | HXC-1936 | Bug | P1 | pkg/scheduler: runBindLocked leaks node capacity on a partial multi-plugin Bind failure (no rollback) |  |
 | HXC-1937 | Bug | P1 | pkg/swim: handleAlive refutes the failure detector unconditionally -> a replayed stale Alive defeats death detection |  |
 | HXC-1938 | Task | P2 | Deep re-audit: pkg/raftleader (no bug; 7 adapter-layer contract pins mutation-proven) |  |
+| HXC-1939 | Bug | P1 | internal/gpu: health Monitor flipping a held GPU to Unhealthy causes double-allocation + permanent leak |  |
+| HXC-1940 | Bug | P0 | pkg/storage: FileStore key path traversal — Put/Get/Delete escape the store root (arbitrary file write/read/delete) |  |
+| HXC-1941 | Bug | P1 | internal/federation: cell-selection trust gate FAILS OPEN on unknown/empty liveness (default-allow admission) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
