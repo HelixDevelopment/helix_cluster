@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 209
-**Last modified:** 2026-06-14T23:11:51Z
+**Revision:** 210
+**Last modified:** 2026-06-16T15:06:08Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **769**.
+Total completed: **773**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -700,6 +700,10 @@ Total completed: **769**.
 | HXC-1873 | Task | P3 | internal/gpu: adversarial test, GPU allocator no over-commit + CLAUDE-2 probe REAL (no bug) | 556aa60 |
 | HXC-1874 | Task | P3 | internal/gateway: adversarial test, authorize fail-CLOSED (no bug) | 556aa60 |
 | HXC-1875 | Task | P3 | internal/security: adversarial test, identity/authz/policy all fail-CLOSED (no bug) | 556aa60 |
+| HXC-1876 | Bug | P1 | internal/policy: scheduling rego permits non-numeric node.health -> remote fail-open (schedules unhealthy node) | b02141e |
+| HXC-1877 | Bug | P2 | internal/messaging: Queue.Enqueue releases lock before send -> send-on-closed panic racing Close (teardown race) | b02141e |
+| HXC-1878 | Task | P3 | internal/scheduler: adversarial test, gRPC ScheduleJob serialized no over-commit (no bug) | b02141e |
+| HXC-1879 | Task | P3 | internal/llm: adversarial test, Manager RWMutex-guarded + fail-closed inference (no bug) | b02141e |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
