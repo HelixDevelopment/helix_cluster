@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 234 <strong>Last modified:</strong>
-2026-06-16T22:33:13Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 235 <strong>Last modified:</strong>
+2026-06-16T22:43:11Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>838</strong>.</p>
+<p>Total completed: <strong>841</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -6033,6 +6033,30 @@ for non-scheduling policies (forensic audit reason-bluff)</td>
 <td>P2</td>
 <td>pkg/admissioncontrol: zero-capacity request wrongly rejected when
 reserve&gt;free (contract violation, fail-closed)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1945</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/console: cluster-join readiness gate FAILS OPEN via
+substring match (helix.cluster=readyx admitted)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1946</td>
+<td>Bug</td>
+<td>P1</td>
+<td>internal/wireguard: LocalConfig.Validate fails open on duplicate
+peer public keys (collapses to one device peer)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1947</td>
+<td>Bug</td>
+<td>P2</td>
+<td>pkg/offlinesync: reconcile tiebreak (Seq,Output) is not a total
+order -&gt; replicas diverge on CompletedAt</td>
 <td></td>
 </tr>
 <tr>
