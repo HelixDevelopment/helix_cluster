@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 224 <strong>Last modified:</strong>
-2026-06-16T21:12:37Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 225 <strong>Last modified:</strong>
+2026-06-16T21:19:29Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>812</strong>.</p>
+<p>Total completed: <strong>816</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -5822,6 +5822,38 @@ regression detector hides real regressions (CLAUDE-1)</td>
 <td>P1</td>
 <td>testing/chaos: ActiveFaults() only reported NodeCrash — every other
 applied fault silently dropped (no-op bluff)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1919</td>
+<td>Bug</td>
+<td>P1</td>
+<td>testing/runner: a panicking suite crashes the whole runner (no
+recover) -&gt; all results lost</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1920</td>
+<td>Bug</td>
+<td>P1</td>
+<td>testing/evidence: Artifact() name path-escape — anti-bluff evidence
+sink writable outside base / collidable</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1921</td>
+<td>Bug</td>
+<td>P2</td>
+<td>testing/device: Pool.provisionAndTrack leaks an already-provisioned
+device when Claim fails</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1922</td>
+<td>Task</td>
+<td>P2</td>
+<td>Adversarial coverage: testing/instance lifecycle FSM (no bug;
+mutation-proven)</td>
 <td></td>
 </tr>
 <tr>
