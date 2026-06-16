@@ -244,17 +244,23 @@ func (s *Scheduler) runScorersLocked(job *Job, node *Node) int {
 }
 
 func (s *Scheduler) runBind(job *Job, node *Node) bool {
-	for _, p := range s.plugins {
-		if !p.Bind(job, node) {
-			return false
-		}
-	}
-	return true
+	return s.runBindLocked(job, node)
 }
 
+// runBindLocked commits the job onto node by running every plugin's Bind in
+// sequence. Bind is a read-modify-write on node.AvailableResources (e.g.
+// NodeResourcesFit debits capacity), so a plugin that succeeds AFTER an earlier
+// one already debited, but BEFORE a later one fails, would leave the node
+// partially debited for a placement that never happens — a permanent capacity
+// LEAK (the version is not bumped and no Placement is recorded, so the lost
+// resources can never be reclaimed). To keep Bind all-or-nothing, snapshot the
+// node's resources up front and restore them on ANY plugin failure so a failed
+// commit leaves node state byte-identical to before the attempt.
 func (s *Scheduler) runBindLocked(job *Job, node *Node) bool {
+	snapshot := node.AvailableResources
 	for _, p := range s.plugins {
 		if !p.Bind(job, node) {
+			node.AvailableResources = snapshot // roll back partial debit
 			return false
 		}
 	}

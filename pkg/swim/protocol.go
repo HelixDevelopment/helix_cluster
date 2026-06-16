@@ -436,9 +436,19 @@ func (p *Protocol) handleAlive(msg *Message, addr net.Addr) {
 		}
 		p.members[msg.SourceID] = m
 	}
-	m.UpdateState(StateAlive, msg.Incarnation)
+	applied := m.UpdateState(StateAlive, msg.Incarnation)
 	p.mu.Unlock()
-	p.fd.Refute(msg.SourceID)
+	// Only treat this Alive as a refutation if the state machine actually accepted
+	// it (a genuinely fresher Alive). A STALE/replayed Alive whose incarnation does
+	// not beat the live Suspect is rejected by UpdateState above, and must NOT
+	// cancel an armed death timer: fd.Refute carries no incarnation and would clear
+	// the suspicion unconditionally, letting a single replayed packet defeat the
+	// failure detector so a genuinely-failed peer is never Confirmed Dead. Canonical
+	// SWIM only honours a refutation that overrides the suspicion's incarnation,
+	// which is exactly what `applied` captures here.
+	if applied {
+		p.fd.Refute(msg.SourceID)
+	}
 }
 
 func (p *Protocol) handleDead(msg *Message, addr net.Addr) {

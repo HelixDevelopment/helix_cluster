@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 231
-**Last modified:** 2026-06-16T22:11:21Z
+**Revision:** 232
+**Last modified:** 2026-06-16T22:18:47Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **829**.
+Total completed: **832**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -760,6 +760,9 @@ Total completed: **829**.
 | HXC-1933 | Bug | P0 | internal/scheduler: PreemptJob drops the lock before resource-restore -> double-placement / capacity over-commit (race) |  |
 | HXC-1934 | Bug | P1 | pkg/raft: Command.Encode (json.Marshal) silently corrupts invalid-UTF-8 values to U+FFFD on every replica |  |
 | HXC-1935 | Bug | P0 | internal/security: EnforcePolicy authz FAIL-OPEN — grants the empty operation (action=='' && resource=='') at the live gRPC sink |  |
+| HXC-1936 | Bug | P1 | pkg/scheduler: runBindLocked leaks node capacity on a partial multi-plugin Bind failure (no rollback) |  |
+| HXC-1937 | Bug | P1 | pkg/swim: handleAlive refutes the failure detector unconditionally -> a replayed stale Alive defeats death detection |  |
+| HXC-1938 | Task | P2 | Deep re-audit: pkg/raftleader (no bug; 7 adapter-layer contract pins mutation-proven) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
