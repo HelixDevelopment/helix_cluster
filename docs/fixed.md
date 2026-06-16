@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 214
-**Last modified:** 2026-06-16T15:49:15Z
+**Revision:** 215
+**Last modified:** 2026-06-16T15:54:28Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **789**.
+Total completed: **790**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -720,6 +720,7 @@ Total completed: **789**.
 | HXC-1893 | Task | P3 | internal/wireguard: adversarial test, mesh RWMutex-guarded + dual key-validation (no bug) — internal/ COMPLETE | 0300e6d |
 | HXC-1894 | Task | P3 | cmd/helix-raftd: adversarial test, leader-gate 421 + validation defense-in-depth (no bug) | 0300e6d |
 | HXC-1895 | Task | P3 | cmd/helix_infra: adversarial test, CLI arg parsers check err before value (no bug) | 0300e6d |
+| HXC-1896 | Bug | P2 | cmd/helix-session: runBridge 2 goroutines write same websocket.Conn w/o mutex -> concurrent-write panic (server-side) | c01735e |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
