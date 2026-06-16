@@ -55,6 +55,14 @@ func main() {
 func Gate(out interface {
 	Write([]byte) (int, error)
 }, start int64, seeds int, cfg ScenarioConfig, verbose bool) int {
+	// A gate that runs zero simulations proves nothing: exiting 0 here would be a
+	// vacuous PASS (CLAUDE-1) — a green CI gate on an empty run. Refuse a
+	// non-positive seed count (e.g. a flag typo yielding 0 or a negative) rather
+	// than reporting success for a workload that was never executed.
+	if seeds <= 0 {
+		fmt.Fprintf(out, "FATAL: -seeds must be >= 1 (got %d); refusing to report a vacuous PASS for an empty run\n", seeds)
+		return 2
+	}
 	fmt.Fprintf(out, "dst-sim: running %d seeded simulations (seeds %d..%d), %d steps each\n",
 		seeds, start, start+int64(seeds)-1, cfg.MaxSteps)
 
