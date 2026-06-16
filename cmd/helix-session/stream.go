@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"sync"
 	"time"
 
 	"github.com/creack/pty"
@@ -132,6 +133,16 @@ func (h *StreamSessionHandler) ServeHTTP(w http.ResponseWriter, r *http.Request)
 func runBridge(conn *gws.Conn, ptm ptyHandle, paneID string) {
 	done := make(chan struct{})
 
+	// gorilla/websocket forbids concurrent writers (it panics "concurrent write
+	// to websocket connection"). Goroutine 1 (PTY output) and goroutine 2's
+	// heartbeat echo both write conn, so serialize all writes through one mutex.
+	var writeMu sync.Mutex
+	writeMsg := func(b []byte) error {
+		writeMu.Lock()
+		defer writeMu.Unlock()
+		return conn.WriteMessage(gws.BinaryMessage, b)
+	}
+
 	// goroutine 1: PTY output → WS Output envelopes
 	// MUTATION GUARD: removing this goroutine makes TestStreamSessionEchoHi hang
 	// because no Output envelope is ever sent to the client.
@@ -148,7 +159,7 @@ func runBridge(conn *gws.Conn, ptm ptyHandle, paneID string) {
 					Payload:   append([]byte(nil), buf[:n]...),
 				}
 				encoded := wsenv.EncodeEnvelope(env)
-				if werr := conn.WriteMessage(gws.BinaryMessage, encoded); werr != nil {
+				if werr := writeMsg(encoded); werr != nil {
 					return
 				}
 			}
@@ -192,7 +203,7 @@ func runBridge(conn *gws.Conn, ptm ptyHandle, paneID string) {
 					Timestamp: uint64(time.Now().UnixNano()),
 					Payload:   env.Payload,
 				})
-				_ = conn.WriteMessage(gws.BinaryMessage, hb)
+				_ = writeMsg(hb)
 			}
 		}
 	}()
