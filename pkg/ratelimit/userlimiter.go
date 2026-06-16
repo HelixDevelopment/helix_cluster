@@ -42,7 +42,13 @@ func (b *userBucket) refill(nowNs int64) {
 	if nowNs > b.lastNs {
 		elapsed := float64(nowNs - b.lastNs)
 		b.tokens += elapsed * b.refillPerNs
-		if b.tokens > b.max {
+		// A non-finite refill rate (NaN/±Inf, e.g. from a malformed config or
+		// 0.0/0.0 upstream) makes b.tokens NaN, and `NaN > max` is false — so the
+		// cap below would be SKIPPED and the poisoned NaN would persist forever.
+		// Every downstream guard (`tokens < 1`, `tokens >= n`) is also false for
+		// NaN, which silently DEFEATS the rate limit (unbounded admission). Clamp
+		// any non-finite value to max so the ceiling always holds, fail-closed.
+		if math.IsNaN(b.tokens) || b.tokens > b.max {
 			b.tokens = b.max
 		}
 		b.lastNs = nowNs
