@@ -18,6 +18,17 @@ func newBuildCmd() *cobra.Command {
 	build := &cobra.Command{
 		Use:   "build",
 		Short: "Submit and inspect container builds via the build service",
+		// RunE only fires when no leaf subcommand matched. With no leaf args we
+		// show help (exit 0); with a leftover token the user mistyped a
+		// subcommand, so we MUST surface an error (non-zero exit) instead of
+		// silently printing help and exiting 0 — a silent no-op would make a
+		// script's `helixctl build submt ... || handle_error` never trip.
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if len(args) == 0 {
+				return cmd.Help()
+			}
+			return fmt.Errorf("unknown command %q for %q", args[0], cmd.CommandPath())
+		},
 	}
 	build.AddCommand(newBuildSubmitCmd())
 	build.AddCommand(newBuildStatusCmd())
