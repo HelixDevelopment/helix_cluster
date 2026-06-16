@@ -85,6 +85,7 @@ func (cfg *LocalConfig) Validate() error {
 		return fmt.Errorf("listen port %d out of range [0,65535]", cfg.ListenPort)
 	}
 	seen := make(map[string]struct{}, len(cfg.Peers))
+	seenKeys := make(map[string]struct{}, len(cfg.Peers))
 	for i := range cfg.Peers {
 		if err := cfg.Peers[i].Validate(); err != nil {
 			return err
@@ -93,6 +94,16 @@ func (cfg *LocalConfig) Validate() error {
 			return fmt.Errorf("duplicate peer ID %q", cfg.Peers[i].ID)
 		}
 		seen[cfg.Peers[i].ID] = struct{}{}
+		// The WireGuard device identifies a peer by its public key, not by our
+		// logical ID: two [Peer] blocks sharing a public key collapse to a single
+		// device peer (the later AllowedIPs clobber the earlier under
+		// ReplaceAllowedIPs), so the operator sees two configured peers but only
+		// one functions — and RemovePeer on one silently tears down the other.
+		// Reject the duplicate key here so an unusable config never installs.
+		if _, dup := seenKeys[cfg.Peers[i].PublicKey]; dup {
+			return fmt.Errorf("duplicate peer public key for ID %q", cfg.Peers[i].ID)
+		}
+		seenKeys[cfg.Peers[i].PublicKey] = struct{}{}
 	}
 	return nil
 }

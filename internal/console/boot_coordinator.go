@@ -184,7 +184,7 @@ func (b *BootCoordinator) classify() BootPhase {
 
 	cmdline := strings.ToLower(b.readMarker(b.markers.CmdlinePath))
 	switch {
-	case strings.Contains(cmdline, clusterReadyToken):
+	case cmdlineHasToken(cmdline, clusterReadyToken):
 		// The cmdline asserts cluster readiness. If a device-tree marker is
 		// present it must corroborate membership: a board that explicitly
 		// negates it (e.g. "helix,no-cluster") is held at UserspaceReady so a
@@ -193,11 +193,29 @@ func (b *BootCoordinator) classify() BootPhase {
 			return PhaseUserspaceReady
 		}
 		return PhaseClusterReady
-	case strings.Contains(cmdline, userspaceReadyToken):
+	case cmdlineHasToken(cmdline, userspaceReadyToken):
 		return PhaseUserspaceReady
 	default:
 		return PhaseBooting
 	}
+}
+
+// cmdlineHasToken reports whether the (already lower-cased) kernel command line
+// contains token as a DISCRETE, whitespace-delimited parameter — not merely as
+// a byte substring of a larger token. The Linux kernel command line is a list
+// of space-separated parameters, so a readiness sentinel like
+// "helix.cluster=ready" only counts when it is a whole field. Matching it as a
+// free substring is a fail-open readiness gate: a mis-provisioned or hostile
+// cmdline value such as "helix.cluster=readyx" or "init=/x/helix.cluster=ready7"
+// would otherwise wave a node that never asserted the discrete flag through the
+// cluster-join gate.
+func cmdlineHasToken(cmdline, token string) bool {
+	for _, field := range strings.Fields(cmdline) {
+		if field == token {
+			return true
+		}
+	}
+	return false
 }
 
 // deviceTreeNegatesCluster reports whether a present device-tree marker

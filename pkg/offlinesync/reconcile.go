@@ -45,22 +45,41 @@ func (s *Server) Reconcile(records []CompletedJob) {
 		// Seq for a given JobID. On an EQUAL-Seq conflict (the same JobID minted
 		// at the same device-local Seq with a DIFFERING Output — reachable when
 		// two devices collide on a JobID), break the tie deterministically by
-		// the lexicographically-lower Output. Without this tie-break the
-		// equal-Seq case kept the first-arrived record, making the winner
-		// order-DEPENDENT (two servers reconciling the same pair in different
-		// orders permanently diverge) — contradicting this merge's own
+		// the lexicographically-lower Output, then (when Output is also equal but
+		// the records still differ) by the EARLIER CompletedAt. Without a full
+		// tie-break the conflicting case kept the first-arrived record, making the
+		// winner order-DEPENDENT (two servers reconciling the same pair in
+		// different orders permanently diverge) — contradicting this merge's own
 		// order-independence guarantee. (Same class as HXC-1759 in
-		// pkg/antientropy.) The full (Seq, Output) key is now a total order, so
-		// the winner is identical regardless of arrival order.
-		if existing, exists := s.jobs[rec.JobID]; !exists ||
-			rec.Seq < existing.Seq ||
-			(rec.Seq == existing.Seq && bytes.Compare(rec.Output, existing.Output) < 0) {
+		// pkg/antientropy.) Equal Seq + equal Output but DIFFERING CompletedAt is
+		// reachable (two devices producing byte-identical deterministic output at
+		// the same device-local Seq but with different wall clocks); comparing
+		// only (Seq, Output) left CompletedAt order-dependent, so the
+		// CompletedAt discriminator below completes the total order. The full
+		// (Seq, Output, CompletedAt) key is now a total order, so the winner is
+		// identical regardless of arrival order.
+		if existing, exists := s.jobs[rec.JobID]; !exists || recLess(rec, existing) {
 			s.jobs[rec.JobID] = rec
 		}
 		if rec.Seq > s.hwm {
 			s.hwm = rec.Seq
 		}
 	}
+}
+
+// recLess reports whether record a should win over record b for the same JobID
+// under the merge's deterministic precedence: LOWER Seq wins; on equal Seq the
+// lexicographically-lower Output wins; on equal Seq AND equal Output the EARLIER
+// CompletedAt wins. This makes (Seq, Output, CompletedAt) a total order so the
+// reconciled winner is a function of the SET, not the arrival ORDER.
+func recLess(a, b CompletedJob) bool {
+	if a.Seq != b.Seq {
+		return a.Seq < b.Seq
+	}
+	if c := bytes.Compare(a.Output, b.Output); c != 0 {
+		return c < 0
+	}
+	return a.CompletedAt.Before(b.CompletedAt)
 }
 
 // CountReconciled returns the number of distinct jobs the server has accepted.
