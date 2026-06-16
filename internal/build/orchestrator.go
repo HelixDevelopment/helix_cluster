@@ -11,6 +11,15 @@ import (
 	"github.com/HelixDevelopment/helix_cluster/pkg/build/cache"
 )
 
+// maxWorkers is the hard upper bound on the orchestrator worker-pool size.
+// Start spawns exactly o.workers goroutines, so an un-clamped worker count
+// (e.g. derived from an operator-supplied HELIX_BUILD_WORKERS env var) is a
+// resource-exhaustion DoS: NewOrchestrator(1_000_000_000, ...).Start() would
+// attempt to launch a billion goroutines. The queue holds only 100 slots, so
+// any worker count beyond a small multiple of that is pure waste regardless;
+// we cap defensively at the constructor so no caller can weaponize it.
+const maxWorkers = 256
+
 // State represents the lifecycle of a build job.
 type State string
 
@@ -180,6 +189,9 @@ func NewOrchestrator(workers int, c cache.Cache) *Orchestrator {
 func NewOrchestratorWithBuilder(workers int, c cache.Cache, builder OrchestratorBuilder) *Orchestrator {
 	if workers < 1 {
 		workers = 1
+	}
+	if workers > maxWorkers {
+		workers = maxWorkers
 	}
 	if c == nil {
 		c = cache.NewMemoryCache()

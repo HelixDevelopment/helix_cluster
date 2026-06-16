@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 235
-**Last modified:** 2026-06-16T22:43:11Z
+**Revision:** 236
+**Last modified:** 2026-06-16T22:55:13Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **841**.
+Total completed: **844**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -772,6 +772,9 @@ Total completed: **841**.
 | HXC-1945 | Bug | P1 | internal/console: cluster-join readiness gate FAILS OPEN via substring match (helix.cluster=readyx admitted) |  |
 | HXC-1946 | Bug | P1 | internal/wireguard: LocalConfig.Validate fails open on duplicate peer public keys (collapses to one device peer) |  |
 | HXC-1947 | Bug | P2 | pkg/offlinesync: reconcile tiebreak (Seq,Output) is not a total order -> replicas diverge on CompletedAt |  |
+| HXC-1948 | Bug | P2 | internal/build: orchestrator worker pool unbounded -> HELIX_BUILD_WORKERS=1e9 spawns ~1e9 goroutines (DoS) |  |
+| HXC-1949 | Bug | P1 | internal/node: memRegistry aliases the caller's *Node pointer -> a mutation by any holder corrupts the stored node + all readers |  |
+| HXC-1950 | Task | P2 | Deep re-audit: internal/health (no new bug; aggregation fail-closed confirmed, 8 pins) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync"
 
+	"google.golang.org/protobuf/proto"
+
 	"github.com/HelixDevelopment/helix_cluster/apiv1"
 	"github.com/HelixDevelopment/helix_cluster/pkg/discovery"
 )
@@ -47,9 +49,16 @@ func (m *memRegistry) Register(_ context.Context, n *helixv1.Node) error {
 	if n == nil || n.Id == "" {
 		return fmt.Errorf("node ID is required")
 	}
+	// Store an isolated deep copy, not the caller's live pointer. Aliasing the
+	// caller's *Node would let a post-Register mutation by the caller silently
+	// corrupt registry state (and race concurrent readers holding the same
+	// pointer). The sibling DiscoveryRegistry/EtcdRegistry are already isolated
+	// because they round-trip through serialization; memRegistry must match that
+	// contract so "safe for concurrent use" actually holds for the pointee, not
+	// just the map.
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	m.nodes[n.Id] = n
+	m.nodes[n.Id] = proto.Clone(n).(*helixv1.Node)
 	return nil
 }
 
@@ -67,7 +76,12 @@ func (m *memRegistry) Lookup(_ context.Context, id string) (*helixv1.Node, bool,
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	n, ok := m.nodes[id]
-	return n, ok, nil
+	if !ok {
+		return nil, false, nil
+	}
+	// Hand back an isolated copy so a caller mutating the result cannot corrupt
+	// the stored node or race another reader holding the same pointer.
+	return proto.Clone(n).(*helixv1.Node), true, nil
 }
 
 func (m *memRegistry) List(_ context.Context) ([]*helixv1.Node, error) {
@@ -75,7 +89,7 @@ func (m *memRegistry) List(_ context.Context) ([]*helixv1.Node, error) {
 	defer m.mu.RUnlock()
 	out := make([]*helixv1.Node, 0, len(m.nodes))
 	for _, n := range m.nodes {
-		out = append(out, n)
+		out = append(out, proto.Clone(n).(*helixv1.Node))
 	}
 	return out, nil
 }
