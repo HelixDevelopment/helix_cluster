@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 244
-**Last modified:** 2026-06-17T04:44:36Z
+**Revision:** 245
+**Last modified:** 2026-06-17T04:51:21Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **861**.
+Total completed: **864**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -792,6 +792,9 @@ Total completed: **861**.
 | HXC-1965 | Bug | P1 | pkg/workloadrouter: NaN/Inf score breaks sort comparator (strict-weak-ordering) -> poisoned offer seizes winner |  |
 | HXC-1966 | Task | P3 | NaN-poison scan: pkg/gpucatalog + pkg/gravalverify (false positives; no caller float / uint ratio finite) |  |
 | HXC-1967 | Task | P3 | Path-traversal scan: internal/schema, internal/build/exec_builder, pkg/phase7matrix (false positives; defense-in-depth pinned) |  |
+| HXC-1968 | Bug | P1 | pkg/session: Manager Create stores caller maps by reference + copySession shallow-copies Windows -> caller mutation corrupts the store |  |
+| HXC-1969 | Bug | P1 | internal/session: UpdateSession has no FSM guard -> a terminated session can be resurrected to running (status bluff) |  |
+| HXC-1970 | Bug | P2 | pkg/gpupool: deviceLess NaN breaks Select strict-weak-ordering -> non-deterministic winner (violates deterministic-selection) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

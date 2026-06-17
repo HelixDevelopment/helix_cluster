@@ -21,6 +21,7 @@ package gpupool
 
 import (
 	"errors"
+	"math"
 	"sort"
 )
 
@@ -196,6 +197,33 @@ func NewPriorityScheduler() *PriorityScheduler {
 	return &PriorityScheduler{}
 }
 
+// floatLess is a total ordering over float64 that agrees with < for all
+// non-NaN values and deterministically sorts NaN LAST (a NaN is considered
+// greater than every number and equal to another NaN). Without this, a NaN
+// Utilization or CostPerHour would make deviceLess violate the strict-weak-
+// ordering contract sort requires, yielding an order-dependent (non-
+// deterministic) Select winner. For finite inputs floatLess(a,b) == (a < b)
+// and floatEqual(a,b) == (a == b), so this is behavior-neutral for every
+// valid input the package documents.
+func floatLess(a, b float64) bool {
+	aNaN, bNaN := math.IsNaN(a), math.IsNaN(b)
+	if aNaN || bNaN {
+		// NaN sorts last: a<b iff a is a number and b is NaN.
+		return !aNaN && bNaN
+	}
+	return a < b
+}
+
+// floatEqual reports value equality under the floatLess total order: finite
+// values compare with ==, and two NaNs are treated as equal (so the next
+// tie-break field is consulted rather than producing an inconsistent order).
+func floatEqual(a, b float64) bool {
+	if math.IsNaN(a) && math.IsNaN(b) {
+		return true
+	}
+	return a == b
+}
+
 // Less reports whether candidate a outranks candidate b under the
 // tier > utilization > cost ordering. Exported indirectly via Select; kept as
 // an unexported helper used by the sort.
@@ -203,11 +231,11 @@ func deviceLess(a, b Device) bool {
 	if a.Tier != b.Tier {
 		return a.Tier < b.Tier
 	}
-	if a.Utilization != b.Utilization {
-		return a.Utilization < b.Utilization
+	if !floatEqual(a.Utilization, b.Utilization) {
+		return floatLess(a.Utilization, b.Utilization)
 	}
-	if a.CostPerHour != b.CostPerHour {
-		return a.CostPerHour < b.CostPerHour
+	if !floatEqual(a.CostPerHour, b.CostPerHour) {
+		return floatLess(a.CostPerHour, b.CostPerHour)
 	}
 	return a.ID < b.ID
 }

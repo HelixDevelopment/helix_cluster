@@ -198,9 +198,24 @@ func (s *Server) UpdateSession(ctx context.Context, req *helixv1.UpdateSessionRe
 		}
 	}
 
+	// resurrection records whether the mutator refused to revive a terminated
+	// session. Terminate is a terminal FSM state: it has already killed the
+	// backend process (KillSession), so flipping a terminated session back to
+	// a non-terminated status via UpdateSession would report a live ("running")
+	// session that has no real process behind it — a CLAUDE-1 status bluff and a
+	// fail-open hole that also defeats the double-terminate guard. The decision
+	// is made INSIDE the mutator so it is atomic under the manager's lock (no
+	// TOCTOU against a concurrent Terminate). Manager.Update has no FSM guard of
+	// its own, so this server-level handler enforces the invariant.
+	var resurrection bool
 	sess, err := s.manager.Update(session.SessionID(req.SessionId), func(s *session.Session) {
 		if req.Status != "" {
-			s.Status = session.StatusFromString(req.Status)
+			next := session.StatusFromString(req.Status)
+			if s.Status == session.StatusTerminated && next != session.StatusTerminated {
+				resurrection = true
+				return // refuse the whole update; leave the session terminated
+			}
+			s.Status = next
 		}
 		if req.Resources != nil {
 			s.CPURequest = int64(req.Resources.CpuMillicores)
@@ -211,6 +226,10 @@ func (s *Server) UpdateSession(ctx context.Context, req *helixv1.UpdateSessionRe
 	if err != nil {
 		// Manager.Update only fails when the session does not exist.
 		return nil, status.Errorf(codes.NotFound, "session %s not found", req.SessionId)
+	}
+	if resurrection {
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"session %s is terminated and cannot be updated to %q", req.SessionId, req.Status)
 	}
 	return sessionToProto(sess), nil
 }

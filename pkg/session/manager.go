@@ -81,10 +81,57 @@ func copySession(s *Session) *Session {
 		copy(cs.GPURequest, s.GPURequest)
 	}
 	if len(s.Windows) > 0 {
+		// NOTE: a shallow copy(cs.Windows, s.Windows) copies the Window structs
+		// but leaves their nested reference fields (Window.CRDTState, each
+		// Pane.Environment map, Pane.CRDTState) ALIASED to the stored session. A
+		// caller mutating a returned window/pane would then corrupt the store for
+		// every other holder under the lock. Deep-copy every nested container.
 		cs.Windows = make([]Window, len(s.Windows))
-		copy(cs.Windows, s.Windows)
+		for i := range s.Windows {
+			cs.Windows[i] = copyWindow(s.Windows[i])
+		}
 	}
 	return cs
+}
+
+// copyWindow returns a deep copy of a Window, including its nested Panes (and
+// each pane's Environment map and CRDTState bytes) and the window's own
+// CRDTState bytes, so the result shares no mutable memory with the input.
+func copyWindow(w Window) Window {
+	cw := Window{
+		ID:     w.ID,
+		Name:   w.Name,
+		Layout: w.Layout,
+		Active: w.Active,
+	}
+	if w.CRDTState != nil {
+		cw.CRDTState = make([]byte, len(w.CRDTState))
+		copy(cw.CRDTState, w.CRDTState)
+	}
+	if len(w.Panes) > 0 {
+		cw.Panes = make([]Pane, len(w.Panes))
+		for i := range w.Panes {
+			cw.Panes[i] = copyPane(w.Panes[i])
+		}
+	}
+	return cw
+}
+
+// copyPane returns a deep copy of a Pane, including its Environment map and
+// CRDTState bytes.
+func copyPane(p Pane) Pane {
+	cp := p // scalar fields copied by value
+	if p.Environment != nil {
+		cp.Environment = make(map[string]string, len(p.Environment))
+		for k, v := range p.Environment {
+			cp.Environment[k] = v
+		}
+	}
+	if p.CRDTState != nil {
+		cp.CRDTState = make([]byte, len(p.CRDTState))
+		copy(cp.CRDTState, p.CRDTState)
+	}
+	return cp
 }
 
 // CreateRequest holds parameters for session creation.
@@ -112,6 +159,25 @@ func (m *Manager) Create(ctx context.Context, req *CreateRequest) (*Session, err
 	}
 	id := SessionID(fmt.Sprintf("session-%d-%s", time.Now().UnixNano(), hex.EncodeToString(randBytes[:])))
 
+	// Defensively copy the request's reference fields (Environment, Labels,
+	// GPURequest) into the stored session. Storing the caller's maps/slice by
+	// reference would alias the store: a caller mutating its CreateRequest maps
+	// after Create returns would silently corrupt the stored session for every
+	// other holder, with the mutex protecting only the container, not the pointee.
+	env := make(map[string]string, len(req.Environment))
+	for k, v := range req.Environment {
+		env[k] = v
+	}
+	labels := make(map[string]string, len(req.Labels))
+	for k, v := range req.Labels {
+		labels[k] = v
+	}
+	var gpu []string
+	if len(req.GPURequest) > 0 {
+		gpu = make([]string, len(req.GPURequest))
+		copy(gpu, req.GPURequest)
+	}
+
 	s := &Session{
 		ID:            id,
 		Name:          req.Name,
@@ -120,9 +186,9 @@ func (m *Manager) Create(ctx context.Context, req *CreateRequest) (*Session, err
 		Backend:       req.Backend,
 		CPURequest:    req.CPURequest,
 		MemoryRequest: req.MemoryRequest,
-		GPURequest:    req.GPURequest,
-		Environment:   req.Environment,
-		Labels:        req.Labels,
+		GPURequest:    gpu,
+		Environment:   env,
+		Labels:        labels,
 		CreatedAt:     time.Now(),
 		UpdatedAt:     time.Now(),
 	}
