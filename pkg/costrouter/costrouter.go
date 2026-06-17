@@ -12,10 +12,21 @@
 // empty provider table returns ErrNoProviders.
 package costrouter
 
-import "errors"
+import (
+	"errors"
+	"math"
+)
 
 // ErrNoProviders is returned by Route when the provider table is empty.
 var ErrNoProviders = errors.New("costrouter: no providers")
+
+// ErrNonFiniteObjective is returned by Route when a candidate's objective value
+// (LatencyMs for Inference, CostPerHour for Training) is NaN or ±Inf. Such a
+// value cannot participate in an ordering comparison (every comparison against
+// NaN is false), so a NaN candidate at the head of the table would silently
+// seize the "best" slot and never be displaced — a mis-route. Rather than route
+// to a poisoned candidate, Route rejects the table fail-closed.
+var ErrNonFiniteObjective = errors.New("costrouter: non-finite objective value")
 
 // WorkloadType selects which objective drives provider selection.
 type WorkloadType int
@@ -61,8 +72,14 @@ func Route(t WorkloadType, providers []Provider) (Provider, error) {
 
 	best := providers[0]
 	bestScore := objective(t, best)
+	if !isFinite(bestScore) {
+		return Provider{}, ErrNonFiniteObjective
+	}
 	for _, p := range providers[1:] {
 		s := objective(t, p)
+		if !isFinite(s) {
+			return Provider{}, ErrNonFiniteObjective
+		}
 		switch {
 		case s < bestScore:
 			best, bestScore = p, s
@@ -83,4 +100,12 @@ func objective(t WorkloadType, p Provider) float64 {
 		return p.LatencyMs
 	}
 	return p.CostPerHour
+}
+
+// isFinite reports whether x is a usable, orderable objective value — i.e. not
+// NaN and not ±Inf. Comparisons against NaN are always false, so a NaN objective
+// would corrupt the min-selection; ±Inf is rejected for the same fail-closed
+// reason (a malformed/sentinel value must not silently participate in routing).
+func isFinite(x float64) bool {
+	return !math.IsNaN(x) && !math.IsInf(x, 0)
 }

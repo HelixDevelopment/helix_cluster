@@ -23,6 +23,7 @@ package workloadrouter
 import (
 	"context"
 	"errors"
+	"math"
 	"sort"
 	"sync"
 )
@@ -85,15 +86,39 @@ type scored struct {
 // composite computes the base (pre-TEE-boost) composite score for an offer
 // given a resolved live price. Higher is better: lower price and lower latency
 // contribute inversely (1/(1+x)), higher health contributes directly.
+//
+// NaN/Inf-POISON GUARD: a non-finite input on ANY factor (a hostile/buggy live
+// PriceFunc returning NaN/±Inf, or a NaN/Inf Offer field, or a non-finite
+// Weight) must not produce a NaN composite. A NaN score breaks the sort.Slice
+// strict-weak-ordering ("NaN != x" is always true, every comparison with NaN is
+// false), letting a poisoned offer SEIZE the winner slot and mis-route the
+// workload. invert() already clamps non-finite price/latency to the worst-case 0
+// contribution; here we also clamp a non-finite health term and, as a final
+// backstop, fold any non-finite composite to the worst-possible score so a
+// poisoned offer always LOSES to any finite offer rather than seizing first
+// place.
 func (m *UnifiedManager) composite(price, latency, health float64) float64 {
-	return m.Weights.Price*invert(price) +
+	if math.IsNaN(health) || math.IsInf(health, 0) {
+		health = 0
+	}
+	s := m.Weights.Price*invert(price) +
 		m.Weights.Latency*invert(latency) +
 		m.Weights.Health*health
+	if math.IsNaN(s) || math.IsInf(s, 0) {
+		// Non-finite composite (e.g. Inf*0 from a non-finite Weight) -> worst.
+		return 0
+	}
+	return s
 }
 
 // invert maps "lower is better" magnitudes into a bounded "higher is better"
-// contribution in (0,1]. Non-negative inputs only (price/latency are >= 0).
+// contribution in [0,1]. Non-negative inputs only (price/latency are >= 0). A
+// non-finite input (NaN/±Inf) is clamped to the worst-case 0 contribution so it
+// can never poison the composite with a NaN.
 func invert(x float64) float64 {
+	if math.IsNaN(x) || math.IsInf(x, 0) {
+		return 0
+	}
 	if x < 0 {
 		x = 0
 	}

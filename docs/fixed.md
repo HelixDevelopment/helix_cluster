@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 242
-**Last modified:** 2026-06-17T04:32:24Z
+**Revision:** 243
+**Last modified:** 2026-06-17T04:38:16Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **857**.
+Total completed: **860**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -788,6 +788,9 @@ Total completed: **857**.
 | HXC-1961 | Bug | P1 | pkg/costtracker: Record clamp guards only <0 -> a NaN/Inf input poisons the whole cost report (non-conservation) |  |
 | HXC-1962 | Bug | P0 | pkg/tiersec: egress allowlist over-match -> a wide CIDR target (10.0.0.0/4) lets allowlist-tier exfiltrate to public Internet |  |
 | HXC-1963 | Bug | P1 | pkg/validator: a nil-pointer field stringifies to '<nil>' -> required/min= fail open (missing field reported present) |  |
+| HXC-1964 | Bug | P1 | pkg/costrouter: NaN/Inf objective poisons Route min-selection -> mis-route (NaN seizes cheapest, -Inf bypass) |  |
+| HXC-1965 | Bug | P1 | pkg/workloadrouter: NaN/Inf score breaks sort comparator (strict-weak-ordering) -> poisoned offer seizes winner |  |
+| HXC-1966 | Task | P3 | NaN-poison scan: pkg/gpucatalog + pkg/gravalverify (false positives; no caller float / uint ratio finite) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
