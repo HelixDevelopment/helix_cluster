@@ -58,8 +58,17 @@ func Place(job Job, regions []Region) (Placement, error) {
 	var best *Region
 	for i := range regions {
 		r := &regions[i]
-		if r.LatencyMS > job.MaxLatencyMS {
-			continue // latency-ineligible
+		// Eligibility is the documented predicate `LatencyMS <= MaxLatencyMS`.
+		// It is written affirmatively (rather than `LatencyMS > Max { continue }`)
+		// so that a NaN latency is correctly EXCLUDED: a NaN ("unknown"/sensor-
+		// error) latency is not <= anything, so `NaN <= Max` is false and the
+		// region is skipped. The negated form `NaN > Max` is also false, which
+		// would wrongly ADMIT an unknown-latency region as eligible — letting it
+		// be selected as "greenest" and meter its intensity into the GramsCO2 sink
+		// despite a latency we do not know. This mirrors the NaN-CarbonIntensity
+		// guard below.
+		if !(r.LatencyMS <= job.MaxLatencyMS) {
+			continue // latency-ineligible (NaN latency falls here)
 		}
 		if math.IsNaN(r.CarbonIntensity) {
 			// A NaN carbon intensity is an unknown/sensor-error reading. Every

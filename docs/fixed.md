@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 250
-**Last modified:** 2026-06-17T05:27:36Z
+**Revision:** 251
+**Last modified:** 2026-06-17T05:33:18Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **874**.
+Total completed: **877**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -805,6 +805,9 @@ Total completed: **874**.
 | HXC-1978 | Bug | P1 | pkg/idempotent: watermark lastSeq+1 int overflow at MaxInt -> retry misclassified as GAP + phantom MinInt commit (exactly-once breach) |  |
 | HXC-1979 | Task | P3 | Re-audit: pkg/gravaladmit (no bug; HMAC attestation gate fail-closed) |  |
 | HXC-1980 | Task | P3 | Caller audit: netutil.IsPrivateIP / computeproto unsafe-decode / grpcutil demo interceptors — 3 latent risks CLEARED (zero prod callers) |  |
+| HXC-1981 | Bug | P1 | pkg/forecast: OLS slope uncentered normal-equation form -> catastrophic cancellation at large ticks flips sign -> PreWarm suppressed on rising load |  |
+| HXC-1982 | Bug | P1 | pkg/carbonsched: NaN latency bypasses the latency-eligibility filter (symmetric hole the carbon-NaN fix missed) |  |
+| HXC-1983 | Task | P3 | Deep re-audit: pkg/balancemonitor (no bug; billing-balance poller, total_available fallback pinned) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

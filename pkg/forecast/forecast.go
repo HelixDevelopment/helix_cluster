@@ -128,27 +128,50 @@ func (f *Forecaster) Observe(tick int, util float64) (preWarm bool, projected fl
 // slope returns the least-squares slope of util vs tick over the current
 // window. ok is false when fewer than two samples (or a degenerate spread of
 // ticks) prevent a slope from being defined.
+//
+// It uses the MEAN-CENTERED normal-equation form (subtract the mean tick x̄ and
+// mean util ȳ before accumulating the cross- and variance-sums):
+//
+//	slope = Σ(x-x̄)(y-ȳ) / Σ(x-x̄)^2
+//
+// This is the mathematically identical ordinary-least-squares slope as the
+// textbook uncentered form slope = (n·ΣXY − ΣX·ΣY)/(n·ΣXX − (ΣX)^2), but it is
+// numerically STABLE. The uncentered form computes denom and numerator as
+// differences of two large, nearly-equal quantities (n·ΣXX vs (ΣX)^2). When the
+// tick values are large — e.g. a long-running or high-frequency tick counter at
+// ~2^30 (≈1.07e9), where ΣXX≈1e18 and (ΣX)^2≈1e18 agree in all but the low bits —
+// that subtraction loses almost all significance to CATASTROPHIC CANCELLATION and
+// the computed slope can change sign: a genuinely rising trend (true slope +0.05)
+// is read as declining (−0.025). Because the fire gate requires
+// slope > slopeEpsilon, a sign-flipped slope SILENTLY SUPPRESSES a legitimate
+// PreWarm — the forecaster fails to pre-warm ahead of a real load climb (a
+// missed-scale-up availability defect on a crafted-but-valid finite/in-range
+// series). Centering keeps the accumulated terms O(spread^2) rather than
+// O(magnitude^2), so no cancellation occurs and the slope sign is preserved.
 func (f *Forecaster) slope() (slopeVal float64, ok bool) {
 	n := len(f.samples)
 	if n < 2 {
 		return 0, false
 	}
-	var sumX, sumY, sumXY, sumXX float64
+	var sumX, sumY float64
 	for _, s := range f.samples {
-		x := float64(s.tick)
-		y := s.util
-		sumX += x
-		sumY += y
-		sumXY += x * y
-		sumXX += x * x
+		sumX += float64(s.tick)
+		sumY += s.util
 	}
 	fn := float64(n)
-	denom := fn*sumXX - sumX*sumX
+	meanX := sumX / fn
+	meanY := sumY / fn
+	var num, denom float64
+	for _, s := range f.samples {
+		dx := float64(s.tick) - meanX
+		num += dx * (s.util - meanY)
+		denom += dx * dx
+	}
 	if denom == 0 {
 		// All ticks identical: slope undefined.
 		return 0, false
 	}
-	return (fn*sumXY - sumX*sumY) / denom, true
+	return num / denom, true
 }
 
 // FiredTick reports the tick at which a PreWarm first fired and whether one has
