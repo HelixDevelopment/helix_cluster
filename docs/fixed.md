@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 246
-**Last modified:** 2026-06-17T04:57:41Z
+**Revision:** 247
+**Last modified:** 2026-06-17T05:06:41Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **866**.
+Total completed: **867**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -797,6 +797,7 @@ Total completed: **866**.
 | HXC-1970 | Bug | P2 | pkg/gpupool: deviceLess NaN breaks Select strict-weak-ordering -> non-deterministic winner (violates deterministic-selection) |  |
 | HXC-1971 | Bug | P1 | pkg/backfill: timeline end-time overflow (start+duration wraps negative) -> fits() MISADMIT over a full region + timeline corruption |  |
 | HXC-1972 | Task | P3 | Aliasing/correctness sweep: pkg/metering + pkg/cloudspot (no bug; value-return + drain-handler) |  |
+| HXC-1973 | Task | P2 | Re-audit: pkg/inferenceproxy + internal/advisory + pkg/auctionplace (no bug; mutex/value-return correct) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
