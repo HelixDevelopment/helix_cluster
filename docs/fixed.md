@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 251
-**Last modified:** 2026-06-17T05:33:18Z
+**Revision:** 252
+**Last modified:** 2026-06-17T05:40:05Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **877**.
+Total completed: **880**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -808,6 +808,9 @@ Total completed: **877**.
 | HXC-1981 | Bug | P1 | pkg/forecast: OLS slope uncentered normal-equation form -> catastrophic cancellation at large ticks flips sign -> PreWarm suppressed on rising load |  |
 | HXC-1982 | Bug | P1 | pkg/carbonsched: NaN latency bypasses the latency-eligibility filter (symmetric hole the carbon-NaN fix missed) |  |
 | HXC-1983 | Task | P3 | Deep re-audit: pkg/balancemonitor (no bug; billing-balance poller, total_available fallback pinned) |  |
+| HXC-1984 | Bug | P1 | pkg/ewmarank: New(alpha) clamp lets a NaN alpha through (symmetric hole the NaN-sample fix missed) -> poisons EWMA on 2nd sample -> mis-rank |  |
+| HXC-1985 | Bug | P1 | pkg/rescorer: NaN-price sentinel (-Inf) COLLIDES with a legit +Inf-priced provider -> tie -> insertion-order-dependent rank |  |
+| HXC-1986 | Bug | P1 | pkg/hlc: bumpLogical carry never guards physical==MaxInt64 -> saturated remote wraps physical to MinInt64 -> ~2^63ns backward clock jump (monotonicity violation) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

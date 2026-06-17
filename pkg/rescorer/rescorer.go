@@ -150,17 +150,26 @@ func (r *ReScorer) rerank() {
 	sort.SliceStable(ids, func(a, b int) bool {
 		sa := score(r.providers[ids[a]].scored)
 		sb := score(r.providers[ids[b]].scored)
-		// Sink a NaN score to the worst possible value. score(NaN price)=NaN, and
-		// a raw NaN comparison (sa != sb true, sa > sb false both ways) is NOT a
-		// strict weak ordering — sort.SliceStable would then produce an
-		// insertion-order-dependent ranking, letting a NaN-priced provider seize
-		// the top slot and capture traffic. Mapping NaN -> -Inf makes such a
-		// provider rank last deterministically; finite scores are unaffected.
-		if math.IsNaN(sa) {
-			sa = math.Inf(-1)
-		}
-		if math.IsNaN(sb) {
-			sb = math.Inf(-1)
+		// NaN handling. score(NaN price)=NaN, and a raw NaN comparison
+		// (sa != sb true, sa > sb false both ways) is NOT a strict weak ordering —
+		// sort.SliceStable would then produce an insertion-order-dependent ranking,
+		// letting a NaN-priced provider seize the top slot and capture traffic.
+		//
+		// A NaN score must rank STRICTLY below every real (finite or ±Inf) score so
+		// a broken/garbage provider is always demoted last. We must NOT collapse NaN
+		// onto a sentinel like -Inf: score(+Inf price) == -Inf already, so sinking
+		// NaN to -Inf makes a garbage NaN provider TIE with a legitimately-priced
+		// +Inf provider, and their relative rank then flips with insertion order
+		// (the symmetric hole the price-only guard left). Instead, classify NaN
+		// explicitly and order it after all real scores; NaN-vs-NaN defers to the
+		// insertion-order tie-break for determinism.
+		aNaN, bNaN := math.IsNaN(sa), math.IsNaN(sb)
+		if aNaN || bNaN {
+			if aNaN != bNaN {
+				return !aNaN // a real score outranks a NaN; NaN sinks below it
+			}
+			// both NaN: tie -> insertion order
+			return idx[ids[a]] < idx[ids[b]]
 		}
 		if sa != sb {
 			return sa > sb // higher score first => cheaper first

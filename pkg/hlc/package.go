@@ -166,6 +166,21 @@ func (c *Clock) Now() Timestamp {
 // timestamp), and the carry is a single-nanosecond physical adjustment.
 func bumpLogical(physical int64, base uint32) (int64, uint32) {
 	if base == math.MaxUint32 {
+		if physical == math.MaxInt64 {
+			// Both components are saturated: (math.MaxInt64, math.MaxUint32) is
+			// the largest representable Timestamp, so physical+1 would WRAP to
+			// math.MinInt64 — a catastrophic backward jump that violates strict
+			// monotonicity and happens-before domination. `physical` here can be
+			// peer/attacker-controlled (a remote sending {MaxInt64, MaxUint32}
+			// via Update reaches this with clamping disabled), so the wrap is an
+			// externally reachable defect. There is no larger timestamp to return;
+			// saturate at the ceiling. This preserves monotonicity (the result is
+			// never < a prior value) and the total order. Strict-increase is the
+			// only casualty, and only at the absolute top of the value space —
+			// ~292 years past the Unix epoch with a fully saturated logical run —
+			// which is the honest, non-wrapping limit of a fixed 12-byte clock.
+			return math.MaxInt64, math.MaxUint32
+		}
 		return physical + 1, 0
 	}
 	return physical, base + 1

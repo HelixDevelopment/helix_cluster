@@ -47,9 +47,15 @@ type Ranker struct {
 }
 
 // New constructs a Ranker with the given smoothing factor alpha. If alpha is
-// not in (0, 1], DefaultAlpha is used instead.
+// not in (0, 1], DefaultAlpha is used instead. A NaN alpha is rejected the same
+// way: the (alpha <= 0 || alpha > 1) bound is FALSE in both directions for NaN
+// (every NaN comparison is false), so without an explicit math.IsNaN check a NaN
+// alpha would slip through unclamped and then poison EVERY backend's EWMA on the
+// first smoothed update (alpha*sample+(1-alpha)*ewma == NaN), collapsing Rank's
+// least-loaded order to insertion order — the alpha-axis twin of the dropped-NaN
+// sample guard in Observe. (±Inf alpha is already covered: +Inf>1 and -Inf<=0.)
 func New(alpha float64) *Ranker {
-	if alpha <= 0 || alpha > 1 {
+	if math.IsNaN(alpha) || alpha <= 0 || alpha > 1 {
 		alpha = DefaultAlpha
 	}
 	return &Ranker{
