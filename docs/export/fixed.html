@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 246 <strong>Last modified:</strong>
-2026-06-17T04:57:41Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 249 <strong>Last modified:</strong>
+2026-06-17T05:20:22Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>866</strong>.</p>
+<p>Total completed: <strong>873</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -6259,6 +6259,63 @@ corruption</td>
 <td>P3</td>
 <td>Aliasing/correctness sweep: pkg/metering + pkg/cloudspot (no bug;
 value-return + drain-handler)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1973</td>
+<td>Task</td>
+<td>P2</td>
+<td>Re-audit: pkg/inferenceproxy + internal/advisory + pkg/auctionplace
+(no bug; mutex/value-return correct)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1974</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/flowcontrol: duplicate-live-ID seat leak (mislabeled latent)
+-&gt; capacity permanently shrinks -&gt; starvation</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1975</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/constraints: score+bonus int overflow wraps negative -&gt;
+silent WRONG-NODE pick (err=nil), not just clean error</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1976</td>
+<td>Task</td>
+<td>P3</td>
+<td>Latent-risk verify: pkg/federation relay-after-unlock reorder
+CONFIRMED benign (receiver monotonic)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1977</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/redundantexec: duplicate-WorkerID Sybil quorum forgery
+(mislabeled latent; existing test was a PASS-bluff)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1978</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/idempotent: watermark lastSeq+1 int overflow at MaxInt -&gt;
+retry misclassified as GAP + phantom MinInt commit (exactly-once
+breach)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1979</td>
+<td>Task</td>
+<td>P3</td>
+<td>Re-audit: pkg/gravaladmit (no bug; HMAC attestation gate
+fail-closed)</td>
 <td></td>
 </tr>
 <tr>
