@@ -63,7 +63,7 @@ func Schedule(capacity int, jobs []Job) (*Plan, error) {
 		assignments = append(assignments, Assignment{
 			JobID:      j.ID,
 			StartTime:  start,
-			EndTime:    start + j.WallTime,
+			EndTime:    addClamp(start, j.WallTime),
 			Backfilled: backfilled,
 		})
 		if start > maxHigherStart {

@@ -1,6 +1,25 @@
 package backfill
 
-import "sort"
+import (
+	"math"
+	"sort"
+)
+
+// addClamp returns a+b, saturating at math.MaxInt instead of wrapping to a
+// negative value on overflow. Window math here (end = start + duration) feeds
+// both the occupancy-fit comparison and the delta-map keys; an unguarded wrap
+// produces a negative "end" that (a) makes fits() skip every interior boundary
+// (b >= end is trivially true for a negative end) and silently ADMIT a window
+// that overlaps a fully-booked region, and (b) writes a delta at a negative key
+// that sorts before t=0, driving occupancy negative across the whole timeline.
+// Clamping keeps end monotonic (>= start) so neither corruption can occur; for
+// in-envelope inputs (small abstract time units) it is a no-op.
+func addClamp(a, b int) int {
+	if b > 0 && a > math.MaxInt-b {
+		return math.MaxInt
+	}
+	return a + b
+}
 
 // timeline tracks committed resource usage over discrete time. It is the
 // authoritative occupancy map used both to place reservations and to test
@@ -51,7 +70,7 @@ func (tl *timeline) usedAt(t int) int {
 // boundary that falls strictly inside the interval — those are the only points
 // where occupancy can rise.
 func (tl *timeline) fits(start, duration, width int) bool {
-	end := start + duration
+	end := addClamp(start, duration)
 	// Occupancy entering the window.
 	if tl.usedAt(start)+width > tl.capacity {
 		return false
@@ -110,7 +129,7 @@ func (tl *timeline) reserve(start, duration, width int) {
 	if !tl.fits(start, duration, width) {
 		panic("backfill: reserve would exceed capacity invariant")
 	}
-	end := start + duration
+	end := addClamp(start, duration)
 	tl.delta[start] += width
 	tl.delta[end] -= width
 	// Drop keys that net to zero to keep the boundary set tight.
