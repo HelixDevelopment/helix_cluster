@@ -104,9 +104,12 @@ func (r *Registry) ApplyFingerprint(fp Fingerprint) error {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	// Upsert every reported device and (re)stamp its owner.
+	// Upsert every reported device and (re)stamp its owner. We store a CLONE so
+	// the registry does not alias the caller's Device.Capabilities backing array:
+	// a plugin that later mutates the slice it handed us (e.g. reusing a scratch
+	// buffer across fingerprints) must not be able to corrupt committed inventory.
 	for _, d := range fp.Devices {
-		r.devices[d.ID] = d
+		r.devices[d.ID] = cloneDevice(d)
 		r.owner[d.ID] = fp.PluginName
 	}
 
@@ -131,11 +134,18 @@ func (r *Registry) ApplyFingerprint(fp Fingerprint) error {
 }
 
 // Device returns the last-reported fingerprint for a device ID.
+//
+// The returned Device is a CLONE: its Capabilities slice does not alias the
+// registry's internal copy, so a caller mutating the result cannot corrupt
+// inventory state held under the lock.
 func (r *Registry) Device(id string) (Device, bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	d, ok := r.devices[id]
-	return d, ok
+	if !ok {
+		return Device{}, false
+	}
+	return cloneDevice(d), true
 }
 
 // Count returns the number of known devices. It is a cheap len-under-lock and
@@ -154,7 +164,9 @@ func (r *Registry) Inventory() []Device {
 	defer r.mu.Unlock()
 	out := make([]Device, 0, len(r.devices))
 	for _, d := range r.devices {
-		out = append(out, d)
+		// Clone so the snapshot does not alias internal Capabilities slices;
+		// callers routinely iterate/mutate Inventory output.
+		out = append(out, cloneDevice(d))
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].ID < out[j].ID })
 	return out
@@ -262,6 +274,23 @@ func (r *Registry) Release(ids ...string) int {
 		}
 	}
 	return released
+}
+
+// cloneDevice returns a copy of d whose Capabilities slice is independent of
+// d's. Device is otherwise composed of value types (strings, numbers), so a
+// shallow struct copy plus a fresh Capabilities slice fully isolates the result
+// from any shared backing array. This is the single aliasing boundary the
+// Registry must defend on both ingest (ApplyFingerprint) and read (Device,
+// Inventory): without it, mutating a returned device's Capabilities — or a
+// caller mutating a slice it previously handed to ApplyFingerprint — would
+// silently corrupt committed inventory held under the lock.
+func cloneDevice(d Device) Device {
+	if d.Capabilities != nil {
+		caps := make([]string, len(d.Capabilities))
+		copy(caps, d.Capabilities)
+		d.Capabilities = caps
+	}
+	return d
 }
 
 // equalModel compares two model strings case-insensitively without allocating.

@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 254
-**Last modified:** 2026-06-17T05:58:13Z
+**Revision:** 255
+**Last modified:** 2026-06-17T06:04:38Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **885**.
+Total completed: **887**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -816,6 +816,8 @@ Total completed: **885**.
 | HXC-1989 | Bug | P1 | pkg/helixnet: ProdNetwork.Receive select races a ready timer against a buffered message -> already-arrived msg reported ErrTimeout ~50% |  |
 | HXC-1990 | Bug | P1 | pkg/hxcregistry: Reconcile runs two autocommit UPDATEs (not in a tx) -> a mid-way error leaves the registry half-reconciled |  |
 | HXC-1991 | Task | P3 | Incomplete-fix hunt: pkg/gitops PlanRollingSync (dropped-apps fix COMPLETE; conservation/ordering/isolation verified) |  |
+| HXC-1992 | Bug | P1 | pkg/deviceplugin: Device.Capabilities slice aliased between registry and callers -> caller mutation corrupts committed inventory |  |
+| HXC-1993 | Task | P3 | Re-audit: pkg/fedtrust + pkg/anticheat (no bug; fail-closed precedence + HMAC token binding) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
