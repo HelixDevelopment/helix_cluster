@@ -176,13 +176,13 @@
 <h1 class="title">fixed</h1>
 </header>
 <h1 id="fixed">Fixed</h1>
-<p><strong>Revision:</strong> 253 <strong>Last modified:</strong>
-2026-06-17T05:49:22Z <strong>Description:</strong> Completed workable
+<p><strong>Revision:</strong> 255 <strong>Last modified:</strong>
+2026-06-17T06:04:38Z <strong>Description:</strong> Completed workable
 items (with evidence references) <strong>Authority:</strong>
 Constitution §11.4.93 (workable-items DB single source of truth)
 <strong>Generated-by:</strong> scripts/docs/db_to_md.py (DB is
 canonical; edit via cmd/hxc-registry, not by hand)</p>
-<p>Total completed: <strong>882</strong>.</p>
+<p>Total completed: <strong>887</strong>.</p>
 <table>
 <colgroup>
 <col style="width: 20%" />
@@ -6392,6 +6392,47 @@ jump (monotonicity violation)</td>
 <td>P3</td>
 <td>Incomplete-fix hunt: pkg/edge (latent symmetric fail-open, no
 caller) + pkg/classads (depth-cap COMPLETE)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1989</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/helixnet: ProdNetwork.Receive select races a ready timer against
+a buffered message -&gt; already-arrived msg reported ErrTimeout
+~50%</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1990</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/hxcregistry: Reconcile runs two autocommit UPDATEs (not in a tx)
+-&gt; a mid-way error leaves the registry half-reconciled</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1991</td>
+<td>Task</td>
+<td>P3</td>
+<td>Incomplete-fix hunt: pkg/gitops PlanRollingSync (dropped-apps fix
+COMPLETE; conservation/ordering/isolation verified)</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1992</td>
+<td>Bug</td>
+<td>P1</td>
+<td>pkg/deviceplugin: Device.Capabilities slice aliased between registry
+and callers -&gt; caller mutation corrupts committed inventory</td>
+<td></td>
+</tr>
+<tr>
+<td>HXC-1993</td>
+<td>Task</td>
+<td>P3</td>
+<td>Re-audit: pkg/fedtrust + pkg/anticheat (no bug; fail-closed
+precedence + HMAC token binding)</td>
 <td></td>
 </tr>
 <tr>
