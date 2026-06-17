@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 248
-**Last modified:** 2026-06-17T05:14:03Z
+**Revision:** 249
+**Last modified:** 2026-06-17T05:20:22Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **870**.
+Total completed: **873**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -801,6 +801,9 @@ Total completed: **870**.
 | HXC-1974 | Bug | P1 | pkg/flowcontrol: duplicate-live-ID seat leak (mislabeled latent) -> capacity permanently shrinks -> starvation |  |
 | HXC-1975 | Bug | P1 | pkg/constraints: score+bonus int overflow wraps negative -> silent WRONG-NODE pick (err=nil), not just clean error |  |
 | HXC-1976 | Task | P3 | Latent-risk verify: pkg/federation relay-after-unlock reorder CONFIRMED benign (receiver monotonic) |  |
+| HXC-1977 | Bug | P1 | pkg/redundantexec: duplicate-WorkerID Sybil quorum forgery (mislabeled latent; existing test was a PASS-bluff) |  |
+| HXC-1978 | Bug | P1 | pkg/idempotent: watermark lastSeq+1 int overflow at MaxInt -> retry misclassified as GAP + phantom MinInt commit (exactly-once breach) |  |
+| HXC-1979 | Task | P3 | Re-audit: pkg/gravaladmit (no bug; HMAC attestation gate fail-closed) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

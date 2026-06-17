@@ -110,25 +110,53 @@ func (b *Broker) Append(msg Message) (Result, error) {
 	b.mu.Lock()
 	defer b.mu.Unlock()
 
-	exp := b.expected(msg.ProducerID)
+	// Decide accept/duplicate/gap WITHOUT ever computing lastSeq+1 directly, so a
+	// watermark at math.MaxInt cannot overflow to math.MinInt and misclassify a
+	// retry (Seq <= lastSeq) as a gap or admit a spurious MinInt message. We
+	// compare against the watermark `last` itself; "in-order" is expressed as
+	// `msg.Seq-1 == last` (overflow-safe for every Seq except the degenerate
+	// math.MinInt, which can never be the successor of an int watermark anyway).
+	last, hasWatermark := b.lastSeq[msg.ProducerID]
+	var (
+		accept    bool
+		duplicate bool
+	)
+	if hasWatermark {
+		switch {
+		case msg.Seq <= last:
+			duplicate = true // retry/duplicate of an already-committed Seq
+		case msg.Seq-1 == last:
+			accept = true // exactly the next expected Seq
+		}
+		// else: msg.Seq > last+1 -> gap (accept and duplicate both false)
+	} else {
+		// No committed message yet: the only acceptable first Seq is base; any
+		// Seq below base is a pre-base duplicate, any Seq above base is a gap.
+		switch {
+		case msg.Seq < b.base:
+			duplicate = true
+		case msg.Seq == b.base:
+			accept = true
+		}
+	}
 
 	switch {
-	case msg.Seq == exp:
+	case accept:
 		// In-order: commit exactly once and advance the watermark.
 		b.log = append(b.log, msg)
 		b.lastSeq[msg.ProducerID] = msg.Seq
 		b.seen[msg.ProducerID]++
 		return Accepted, nil
 
-	case msg.Seq < exp:
-		// Seq <= lastSeq: a retry/duplicate of an already-committed (or pre-base)
-		// Seq. Idempotent no-op — do NOT append again.
+	case duplicate:
+		// Seq <= lastSeq (or pre-base): a retry/duplicate of an already-committed
+		// (or pre-base) Seq. Idempotent no-op — do NOT append again.
 		return AlreadyApplied, nil
 
-	default: // msg.Seq > exp
+	default:
 		// Gap: a future Seq arrived before its predecessor. Reject; do not append.
 		return AlreadyApplied, fmt.Errorf("%w: producer=%q seq=%d expected=%d",
-			ErrOutOfSequence, msg.ProducerID, msg.Seq, exp)
+			ErrOutOfSequence, msg.ProducerID, msg.Seq, b.expected(msg.ProducerID))
 	}
 }
 

@@ -148,6 +148,12 @@ func (v *Validator) thresholdCount(total int) int {
 //
 // If no value reaches the quorum threshold, or the leader is tied, ErrNoQuorum
 // is returned and NO trust is changed and NO canonical value is chosen.
+//
+// Quorum and trust are tallied per DISTINCT WorkerID, not per row. If the same
+// WorkerID appears more than once in results, only its first occurrence counts;
+// later duplicate rows are ignored (one vote and one trust update per worker).
+// This prevents a single worker from forging a majority or double-rewarding
+// itself via duplicated rows. TotalCount/AgreeCount reflect distinct workers.
 func (v *Validator) Validate(taskID string, results []Result) (Validated, error) {
 	if len(results) == 0 {
 		return Validated{}, ErrNoResults
@@ -163,6 +169,25 @@ func (v *Validator) Validate(taskID string, results []Result) (Validated, error)
 	if v.workers == nil {
 		v.workers = make(map[string]*Worker)
 	}
+
+	// Quorum and trust are computed PER DISTINCT WORKER, never per row. A worker
+	// that appears more than once in one result set (whether by caller error or a
+	// Sybil-via-duplicate attempt) must contribute at most ONE vote toward quorum
+	// and receive at most ONE trust update — otherwise a single worker could
+	// manufacture a fake "majority" alone (e.g. 2-of-3 with one duplicated row)
+	// and double-reward itself, corrupting the consensus the validator exists to
+	// protect. We deduplicate first-row-wins: the first result seen for a given
+	// WorkerID is authoritative; any later row from the same WorkerID is ignored.
+	seen := make(map[string]struct{}, len(results))
+	deduped := make([]Result, 0, len(results))
+	for _, r := range results {
+		if _, dup := seen[r.WorkerID]; dup {
+			continue
+		}
+		seen[r.WorkerID] = struct{}{}
+		deduped = append(deduped, r)
+	}
+	results = deduped
 
 	total := len(results)
 

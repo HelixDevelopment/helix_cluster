@@ -96,28 +96,24 @@ func TestMixedNilAndValueQuorum(t *testing.T) {
 	}
 }
 
-// TestDuplicateWorkerInflatesQuorumAndTrust is the adversarial centerpiece. It
-// documents that Validate counts results PER ROW, not per distinct worker. A
-// single worker that appears multiple times in one result set:
+// TestDuplicateWorkerInflatesQuorumAndTrust was originally written to PIN a
+// Sybil-via-duplicate weakness as a "latent risk": Validate counted results PER
+// ROW, so one worker appearing twice (a) manufactured a 2-of-3 majority alone,
+// (b) was rewarded twice, and (c) appeared twice in AgreeingWorkers.
 //
-//  1. contributes multiple votes toward quorum (can manufacture a "majority"
-//     by itself), and
-//  2. receives the agree-reward once PER row (compounded trust gain), and
-//  3. is listed multiple times in AgreeingWorkers.
+// That weakness has been confirmed an ALWAYS-ON, publicly reachable bug and
+// FIXED: Validate now tallies quorum and trust per DISTINCT WorkerID
+// (first-row-wins dedup). The original assertions pinned the vulnerability as
+// "correct", making this a CLAUDE-1 PASS-bluff; they are replaced below with
+// the corrected oracle. The exhaustive proof lives in
+// redundantexec_adversarial2_test.go.
 //
-// The package documents a "quorum (majority) agreement" trust model, which
-// presupposes independent workers; nothing documents de-duplication. This test
-// PINS the current behavior so a future change is intentional, and flags the
-// Sybil-via-duplicate weakness as a LATENT RISK (not fixed here — it would be a
-// behavior change requiring a coordinated contract decision).
-//
-// CLASSIFICATION: LATENT RISK (pinned). One worker submitted twice reaches
-// "quorum" of 2-of-3 alone.
+// CLASSIFICATION: REAL BUG (fixed). A duplicated worker must NOT forge quorum.
 func TestDuplicateWorkerInflatesQuorumAndTrust(t *testing.T) {
 	v := NewValidator(0.5)
 	results := []Result{
 		{WorkerID: "solo", Value: "X"},
-		{WorkerID: "solo", Value: "X"}, // SAME worker, duplicate row
+		{WorkerID: "solo", Value: "X"}, // SAME worker, duplicate row — must be ignored
 		{WorkerID: "other", Value: "Y"},
 	}
 	beforeSolo := v.Trust("solo")
@@ -125,34 +121,21 @@ func TestDuplicateWorkerInflatesQuorumAndTrust(t *testing.T) {
 	t.Logf("run=%s dup err=%v value=%v agree=%d/%d agreeing=%v",
 		advRunUUID, err, got.Value, got.AgreeCount, got.TotalCount, got.AgreeingWorkers)
 
-	// Current behavior: the duplicate manufactures a 2-of-3 plurality for X.
-	if err != nil {
-		t.Fatalf("run=%s duplicate-worker quorum unexpectedly failed: err=%v", advRunUUID, err)
+	// After dedup the distinct set is {solo:X, other:Y} — a 1-1 tie among two
+	// distinct workers, which is NOT a quorum. The duplicate no longer forges a
+	// majority for X.
+	if !errors.Is(err, ErrNoQuorum) {
+		t.Fatalf("run=%s duplicated worker forged a quorum (err=%v value=%v) — dedup failed",
+			advRunUUID, err, got.Value)
 	}
-	if got.Value != "X" {
-		t.Fatalf("run=%s want X (duplicate-manufactured), got %v", advRunUUID, got.Value)
+	if got.Value != nil {
+		t.Fatalf("run=%s want no canonical value after dedup tie, got %v", advRunUUID, got.Value)
 	}
-	if got.AgreeCount != 2 {
-		t.Fatalf("run=%s want agree=2 from a single duplicated worker, got %d", advRunUUID, got.AgreeCount)
-	}
-	// AgreeingWorkers lists the same worker twice (no de-dup).
-	if len(got.AgreeingWorkers) != 2 ||
-		got.AgreeingWorkers[0] != "solo" || got.AgreeingWorkers[1] != "solo" {
-		t.Fatalf("run=%s AgreeingWorkers=%v, want [solo solo] (duplicate not de-duped)",
-			advRunUUID, got.AgreeingWorkers)
-	}
-	// Trust compounded: +reward applied twice in one Validate (once per
-	// duplicate row). We assert the net gain is ~2*TrustReward, not 1*, with a
-	// float tolerance (sequential clamped adds differ from a single 2x add in the
-	// last ULP, so exact == is not a valid oracle here).
+	// No quorum => no trust change at all.
 	afterSolo := v.Trust("solo")
-	gain := afterSolo - beforeSolo
-	t.Logf("run=%s solo trust before=%.4f after=%.4f gain=%.4f (want ~%.4f = 2x reward)",
-		advRunUUID, beforeSolo, afterSolo, gain, 2*TrustReward)
-	const eps = 1e-9
-	if diff := gain - 2*TrustReward; diff < -eps || diff > eps {
-		t.Errorf("run=%s solo net trust gain=%.6f, want ~%.6f (reward applied once per duplicate row)",
-			advRunUUID, gain, 2*TrustReward)
+	if afterSolo != beforeSolo {
+		t.Errorf("run=%s solo trust changed on no-quorum: before=%.4f after=%.4f",
+			advRunUUID, beforeSolo, afterSolo)
 	}
 }
 
