@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 249
-**Last modified:** 2026-06-17T05:20:22Z
+**Revision:** 250
+**Last modified:** 2026-06-17T05:27:36Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **873**.
+Total completed: **874**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -804,6 +804,7 @@ Total completed: **873**.
 | HXC-1977 | Bug | P1 | pkg/redundantexec: duplicate-WorkerID Sybil quorum forgery (mislabeled latent; existing test was a PASS-bluff) |  |
 | HXC-1978 | Bug | P1 | pkg/idempotent: watermark lastSeq+1 int overflow at MaxInt -> retry misclassified as GAP + phantom MinInt commit (exactly-once breach) |  |
 | HXC-1979 | Task | P3 | Re-audit: pkg/gravaladmit (no bug; HMAC attestation gate fail-closed) |  |
+| HXC-1980 | Task | P3 | Caller audit: netutil.IsPrivateIP / computeproto unsafe-decode / grpcutil demo interceptors — 3 latent risks CLEARED (zero prod callers) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

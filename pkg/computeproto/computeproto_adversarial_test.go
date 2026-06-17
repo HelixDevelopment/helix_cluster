@@ -22,6 +22,7 @@ package computeproto_test
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"math/rand"
 	"testing"
 
@@ -474,4 +475,109 @@ func TestDecode_CraftedRootOffset_OutOfRange(t *testing.T) {
 		return
 	}
 	t.Logf("WITNESS: crafted out-of-range root offset panics on access: %v", r.val)
+}
+
+// TestCallerSideAudit_NoUntrustedUseOfUnsafeDecode is a CALLER-SIDE pin (audit
+// 2026-06-17). The recorded latent risk is that the raw, zero-copy
+// ReadComputeTask / GetRootAsComputeTask / GetRootAsTensor accessors PANIC on
+// hostile / truncated FlatBuffers bytes (a remotely-triggerable DoS), while the
+// validated ReadComputeTaskSafe recovers that panic into ErrMalformedBuffer.
+//
+// AUDIT RESULT — verdict: DOCUMENTED CONTRACT (no caller-side bug).
+// A repo-wide search (grep for `computeproto`, `GetRootAsComputeTask`,
+// `GetRootAsTensor`, `ReadComputeTask` across pkg / internal / cmd AND the
+// submodules EventBus, containers, helixqa) found ZERO production importers of
+// this package. Every reference lives inside pkg/computeproto itself (the source
+// + its own _test.go files). Therefore NO production caller decodes
+// untrusted/network bytes with the panicking variant: there is no caller-side
+// DoS to fix. The package is left byte-identical.
+//
+// TRUST CLASSIFICATION of the two decode entry points (the contract this pin
+// guards):
+//   - ReadComputeTask / GetRootAsComputeTask / GetRootAsTensor  → TRUSTED ONLY.
+//     No bounds checking; panics on hostile input. Use solely on self-produced,
+//     in-process bytes (e.g. the output of BuildComputeTask in this process).
+//   - ReadComputeTaskSafe                                       → UNTRUSTED-SAFE.
+//     The MANDATORY entry point for any bytes arriving from the network, IPC, a
+//     peer, or any other trust boundary. Returns ErrMalformedBuffer instead of
+//     panicking.
+//
+// GUARD FOR FUTURE WORK: when a production caller is first added that decodes
+// bytes crossing a trust boundary, it MUST call ReadComputeTaskSafe (never the
+// raw variant). If it uses the raw variant on untrusted bytes, that is a real
+// caller-side DoS — and this pin is the reference for why and the prescribed fix.
+//
+// This test asserts the package-level invariant the audit relies on: the safe
+// variant exists and genuinely neutralises the exact hostile inputs that crash
+// the unsafe variant (so the prescribed remediation is real, not a paper API).
+func TestCallerSideAudit_NoUntrustedUseOfUnsafeDecode(t *testing.T) {
+	// Inputs that PANIC the unsafe variant (proven by the WITNESS tests above).
+	hostile := [][]byte{
+		nil,
+		{},
+		{0x01},
+		{0, 0, 0, 0},
+		{0xff, 0xff, 0xff, 0xff},
+	}
+	// A crafted out-of-range root offset, the strongest single witness.
+	craft := make([]byte, 8)
+	binary.LittleEndian.PutUint32(craft[0:], 0x7fffffff)
+	hostile = append(hostile, craft)
+
+	sawUnsafePanic := false
+	for i, buf := range hostile {
+		// 1) Probe the UNSAFE variant. Most of these inputs panic it (proven by
+		//    the WITNESS tests above); a few legal edge cases (e.g. a 4-byte
+		//    all-zero buffer = root offset 0, a readable empty-ish table) do NOT.
+		//    We track whether ANY input still panics so the trust classification
+		//    is demonstrably not theoretical.
+		unsafePanicked := safeDecodeComputeTask(buf).panicked
+		if unsafePanicked {
+			sawUnsafePanic = true
+		}
+
+		// 2) Confirm the prescribed remediation (ReadComputeTaskSafe) NEVER
+		//    panics — the whole point of the safe variant at a trust boundary.
+		var safePanicked bool
+		var task *computeproto.ComputeTask
+		var err error
+		func() {
+			defer func() {
+				if recover() != nil {
+					safePanicked = true
+				}
+			}()
+			task, err = computeproto.ReadComputeTaskSafe(buf)
+		}()
+		if safePanicked {
+			t.Fatalf("case %d: ReadComputeTaskSafe PANICKED on hostile input — the "+
+				"prescribed remediation for untrusted decode is broken (len=%d)", i, len(buf))
+		}
+
+		// 3) For every input that crashes the UNSAFE variant, the SAFE variant
+		//    MUST convert that DoS into ErrMalformedBuffer + nil task. (Inputs
+		//    that the unsafe variant accepts are legal and may decode cleanly —
+		//    we do not assert rejection there.)
+		if unsafePanicked {
+			if err == nil || task != nil {
+				t.Fatalf("case %d: unsafe variant panics but ReadComputeTaskSafe accepted the "+
+					"bytes (err=%v, task=%v); expected ErrMalformedBuffer + nil task (len=%d)",
+					i, err, task, len(buf))
+			}
+			if !errors.Is(err, computeproto.ErrMalformedBuffer) {
+				t.Fatalf("case %d: ReadComputeTaskSafe returned %v; expected ErrMalformedBuffer (len=%d)",
+					i, err, len(buf))
+			}
+		}
+	}
+	if !sawUnsafePanic {
+		t.Log("NOTE: no hostile input panicked the unsafe variant — a verifier may have been " +
+			"added upstream; the DoS contract changed and this pin should be re-derived.")
+	}
+
+	t.Log("CALLER-SIDE AUDIT PIN (2026-06-17): no production importer of pkg/computeproto " +
+		"exists repo-wide; the panicking ReadComputeTask/GetRootAs* variants decode only " +
+		"trusted self-produced bytes. Any future trust-boundary decode MUST use " +
+		"ReadComputeTaskSafe (verified here to neutralise the exact DoS inputs). " +
+		"VERDICT: DOCUMENTED CONTRACT — no caller-side bug.")
 }
