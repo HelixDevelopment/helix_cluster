@@ -33,7 +33,6 @@ package constraints
 // start order, actual error identity — never just "did not panic".
 
 import (
-	"errors"
 	"math"
 	"runtime"
 	"sync"
@@ -355,29 +354,22 @@ func TestNumeric_BonusDominatesOrdinaryScores(t *testing.T) {
 		advUUID, colocationBonus, colocationBonus-1, res.Placement["web"], res.Placement["cache"])
 }
 
-// TestNumeric_MaxIntScoreOverflowSplit_LatentRisk documents the LATENT RISK: a
-// caller-supplied math.MaxInt Prefer on the partner's OWN node, summed with
-// +colocationBonus, overflows int to a large NEGATIVE value, so the partner's
-// node LOSES and the Together pair SPLITS into ErrUnsatisfiable — the opposite of
-// the resource's intent (it WANTED to be with its partner on that very node).
+// TestNumeric_MaxIntScoreNoOverflowSplit_Hardened pins the HARDENED behavior
+// after the saturatingAdd fix in engine.go. PREVIOUSLY this case was a latent
+// risk: a caller-supplied math.MaxInt Prefer on the partner's OWN node, summed
+// with +colocationBonus, wrapped int to a large NEGATIVE value, so the partner's
+// node LOST and the Together pair SPLIT into a FALSE ErrUnsatisfiable — the
+// opposite of intent (b WANTED to be with its partner on that very node).
 //
-// This is a real, observable sink-side effect, but it is classified LATENT (not
-// REAL BUG) because:
-//   - it requires a pathological, near-MaxInt Score from the caller;
-//   - the documented colocationBonus is a finite constant and the "dominates"
-//     claim is a magnitude statement about ordinary scores (pinned green above);
-//   - no safety/identity invariant in the doc is breached — the engine returns a
-//     clean typed error (ErrUnsatisfiable), never a wrong/forbidden placement or
-//     a crash.
+// With saturating accumulation the sum clamps to math.MaxInt instead of
+// wrapping, so n1 (partner's node, also b's hugely-preferred node) correctly
+// wins and the pair co-locates. See also TestNumeric_SaturatingAdd_* below for
+// the mutation-isolated proof on the score helper.
 //
-// We PIN the current behavior so a future hardening (saturating add / score
-// clamp) is a deliberate, visible change rather than an accident. NO PROD FIX is
-// applied.
-//
-// Sink-side proof: with Score=MaxInt the sum overflows negative and Solve returns
-// ErrUnsatisfiable; with Score=MaxInt>>1 (no overflow when added to the bonus)
-// the same shape co-locates cleanly — isolating overflow as the cause.
-func TestNumeric_MaxIntScoreOverflowSplit_LatentRisk(t *testing.T) {
+// Sink-side proof: with Score=MaxInt the pair now co-locates on n1 (no error,
+// no split); with Score=MaxInt>>1 (never overflowed even pre-fix) the same shape
+// co-locates — both agree, confirming the wrap-driven split is gone.
+func TestNumeric_MaxIntScoreNoOverflowSplit_Hardened(t *testing.T) {
 	shape := func(score int) (Result, error) {
 		e := NewEngine(
 			[]Resource{{ID: "a"}, {ID: "b"}}, // a placed first
@@ -395,25 +387,20 @@ func TestNumeric_MaxIntScoreOverflowSplit_LatentRisk(t *testing.T) {
 		})
 	}
 
-	// Overflow case: MaxInt + colocationBonus wraps negative -> n1 loses -> split.
-	resOvf, errOvf := shape(math.MaxInt)
-	t.Logf("[%s] LATENT-RISK: Score=MaxInt -> err=%v placement=%v (n1 sum overflowed negative, pair split)",
-		advUUID, errOvf, resOvf.Placement)
-	if !errors.Is(errOvf, ErrUnsatisfiable) {
-		// If a future fix lands (saturating add), this becomes nil/co-located. We
-		// assert the CURRENT documented-as-latent behavior so the change is visible.
-		t.Fatalf("[%s] expected overflow-driven ErrUnsatisfiable at Score=MaxInt, got err=%v placement=%v "+
-			"(if you intentionally hardened the score sum, update this latent-risk pin)",
-			advUUID, errOvf, resOvf.Placement)
+	// Hardened case: MaxInt + colocationBonus saturates (no wrap) -> n1 wins -> co-located.
+	resMax, errMax := shape(math.MaxInt)
+	if errMax != nil {
+		t.Fatalf("[%s] HARDENED: Score=MaxInt unexpectedly errored (wrap-split should be gone): %v",
+			advUUID, errMax)
 	}
-	if resOvf.Placement != nil {
-		t.Fatalf("[%s] expected nil placement on the overflow split, got %v", advUUID, resOvf.Placement)
+	if resMax.Placement["b"] != "n1" {
+		t.Fatalf("[%s] HARDENED: Score=MaxInt -> b=%q, want n1 (saturating sum must keep partner's node winning)",
+			advUUID, resMax.Placement["b"])
 	}
+	t.Logf("[%s] HARDENED: Score=MaxInt -> co-located b on n1 (saturating add, no wrap-split)", advUUID)
 
-	// Control: a large score that does NOT overflow when summed with the bonus and
-	// stickiness must co-locate the pair on n1, proving overflow (not magnitude)
-	// caused the split above.
-	safe := math.MaxInt>>1 - colocationBonus // headroom for +colocationBonus without wrap
+	// Cross-check: a large score that NEVER overflowed even pre-fix agrees.
+	safe := math.MaxInt>>1 - colocationBonus
 	resOK, errOK := shape(safe)
 	if errOK != nil {
 		t.Fatalf("[%s] control (non-overflowing huge Score) unexpectedly failed: %v", advUUID, errOK)
@@ -422,7 +409,7 @@ func TestNumeric_MaxIntScoreOverflowSplit_LatentRisk(t *testing.T) {
 		t.Fatalf("[%s] control: b=%q, want n1 (huge non-overflowing Prefer + bonus on n1 must win)",
 			advUUID, resOK.Placement["b"])
 	}
-	t.Logf("[%s] control: Score=%d (no overflow) -> b co-located on n1 ; overflow isolated as the split cause",
+	t.Logf("[%s] control: Score=%d (never overflowed) -> b on n1 ; agrees with the MaxInt case",
 		advUUID, safe)
 }
 

@@ -82,6 +82,7 @@ var (
 	ErrNilClassifier  = errors.New("flowcontrol: flow schema classifier must not be nil")
 	ErrNoMatchingFlow = errors.New("flowcontrol: no flow schema matched request")
 	ErrUnknownRequest = errors.New("flowcontrol: request id not in flight")
+	ErrDuplicateID    = errors.New("flowcontrol: request id already in flight")
 )
 
 // Request is an incoming unit of work to be admitted/queued/dispatched.
@@ -247,6 +248,16 @@ func (c *Controller) Offer(r Request) (Classification, AdmissionDecision, error)
 	}
 	lvl := c.levels[cls.Level]
 
+	// Reject a request whose ID is already in flight. Seats and Finish are keyed
+	// by request ID (Request.ID is documented "must be unique among live
+	// requests"); admitting a duplicate ID would increment inFlight while the
+	// per-ID seat map only retains one entry, permanently leaking a seat (the
+	// extra in-flight credit can never be released by Finish). Rejecting here
+	// keeps inFlight == len(seats) — seat conservation — always-on.
+	if c.idInFlight(r.ID) {
+		return cls, DecisionReject, ErrDuplicateID
+	}
+
 	// Admit immediately only if a seat is free AND no one is already waiting in
 	// this level (preserve fairness: don't let a late arrival jump the queue).
 	if lvl.inFlight < lvl.concurrency && lvl.totalQueued() == 0 {
@@ -276,6 +287,17 @@ func (c *Controller) start(lvl *priorityLevel, r Request, flow string) {
 		c.maxInFlightSeen[lvl.name] = lvl.inFlight
 	}
 	c.admitted[lvl.name+"/"+flow]++
+}
+
+// idInFlight reports whether request id currently holds a seat in any level.
+// Seats are keyed by request ID, so this mirrors the scan Finish performs.
+func (c *Controller) idInFlight(id string) bool {
+	for _, lvl := range c.levels {
+		if _, ok := lvl.seats[id]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 // Finish releases the in-flight seat held by request id (found by scanning the

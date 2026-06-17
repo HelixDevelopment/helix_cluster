@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 247
-**Last modified:** 2026-06-17T05:06:41Z
+**Revision:** 248
+**Last modified:** 2026-06-17T05:14:03Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **867**.
+Total completed: **870**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -798,6 +798,9 @@ Total completed: **867**.
 | HXC-1971 | Bug | P1 | pkg/backfill: timeline end-time overflow (start+duration wraps negative) -> fits() MISADMIT over a full region + timeline corruption |  |
 | HXC-1972 | Task | P3 | Aliasing/correctness sweep: pkg/metering + pkg/cloudspot (no bug; value-return + drain-handler) |  |
 | HXC-1973 | Task | P2 | Re-audit: pkg/inferenceproxy + internal/advisory + pkg/auctionplace (no bug; mutex/value-return correct) |  |
+| HXC-1974 | Bug | P1 | pkg/flowcontrol: duplicate-live-ID seat leak (mislabeled latent) -> capacity permanently shrinks -> starvation |  |
+| HXC-1975 | Bug | P1 | pkg/constraints: score+bonus int overflow wraps negative -> silent WRONG-NODE pick (err=nil), not just clean error |  |
+| HXC-1976 | Task | P3 | Latent-risk verify: pkg/federation relay-after-unlock reorder CONFIRMED benign (receiver monotonic) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

@@ -1,5 +1,7 @@
 package constraints
 
+import "math"
+
 // Engine resolves a ConstraintSet over a fixed set of resources and candidate
 // nodes. It is constructed once and may be re-used; Solve has no hidden state.
 type Engine struct {
@@ -78,6 +80,24 @@ const (
 	vetoScore       = -(1 << 30)
 )
 
+// saturatingAdd returns a+b clamped to the int range instead of wrapping on
+// overflow. The node-score accumulation in bestNode sums caller-supplied Prefer
+// Scores, Stickiness, and colocationBonus; with a plain += a near-MaxInt sum
+// wraps to a large NEGATIVE value, which silently inverts the documented
+// "Pick the highest score" rule — a strongly-preferred node would LOSE to a
+// weakly-preferred one (a silent wrong placement) or split a Together pair into
+// a false ErrUnsatisfiable. Clamping makes "highest score wins" hold across the
+// entire int input domain; for any non-overflowing sum it is identical to +.
+func saturatingAdd(a, b int) int {
+	if b > 0 && a > math.MaxInt-b {
+		return math.MaxInt
+	}
+	if b < 0 && a < math.MinInt-b {
+		return math.MinInt
+	}
+	return a + b
+}
+
 // bestNode scores every admissible node for rid and returns the winner. A node
 // scoring vetoScore is treated as inadmissible. Returns ok=false when no node
 // is placeable.
@@ -99,13 +119,13 @@ func (e *Engine) bestNode(
 		// Location Prefer scores.
 		for _, loc := range cs.Locations {
 			if loc.Resource == rid && loc.Node == nid && loc.Affinity == Prefer {
-				score += loc.Score
+				score = saturatingAdd(score, loc.Score)
 			}
 		}
 
 		// Stickiness: bonus for staying on the node we currently occupy.
 		if cur := current[rid]; cur != "" && cur == nid {
-			score += stick[rid]
+			score = saturatingAdd(score, stick[rid])
 		}
 
 		// Colocation interactions with already-placed partners.
@@ -127,7 +147,7 @@ func (e *Engine) bestNode(
 				// (caught by the post-placement check in Solve) rather than a
 				// premature per-node veto.
 				if pnode == nid {
-					score += colocationBonus
+					score = saturatingAdd(score, colocationBonus)
 				}
 			} else {
 				// Anti-affinity: veto sharing the partner's node.
