@@ -104,7 +104,15 @@ func (v *Validator) ValidateStruct(s interface{}) error {
 
 func (v *Validator) validateField(name string, val reflect.Value, tag string) error {
 	// Dereference pointer.
-	if val.Kind() == reflect.Ptr && !val.IsNil() {
+	if val.Kind() == reflect.Ptr {
+		if val.IsNil() {
+			// A nil pointer is an ABSENT value. It must NOT be rendered via the
+			// default Sprintf branch (which yields the non-empty literal "<nil>"
+			// and would make a `required` rule FAIL OPEN — admitting a missing
+			// field as present). Represent absence as the empty string so
+			// required/min-length/oneof/email/uuid all reject it correctly.
+			return v.validateAbsentField(name, tag)
+		}
 		val = val.Elem()
 	}
 	var strVal string
@@ -128,6 +136,25 @@ func (v *Validator) validateField(name string, val reflect.Value, tag string) er
 			continue
 		}
 		if err := v.checkRule(name, strVal, val, rule); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// validateAbsentField runs the field's rules treating a nil-pointer field as an
+// empty/absent value. strVal is "" and the carried reflect.Value is the zero
+// (invalid) Value, so numeric min/max fall through to the string-length branch
+// against an empty string — making required, min=N, oneof, email and uuid all
+// reject the absent value instead of failing open on the literal "<nil>".
+func (v *Validator) validateAbsentField(name, tag string) error {
+	var zero reflect.Value
+	for _, rule := range strings.Split(tag, ",") {
+		rule = strings.TrimSpace(rule)
+		if rule == "" {
+			continue
+		}
+		if err := v.checkRule(name, "", zero, rule); err != nil {
 			return err
 		}
 	}

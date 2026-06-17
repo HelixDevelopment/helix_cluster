@@ -16,7 +16,10 @@
 // the reported total under-counts the money actually spent).
 package costtracker
 
-import "sync"
+import (
+	"math"
+	"sync"
+)
 
 // allocation is a single recorded cost-accruing GPU allocation over the month.
 type allocation struct {
@@ -41,12 +44,14 @@ func New() *Tracker { return &Tracker{} }
 // blended math, which is purely hours-weighted over the actual cost paid.
 //
 // Negative inputs are clamped to zero so a single bad record cannot invert the
-// totals; callers in tests pass only non-negative values.
+// totals; callers in tests pass only non-negative values. Non-finite inputs
+// (NaN, ±Inf) are likewise clamped to zero: a single poisoned record must not be
+// able to destroy conservation by turning the whole reported total into NaN/Inf.
 func (t *Tracker) Record(costPerHour, hours float64, spot bool) {
-	if costPerHour < 0 {
+	if costPerHour < 0 || math.IsNaN(costPerHour) || math.IsInf(costPerHour, 0) {
 		costPerHour = 0
 	}
-	if hours < 0 {
+	if hours < 0 || math.IsNaN(hours) || math.IsInf(hours, 0) {
 		hours = 0
 	}
 	t.mu.Lock()

@@ -133,30 +133,25 @@ func Enforce(tier string, op Operation) (Decision, error) {
 	}, nil
 }
 
-// egressPermitted reports whether target (IP address or CIDR) falls inside any
-// of the CIDRs in the allowlist. It uses stdlib net.ParseCIDR and (*net.IPNet).Contains.
+// egressPermitted reports whether target (IP address or CIDR) is permitted by
+// the allowlist. It uses stdlib net.ParseCIDR and (*net.IPNet).Contains.
 //
 // target may be:
-//   - a bare IP address ("192.168.1.1")
-//   - a CIDR prefix ("192.168.1.0/24") — the network address of the prefix is
-//     checked against the allowlist CIDRs
+//   - a bare IP address ("192.168.1.1") — permitted iff the address falls inside
+//     one of the allowlist CIDRs.
+//   - a CIDR prefix ("192.168.1.0/24") — permitted iff the ENTIRE prefix is a
+//     subset of (fully contained in) one of the allowlist CIDRs. Probing only the
+//     prefix's network address would FAIL OPEN: a deliberately wide target such
+//     as "10.0.0.0/4" (which Go masks to 0.0.0.0/4 and spans public space like
+//     8.8.8.8/11.x.x.x) would land its network address inside 10.0.0.0/8 and be
+//     wrongly granted, exfiltrating to the public Internet under an allowlist
+//     tier. Full-subset containment closes that hole.
 //
 // Returns an error only for genuinely malformed allowlist CIDR entries (caller
 // misconfiguration, not a policy DENY).
 func egressPermitted(target string, cidrs []string) (bool, error) {
-	// Determine the IP to probe.  Try parsing as a pure IP first; fall back to
-	// treating the target as a CIDR prefix and extracting its host address.
-	ip := net.ParseIP(target)
-	if ip == nil {
-		probeIP, _, parseErr := net.ParseCIDR(target)
-		if parseErr != nil {
-			// target is neither a valid IP nor a valid CIDR — treat as non-routable
-			// (deny), but do NOT return a hard error (that would hide the deny reason).
-			return false, nil
-		}
-		ip = probeIP
-	}
-
+	// Parse the allowlist once; surface malformed entries as a hard error.
+	nets := make([]*net.IPNet, 0, len(cidrs))
 	for _, cidr := range cidrs {
 		_, network, err := net.ParseCIDR(cidr)
 		if err != nil {
@@ -164,9 +159,48 @@ func egressPermitted(target string, cidrs []string) (bool, error) {
 				"tiersec: malformed allowlist CIDR %q: %w", cidr, err,
 			)
 		}
-		if network.Contains(ip) {
+		nets = append(nets, network)
+	}
+
+	// Bare IP target: point containment.
+	if ip := net.ParseIP(target); ip != nil {
+		for _, network := range nets {
+			if network.Contains(ip) {
+				return true, nil
+			}
+		}
+		return false, nil
+	}
+
+	// CIDR target: the entire prefix must be a subset of an allowlist CIDR.
+	_, targetNet, parseErr := net.ParseCIDR(target)
+	if parseErr != nil {
+		// target is neither a valid IP nor a valid CIDR — treat as non-routable
+		// (deny), but do NOT return a hard error (that would hide the deny reason).
+		return false, nil
+	}
+	for _, network := range nets {
+		if cidrSubset(targetNet, network) {
 			return true, nil
 		}
 	}
 	return false, nil
+}
+
+// cidrSubset reports whether the inner prefix is fully contained within the
+// outer prefix: outer must contain inner's network address AND inner must be no
+// wider than outer (inner prefix length >= outer prefix length). This prevents a
+// broad target prefix from being admitted merely because its network address
+// happens to fall inside a narrower allowlist entry.
+func cidrSubset(inner, outer *net.IPNet) bool {
+	if !outer.Contains(inner.IP) {
+		return false
+	}
+	innerOnes, innerBits := inner.Mask.Size()
+	outerOnes, outerBits := outer.Mask.Size()
+	// Mismatched address families (e.g. IPv4 vs IPv6 mask) are not comparable.
+	if innerBits != outerBits {
+		return false
+	}
+	return innerOnes >= outerOnes
 }

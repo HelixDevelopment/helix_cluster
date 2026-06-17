@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 241
-**Last modified:** 2026-06-16T23:42:27Z
+**Revision:** 242
+**Last modified:** 2026-06-17T04:32:24Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **853**.
+Total completed: **857**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -784,6 +784,10 @@ Total completed: **853**.
 | HXC-1957 | Bug | P1 | pkg/discovery: Lookup returns TTL-expired instances as healthy (stale->dead node) + Metadata map aliasing corrupts the registry |  |
 | HXC-1958 | Bug | P1 | internal/costbroker: NaN/Inf/negative LatencyMs or Reliability bypasses selection -> pins min-search + overcharges |  |
 | HXC-1959 | Task | P2 | Deep re-audit: pkg/{jwt,security,smartrouter} (no bug; security PRIMITIVES fail-closed, mutation-proven) |  |
+| HXC-1960 | Bug | P1 | pkg/budgetcap: NewBudgetCap stores a NaN cap verbatim -> committed>NaN always false -> total cap bypass |  |
+| HXC-1961 | Bug | P1 | pkg/costtracker: Record clamp guards only <0 -> a NaN/Inf input poisons the whole cost report (non-conservation) |  |
+| HXC-1962 | Bug | P0 | pkg/tiersec: egress allowlist over-match -> a wide CIDR target (10.0.0.0/4) lets allowlist-tier exfiltrate to public Internet |  |
+| HXC-1963 | Bug | P1 | pkg/validator: a nil-pointer field stringifies to '<nil>' -> required/min= fail open (missing field reported present) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

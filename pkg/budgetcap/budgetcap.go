@@ -38,7 +38,17 @@ type BudgetCap struct {
 }
 
 // NewBudgetCap returns a BudgetCap with the given MaxCostPerHour ceiling.
+//
+// A NaN ceiling is invalid configuration and is clamped to 0 (the most
+// restrictive, fail-closed cap). This is safety-critical: with a NaN cap the
+// admission test committed+cost > cap is NaN>NaN == false for EVERY charge, so
+// an un-sanitized NaN cap would admit every allocation of arbitrary size — a
+// total cap bypass / unbounded over-spend (the construction-side twin of the
+// NaN-cost poison). +Inf is preserved as a legitimate "unlimited" ceiling.
 func NewBudgetCap(maxPerHour float64) *BudgetCap {
+	if math.IsNaN(maxPerHour) {
+		maxPerHour = 0
+	}
 	return &BudgetCap{
 		maxPerHour:  maxPerHour,
 		allocations: make(map[string]float64),
