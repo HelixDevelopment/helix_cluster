@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 252
-**Last modified:** 2026-06-17T05:40:05Z
+**Revision:** 253
+**Last modified:** 2026-06-17T05:49:22Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **880**.
+Total completed: **882**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -811,6 +811,8 @@ Total completed: **880**.
 | HXC-1984 | Bug | P1 | pkg/ewmarank: New(alpha) clamp lets a NaN alpha through (symmetric hole the NaN-sample fix missed) -> poisons EWMA on 2nd sample -> mis-rank |  |
 | HXC-1985 | Bug | P1 | pkg/rescorer: NaN-price sentinel (-Inf) COLLIDES with a legit +Inf-priced provider -> tie -> insertion-order-dependent rank |  |
 | HXC-1986 | Bug | P1 | pkg/hlc: bumpLogical carry never guards physical==MaxInt64 -> saturated remote wraps physical to MinInt64 -> ~2^63ns backward clock jump (monotonicity violation) |  |
+| HXC-1987 | Bug | P1 | pkg/retry: jitter add overflows int64 negative when MaxDelay==0 (second overflow the backoff-cap fix missed) -> hot retry loop |  |
+| HXC-1988 | Task | P3 | Incomplete-fix hunt: pkg/edge (latent symmetric fail-open, no caller) + pkg/classads (depth-cap COMPLETE) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |

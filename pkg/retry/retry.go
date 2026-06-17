@@ -150,7 +150,16 @@ func (r *Retry) computeDelay(attempt int) time.Duration {
 		// happens when delay < 4ns (int64(delay)/4 == 0). Skip jitter in that case.
 		if n := int64(delay) / 4; n > 0 {
 			jitter := time.Duration(rand.Int63n(n)) //gosec:disable G404 -- backoff jitter is load-spreading, not security-sensitive; weak PRNG is correct here
-			delay += jitter
+			// SATURATE the addition: when MaxDelay==0 (no cap) an Exponential/Linear
+			// schedule saturates `delay` to MaxInt64 (see mulDelay), and `delay+jitter`
+			// would overflow int64 and wrap NEGATIVE — handing time.NewTimer a negative
+			// duration that fires immediately, collapsing the backoff into a hot loop.
+			// math.MaxInt64-delay is the largest jitter that keeps the sum non-negative.
+			if jitter > time.Duration(math.MaxInt64)-delay {
+				delay = time.Duration(math.MaxInt64)
+			} else {
+				delay += jitter
+			}
 		}
 	}
 	return delay
