@@ -155,6 +155,23 @@ func (p *ProdNetwork) Receive(timeout time.Duration) ([]byte, string, error) {
 	}
 	p.closedMu.Unlock()
 
+	// Fast path: if a message is already buffered (or the channel is closed),
+	// serve it immediately. Without this, a Receive with a small/zero timeout
+	// races a ready buffered message against an already-expired timer in the
+	// select below; Go picks uniformly among ready cases, so a buffered message
+	// would be spuriously reported as ErrTimeout ~half the time. The interface
+	// contract is "blocks until a message arrives OR timeout elapses" — a
+	// message that has ALREADY arrived must be delivered, never skipped. (Mirrors
+	// SimNetwork.Receive's buffer-first fast path.)
+	select {
+	case env, ok := <-p.ep.ch:
+		if !ok {
+			return nil, "", ErrClosed
+		}
+		return env.payload, env.from, nil
+	default:
+	}
+
 	timer := time.NewTimer(timeout)
 	defer timer.Stop()
 

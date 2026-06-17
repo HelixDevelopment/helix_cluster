@@ -369,11 +369,24 @@ func (r *Registry) UpdateItem(item *HXCItem) error {
 func (r *Registry) Reconcile() (int, error) {
 	now := time.Now().UTC().Format(time.RFC3339)
 	var moved int
+
+	// The two partition UPDATEs MUST be one all-or-nothing unit of work. Previously
+	// they were two autocommit Execs: if the second (active -> Issues) failed after
+	// the first (terminal -> Fixed) committed, the registry was left half-reconciled
+	// — terminal rows moved to Fixed while active rows stayed stranded in Fixed — and
+	// Reconcile still returned an error, hiding the partial mutation. A transaction
+	// makes a failed reconcile leave the location distribution byte-identical.
+	tx, err := r.db.Begin()
+	if err != nil {
+		return 0, fmt.Errorf("begin reconcile tx: %w", err)
+	}
+	defer tx.Rollback() //nolint:errcheck
+
 	// One UPDATE per terminal/active partition keeps the mapping single-sourced
 	// via CanonicalLocation while staying a set-based operation (no per-row Go
 	// round-trips). Only rows whose location is wrong are touched, so re-running
 	// moves nothing.
-	res, err := r.db.Exec(r.rebind(`
+	res, err := tx.Exec(r.rebind(`
 		UPDATE items SET current_location = ?, last_modified = ?
 		WHERE status IN ('Completed', 'Obsolete') AND current_location <> ?`),
 		LocationFixed, now, LocationFixed)
@@ -384,7 +397,7 @@ func (r *Registry) Reconcile() (int, error) {
 		moved += int(n)
 	}
 
-	res, err = r.db.Exec(r.rebind(`
+	res, err = tx.Exec(r.rebind(`
 		UPDATE items SET current_location = ?, last_modified = ?
 		WHERE status NOT IN ('Completed', 'Obsolete') AND current_location <> ?`),
 		LocationIssues, now, LocationIssues)
@@ -393,6 +406,10 @@ func (r *Registry) Reconcile() (int, error) {
 	}
 	if n, affErr := res.RowsAffected(); affErr == nil {
 		moved += int(n)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return 0, fmt.Errorf("commit reconcile tx: %w", err)
 	}
 
 	return moved, nil

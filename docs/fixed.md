@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 253
-**Last modified:** 2026-06-17T05:49:22Z
+**Revision:** 254
+**Last modified:** 2026-06-17T05:58:13Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **882**.
+Total completed: **885**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -813,6 +813,9 @@ Total completed: **882**.
 | HXC-1986 | Bug | P1 | pkg/hlc: bumpLogical carry never guards physical==MaxInt64 -> saturated remote wraps physical to MinInt64 -> ~2^63ns backward clock jump (monotonicity violation) |  |
 | HXC-1987 | Bug | P1 | pkg/retry: jitter add overflows int64 negative when MaxDelay==0 (second overflow the backoff-cap fix missed) -> hot retry loop |  |
 | HXC-1988 | Task | P3 | Incomplete-fix hunt: pkg/edge (latent symmetric fail-open, no caller) + pkg/classads (depth-cap COMPLETE) |  |
+| HXC-1989 | Bug | P1 | pkg/helixnet: ProdNetwork.Receive select races a ready timer against a buffered message -> already-arrived msg reported ErrTimeout ~50% |  |
+| HXC-1990 | Bug | P1 | pkg/hxcregistry: Reconcile runs two autocommit UPDATEs (not in a tx) -> a mid-way error leaves the registry half-reconciled |  |
+| HXC-1991 | Task | P3 | Incomplete-fix hunt: pkg/gitops PlanRollingSync (dropped-apps fix COMPLETE; conservation/ordering/isolation verified) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
