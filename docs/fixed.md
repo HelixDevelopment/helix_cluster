@@ -1,12 +1,12 @@
 # Fixed
 
-**Revision:** 243
-**Last modified:** 2026-06-17T04:38:16Z
+**Revision:** 244
+**Last modified:** 2026-06-17T04:44:36Z
 **Description:** Completed workable items (with evidence references)
 **Authority:** Constitution §11.4.93 (workable-items DB single source of truth)
 **Generated-by:** scripts/docs/db_to_md.py (DB is canonical; edit via cmd/hxc-registry, not by hand)
 
-Total completed: **860**.
+Total completed: **861**.
 
 | HXC | Type | Pri | Title | Commit |
 |---|---|---|---|---|
@@ -791,6 +791,7 @@ Total completed: **860**.
 | HXC-1964 | Bug | P1 | pkg/costrouter: NaN/Inf objective poisons Route min-selection -> mis-route (NaN seizes cheapest, -Inf bypass) |  |
 | HXC-1965 | Bug | P1 | pkg/workloadrouter: NaN/Inf score breaks sort comparator (strict-weak-ordering) -> poisoned offer seizes winner |  |
 | HXC-1966 | Task | P3 | NaN-poison scan: pkg/gpucatalog + pkg/gravalverify (false positives; no caller float / uint ratio finite) |  |
+| HXC-1967 | Task | P3 | Path-traversal scan: internal/schema, internal/build/exec_builder, pkg/phase7matrix (false positives; defense-in-depth pinned) |  |
 | HXC-902 | Task | P1 |  |  |
 | HXC-903 | Task | P1 |  |  |
 | HXC-904 | Feature | P0 | Phase 4 Build Service | e5f963b |
