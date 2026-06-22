@@ -558,48 +558,48 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- updated_at triggers
-CREATE TRIGGER helix_nodes_updated_at
+CREATE OR REPLACE TRIGGER helix_nodes_updated_at
     BEFORE UPDATE ON nodes
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_gpu_devices_updated_at
+CREATE OR REPLACE TRIGGER helix_gpu_devices_updated_at
     BEFORE UPDATE ON gpu_devices
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_sessions_updated_at
+CREATE OR REPLACE TRIGGER helix_sessions_updated_at
     BEFORE UPDATE ON sessions
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_reservations_updated_at
+CREATE OR REPLACE TRIGGER helix_reservations_updated_at
     BEFORE UPDATE ON reservations
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_scheduling_queue_updated_at
+CREATE OR REPLACE TRIGGER helix_scheduling_queue_updated_at
     BEFORE UPDATE ON scheduling_queue
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_llm_advisories_updated_at
+CREATE OR REPLACE TRIGGER helix_llm_advisories_updated_at
     BEFORE UPDATE ON llm_advisories
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_build_jobs_updated_at
+CREATE OR REPLACE TRIGGER helix_build_jobs_updated_at
     BEFORE UPDATE ON build_jobs
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_users_updated_at
+CREATE OR REPLACE TRIGGER helix_users_updated_at
     BEFORE UPDATE ON users
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_network_policies_updated_at
+CREATE OR REPLACE TRIGGER helix_network_policies_updated_at
     BEFORE UPDATE ON network_policies
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
-CREATE TRIGGER helix_cluster_config_updated_at
+CREATE OR REPLACE TRIGGER helix_cluster_config_updated_at
     BEFORE UPDATE ON cluster_config
     FOR EACH ROW EXECUTE FUNCTION helix_update_updated_at_column();
 
 -- audit triggers (AFTER, so committed state is captured)
-CREATE TRIGGER helix_nodes_audit
+CREATE OR REPLACE TRIGGER helix_nodes_audit
     AFTER INSERT OR UPDATE OR DELETE ON nodes
     FOR EACH ROW EXECUTE FUNCTION helix_audit_trigger();
-CREATE TRIGGER helix_sessions_audit
+CREATE OR REPLACE TRIGGER helix_sessions_audit
     AFTER INSERT OR UPDATE OR DELETE ON sessions
     FOR EACH ROW EXECUTE FUNCTION helix_audit_trigger();
-CREATE TRIGGER helix_build_jobs_audit
+CREATE OR REPLACE TRIGGER helix_build_jobs_audit
     AFTER INSERT OR UPDATE OR DELETE ON build_jobs
     FOR EACH ROW EXECUTE FUNCTION helix_audit_trigger();
-CREATE TRIGGER helix_users_audit
+CREATE OR REPLACE TRIGGER helix_users_audit
     AFTER INSERT OR UPDATE OR DELETE ON users
     FOR EACH ROW EXECUTE FUNCTION helix_audit_trigger();
 
