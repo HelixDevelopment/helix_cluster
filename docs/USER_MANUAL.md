@@ -131,7 +131,7 @@ reads its own variables with localhost defaults.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `HELIXD_PORT` | `8081` | TCP port for the `/status` HTTP surface (`0` = ephemeral) |
+| `HELIXD_PORT` | `8081` | TCP port for the `/status` HTTP surface — also serves the `/health` and `/healthz` aliases (`0` = ephemeral) |
 | `HELIXD_HOST` | all interfaces | Bind host |
 | `HELIXD_ETCD_ADDR` | `localhost:2379` | etcd dependency address probed for `/status` |
 | `HELIXD_POSTGRES_ADDR` | `localhost:5432` | PostgreSQL dependency address probed |
@@ -287,20 +287,22 @@ container boot as requiring a present rootless runtime; it is not exercised by t
 
 | Surface | Exposed by | Endpoints | Notes |
 |---|---|---|---|
-| Daemon status | `helixd` | `GET /status` | Aggregated daemon + subservice reachability JSON |
+| Daemon status | `helixd` | `GET /status` (aliases `GET /health`, `GET /healthz`) | Aggregated daemon + subservice reachability JSON; the `/health`+`/healthz` aliases let k8s/orchestrator probes hit the conventional paths |
 | Health service | `helix-health` | `GET /health`, `/livez`, `/readyz`, `/check/<service>`; gRPC `helix.v1.HealthService` | Liveness/readiness + per-service check |
 | Metrics | `helix-gateway`, `helixd` (and other services via `pkg/metrics`) | `GET /metrics` | Prometheus exposition mounted via `metrics.Mount` |
 
 ```bash
-curl -fsS http://localhost:8081/status        # helixd
+curl -fsS http://localhost:8081/status        # helixd (also /health, /healthz)
 curl -fsS http://localhost:8080/metrics        # gateway Prometheus metrics
 curl -fsS http://localhost:<health-http>/livez # helix-health liveness
 ```
 
 > The `docs/guides/operations.md` guide describes a Prometheus stack on `:9090/metrics`, Grafana
-> dashboards, `/healthz`/`/readyz` probes and Kubernetes deployment. Those are **target operational
-> patterns / deployment options**, not all wired into the binaries in this checkout. The
-> authoritative per-binary endpoints are the ones in the table above (`/status`, `/metrics`,
+> dashboards, `/readyz` probes and Kubernetes deployment. Those are **target operational
+> patterns / deployment options**, not all wired into the binaries in this checkout. (`helixd`
+> does serve `/healthz` — and `/health` — as aliases of `/status`, so liveness probes against the
+> conventional path work today.) The authoritative per-binary endpoints are the ones in the table
+> above (`/status`+`/health`+`/healthz`, `/metrics`,
 > `/health`+`/livez`+`/readyz`+`/check/<service>`). Verify the actual port for `helix-health` from
 > its `LoadConfig` before scripting probes against it.
 
@@ -444,7 +446,7 @@ This manual was written by reading the following in-repo sources (paths relative
 - `Makefile` — all targets (`build`, `dev`/`dev-*`, `migrate-up`/`migrate-down`, `seed`, `sbom`,
   `deps-update`, `docs*`)
 - `go.mod`, `go.work` — Go toolchain pin and workspace membership
-- `cmd/helixd/main.go` — `HELIXD_*` env, `/status` surface, graceful shutdown
+- `cmd/helixd/main.go` — `HELIXD_*` env, `/status` surface (with `/health`+`/healthz` aliases), graceful shutdown
 - `cmd/helix-gateway/main.go` — `HELIX_GATEWAY_*` env, `/metrics`, `X-Helix-Gateway`
 - `cmd/helix-health/main.go` — gRPC `HealthService` + `/health`,`/livez`,`/readyz`,`/check/<service>`
 - `cmd/helix_infra/{main,up,run,shared,health}.go` — orchestrator subcommands; simulation-by-default

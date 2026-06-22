@@ -56,6 +56,38 @@ Key resources:
 
 ---
 
+### 4. Config-Driven Worker Deployment (persistent membership)
+
+For bringing up a LAN/SSH fleet of persistent worker nodes, use the config-driven
+deploy path. Everything is derived from a single source of truth,
+`deploy/cluster.env` — no IPs, ports, hosts or keys are hardcoded in the scripts.
+
+```bash
+# 1. Declare the fleet in deploy/cluster.env (HELIX_NODE_<id> inventory + HELIX_NODES).
+# 2. Build the linux agent into dist/, then deploy every node in the inventory:
+./deploy/deploy-workers.sh                 # all HELIX_NODES
+./deploy/deploy-workers.sh thinker nezha   # a subset
+HELIX_HOST_IP=10.0.0.5 ./deploy/deploy-workers.sh   # pin the control-host IP
+```
+
+`deploy-workers.sh` ships the agent binary + `agent-launch.sh` launcher to each worker
+over ssh/scp and starts a **persistent** `helix-agent` that registers under
+`/clusteros/nodes/<id>` and keeps its etcd lease alive for its whole lifetime.
+
+> **Requirement — user linger.** The agent runs as a systemd *user* service, so the
+> deploy enables linger (`loginctl enable-linger "$USER"`) on each worker so the user
+> manager — and the agent — survives logout/reboot. A user may enable its own linger
+> without root. `deploy-workers.sh` does this automatically; if you launch the agent by
+> hand, enable linger first or the agent will not persist across sessions.
+
+The control host runs the infra stack (etcd, helixd, …) via
+`deploy/compose/helix_infra.yml`, which reads `deploy/cluster.env` through
+`--env-file`. The published etcd/kafka host ports below come from that compose file.
+
+**Best for:** Persistent multi-node bare-metal/LAN fleets without Kubernetes.
+
+---
+
 ## Monitoring and Alerting
 
 Helix Cluster OS exposes Prometheus metrics on `:9090/metrics` for every service.
@@ -97,7 +129,12 @@ Configure these in your orchestrator for automatic restart and traffic routing.
 **Resolution:**
 - Verify etcd endpoints: `etcdctl endpoint health`
 - Check TLS certificates are valid and not expired.
-- Ensure network policies allow traffic to etcd ports (2379, 2380).
+- Ensure network policies allow traffic to etcd ports. The config-driven infra stack
+  (`deploy/compose/helix_infra.yml`) publishes each of the 3 etcd members on its own
+  host client port — `2379` (etcd-1), `2479` (etcd-2), `2579` (etcd-3) — each mapped to
+  the in-container client port `2379`; peer ports are `2380`/`2381`/`2382`. Kafka exposes
+  a dual-listener broker per member on host ports `9092` (kafka-1), `9093` (kafka-2),
+  `9094` (kafka-3). Workers must be able to reach every published member directly.
 
 ### Gateway 502 / 503 Errors
 

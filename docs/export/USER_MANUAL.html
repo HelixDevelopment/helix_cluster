@@ -472,7 +472,8 @@ defaults.</p>
 <tr>
 <td><code>HELIXD_PORT</code></td>
 <td><code>8081</code></td>
-<td>TCP port for the <code>/status</code> HTTP surface (<code>0</code> =
+<td>TCP port for the <code>/status</code> HTTP surface — also serves the
+<code>/health</code> and <code>/healthz</code> aliases (<code>0</code> =
 ephemeral)</td>
 </tr>
 <tr>
@@ -812,8 +813,11 @@ the orchestrator path over hand-running compose.</p>
 <tr>
 <td>Daemon status</td>
 <td><code>helixd</code></td>
-<td><code>GET /status</code></td>
-<td>Aggregated daemon + subservice reachability JSON</td>
+<td><code>GET /status</code> (aliases <code>GET /health</code>,
+<code>GET /healthz</code>)</td>
+<td>Aggregated daemon + subservice reachability JSON; the
+<code>/health</code>+<code>/healthz</code> aliases let k8s/orchestrator
+probes hit the conventional paths</td>
 </tr>
 <tr>
 <td>Health service</td>
@@ -833,17 +837,21 @@ via <code>pkg/metrics</code>)</td>
 </tbody>
 </table>
 <div class="sourceCode" id="cb11"><pre
-class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8081/status        <span class="co"># helixd</span></span>
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8081/status        <span class="co"># helixd (also /health, /healthz)</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:8080/metrics        <span class="co"># gateway Prometheus metrics</span></span>
 <span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="ex">curl</span> <span class="at">-fsS</span> http://localhost:<span class="op">&lt;</span>health-http<span class="op">&gt;</span>/livez <span class="co"># helix-health liveness</span></span></code></pre></div>
 <blockquote>
 <p>The <code>docs/guides/operations.md</code> guide describes a
 Prometheus stack on <code>:9090/metrics</code>, Grafana dashboards,
-<code>/healthz</code>/<code>/readyz</code> probes and Kubernetes
-deployment. Those are <strong>target operational patterns / deployment
-options</strong>, not all wired into the binaries in this checkout. The
-authoritative per-binary endpoints are the ones in the table above
-(<code>/status</code>, <code>/metrics</code>,
+<code>/readyz</code> probes and Kubernetes deployment. Those are
+<strong>target operational patterns / deployment options</strong>, not
+all wired into the binaries in this checkout. (<code>helixd</code> does
+serve <code>/healthz</code> — and <code>/health</code> — as aliases of
+<code>/status</code>, so liveness probes against the conventional path
+work today.) The authoritative per-binary endpoints are the ones in the
+table above
+(<code>/status</code>+<code>/health</code>+<code>/healthz</code>,
+<code>/metrics</code>,
 <code>/health</code>+<code>/livez</code>+<code>/readyz</code>+<code>/check/&lt;service&gt;</code>).
 Verify the actual port for <code>helix-health</code> from its
 <code>LoadConfig</code> before scripting probes against it.</p>
@@ -1033,7 +1041,9 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb16-1"><a href=
 <li><code>go.mod</code>, <code>go.work</code> — Go toolchain pin and
 workspace membership</li>
 <li><code>cmd/helixd/main.go</code> — <code>HELIXD_*</code> env,
-<code>/status</code> surface, graceful shutdown</li>
+<code>/status</code> surface (with
+<code>/health</code>+<code>/healthz</code> aliases), graceful
+shutdown</li>
 <li><code>cmd/helix-gateway/main.go</code> —
 <code>HELIX_GATEWAY_*</code> env, <code>/metrics</code>,
 <code>X-Helix-Gateway</code></li>
