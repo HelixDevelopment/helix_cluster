@@ -3,6 +3,7 @@ package wireguard
 import (
 	"encoding/base64"
 	"fmt"
+	"net"
 	"time"
 
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -50,6 +51,43 @@ func GenerateKeyPair() (privateKey, publicKey string, err error) {
 	return base64.StdEncoding.EncodeToString(key[:]),
 		base64.StdEncoding.EncodeToString(pub[:]),
 		nil
+}
+
+// validateAllowedIPs checks that every allowed-IP entry is a valid CIDR. It is
+// OS-neutral so the shared Manager.AddPeer can reject malformed peers before
+// they reach any per-OS backend.
+func validateAllowedIPs(cidrs []string) error {
+	for _, cidr := range cidrs {
+		if _, _, err := net.ParseCIDR(cidr); err != nil {
+			return fmt.Errorf("invalid allowed IP %q: %w", cidr, err)
+		}
+	}
+	return nil
+}
+
+// validateOptionalEndpoint checks that a non-empty endpoint resolves to a UDP
+// address. An empty endpoint is allowed (peers may be endpoint-less, e.g. when
+// only an inbound handshake is expected) — matching the original AddPeer
+// contract. For mandatory-endpoint rendering see validateEndpoint in configgen.go.
+func validateOptionalEndpoint(endpoint string) error {
+	if endpoint == "" {
+		return nil
+	}
+	if _, err := net.ResolveUDPAddr("udp", endpoint); err != nil {
+		return fmt.Errorf("invalid endpoint %q: %w", endpoint, err)
+	}
+	return nil
+}
+
+// derivePublicKey returns the base64 Curve25519 public key for a base64
+// private key. It is OS-neutral (used by both the kernel and userspace
+// backends) and surfaces a real error for a malformed key.
+func derivePublicKey(privateKey string) (string, error) {
+	priv, err := ParseKey(privateKey)
+	if err != nil {
+		return "", err
+	}
+	return priv.PublicKey().String(), nil
 }
 
 // ParseKey parses a base64-encoded WireGuard key.

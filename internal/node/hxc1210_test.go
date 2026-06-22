@@ -294,7 +294,7 @@ func TestHXC1210_InMemory_LookupReturnsSelfOnly(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	insts, err := a.registry.Lookup(ctx, "helix-node")
+	insts, err := a.registry.Lookup(ctx, discoveryNodeService)
 	if err != nil {
 		t.Fatalf("Lookup: %v", err)
 	}

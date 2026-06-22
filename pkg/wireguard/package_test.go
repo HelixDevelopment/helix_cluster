@@ -55,7 +55,7 @@ func TestNewManager(t *testing.T) {
 	mgr, err := NewManager(cfg)
 	require.NoError(t, err)
 	assert.NotNil(t, mgr)
-	assert.NotNil(t, mgr.client)
+	assert.NotNil(t, mgr.backend)
 	assert.Equal(t, cfg, mgr.config)
 
 	// Nil config.

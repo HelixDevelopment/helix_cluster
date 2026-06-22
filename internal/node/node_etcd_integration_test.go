@@ -131,7 +131,7 @@ func TestIntegration_HXC1210_TwoAgents_EtcdBackend_CrossVisibility_WithResourceM
 	)
 	deadline := time.Now().Add(15 * time.Second)
 	for time.Now().Before(deadline) {
-		insts, err := agentA.registry.Lookup(lookupCtx, "helix-node")
+		insts, err := agentA.registry.Lookup(lookupCtx, discoveryNodeService)
 		if err != nil {
 			t.Logf("Lookup transient error: %v", err)
 			time.Sleep(300 * time.Millisecond)
@@ -232,7 +232,7 @@ func TestIntegration_HXC1210_InMemory_Returns_OnlySelf_Contrast(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	instsA, err := agentA.registry.Lookup(ctx, "helix-node")
+	instsA, err := agentA.registry.Lookup(ctx, discoveryNodeService)
 	if err != nil {
 		t.Fatalf("agentA Lookup: %v", err)
 	}

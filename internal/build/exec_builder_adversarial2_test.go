@@ -233,6 +233,66 @@ func TestExecBuilderAdv2_HostileJobID_WorkdirCleanedUp(t *testing.T) {
 	}
 }
 
+// helixBuildEntries returns the names of any per-job workdirs still present
+// directly under base.
+func helixBuildEntries(t *testing.T, base string) []string {
+	t.Helper()
+	entries, err := os.ReadDir(base)
+	require.NoError(t, err)
+	var out []string
+	for _, e := range entries {
+		if strings.HasPrefix(e.Name(), "helix-build-") {
+			out = append(out, e.Name())
+		}
+	}
+	return out
+}
+
+// DETERMINISTIC mutation-killer for the cleanup-ordering fix (DEFECT D9).
+//
+// The contract: the per-job workdir MUST be removed BEFORE the job reaches the
+// terminal state any caller can observe. A caller learns the job is terminal via
+// Job.Done() (closed inside TransitionTo, under j.mu). We submit through the REAL
+// Service seam, block on the ORIGINAL job's Done() channel, and the instant it
+// fires assert that NO helix-build-* workdir remains under BaseDir.
+//
+// Why this is deterministic (unlike the stress variant above): Done() is the
+// happens-before edge. With the fix, cleanupWorkdir() runs before
+// terminate(StateSucceeded), so the dir is provably gone when Done() closes.
+//
+// MUTATION PROOF: revert the fix to a bare `defer os.RemoveAll(workdir)` (cleanup
+// after Build returns, i.e. AFTER TransitionTo closes Done) — when Done() fires
+// the workdir is still on disk and this test FAILS. Likewise, making
+// cleanupWorkdir a no-op (or dropping the finish() call on the success path)
+// leaves the dir present at Done() and FAILS. The fix is load-bearing here.
+func TestExecBuilderAdv2_HostileJobID_CleanupHappensBeforeTerminal(t *testing.T) {
+	base := adv2BaseDir(t)
+	b := &ExecBuilder{
+		BaseDir: base,
+		Command: `printf 'x' > "$HELIX_OUTPUT"`,
+	}
+
+	svc := pkgbuild.NewServiceWithBuilder(1, b)
+	svc.Start(context.Background())
+	t.Cleanup(svc.Stop)
+
+	j := &pkgbuild.Job{ID: "../../escape-cleanup", RepoURL: "r", Ref: "v1"}
+	require.NoError(t, svc.Submit(j))
+
+	select {
+	case <-j.Done():
+		// Terminal state is now observable. The workdir must already be gone.
+		leftovers := helixBuildEntries(t, base)
+		assert.Empty(t, leftovers,
+			"workdir cleanup must happen-before the terminal Done() signal; leftovers: %v", leftovers)
+	case <-time.After(60 * time.Second):
+		t.Fatal("hostile-ID build did not reach a terminal state within 60s")
+	}
+
+	require.Equal(t, pkgbuild.StateSucceeded, j.State,
+		"a '/'-bearing job ID must still build successfully after cleanup-before-terminal")
+}
+
 // Sanity timeout guard wrapper: ensures the whole hostile-ID success path cannot
 // hang the suite (the seam already bounds via Eventually, this is belt+braces).
 func TestExecBuilderAdv2_HostileJobID_Terminates(t *testing.T) {

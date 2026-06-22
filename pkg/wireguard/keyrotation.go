@@ -122,8 +122,7 @@ func (m *Manager) RotateKeysTracked() (*RotationResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fingerprint new key: %w", err)
 	}
-	privKey, err := ParseKey(privKeyStr)
-	if err != nil {
+	if _, err := ParseKey(privKeyStr); err != nil {
 		return nil, fmt.Errorf("failed to parse new private key: %w", err)
 	}
 
@@ -134,7 +133,7 @@ func (m *Manager) RotateKeysTracked() (*RotationResult, error) {
 	prev := m.currentKeyStateLocked()
 
 	if !m.config.NoOp {
-		if err := m.client.ConfigureDevice(m.config.InterfaceName, deviceKeyOnly(privKey)); err != nil {
+		if err := m.backend.rotateDeviceKey(privKeyStr); err != nil {
 			return nil, fmt.Errorf("failed to rotate keys on device: %w", err)
 		}
 	}

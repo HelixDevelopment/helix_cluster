@@ -74,6 +74,16 @@ type Config struct {
 // an etcd lease must carry so only genuinely dead nodes expire.
 const swimDeadHorizonDefault = 4 * time.Second
 
+// discoveryNodeService is the discovery "service" segment under which a node
+// agent registers itself. Combined with the etcd backend prefix
+// (etcd.Namespace = "/clusteros") it yields the canonical node descriptor key
+// "/clusteros/nodes/<id>" — the SAME namespace the control plane reads via
+// pkg/etcd.NodeKey / internal/node.EtcdRegistry. Using anything else (the old
+// "helix-node") wrote nodes to a private namespace the cluster never reads,
+// making a "status=healthy" agent invisible to scheduling/federation (HXC
+// CLAUDE-1 anti-bluff defect).
+const discoveryNodeService = "nodes"
+
 // NewAgent creates a new node agent.
 func NewAgent(cfg *Config) (*Agent, error) {
 	if cfg.ID == "" {
@@ -138,8 +148,10 @@ func NewAgent(cfg *Config) (*Agent, error) {
 		}
 		a.etcdClient = ec
 		a.backendType = "etcd"
-		const etcdPrefix = "helix-node"
-		backend := discovery.NewEtcdBackend(ec, etcdPrefix)
+		// Prefix every discovery key with the cluster root namespace so the
+		// ServiceRegistry key "<service>/<id>" = "nodes/<id>" becomes the
+		// canonical "/clusteros/nodes/<id>" descriptor the control plane reads.
+		backend := discovery.NewEtcdBackend(ec, etcd.Namespace)
 		a.registry = discovery.NewServiceRegistry(backend)
 	} else {
 		a.backendType = "in-memory"
@@ -186,7 +198,7 @@ func (a *Agent) Start() error {
 	// Register with discovery — stamp TTL and resource metadata.
 	inst := &discovery.Instance{
 		ID:       a.ID,
-		Service:  "helix-node",
+		Service:  discoveryNodeService,
 		Address:  a.protocol.LocalAddr(),
 		TTL:      a.effectiveTTL,
 		Metadata: a.BuildInstanceMetadata(),
@@ -213,7 +225,7 @@ func (a *Agent) Stop() error {
 	var errs []error
 	deregCtx, deregCancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer deregCancel()
-	if err := a.registry.Deregister(deregCtx, "helix-node", a.ID); err != nil {
+	if err := a.registry.Deregister(deregCtx, discoveryNodeService, a.ID); err != nil {
 		errs = append(errs, fmt.Errorf("deregister: %w", err))
 	}
 	if err := a.wg.Stop(); err != nil {

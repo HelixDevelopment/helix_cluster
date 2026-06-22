@@ -162,7 +162,32 @@ func (b *ExecBuilder) Build(ctx context.Context, j *pkgbuild.Job) {
 		_ = terminate(j, pkgbuild.StateFailed)
 		return
 	}
-	defer os.RemoveAll(workdir)
+
+	// Workdir cleanup MUST happen-before the terminal transition that callers
+	// observe. A deferred os.RemoveAll runs only after Build returns — i.e. AFTER
+	// TransitionTo(StateSucceeded/Failed/Cancelled) — so a caller that watches the
+	// job reach a terminal state (Service.Get) can race ahead and still see the
+	// per-job workdir on disk under BaseDir. With a caller-controlled (possibly
+	// hostile/traversal-named) Job.ID, leaving that directory behind is a real
+	// cleanup-integrity defect. cleanupWorkdir is idempotent: each terminal path
+	// calls it explicitly before terminate(), and the deferred call is a
+	// belt-and-braces guard for any unexpected return.
+	cleanedUp := false
+	cleanupWorkdir := func() {
+		if cleanedUp {
+			return
+		}
+		cleanedUp = true
+		_ = os.RemoveAll(workdir)
+	}
+	defer cleanupWorkdir()
+	// finish removes the per-job workdir and THEN drives the job to its terminal
+	// state, guaranteeing the directory is gone before the state any caller can
+	// observe becomes terminal.
+	finish := func(to pkgbuild.State) error {
+		cleanupWorkdir()
+		return terminate(j, to)
+	}
 
 	outPath := filepath.Join(workdir, b.outputName())
 	j.AppendLog(fmt.Sprintf("[%s] exec build started in %s", time.Now().UTC().Format(time.RFC3339), workdir))
@@ -189,19 +214,19 @@ func (b *ExecBuilder) Build(ctx context.Context, j *pkgbuild.Job) {
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		j.AppendLog(fmt.Sprintf("Build failed: stdout pipe: %v", err))
-		_ = terminate(j, pkgbuild.StateFailed)
+		_ = finish(pkgbuild.StateFailed)
 		return
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
 		j.AppendLog(fmt.Sprintf("Build failed: stderr pipe: %v", err))
-		_ = terminate(j, pkgbuild.StateFailed)
+		_ = finish(pkgbuild.StateFailed)
 		return
 	}
 
 	if err := cmd.Start(); err != nil {
 		j.AppendLog(fmt.Sprintf("Build failed: cannot start command: %v", err))
-		_ = terminate(j, pkgbuild.StateFailed)
+		_ = finish(pkgbuild.StateFailed)
 		return
 	}
 
@@ -220,25 +245,28 @@ func (b *ExecBuilder) Build(ctx context.Context, j *pkgbuild.Job) {
 	// failed, so callers can distinguish operator abort from a real build error.
 	if ctx.Err() != nil {
 		j.AppendLog(fmt.Sprintf("Build cancelled by context (exit %d)", exitCode))
-		_ = terminate(j, pkgbuild.StateCancelled)
+		_ = finish(pkgbuild.StateCancelled)
 		return
 	}
 
 	if exitCode != 0 {
 		b.recordArtifact(j.ID, ExecArtifact{ExitCode: exitCode})
 		j.AppendLog(fmt.Sprintf("Build failed: command exited with code %d", exitCode))
-		_ = terminate(j, pkgbuild.StateFailed)
+		_ = finish(pkgbuild.StateFailed)
 		return
 	}
 
-	// Real success: read whatever the command actually produced.
+	// Real success: read whatever the command actually produced. The bytes are
+	// fully read into memory here, BEFORE the workdir is removed below, so the
+	// digest/artifact reflect the real output even though cleanup precedes the
+	// terminal transition.
 	data, readErr := os.ReadFile(outPath)
 	if readErr != nil {
 		// A zero exit but no artifact is a real failure: the command claimed
 		// success without producing the requested output. Do NOT fabricate one.
 		b.recordArtifact(j.ID, ExecArtifact{ExitCode: exitCode})
 		j.AppendLog(fmt.Sprintf("Build failed: command exited 0 but produced no artifact at %s: %v", outPath, readErr))
-		_ = terminate(j, pkgbuild.StateFailed)
+		_ = finish(pkgbuild.StateFailed)
 		return
 	}
 
@@ -249,7 +277,7 @@ func (b *ExecBuilder) Build(ctx context.Context, j *pkgbuild.Job) {
 	if b.ArtifactStore != nil {
 		if perr := b.ArtifactStore.Put(digest, data); perr != nil {
 			j.AppendLog(fmt.Sprintf("Build failed: persisting artifact: %v", perr))
-			_ = terminate(j, pkgbuild.StateFailed)
+			_ = finish(pkgbuild.StateFailed)
 			return
 		}
 	}
@@ -258,7 +286,9 @@ func (b *ExecBuilder) Build(ctx context.Context, j *pkgbuild.Job) {
 	// recording a successful artifact. If the job was concurrently driven into a
 	// terminal state (e.g. cancelled), TransitionTo returns an error and we must
 	// NOT claim a success that did not happen: no image tag, no success artifact.
-	if err := terminate(j, pkgbuild.StateSucceeded); err != nil {
+	// finish() removes the per-job workdir first, so the directory is gone before
+	// any caller can observe StateSucceeded — no leftover workdir under BaseDir.
+	if err := finish(pkgbuild.StateSucceeded); err != nil {
 		b.recordArtifact(j.ID, ExecArtifact{ExitCode: exitCode})
 		return
 	}

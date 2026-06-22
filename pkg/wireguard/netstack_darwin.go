@@ -18,6 +18,7 @@ import (
 	"net/netip"
 	"strconv"
 	"strings"
+	"time"
 
 	"golang.zx2c4.com/wireguard/conn"
 	"golang.zx2c4.com/wireguard/device"
@@ -154,6 +155,172 @@ func (u *UserspaceDevice) AddPeer(peer *PeerConfig) error {
 		return fmt.Errorf("failed to add peer: %w", err)
 	}
 	return nil
+}
+
+// RemovePeer removes a peer from the live userspace device by its base64 public
+// key. It is the darwin equivalent of Manager.RemovePeer's wgctrl path.
+func (u *UserspaceDevice) RemovePeer(publicKey string) error {
+	pubHex, err := keyToHex(publicKey)
+	if err != nil {
+		return fmt.Errorf("invalid public key: %w", err)
+	}
+	var sb strings.Builder
+	sb.WriteString("public_key=" + pubHex + "\n")
+	sb.WriteString("remove=true\n")
+	if err := u.dev.IpcSet(sb.String()); err != nil {
+		return fmt.Errorf("failed to remove peer: %w", err)
+	}
+	return nil
+}
+
+// SetPrivateKey rotates the device's own private key in place, without dropping
+// configured peers (replace_peers is NOT set). This is the darwin equivalent of
+// the wgctrl deviceKeyOnly ConfigureDevice call used during key rotation.
+func (u *UserspaceDevice) SetPrivateKey(privateKey string) error {
+	privHex, err := keyToHex(privateKey)
+	if err != nil {
+		return fmt.Errorf("invalid private key: %w", err)
+	}
+	if err := u.dev.IpcSet("private_key=" + privHex + "\n"); err != nil {
+		return fmt.Errorf("failed to set private key: %w", err)
+	}
+	return nil
+}
+
+// PeerHandshakeAge returns the time since the named peer last completed a
+// handshake, read from the live device via the wireguard-go UAPI (get=1). It is
+// the darwin equivalent of reading LastHandshakeTime from wgctrl.
+func (u *UserspaceDevice) PeerHandshakeAge(publicKey string) (time.Duration, error) {
+	pubHex, err := keyToHex(publicKey)
+	if err != nil {
+		return 0, fmt.Errorf("invalid public key: %w", err)
+	}
+	p, ok, err := u.peerStat(pubHex)
+	if err != nil {
+		return 0, err
+	}
+	if !ok {
+		return 0, fmt.Errorf("peer not found on device: %s", publicKey)
+	}
+	if p.handshakeSec == 0 && p.handshakeNsec == 0 {
+		return 0, fmt.Errorf("no handshake recorded")
+	}
+	last := time.Unix(p.handshakeSec, p.handshakeNsec)
+	return time.Since(last), nil
+}
+
+// PeerRxTx returns bytes received/transmitted for the named peer, read from the
+// live device via the UAPI. Darwin equivalent of wgctrl ReceiveBytes/TransmitBytes.
+func (u *UserspaceDevice) PeerRxTx(publicKey string) (rx, tx int64, err error) {
+	pubHex, err := keyToHex(publicKey)
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid public key: %w", err)
+	}
+	p, ok, err := u.peerStat(pubHex)
+	if err != nil {
+		return 0, 0, err
+	}
+	if !ok {
+		return 0, 0, fmt.Errorf("peer not found on device: %s", publicKey)
+	}
+	return p.rxBytes, p.txBytes, nil
+}
+
+// Totals returns aggregate rx/tx bytes and the live peer count, read from the
+// device via the UAPI. Darwin equivalent of summing wgctrl device peer stats.
+func (u *UserspaceDevice) Totals() (rx, tx int64, peers int) {
+	out, err := u.dev.IpcGet()
+	if err != nil {
+		return 0, 0, 0
+	}
+	for _, line := range strings.Split(out, "\n") {
+		k, v, ok := splitUAPI(line)
+		if !ok {
+			continue
+		}
+		switch k {
+		case "public_key":
+			peers++
+		case "rx_bytes":
+			if n, e := strconv.ParseInt(v, 10, 64); e == nil {
+				rx += n
+			}
+		case "tx_bytes":
+			if n, e := strconv.ParseInt(v, 10, 64); e == nil {
+				tx += n
+			}
+		}
+	}
+	return rx, tx, peers
+}
+
+// peerStatLine holds the UAPI-reported counters for a single peer.
+type peerStatLine struct {
+	rxBytes       int64
+	txBytes       int64
+	handshakeSec  int64
+	handshakeNsec int64
+}
+
+// peerStat reads the named peer's counters from the device via the UAPI get=1
+// dump. wantHex is the lowercase-hex public key. The dump lists peers in order,
+// each starting with a public_key line; counters belong to the most recent
+// public_key seen.
+func (u *UserspaceDevice) peerStat(wantHex string) (peerStatLine, bool, error) {
+	out, err := u.dev.IpcGet()
+	if err != nil {
+		return peerStatLine{}, false, fmt.Errorf("failed to read device state: %w", err)
+	}
+	var cur string
+	var stat peerStatLine
+	var found bool
+	for _, line := range strings.Split(out, "\n") {
+		k, v, ok := splitUAPI(line)
+		if !ok {
+			continue
+		}
+		switch k {
+		case "public_key":
+			if found {
+				return stat, true, nil
+			}
+			cur = v
+			stat = peerStatLine{}
+		case "rx_bytes":
+			if cur == wantHex {
+				stat.rxBytes, _ = strconv.ParseInt(v, 10, 64)
+				found = true
+			}
+		case "tx_bytes":
+			if cur == wantHex {
+				stat.txBytes, _ = strconv.ParseInt(v, 10, 64)
+				found = true
+			}
+		case "last_handshake_time_sec":
+			if cur == wantHex {
+				stat.handshakeSec, _ = strconv.ParseInt(v, 10, 64)
+				found = true
+			}
+		case "last_handshake_time_nsec":
+			if cur == wantHex {
+				stat.handshakeNsec, _ = strconv.ParseInt(v, 10, 64)
+				found = true
+			}
+		}
+	}
+	if found {
+		return stat, true, nil
+	}
+	return peerStatLine{}, false, nil
+}
+
+// splitUAPI splits a "key=value" UAPI line. Returns ok=false for blank lines.
+func splitUAPI(line string) (key, value string, ok bool) {
+	i := strings.IndexByte(line, '=')
+	if i < 0 {
+		return "", "", false
+	}
+	return line[:i], line[i+1:], true
 }
 
 // Close tears down the userspace device and its netstack TUN.

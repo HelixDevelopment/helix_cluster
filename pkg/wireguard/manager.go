@@ -3,20 +3,19 @@ package wireguard
 import (
 	"context"
 	"fmt"
-	"net"
 	"sync"
 	"time"
-
-	"golang.zx2c4.com/wireguard/wgctrl"
-	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
 
-// Manager manages a WireGuard interface and its peers.
+// Manager manages a WireGuard interface and its peers. The OS-specific data
+// plane lives behind the wgBackend seam (manager_linux.go = kernel/wgctrl,
+// manager_darwin.go = userspace wireguard-go + netstack); all peer-table and
+// key-rotation state below is OS-neutral and shared.
 type Manager struct {
-	mu     sync.RWMutex
-	config *Config
-	client *wgctrl.Client
-	peers  map[string]*PeerConfig // keyed by public key
+	mu      sync.RWMutex
+	config  *Config
+	backend wgBackend
+	peers   map[string]*PeerConfig // keyed by public key
 
 	// Key rotation
 	keyRotationInterval time.Duration
@@ -37,27 +36,29 @@ type Manager struct {
 	now func() time.Time
 }
 
-// deviceKeyOnly builds a wgtypes.Config that updates only the interface
-// private key. Kept in this file because it depends on wgtypes.
-func deviceKeyOnly(privKey wgtypes.Key) wgtypes.Config {
-	return wgtypes.Config{PrivateKey: &privKey}
-}
-
-// NewManager creates a WireGuard manager.
+// NewManager creates a WireGuard manager. The per-OS backend is constructed by
+// newBackend (manager_linux.go / manager_darwin.go). In NoOp mode no backend is
+// created: NoOp is an explicit, test-only opt-in that performs no real device
+// operations on any OS. Real-operation managers always get a real backend (the
+// kernel device on Linux, the userspace device on darwin) — never a stub.
 func NewManager(cfg *Config) (*Manager, error) {
 	if cfg == nil {
 		return nil, fmt.Errorf("config is nil")
 	}
-	client, err := wgctrl.New()
-	if err != nil {
-		return nil, fmt.Errorf("failed to create wgctrl client: %w", err)
-	}
-	return &Manager{
+	m := &Manager{
 		config:   cfg,
-		client:   client,
 		peers:    make(map[string]*PeerConfig),
 		peerKeys: make(map[string][]validKey),
-	}, nil
+	}
+	if cfg.NoOp {
+		return m, nil
+	}
+	backend, err := newBackend(cfg)
+	if err != nil {
+		return nil, err
+	}
+	m.backend = backend
+	return m, nil
 }
 
 // clock returns the manager's time source, defaulting to time.Now.
@@ -68,7 +69,9 @@ func (m *Manager) clock() time.Time {
 	return time.Now()
 }
 
-// Start initializes the WireGuard interface.
+// Start initializes the WireGuard interface via the per-OS backend (kernel
+// device on Linux, real userspace device on darwin). In NoOp mode it does
+// nothing — NoOp is the explicit test-only opt-in.
 func (m *Manager) Start() error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -76,25 +79,11 @@ func (m *Manager) Start() error {
 	if m.config.NoOp {
 		return nil
 	}
-
-	privKey, err := ParseKey(m.config.PrivateKey)
-	if err != nil {
-		return fmt.Errorf("invalid private key: %w", err)
-	}
-
-	cfg := wgtypes.Config{
-		PrivateKey:   &privKey,
-		ListenPort:   &m.config.ListenPort,
-		ReplacePeers: true,
-	}
-
-	if err := m.client.ConfigureDevice(m.config.InterfaceName, cfg); err != nil {
-		return fmt.Errorf("failed to configure device %s: %w", m.config.InterfaceName, err)
-	}
-	return nil
+	return m.backend.configureInterface(
+		m.config.PrivateKey, m.config.Address, m.config.ListenPort, m.config.MTU)
 }
 
-// Stop tears down the interface.
+// Stop tears down the interface via the backend.
 func (m *Manager) Stop() error {
 	m.DisableKeyRotation()
 
@@ -102,83 +91,44 @@ func (m *Manager) Stop() error {
 	defer m.mu.Unlock()
 
 	if m.config.NoOp {
-		if m.client != nil {
-			_ = m.client.Close()
-		}
 		return nil
 	}
-
-	zeroKey := wgtypes.Key{}
-	zeroPort := 0
-	cfg := wgtypes.Config{
-		PrivateKey:   &zeroKey,
-		ListenPort:   &zeroPort,
-		ReplacePeers: true,
+	if err := m.backend.teardownInterface(); err != nil {
+		return err
 	}
-
-	if err := m.client.ConfigureDevice(m.config.InterfaceName, cfg); err != nil {
-		return fmt.Errorf("failed to tear down device %s: %w", m.config.InterfaceName, err)
-	}
-	return m.client.Close()
+	return m.backend.close()
 }
 
-// AddPeer adds or updates a peer.
+// AddPeer adds or updates a peer. The peer is installed on the live device via
+// the backend (real on every OS) and tracked in the in-memory peer table.
 func (m *Manager) AddPeer(peer *PeerConfig) error {
 	if peer == nil {
 		return fmt.Errorf("peer is nil")
 	}
 
-	pubKey, err := ParseKey(peer.PublicKey)
-	if err != nil {
+	// Validate up front so a malformed peer never reaches the device or the peer
+	// table — sink-side contract preserved from the original implementation.
+	if _, err := ParseKey(peer.PublicKey); err != nil {
 		return fmt.Errorf("invalid public key: %w", err)
 	}
-
-	var psk *wgtypes.Key
 	if peer.PresharedKey != "" {
-		pskKey, err := ParseKey(peer.PresharedKey)
-		if err != nil {
+		if _, err := ParseKey(peer.PresharedKey); err != nil {
 			return fmt.Errorf("invalid preshared key: %w", err)
 		}
-		psk = &pskKey
 	}
-
-	allowedIPs := make([]net.IPNet, 0, len(peer.AllowedIPs))
-	for _, cidr := range peer.AllowedIPs {
-		_, ipNet, err := net.ParseCIDR(cidr)
-		if err != nil {
-			return fmt.Errorf("invalid allowed IP %q: %w", cidr, err)
-		}
-		allowedIPs = append(allowedIPs, *ipNet)
+	if err := validateAllowedIPs(peer.AllowedIPs); err != nil {
+		return err
 	}
-
-	wgPeer := wgtypes.PeerConfig{
-		PublicKey:                   pubKey,
-		PresharedKey:                psk,
-		AllowedIPs:                  allowedIPs,
-		PersistentKeepaliveInterval: (*time.Duration)(nil),
-		ReplaceAllowedIPs:           true,
-	}
-	if peer.PersistentKeepalive > 0 {
-		interval := time.Duration(peer.PersistentKeepalive) * time.Second
-		wgPeer.PersistentKeepaliveInterval = &interval
-	}
-
-	if peer.Endpoint != "" {
-		udpAddr, err := net.ResolveUDPAddr("udp", peer.Endpoint)
-		if err != nil {
-			return fmt.Errorf("invalid endpoint %q: %w", peer.Endpoint, err)
-		}
-		wgPeer.Endpoint = udpAddr
+	if err := validateOptionalEndpoint(peer.Endpoint); err != nil {
+		return err
 	}
 
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if !m.config.NoOp {
-		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-			Peers: []wgtypes.PeerConfig{wgPeer},
-		}); err != nil {
-			return fmt.Errorf("failed to add peer: %w", err)
+		if err := m.backend.configurePeer(peer); err != nil {
+			return err
 		}
 	}
 
@@ -188,8 +138,7 @@ func (m *Manager) AddPeer(peer *PeerConfig) error {
 
 // RemovePeer removes a peer by public key.
 func (m *Manager) RemovePeer(publicKey string) error {
-	pubKey, err := ParseKey(publicKey)
-	if err != nil {
+	if _, err := ParseKey(publicKey); err != nil {
 		return fmt.Errorf("invalid public key: %w", err)
 	}
 
@@ -197,15 +146,8 @@ func (m *Manager) RemovePeer(publicKey string) error {
 	defer m.mu.Unlock()
 
 	if !m.config.NoOp {
-		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-			Peers: []wgtypes.PeerConfig{
-				{
-					PublicKey: pubKey,
-					Remove:    true,
-				},
-			},
-		}); err != nil {
-			return fmt.Errorf("failed to remove peer: %w", err)
+		if err := m.backend.removePeer(publicKey); err != nil {
+			return err
 		}
 	}
 
@@ -237,82 +179,48 @@ func (m *Manager) GetPeer(publicKey string) (*PeerConfig, error) {
 	return peer, nil
 }
 
-// PeerHandshakeTime returns time since last handshake.
+// PeerHandshakeTime returns time since last handshake, read from the live
+// device via the per-OS backend.
 func (m *Manager) PeerHandshakeTime(publicKey string) (time.Duration, error) {
 	if m.config.NoOp {
 		return 0, fmt.Errorf("no-op mode: no handshake recorded")
 	}
-
-	pubKey, err := ParseKey(publicKey)
-	if err != nil {
+	if _, err := ParseKey(publicKey); err != nil {
 		return 0, fmt.Errorf("invalid public key: %w", err)
 	}
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
-	dev, err := m.client.Device(m.config.InterfaceName)
-	if err != nil {
-		return 0, fmt.Errorf("failed to get device: %w", err)
-	}
-
-	for _, p := range dev.Peers {
-		if p.PublicKey == pubKey {
-			if p.LastHandshakeTime.IsZero() {
-				return 0, fmt.Errorf("no handshake recorded")
-			}
-			return time.Since(p.LastHandshakeTime), nil
-		}
-	}
-	return 0, fmt.Errorf("peer not found on device: %s", publicKey)
+	return m.backend.peerHandshakeAge(publicKey)
 }
 
-// PeerRxTx returns bytes received/transmitted for a peer.
+// PeerRxTx returns bytes received/transmitted for a peer, read from the live
+// device via the per-OS backend.
 func (m *Manager) PeerRxTx(publicKey string) (rx, tx int64, err error) {
 	if m.config.NoOp {
 		return 0, 0, fmt.Errorf("no-op mode: no stats available")
 	}
-
-	pubKey, err := ParseKey(publicKey)
-	if err != nil {
+	if _, err := ParseKey(publicKey); err != nil {
 		return 0, 0, fmt.Errorf("invalid public key: %w", err)
 	}
 
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-
-	dev, err := m.client.Device(m.config.InterfaceName)
-	if err != nil {
-		return 0, 0, fmt.Errorf("failed to get device: %w", err)
-	}
-
-	for _, p := range dev.Peers {
-		if p.PublicKey == pubKey {
-			return p.ReceiveBytes, p.TransmitBytes, nil
-		}
-	}
-	return 0, 0, fmt.Errorf("peer not found on device: %s", publicKey)
+	return m.backend.peerRxTx(publicKey)
 }
 
-// RotateKeys generates new key pair and updates interface.
+// RotateKeys generates new key pair and updates interface via the backend.
 func (m *Manager) RotateKeys() (newPublicKey string, err error) {
 	privKeyStr, pubKeyStr, err := GenerateKeyPair()
 	if err != nil {
 		return "", fmt.Errorf("failed to generate key pair: %w", err)
 	}
 
-	privKey, err := ParseKey(privKeyStr)
-	if err != nil {
-		return "", fmt.Errorf("failed to parse new private key: %w", err)
-	}
-
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
 	if !m.config.NoOp {
-		if err := m.client.ConfigureDevice(m.config.InterfaceName, wgtypes.Config{
-			PrivateKey: &privKey,
-		}); err != nil {
+		if err := m.backend.rotateDeviceKey(privKeyStr); err != nil {
 			return "", fmt.Errorf("failed to rotate keys: %w", err)
 		}
 	}
@@ -371,25 +279,19 @@ func (m *Manager) InterfaceStats() (*InterfaceStats, error) {
 		}, nil
 	}
 
-	dev, err := m.client.Device(m.config.InterfaceName)
+	st, err := m.backend.deviceStats()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get device: %w", err)
-	}
-
-	var rx, tx int64
-	for _, p := range dev.Peers {
-		rx += p.ReceiveBytes
-		tx += p.TransmitBytes
+		return nil, err
 	}
 
 	return &InterfaceStats{
-		Name:      dev.Name,
+		Name:      st.Name,
 		Address:   m.config.Address,
-		Port:      dev.ListenPort,
-		PublicKey: dev.PublicKey.String(),
-		Peers:     len(dev.Peers),
-		RxBytes:   rx,
-		TxBytes:   tx,
+		Port:      st.ListenPort,
+		PublicKey: st.PublicKey,
+		Peers:     st.PeerCount,
+		RxBytes:   st.RxBytes,
+		TxBytes:   st.TxBytes,
 	}, nil
 }
 
