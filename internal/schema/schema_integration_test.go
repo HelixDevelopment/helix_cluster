@@ -43,6 +43,61 @@ func TestIntegration_ApplyPrimarySchema(t *testing.T) {
 	t.Logf("Apply output:\n%s", out)
 }
 
+// TestApplyPrimarySchema_Idempotent applies the full primary schema TWICE in a
+// row against the live database and asserts the second apply also succeeds with
+// no "already exists" error. A control plane MUST be able to re-run its schema
+// safely (re-apply idempotence). It also asserts the table count is stable at
+// the expected 15 required tables after the second apply.
+//
+// Regression guard for the D11 defect: CREATE TRIGGER without idempotency made
+// the second apply fail with: trigger "helix_nodes_updated_at" already exists.
+func TestApplyPrimarySchema_Idempotent(t *testing.T) {
+	cfg := skipUnlessAvailable(t)
+
+	// First apply — establishes the schema (no-ops where already present).
+	out1, err := schema.ApplyPrimarySchema(cfg)
+	if err != nil {
+		t.Fatalf("first ApplyPrimarySchema failed:\n%s\nerror: %v", out1, err)
+	}
+	t.Logf("first apply output:\n%s", out1)
+
+	// Second apply — MUST succeed. This is the idempotence assertion.
+	out2, err := schema.ApplyPrimarySchema(cfg)
+	if err != nil {
+		t.Fatalf("second ApplyPrimarySchema (re-apply) failed — schema is NOT idempotent:\n%s\nerror: %v", out2, err)
+	}
+	// ON_ERROR_STOP=1 already guarantees a non-zero exit (hence err != nil) on a
+	// real "already exists" ERROR, so reaching here means the apply succeeded.
+	// Defensively scan for an ERROR-level "already exists" line — NOTICE lines
+	// such as `relation "idx_*" already exists, skipping` are the harmless,
+	// expected output of IF NOT EXISTS DDL and MUST NOT fail the test.
+	for _, line := range strings.Split(out2, "\n") {
+		low := strings.ToLower(line)
+		if strings.Contains(low, "error:") && strings.Contains(low, "already exists") {
+			t.Fatalf("second apply produced an ERROR \"already exists\" — schema is NOT idempotent:\n%s", line)
+		}
+	}
+	t.Logf("second apply output:\n%s", out2)
+
+	// Sink-side assertion: all 15 required tables are present after re-apply.
+	countSQL := `
+		SELECT COUNT(*) FROM information_schema.tables
+		WHERE table_schema = 'public'
+		  AND table_name IN (
+		    'nodes','gpu_devices','sessions','session_windows','session_panes',
+		    'reservations','migration_history','audit_log','users','health_snapshots',
+		    'llm_advisories','build_jobs','build_artifacts','network_policies','cluster_config'
+		  );`
+	rows, err := schema.QueryRows(cfg, countSQL)
+	if err != nil {
+		t.Fatalf("table count query failed: %v", err)
+	}
+	if len(rows) == 0 || rows[0] != fmt.Sprintf("%d", len(schema.RequiredTables)) {
+		t.Fatalf("expected %d required tables after re-apply, got %v", len(schema.RequiredTables), rows)
+	}
+	t.Logf("required table count stable after re-apply: %s", rows[0])
+}
+
 // TestIntegration_NodesUpdatedAtBumpsOnUpdate inserts a nodes row, then updates
 // it and asserts updated_at > created_at (trigger fired) and that an audit_log
 // row was written with a per-run UUID.

@@ -143,6 +143,15 @@ func TestCheckServicesMixedReachability(t *testing.T) {
 // liveStatus dials a real server started by run() and decodes the /status body.
 func liveStatus(t *testing.T, deps []Dependency, probe Prober) (status, func()) {
 	t.Helper()
+	return livePath(t, deps, probe, "/status")
+}
+
+// livePath dials a real server started by run() and decodes the JSON body served
+// at the given path. It is the shared driver behind /status and its /health and
+// /healthz aliases, so each endpoint is exercised exactly as an end user (k8s
+// probe, gateway health check, or HelixQA challenge) would hit it.
+func livePath(t *testing.T, deps []Dependency, probe Prober, path string) (status, func()) {
+	t.Helper()
 	cfg := Config{
 		Host:            "127.0.0.1",
 		Port:            0, // ephemeral, host-safe
@@ -168,20 +177,20 @@ func liveStatus(t *testing.T, deps []Dependency, probe Prober) (status, func()) 
 		t.Fatal("timed out waiting for server ready")
 	}
 
-	resp, err := http.Get("http://" + addr + "/status")
+	resp, err := http.Get("http://" + addr + path)
 	if err != nil {
 		cancel()
-		t.Fatalf("GET /status: %v", err)
+		t.Fatalf("GET %s: %v", path, err)
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		cancel()
-		t.Fatalf("status code = %d, want 200", resp.StatusCode)
+		t.Fatalf("GET %s status code = %d, want 200", path, resp.StatusCode)
 	}
 	var body status
 	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
 		cancel()
-		t.Fatalf("decode: %v", err)
+		t.Fatalf("decode %s: %v", path, err)
 	}
 
 	stop := func() {
@@ -283,6 +292,49 @@ func TestRunGracefulShutdownStopsServing(t *testing.T) {
 	if derr == nil {
 		c.Close()
 		t.Fatalf("server still accepting connections on %s after shutdown", addr)
+	}
+}
+
+// TestRunServesHealthAliases proves the conventional /health and /healthz probe
+// endpoints serve the SAME live payload as /status. Many consumers (k8s/orchestrator
+// liveness probes, helix-gateway health checks, HelixQA challenges) hit these paths
+// by convention; before this fix they 404'd, forcing workarounds.
+func TestRunServesHealthAliases(t *testing.T) {
+	deps := []Dependency{
+		{Name: "etcd", Addr: "e:1"},
+		{Name: "postgres", Addr: "p:1"},
+		{Name: "redis", Addr: "r:1"},
+	}
+	// etcd+redis up, postgres down — same wiring as the /status test, so we can
+	// assert the alias payload mirrors live reachability, not a static stub.
+	probe := fakeProbe(map[string]bool{"e:1": true, "r:1": true})
+
+	for _, path := range []string{"/health", "/healthz"} {
+		t.Run(path, func(t *testing.T) {
+			// Mutation: do not register the alias in newMux makes this fail
+			// (livePath fatals on the 404 status code).
+			body, stop := livePath(t, deps, probe, path)
+			defer stop()
+
+			if body.Version != version {
+				t.Errorf("%s version = %q, want %q", path, body.Version, version)
+			}
+			if body.Status != "healthy" {
+				t.Errorf("%s status = %q, want healthy", path, body.Status)
+			}
+			if body.Services["etcd"] != stateReachable {
+				t.Errorf("%s etcd = %q, want reachable", path, body.Services["etcd"])
+			}
+			if body.Services["postgres"] != stateUnreachable {
+				t.Errorf("%s postgres = %q, want unreachable", path, body.Services["postgres"])
+			}
+			if body.Services["redis"] != stateReachable {
+				t.Errorf("%s redis = %q, want reachable", path, body.Services["redis"])
+			}
+			if body.Timestamp <= 0 {
+				t.Errorf("%s timestamp = %d, want > 0", path, body.Timestamp)
+			}
+		})
 	}
 }
 
