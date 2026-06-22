@@ -222,7 +222,14 @@ func statusHandler(deps []Dependency, probe Prober, timeout time.Duration) http.
 
 func newMux(deps []Dependency, probe Prober, timeout time.Duration) *http.ServeMux {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/status", statusHandler(deps, probe, timeout))
+	// Build the handler once and serve it under /status plus the conventional
+	// /health and /healthz aliases, so k8s/orchestrator probes, the gateway's
+	// health checks, and HelixQA challenges all hit the same live payload
+	// instead of a 404. Same handler, no duplicated logic, no behavior change.
+	h := statusHandler(deps, probe, timeout)
+	mux.HandleFunc("/status", h)
+	mux.HandleFunc("/health", h)
+	mux.HandleFunc("/healthz", h)
 	return mux
 }
 
