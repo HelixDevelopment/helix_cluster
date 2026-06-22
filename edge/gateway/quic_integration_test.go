@@ -1,38 +1,15 @@
+//go:build integration
+
 package gateway
 
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"net/http/httptest"
 	"testing"
 	"time"
-
-	quic "github.com/HelixDevelopment/helix_cluster/transport/quic"
 )
-
-// quicTestConfigs builds matched server/client QUIC configs backed by a real
-// self-signed TLS 1.3 cert over loopback (no InsecureSkipVerify).
-func quicTestConfigs(t *testing.T) (server quic.Config, client quic.Config) {
-	t.Helper()
-	cert, pool, err := quic.GenerateSelfSignedCert()
-	if err != nil {
-		t.Fatalf("cert: %v", err)
-	}
-	server = quic.Config{
-		Allow0RTT:       true,
-		KeepAlivePeriod: 15 * time.Second,
-		MaxIdleTimeout:  30 * time.Second,
-		TLSConfig:       &tls.Config{Certificates: []tls.Certificate{cert}},
-	}
-	client = quic.Config{
-		Allow0RTT:       true,
-		KeepAlivePeriod: 15 * time.Second,
-		TLSConfig:       &tls.Config{RootCAs: pool, ServerName: "localhost"},
-	}
-	return server, client
-}
 
 // TestCrossTransport_QUICtoWS is the mandated heterogeneous-routing integration
 // test (HXC-1186 / CLAUDE-1). It stands up ONE gateway with TWO real network

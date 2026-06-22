@@ -1,41 +1,18 @@
+//go:build integration
+
 package quic
 
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"errors"
 	"io"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	quicgo "github.com/quic-go/quic-go"
 )
-
-// runID is emitted once per test run for evidence correlation.
-var runID = uuid.NewString()
-
-// newTestServerConfig builds a server Config with a real self-signed cert and
-// the Helix defaults (0-RTT + datagrams on).
-func newTestServerConfig(t *testing.T) (Config, *tls.Config) {
-	t.Helper()
-	cert, pool, err := GenerateSelfSignedCert()
-	if err != nil {
-		t.Fatalf("cert: %v", err)
-	}
-	serverTLS := &tls.Config{Certificates: []tls.Certificate{cert}}
-	clientTLS := &tls.Config{RootCAs: pool, ServerName: "localhost"}
-	srvCfg := Config{
-		Allow0RTT:       true,
-		EnableDatagrams: true,
-		KeepAlivePeriod: 15 * time.Second,
-		MaxIdleTimeout:  30 * time.Second,
-		TLSConfig:       serverTLS,
-	}
-	return srvCfg, clientTLS
-}
 
 // echoServe accepts one connection and echoes every stream's bytes back. It
 // also echoes one datagram if datagrams are enabled. Returns when ctx is done.
