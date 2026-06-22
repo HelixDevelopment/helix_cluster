@@ -8,6 +8,7 @@ package schema
 import (
 	"bytes"
 	"fmt"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -302,30 +303,104 @@ type PSQLConfig struct {
 	UseContainer  bool
 	ContainerName string
 	Database      string
-	// DSN is the full connection string for local psql (used when UseContainer=false).
+	// User is the role to connect as when no DSN is provided. It is resolved
+	// from PGUSER (falling back to the DSN's user, then "helix"). It MUST NOT be
+	// silently hardcoded to "postgres": the Helix Postgres deployment ships with
+	// a "helix" role and no "postgres" role, so a hardcoded "-U postgres" fails
+	// with `role "postgres" does not exist` (D11).
+	User string
+	// DSN is the full connection string. When non-empty it is passed verbatim to
+	// psql (as a positional connection URI) for BOTH local and container
+	// transports, so psql honors the DSN's host, port, user, dbname and
+	// password. This is the authoritative connection source.
 	DSN string
 }
 
 // ResolvePSQLConfig reads environment variables to determine how to connect.
 // Returns (config, available) where available=false means neither container nor DSN is configured.
+//
+// The DSN (PSQL_DSN, falling back to DATABASE_URL) is the authoritative
+// connection source and is threaded into the config for BOTH container and
+// local transports. When no DSN is set, the user/dbname are resolved from
+// PGUSER/PGDATABASE (defaulting to "helix" — never "postgres").
 func ResolvePSQLConfig() (PSQLConfig, bool) {
 	container := os.Getenv("HELIX_PG_CONTAINER")
 	dsn := os.Getenv("PSQL_DSN")
 	if dsn == "" {
 		dsn = os.Getenv("DATABASE_URL")
 	}
+
+	// Derive defaults from the DSN first, then allow explicit env overrides.
+	dsnUser, dsnDB := parseDSNUserDB(dsn)
+
 	db := os.Getenv("PGDATABASE")
+	if db == "" {
+		db = dsnDB
+	}
 	if db == "" {
 		db = "helix"
 	}
 
+	user := os.Getenv("PGUSER")
+	if user == "" {
+		user = dsnUser
+	}
+	if user == "" {
+		user = "helix"
+	}
+
 	if container != "" {
-		return PSQLConfig{UseContainer: true, ContainerName: container, Database: db}, true
+		return PSQLConfig{UseContainer: true, ContainerName: container, Database: db, User: user, DSN: dsn}, true
 	}
 	if dsn != "" {
-		return PSQLConfig{UseContainer: false, DSN: dsn, Database: db}, true
+		return PSQLConfig{UseContainer: false, DSN: dsn, Database: db, User: user}, true
 	}
 	return PSQLConfig{}, false
+}
+
+// parseDSNUserDB extracts the user and dbname from a postgres connection URI
+// of the form postgres://user[:pass]@host[:port]/dbname[?params]. It returns
+// ("", "") for inputs that are empty or not a recognizable postgres URI (e.g.
+// libpq keyword/value DSNs), leaving the caller to fall back to env/defaults.
+func parseDSNUserDB(dsn string) (user, db string) {
+	if dsn == "" {
+		return "", ""
+	}
+	u, err := url.Parse(dsn)
+	if err != nil {
+		return "", ""
+	}
+	if u.Scheme != "postgres" && u.Scheme != "postgresql" {
+		return "", ""
+	}
+	if u.User != nil {
+		user = u.User.Username()
+	}
+	db = strings.TrimPrefix(u.Path, "/")
+	return user, db
+}
+
+// psqlConnArgs returns the connection-portion psql arguments derived from cfg.
+//
+// When a DSN is present it is passed verbatim as a positional connection URI so
+// psql honors its host/port/user/dbname/password — for BOTH local and container
+// transports. When no DSN is present (container mode invoked purely by name),
+// the user and dbname are taken from cfg.User / cfg.Database — never hardcoded
+// to "postgres" (D11). The "-v ON_ERROR_STOP=1" verbosity flag is included so
+// every transport fails loudly on the first SQL error.
+func psqlConnArgs(cfg PSQLConfig) []string {
+	if cfg.DSN != "" {
+		return []string{cfg.DSN, "-v", "ON_ERROR_STOP=1"}
+	}
+	user := cfg.User
+	if user == "" {
+		user = "helix"
+	}
+	db := cfg.Database
+	if db == "" {
+		db = "helix"
+	}
+	return []string{"-U", user, "-d", db, "-v", "ON_ERROR_STOP=1"}
 }
 
 // RunSQL executes a SQL string via psql according to PSQLConfig.
@@ -361,16 +436,14 @@ func RunSQLStdin(cfg PSQLConfig, sqlText string) (string, error) {
 		name    string
 		cmdArgs []string
 	)
+	conn := psqlConnArgs(cfg)
 	if cfg.UseContainer {
 		name = "podman"
-		cmdArgs = []string{
-			"exec", "-i", cfg.ContainerName,
-			"psql", "-U", "postgres", "-d", cfg.Database,
-			"-v", "ON_ERROR_STOP=1", "-f", "-",
-		}
+		cmdArgs = append([]string{"exec", "-i", cfg.ContainerName, "psql"}, conn...)
+		cmdArgs = append(cmdArgs, "-f", "-")
 	} else {
 		name = "psql"
-		cmdArgs = []string{cfg.DSN, "-v", "ON_ERROR_STOP=1", "-f", "-"}
+		cmdArgs = append(conn, "-f", "-")
 	}
 	cmd := exec.Command(name, cmdArgs...)
 	cmd.Stdin = strings.NewReader(sqlText)
@@ -401,20 +474,7 @@ func QueryRows(cfg PSQLConfig, sql string) ([]string, error) {
 
 // runPsql builds and executes the psql command with the given extra args.
 func runPsql(cfg PSQLConfig, extraArgs ...string) (string, error) {
-	args, err := buildPsqlArgs(cfg, extraArgs...)
-	if err != nil {
-		return "", err
-	}
-	var cmdArgs []string
-	var name string
-	if cfg.UseContainer {
-		name = "podman"
-		cmdArgs = append([]string{"exec", "-i", cfg.ContainerName, "psql", "-U", "postgres", "-d", cfg.Database, "-v", "ON_ERROR_STOP=1"}, extraArgs...)
-	} else {
-		name = "psql"
-		cmdArgs = args
-	}
-	_ = args
+	name, cmdArgs := buildPsqlArgs(cfg, extraArgs...)
 	cmd := exec.Command(name, cmdArgs...)
 	var buf bytes.Buffer
 	cmd.Stdout = &buf
@@ -425,41 +485,26 @@ func runPsql(cfg PSQLConfig, extraArgs ...string) (string, error) {
 	return buf.String(), nil
 }
 
-// buildPsqlArgs assembles the psql argument list for local (non-container) runs.
-func buildPsqlArgs(cfg PSQLConfig, extraArgs ...string) ([]string, error) {
+// buildPsqlArgs assembles the (executable, args) pair for a psql invocation,
+// honoring the DSN-derived connection for both the local psql transport and the
+// podman-exec container transport. It never hardcodes "-U postgres" (D11): the
+// connection portion always comes from psqlConnArgs(cfg).
+func buildPsqlArgs(cfg PSQLConfig, extraArgs ...string) (name string, cmdArgs []string) {
+	conn := psqlConnArgs(cfg)
 	if cfg.UseContainer {
-		// Container mode builds differently — handled inline in runPsql.
-		return nil, nil
+		name = "podman"
+		cmdArgs = append([]string{"exec", "-i", cfg.ContainerName, "psql"}, conn...)
+		cmdArgs = append(cmdArgs, extraArgs...)
+		return name, cmdArgs
 	}
-	args := []string{cfg.DSN, "-v", "ON_ERROR_STOP=1"}
-	args = append(args, extraArgs...)
-	return args, nil
+	name = "psql"
+	cmdArgs = append(conn, extraArgs...)
+	return name, cmdArgs
 }
 
 // runPsqlQuery runs a SQL string and returns the -t -A (tuple-only, unaligned) output.
 func runPsqlQuery(cfg PSQLConfig, sql string) (string, error) {
-	var (
-		name    string
-		cmdArgs []string
-	)
-	if cfg.UseContainer {
-		name = "podman"
-		cmdArgs = []string{
-			"exec", "-i", cfg.ContainerName,
-			"psql", "-U", "postgres", "-d", cfg.Database,
-			"-v", "ON_ERROR_STOP=1",
-			"-t", "-A",
-			"-c", sql,
-		}
-	} else {
-		name = "psql"
-		cmdArgs = []string{
-			cfg.DSN,
-			"-v", "ON_ERROR_STOP=1",
-			"-t", "-A",
-			"-c", sql,
-		}
-	}
+	name, cmdArgs := buildPsqlArgs(cfg, "-t", "-A", "-c", sql)
 	cmd := exec.Command(name, cmdArgs...)
 	var buf bytes.Buffer
 	cmd.Stdout = &buf
