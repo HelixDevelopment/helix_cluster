@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"sort"
 	"sync"
+	"time"
 )
 
 // Tier is an ordered preference rank for a GPU provider. LOWER values are MORE
@@ -149,7 +150,17 @@ func main() {
 	m.Register(Provider{Name: "decentralized-pool", Tier: TierDecentralized, Healthy: true})
 
 	log.Printf("gpu-pool-manager listening on %s", *addr)
-	if err := http.ListenAndServe(*addr, newRouter(m)); err != nil {
+	// Timeouts mirror helixd (cmd/helixd/main.go) and add ReadHeaderTimeout to
+	// harden against slow-header / Slowloris attacks (gosec G114).
+	srv := &http.Server{
+		Addr:              *addr,
+		Handler:           newRouter(m),
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
+	if err := srv.ListenAndServe(); err != nil {
 		log.Fatalf("gpu-pool-manager: server error: %v", err)
 	}
 }
