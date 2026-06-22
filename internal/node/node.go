@@ -152,6 +152,12 @@ func NewAgent(cfg *Config) (*Agent, error) {
 		// ServiceRegistry key "<service>/<id>" = "nodes/<id>" becomes the
 		// canonical "/clusteros/nodes/<id>" descriptor the control plane reads.
 		backend := discovery.NewEtcdBackend(ec, etcd.Namespace)
+		// Tie lease keep-alive to the agent's LIFETIME context (cancelled only
+		// in Stop), not the bounded per-call registration context. Without this
+		// the keep-alive goroutine dies when Start()'s `defer regCancel()` fires,
+		// the lease expires after TTL, and /clusteros/nodes/<id> vanishes while
+		// the process keeps running (D14).
+		backend.SetKeepAliveContext(a.ctx)
 		a.registry = discovery.NewServiceRegistry(backend)
 	} else {
 		a.backendType = "in-memory"

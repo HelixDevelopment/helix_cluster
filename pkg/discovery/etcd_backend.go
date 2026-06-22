@@ -28,6 +28,18 @@ type EtcdBackend struct {
 	client EtcdClient
 	prefix string
 
+	// keepAliveCtx is the LIFETIME context for background lease keep-alive
+	// goroutines. It MUST outlive any single Put/Register RPC: the lease must
+	// be renewed for as long as the node is alive, not just for the duration of
+	// the short, bounded registration call. Defaults to context.Background()
+	// (renews forever) and is overridden via SetKeepAliveContext so the agent
+	// can tie keep-alive to its own shutdown context. D14 regression: previously
+	// keep-alive inherited the per-call 10s registration context, which was
+	// cancelled by `defer regCancel()` the instant Register returned — so the
+	// lease expired after TTL and the /clusteros/nodes/<id> key vanished even
+	// though the agent process stayed alive.
+	keepAliveCtx context.Context
+
 	mu       sync.RWMutex
 	watchers map[string][]chan BackendEvent
 }
@@ -38,9 +50,20 @@ func NewEtcdBackend(client EtcdClient, prefix string) *EtcdBackend {
 		prefix = prefix + "/"
 	}
 	return &EtcdBackend{
-		client:   client,
-		prefix:   prefix,
-		watchers: make(map[string][]chan BackendEvent),
+		client:       client,
+		prefix:       prefix,
+		keepAliveCtx: context.Background(),
+		watchers:     make(map[string][]chan BackendEvent),
+	}
+}
+
+// SetKeepAliveContext sets the lifetime context used for background lease
+// keep-alive. Pass the agent's long-lived context (cancelled only on Stop) so
+// the lease is renewed for the whole agent lifetime. A nil ctx is ignored
+// (keeps the default context.Background()).
+func (b *EtcdBackend) SetKeepAliveContext(ctx context.Context) {
+	if ctx != nil {
+		b.keepAliveCtx = ctx
 	}
 }
 
@@ -63,8 +86,11 @@ func (b *EtcdBackend) Put(ctx context.Context, key string, inst *Instance) error
 			return fmt.Errorf("grant lease: %w", err)
 		}
 		leaseID = id
-		// Start keep-alive in background.
-		go b.keepAlive(ctx, leaseID)
+		// Start keep-alive in background bound to the LIFETIME context, NOT the
+		// per-call ctx. The Lease/PutWithLease RPCs below keep using ctx (the
+		// bounded registration context) for their own timeout, but the renewal
+		// loop must survive long after Register returns. See D14 above.
+		go b.keepAlive(b.keepAliveCtx, leaseID)
 	}
 
 	if leaseID != 0 {
