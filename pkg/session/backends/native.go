@@ -217,6 +217,26 @@ func (n *NativeBackend) SendInput(id string, input string) error {
 	if sess.closed {
 		return fmt.Errorf("session %q is closed", id)
 	}
+
+	// Write non-blocking so the critical section is bounded: the pty master is
+	// blocking by default, and a default Write can stall in the kernel forever
+	// when the child stops draining its input and the master's output buffer
+	// fills with nobody reading it. Stalling here while holding sess.mu would
+	// deadlock every other serialized I/O call (SendInput/CaptureOutput/Resize)
+	// behind the lock — the cause of D13. O_NONBLOCK keeps the section bounded;
+	// a full buffer surfaces as a clean EAGAIN error instead of a hang.
+	fd := sess.pty.Fd()
+	flags, _, errno := syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_GETFL, 0)
+	if errno != 0 {
+		return fmt.Errorf("fcntl get failed: %v", errno)
+	}
+	if _, _, errno = syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_SETFL, flags|syscall.O_NONBLOCK); errno != 0 {
+		return fmt.Errorf("fcntl set nonblock failed: %v", errno)
+	}
+	defer func() {
+		_, _, _ = syscall.Syscall(syscall.SYS_FCNTL, fd, syscall.F_SETFL, flags)
+	}()
+
 	_, err := sess.pty.Write([]byte(input))
 	return err
 }
