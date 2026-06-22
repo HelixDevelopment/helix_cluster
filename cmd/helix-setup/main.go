@@ -232,14 +232,17 @@ func run(ctx context.Context, cfg Config, args []string, stdout, stderr io.Write
 	}
 
 	fmt.Fprintf(stdout, "Creating data directory: %s\n", cfg.DataDir)
-	if err := os.MkdirAll(cfg.DataDir, 0o755); err != nil {
+	// Owner-only perms: this data dir holds the node config, which may carry a
+	// WireGuard private key, so the dir is 0700 and the file 0600 (gosec
+	// G302/G306).
+	if err := os.MkdirAll(cfg.DataDir, 0o700); err != nil {
 		fmt.Fprintf(stderr, "failed to create data directory %s: %v\n", cfg.DataDir, err)
 		return exitWriteFail
 	}
 
 	// Write the service-endpoints config (static cluster infrastructure config).
 	configPath := cfg.ConfigPath()
-	if err := os.WriteFile(configPath, []byte(configContent), 0o644); err != nil {
+	if err := os.WriteFile(configPath, []byte(configContent), 0o600); err != nil {
 		fmt.Fprintf(stderr, "failed to write config %s: %v\n", configPath, err)
 		return exitWriteFail
 	}

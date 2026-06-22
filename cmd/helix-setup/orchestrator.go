@@ -188,7 +188,9 @@ func (o *Orchestrator) Run() error {
 	o.last = cfg
 
 	// Step 4 – persist config to data dir.
-	if err := os.MkdirAll(o.DataDir, 0o755); err != nil {
+	// Owner-only perms: the node config may carry a WireGuard private key, so the
+	// dir is 0700 and the file 0600 (gosec G302/G306).
+	if err := os.MkdirAll(o.DataDir, 0o700); err != nil {
 		return fmt.Errorf("orchestrator: mkdir %s: %w", o.DataDir, err)
 	}
 	data, err := cfg.ToYAML()
@@ -196,7 +198,7 @@ func (o *Orchestrator) Run() error {
 		return fmt.Errorf("orchestrator: marshal config: %w", err)
 	}
 	cfgPath := o.ConfigPath()
-	if err := os.WriteFile(cfgPath, data, 0o644); err != nil {
+	if err := os.WriteFile(cfgPath, data, 0o600); err != nil {
 		return fmt.Errorf("orchestrator: write node config: %w", err)
 	}
 

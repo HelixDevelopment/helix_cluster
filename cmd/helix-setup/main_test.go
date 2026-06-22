@@ -5,6 +5,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -344,9 +345,16 @@ func TestRunWiresOrchestrator(t *testing.T) {
 		t.Errorf("joiner received ClusterName %q, want %q", joiner.receivedCfg.ClusterName, "integration-cluster")
 	}
 
-	// 4. config.yaml (static service endpoints) must also exist.
-	if _, err := os.Stat(filepath.Join(dataDir, configFileName)); err != nil {
+	// 4. config.yaml (static service endpoints) must also exist, and be written
+	// owner-only (0600) — kills the perms-regression mutant (0o600 -> 0o644).
+	info, err := os.Stat(filepath.Join(dataDir, configFileName))
+	if err != nil {
 		t.Fatalf("config.yaml not found: %v", err)
+	}
+	if runtime.GOOS != "windows" {
+		if perm := info.Mode().Perm(); perm != 0o600 {
+			t.Errorf("config.yaml perms = %#o, want 0600 (owner-only)", perm)
+		}
 	}
 }
 

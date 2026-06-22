@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
@@ -150,6 +151,13 @@ func TestOrchestratorRunSinkSide(t *testing.T) {
 	}
 	if info.Size() == 0 {
 		t.Fatal("config file is empty")
+	}
+	// The node config may carry a WireGuard private key, so it MUST be written
+	// owner-only (0600). This kills the perms-regression mutant (0o600 -> 0o644).
+	if runtime.GOOS != "windows" {
+		if perm := info.Mode().Perm(); perm != 0o600 {
+			t.Errorf("node config perms = %#o, want 0600 (owner-only; may contain WG key)", perm)
+		}
 	}
 	raw, err := os.ReadFile(cfgPath)
 	if err != nil {

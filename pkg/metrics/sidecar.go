@@ -14,6 +14,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"time"
 )
 
 // StartSidecarOnListener starts an HTTP server on the already-open listener
@@ -25,7 +26,15 @@ import (
 func StartSidecarOnListener(lis net.Listener, reg *Registry) *http.Server {
 	mux := http.NewServeMux()
 	Mount(mux, reg)
-	srv := &http.Server{Handler: mux}
+	// Timeouts mirror helixd (cmd/helixd/main.go) and add ReadHeaderTimeout to
+	// harden against slow-header / Slowloris attacks (gosec G112).
+	srv := &http.Server{
+		Handler:           mux,
+		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       5 * time.Second,
+		WriteTimeout:      10 * time.Second,
+		IdleTimeout:       120 * time.Second,
+	}
 	go srv.Serve(lis) //nolint:errcheck // Serve returns ErrServerClosed on Shutdown; callers check via Shutdown.
 	return srv
 }
