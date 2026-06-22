@@ -149,13 +149,17 @@ services:
       ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd-1:2380
       ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
       ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
-      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-1:2379
+      # Advertise BOTH the in-network name (for sibling members / in-cluster
+      # clients) AND the reachable host address:host-port (for REMOTE workers).
+      # ${HELIX_HOST_IP} is injected from deploy/cluster.env (auto-detected at
+      # deploy time); ${ETCD_1_CLIENT_PORT} is the published host port.
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-1:2379,http://${HELIX_HOST_IP:-127.0.0.1}:${ETCD_1_CLIENT_PORT:-2379}
       ETCD_INITIAL_CLUSTER_TOKEN: helix-etcd-cluster
       ETCD_INITIAL_CLUSTER: etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380,etcd-3=http://etcd-3:2380
       ETCD_INITIAL_CLUSTER_STATE: new
     ports:
-      - "2379:2379"
-      - "2380:2380"
+      - "${ETCD_1_CLIENT_PORT:-2379}:2379"
+      - "${ETCD_1_PEER_PORT:-2380}:2380"
     volumes:
       - etcd-1-data:/etcd-data
     healthcheck:
@@ -174,12 +178,13 @@ services:
       ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd-2:2380
       ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
       ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
-      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-2:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-2:2379,http://${HELIX_HOST_IP:-127.0.0.1}:${ETCD_2_CLIENT_PORT:-2479}
       ETCD_INITIAL_CLUSTER_TOKEN: helix-etcd-cluster
       ETCD_INITIAL_CLUSTER: etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380,etcd-3=http://etcd-3:2380
       ETCD_INITIAL_CLUSTER_STATE: new
     ports:
-      - "2381:2380"
+      - "${ETCD_2_CLIENT_PORT:-2479}:2379"
+      - "${ETCD_2_PEER_PORT:-2381}:2380"
     volumes:
       - etcd-2-data:/etcd-data
     healthcheck:
@@ -198,12 +203,13 @@ services:
       ETCD_INITIAL_ADVERTISE_PEER_URLS: http://etcd-3:2380
       ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
       ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
-      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-3:2379
+      ETCD_ADVERTISE_CLIENT_URLS: http://etcd-3:2379,http://${HELIX_HOST_IP:-127.0.0.1}:${ETCD_3_CLIENT_PORT:-2579}
       ETCD_INITIAL_CLUSTER_TOKEN: helix-etcd-cluster
       ETCD_INITIAL_CLUSTER: etcd-1=http://etcd-1:2380,etcd-2=http://etcd-2:2380,etcd-3=http://etcd-3:2380
       ETCD_INITIAL_CLUSTER_STATE: new
     ports:
-      - "2382:2380"
+      - "${ETCD_3_CLIENT_PORT:-2579}:2379"
+      - "${ETCD_3_PEER_PORT:-2382}:2380"
     volumes:
       - etcd-3-data:/etcd-data
     healthcheck:
@@ -237,18 +243,19 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:9092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     ports:
-      - "9092:9092"
+      - "9092:19092"
     volumes:
       - kafka-1-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -261,18 +268,19 @@ services:
     environment:
       KAFKA_NODE_ID: 2
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092,PLAINTEXT_HOST://localhost:9093
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     ports:
-      - "9093:9092"
+      - "9093:19092"
     volumes:
       - kafka-2-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -285,18 +293,19 @@ services:
     environment:
       KAFKA_NODE_ID: 3
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:19092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092,PLAINTEXT_HOST://localhost:9094
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka-1:9093,2@kafka-2:9093,3@kafka-3:9093
       KAFKA_LOG_DIRS: /var/lib/kafka/data
     ports:
-      - "9094:9092"
+      - "9094:19092"
     volumes:
       - kafka-3-data:/var/lib/kafka/data
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
+      test: ["CMD", "/opt/kafka/bin/kafka-broker-api-versions.sh", "--bootstrap-server", "localhost:9092"]
       interval: 10s
       timeout: 5s
       retries: 5

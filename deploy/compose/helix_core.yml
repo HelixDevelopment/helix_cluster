@@ -11,7 +11,9 @@ services:
       nats: { condition: service_healthy }
     environment:
       HELIX_NODE_ID: helixd-1
-      HELIX_ETCD_ENDPOINTS: etcd-1:2379,etcd-2:2379,etcd-3:2379
+      # In-cluster client uses the container-network names (helixd runs ON the
+      # helix bridge). Overridable via cluster.env for non-default topologies.
+      HELIX_ETCD_ENDPOINTS: ${HELIX_ETCD_ENDPOINTS_INCLUSTER:-etcd-1:2379,etcd-2:2379,etcd-3:2379}
       HELIX_POSTGRES_DSN: postgres://helix:helix@postgres-primary:5432/helix?sslmode=disable
       HELIX_NATS_URL: nats://nats:4222
       HELIX_LOG_LEVEL: info
