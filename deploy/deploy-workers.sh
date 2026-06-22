@@ -96,6 +96,12 @@ for nid in $NODES; do
   scp -q "$LAUNCHER_SRC" "$target:$REMOTE_HOME/agent-launch.sh"
   ssh "$target" "chmod +x '$REMOTE_HOME/$BIN_NAME' '$REMOTE_HOME/agent-launch.sh'"
 
+  # Enable user-linger so the systemd user manager (and the agent service it
+  # runs) survives SSH logout. Without this the agent is reaped seconds after
+  # deploy, its etcd lease lapses, and the node de-registers (the process-
+  # lifecycle leg of D14). A user may enable its own linger without root.
+  ssh "$target" "loginctl enable-linger \"\$USER\" 2>/dev/null || true"
+
   # Launch via the config-derived launcher. All values passed explicitly so the
   # remote launcher needs no cluster.env of its own; bind-addr is auto-detected
   # ON the worker (its own LAN IP), never passed as a literal.
