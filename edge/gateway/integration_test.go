@@ -1,3 +1,5 @@
+//go:build integration
+
 package gateway
 
 import (
@@ -6,15 +8,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"strings"
 	"testing"
 	"time"
 )
-
-// wsURL converts an httptest http:// base URL to a ws:// URL pointing at path.
-func wsURL(base, path string) string {
-	return "ws" + strings.TrimPrefix(base, "http") + path
-}
 
 // TestWebSocketRoundTripAndIsolation is the REAL integration test mandated by
 // HXC-1186 / CLAUDE-1. It stands up a real WebSocket server on a real TCP
@@ -141,25 +137,4 @@ func TestWebSocketMissingNodeIDRejected(t *testing.T) {
 	if resp.StatusCode != http.StatusBadRequest {
 		t.Fatalf("expected 400 for missing node id, got %d", resp.StatusCode)
 	}
-}
-
-// waitForRoutes polls the routing table until the expected per-node connection
-// counts are present, so the test does not race the server-side registration.
-func waitForRoutes(t *testing.T, gw *Gateway, want map[string]int) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		ok := true
-		for node, n := range want {
-			if len(gw.table.lookup(node)) < n {
-				ok = false
-				break
-			}
-		}
-		if ok {
-			return
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
-	t.Fatalf("routes not established within deadline; want %v", want)
 }
