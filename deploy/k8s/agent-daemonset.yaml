@@ -16,13 +16,24 @@ spec:
         app.kubernetes.io/name: helix-agent
         app.kubernetes.io/component: agent
     spec:
+      # hostNetwork is REQUIRED (KSV-0009 kept): the node agent runs the WireGuard
+      # mesh data plane and SWIM gossip on the host network namespace; without it
+      # peer hole-punching and host-port reachability for the cluster mesh break.
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
+      securityContext:
+        # Pod-level hardening (KSV-0118): force the RuntimeDefault seccomp profile
+        # for every container so syscalls are filtered to the runtime default set.
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: agent
           image: helixcluster/helix-agent:latest
           imagePullPolicy: IfNotPresent
           ports:
+            # hostPort is REQUIRED (KSV-0024 kept): mesh peers reach this agent at a
+            # stable node-level port over hostNetwork; a dynamic ClusterIP port
+            # would break direct node-to-node gRPC discovery.
             - containerPort: 50059
               name: grpc
               hostPort: 50059
@@ -56,12 +67,20 @@ spec:
               memory: "512Mi"
               cpu: "500m"
           securityContext:
-            # privileged is REQUIRED: the host-agent introspects the node's real
-            # /proc and /sys to report measured resource state (CLAUDE-2 — no mock
-            # host metrics). readOnlyRootFilesystem still applies: the agent writes
-            # nothing to its own container rootfs (host mounts below are readOnly).
-            privileged: true
+            # KSV-0017 cleared: privileged dropped. The agent introspects the node's
+            # real /proc and /sys (CLAUDE-2 — no mock host metrics) via the read-only
+            # host mounts below; /proc/{cpuinfo,meminfo} and /sys DRM entries are
+            # world-readable and need NO privileged mode. Capabilities are dropped to
+            # ALL, then NET_ADMIN is added back — the only capability required, for
+            # the WireGuard mesh data plane (interface + routing management).
+            privileged: false
+            allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+              add:
+                - NET_ADMIN
           volumeMounts:
             - name: proc
               mountPath: /host/proc
@@ -69,6 +88,9 @@ spec:
             - name: sys
               mountPath: /host/sys
               readOnly: true
+      # hostPath /proc + /sys are REQUIRED (KSV-0121 kept): they are the only source
+      # of real, measured node CPU/memory/GPU state (CLAUDE-2). Both are mounted
+      # readOnly above, so the agent cannot mutate host state through them.
       volumes:
         - name: proc
           hostPath:
