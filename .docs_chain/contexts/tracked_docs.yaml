@@ -86,6 +86,21 @@ nodes:
   ph02arch_html: { kind: html,     path: docs/export/phase_02_architecture.html }
   ph02arch_pdf:  { kind: pdf,      path: docs/export/phase_02_architecture.pdf }
   ph02arch_docx: { kind: docx,     path: docs/export/phase_02_architecture.docx }
+  # --- getting-started guide (end-user quickstart: local control plane + gateway + first build job + Web UI) ---
+  gs_md:   { kind: markdown, path: docs/guides/getting-started.md }
+  gs_html: { kind: html,     path: docs/export/getting-started.html }
+  gs_pdf:  { kind: pdf,      path: docs/export/getting-started.pdf }
+  gs_docx: { kind: docx,     path: docs/export/getting-started.docx }
+  # --- operations guide (deployment options + monitoring + troubleshooting + scaling for production) ---
+  ops_md:   { kind: markdown, path: docs/guides/operations.md }
+  ops_html: { kind: html,     path: docs/export/operations.html }
+  ops_pdf:  { kind: pdf,      path: docs/export/operations.pdf }
+  ops_docx: { kind: docx,     path: docs/export/operations.docx }
+  # --- security advisories (risk-accepted findings: GO-2024-3218 DHT-censorship, no upstream fix; trivy secret false-positives) ---
+  advs_md:   { kind: markdown, path: docs/security/ADVISORIES.md }
+  advs_html: { kind: html,     path: docs/export/ADVISORIES.html }
+  advs_pdf:  { kind: pdf,      path: docs/export/ADVISORIES.pdf }
+  advs_docx: { kind: docx,     path: docs/export/ADVISORIES.docx }
   # --- MVP architecture (HXC-1145; L0–L7 stack + service-comm Mermaid matrix + foundation interfaces + registry schema) ---
   mvp_md:   { kind: markdown, path: docs/MVP_ARCHITECTURE.md }
   mvp_html: { kind: html,     path: docs/export/MVP_ARCHITECTURE.html }
@@ -183,6 +198,15 @@ edges:
   - { type: derive-from, from: ph02arch_md,   to: ph02arch_html, transform: md2html }
   - { type: derive-from, from: ph02arch_html, to: ph02arch_pdf,  transform: html2pdf }
   - { type: derive-from, from: ph02arch_md,   to: ph02arch_docx, transform: md2docx }
+  - { type: derive-from, from: gs_md,   to: gs_html, transform: md2html }
+  - { type: derive-from, from: gs_html, to: gs_pdf,  transform: html2pdf }
+  - { type: derive-from, from: gs_md,   to: gs_docx, transform: md2docx }
+  - { type: derive-from, from: ops_md,   to: ops_html, transform: md2html }
+  - { type: derive-from, from: ops_html, to: ops_pdf,  transform: html2pdf }
+  - { type: derive-from, from: ops_md,   to: ops_docx, transform: md2docx }
+  - { type: derive-from, from: advs_md,   to: advs_html, transform: md2html }
+  - { type: derive-from, from: advs_html, to: advs_pdf,  transform: html2pdf }
+  - { type: derive-from, from: advs_md,   to: advs_docx, transform: md2docx }
   - { type: derive-from, from: mvp_md,   to: mvp_html, transform: md2html }
   - { type: derive-from, from: mvp_html, to: mvp_pdf,  transform: html2pdf }
   - { type: derive-from, from: mvp_md,   to: mvp_docx, transform: md2docx }

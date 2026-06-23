@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>ADVISORIES</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    html {
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 12px;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      html {
+        background-color: white;
+      }
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    svg {
+      height: auto;
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      white-space: pre-wrap;
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 85%;
+      margin: 0;
+      hyphens: manual;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #1a1a1a;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">ADVISORIES</h1>
+</header>
+<h1 id="security-advisories-risk-accepted-findings">Security Advisories
+— Risk-Accepted Findings</h1>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status</td>
+<td>active</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Operator-visible record of accepted, unremediated security findings
+for HelixCluster</td>
+</tr>
+<tr>
+<td>Source</td>
+<td><code>make security-scan</code> (govulncheck + gosec + trivy), see
+<a href="../SECURITY_SCANNING.md">SECURITY_SCANNING.md</a></td>
+</tr>
+</tbody>
+</table>
+<p>This document records security findings that have been
+<strong>reviewed and risk-accepted</strong> because no upstream fix is
+available, alongside the mitigation/monitoring posture for each. It is
+the honest sink-side counterpart to the scan-only
+<code>make security-scan</code> target: scanning captures findings, this
+document records the disposition.</p>
+<p>A finding listed here is <strong>not</strong> “ignored” — it is
+tracked, justified, and re-checked each time the security scan is
+re-run, so it can be remediated the moment an upstream fix lands.</p>
+<hr />
+<h2
+id="go-2024-3218-libp2p-kademlia-dht-censorship-no-upstream-fix">GO-2024-3218
+— libp2p Kademlia DHT censorship (no upstream fix)</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Advisory ID</td>
+<td><code>GO-2024-3218</code> (Go vulnerability database)</td>
+</tr>
+<tr>
+<td>Component</td>
+<td><code>github.com/libp2p/go-libp2p-kad-dht</code></td>
+</tr>
+<tr>
+<td>Affected version</td>
+<td><code>v0.40.0</code> (currently pinned)</td>
+</tr>
+<tr>
+<td>Class</td>
+<td>Availability / censorship (DHT record/peer-routing
+manipulation)</td>
+</tr>
+<tr>
+<td>Severity</td>
+<td>Moderate — availability impact only; <strong>not</strong> RCE,
+<strong>not</strong> authn/authz bypass, <strong>not</strong> data
+disclosure</td>
+</tr>
+<tr>
+<td>Detector</td>
+<td><code>govulncheck</code> (reachability-aware)</td>
+</tr>
+<tr>
+<td>Upstream fix</td>
+<td><strong>None available</strong> — no fixed version published at time
+of acceptance</td>
+</tr>
+<tr>
+<td>Disposition</td>
+<td><strong>Risk-accepted with mitigations</strong> (see below)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="affected-modules-and-call-paths">Affected modules and call
+paths</h3>
+<p>The vulnerable package is reachable (not merely present) from two
+modules, both of which build a libp2p host with a Kademlia DHT for peer
+discovery:</p>
+<table>
+<colgroup>
+<col style="width: 33%" />
+<col style="width: 33%" />
+<col style="width: 33%" />
+</colgroup>
+<thead>
+<tr>
+<th>Module</th>
+<th><code>go.mod</code> entry</th>
+<th>Reachable call path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>discovery/p2p</code></td>
+<td><code>discovery/p2p/go.mod</code></td>
+<td><code>discovery/p2p/node.go</code> →
+<code>dht.New(ctx, h, dht.Mode(...))</code> (<code>node.go:125</code>);
+DHT default mode <code>ModeServer</code></td>
+</tr>
+<tr>
+<td><code>clusternode</code></td>
+<td><code>clusternode/go.mod</code> (transitive,
+<code>// indirect</code>)</td>
+<td>cluster node agent libp2p host wiring
+(<code>clusternode/cluster.go</code>,
+<code>clusternode/nodeagent.go</code>)</td>
+</tr>
+</tbody>
+</table>
+<p><code>govulncheck</code> flags the symbols as <strong>actually
+reachable</strong> from these entry points, so this is a genuine
+reachable finding rather than a present-but-dead dependency.</p>
+<h3 id="why-this-severity-and-why-it-is-acceptable">Why this severity
+(and why it is acceptable)</h3>
+<p><code>GO-2024-3218</code> is a <strong>DHT-censorship /
+availability</strong> class issue: a malicious peer participating in the
+same Kademlia DHT can influence peer-routing / record lookups, degrading
+or censoring discovery results. It does <strong>not</strong> grant code
+execution, does <strong>not</strong> bypass authentication or
+authorization, and does <strong>not</strong> disclose data.
+HelixCluster’s trust and authorization decisions do not rely on DHT
+lookups being tamper-proof — the DHT is a discovery convenience, and
+authenticated mTLS / Raft / etcd remain the source of truth for cluster
+state and membership. The blast radius is therefore limited to discovery
+availability/latency, not integrity or confidentiality of the control
+plane.</p>
+<h3 id="mitigation-and-monitoring-guidance">Mitigation and monitoring
+guidance</h3>
+<p>Because no upstream fix exists, the finding is accepted with the
+following standing mitigations:</p>
+<ol type="1">
+<li><strong>Monitor for an upstream patch.</strong> Re-run
+<code>make security-scan</code> on the regular cadence; the moment
+<code>go-libp2p-kad-dht</code> publishes a fixed release, bump the pin
+in <code>discovery/p2p/go.mod</code> and <code>clusternode/go.mod</code>
+and remove this acceptance.</li>
+<li><strong>DHT peer hygiene at the network layer.</strong> Restrict DHT
+participation to trusted network segments where practical; do not expose
+the discovery DHT to the open public internet for production fleets.
+Prefer the config-driven persistent-worker deploy path
+(operator-controlled inventory) over open public DHT bootstrap for
+production membership.</li>
+<li><strong>Do not treat DHT results as authoritative.</strong> Cluster
+membership and trust continue to be anchored in authenticated channels
+(mTLS, etcd, Raft), so a censored/poisoned DHT result cannot escalate
+beyond degraded discovery.</li>
+<li><strong>Defense in depth.</strong> Keep gossip/SWIM and etcd-backed
+registration as the resilient fallback for node discovery if DHT routing
+is degraded.</li>
+</ol>
+<hr />
+<h2
+id="trivy-secrets-confirmed-test-sentinel-false-positives-allowlisted">trivy
+“secrets” — confirmed test-sentinel false positives (allowlisted)</h2>
+<p><code>trivy</code> reports 4 “secret” hits. All 4 are
+<strong>confirmed false positives</strong>: they are placeholder /
+sentinel tokens used inside tests and QA transcripts (e.g.
+<code>*-must-not-leak-*</code> style strings that <em>assert</em>
+secrets do <strong>not</strong> leak). They are not real credentials,
+carry no access, and are intentionally present to drive negative tests.
+They are allowlisted and require no remediation. See the triage note in
+<a href="../SECURITY_SCANNING.md">SECURITY_SCANNING.md</a> (“trivy
+secrets: verify each hit — placeholder/sentinel tokens used in tests and
+QA transcripts … are false positives”).</p>
+<hr />
+<h2 id="re-validation">Re-validation</h2>
+<p>These dispositions are re-checked on every
+<code>make security-scan</code> run. Captured scan evidence lands under
+<code>qa-results/security/&lt;run-id&gt;/</code>. Any change in upstream
+fix availability for <code>GO-2024-3218</code> must trigger remediation
+(dependency bump) and removal of the corresponding acceptance entry
+above, per the project’s no-stale-docs guarantee.</p>
+</body>
+</html>
