@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/HelixDevelopment/helix_cluster/pkg/etcd"
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -40,6 +41,13 @@ type EtcdBackend struct {
 	// though the agent process stayed alive.
 	keepAliveCtx context.Context
 
+	// clock supplies the timestamp stamped into a node descriptor's LastSeen on
+	// each lease keep-alive renewal, so the persisted LastSeen tracks actual
+	// recency instead of freezing at registration time. Defaults to systemClock
+	// (time.Now); overridable in tests for deterministic assertions. Read under
+	// mu.RLock; replaced only via setClock.
+	clock Clock
+
 	mu       sync.RWMutex
 	watchers map[string][]chan BackendEvent
 }
@@ -53,8 +61,32 @@ func NewEtcdBackend(client EtcdClient, prefix string) *EtcdBackend {
 		client:       client,
 		prefix:       prefix,
 		keepAliveCtx: context.Background(),
+		clock:        systemClock{},
 		watchers:     make(map[string][]chan BackendEvent),
 	}
+}
+
+// setClock overrides the timestamp source used to refresh LastSeen on lease
+// keep-alive. A nil clock is ignored (the default systemClock is retained).
+// Intended for deterministic tests.
+func (b *EtcdBackend) setClock(c Clock) {
+	if c == nil {
+		return
+	}
+	b.mu.Lock()
+	b.clock = c
+	b.mu.Unlock()
+}
+
+// now returns the backend's current time via its Clock.
+func (b *EtcdBackend) now() time.Time {
+	b.mu.RLock()
+	c := b.clock
+	b.mu.RUnlock()
+	if c == nil {
+		return time.Now()
+	}
+	return c.Now()
 }
 
 // SetKeepAliveContext sets the lifetime context used for background lease
@@ -90,7 +122,13 @@ func (b *EtcdBackend) Put(ctx context.Context, key string, inst *Instance) error
 		// per-call ctx. The Lease/PutWithLease RPCs below keep using ctx (the
 		// bounded registration context) for their own timeout, but the renewal
 		// loop must survive long after Register returns. See D14 above.
-		go b.keepAlive(b.keepAliveCtx, leaseID)
+		//
+		// keepAlive also refreshes the descriptor's LastSeen on every renewal so
+		// the persisted value tracks actual recency for the whole node lifetime,
+		// rather than freezing at registration time while the lease keeps being
+		// renewed. We hand it an independent clone keyed on this leased entry; the
+		// goroutine owns that copy and re-Puts it under the same lease each tick.
+		go b.keepAlive(b.keepAliveCtx, leaseID, ek, key, cloneInstance(inst))
 	}
 
 	if leaseID != 0 {
@@ -106,7 +144,14 @@ func (b *EtcdBackend) Put(ctx context.Context, key string, inst *Instance) error
 	return nil
 }
 
-func (b *EtcdBackend) keepAlive(ctx context.Context, id clientv3.LeaseID) {
+// keepAlive renews the lease for as long as ctx lives and, on each renewal,
+// re-Puts the descriptor with a refreshed LastSeen so a freshness consumer
+// reading /clusteros/nodes/<id> sees a current timestamp — not the stale
+// registration-time value. The re-Put is cadence-matched to etcd's own
+// keep-alive responses (~TTL/3), so it adds no extra etcd traffic beyond the
+// renewals that already happen. inst is owned exclusively by this goroutine
+// (the caller passed a clone), so mutating its LastSeen here is race-free.
+func (b *EtcdBackend) keepAlive(ctx context.Context, id clientv3.LeaseID, ek, key string, inst *Instance) {
 	ch, err := b.client.KeepAlive(ctx, id)
 	if err != nil {
 		return
@@ -119,8 +164,25 @@ func (b *EtcdBackend) keepAlive(ctx context.Context, id clientv3.LeaseID) {
 			if !ok {
 				return
 			}
+			b.refreshLastSeen(ctx, id, ek, key, inst)
 		}
 	}
+}
+
+// refreshLastSeen stamps inst.LastSeen with the current clock time and re-Puts
+// the descriptor under the existing lease, then notifies watchers. Best-effort:
+// a transient etcd write error is swallowed because the lease itself is still
+// renewed (liveness is unaffected) and the next keep-alive tick retries.
+func (b *EtcdBackend) refreshLastSeen(ctx context.Context, id clientv3.LeaseID, ek, key string, inst *Instance) {
+	inst.LastSeen = b.now()
+	data, err := json.Marshal(inst)
+	if err != nil {
+		return
+	}
+	if err := b.client.PutWithLease(ctx, ek, string(data), id); err != nil {
+		return
+	}
+	b.notify(key, BackendEvent{Type: EventRegister, Key: key, Instance: cloneInstance(inst)})
 }
 
 // Delete removes an instance from etcd.
